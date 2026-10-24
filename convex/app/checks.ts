@@ -333,3 +333,12 @@ export const checkValidator = v.object({
     ref: v.string(),
   }),
 });
+
+const BANK_DETAIL_RE = /([A-Z][A-Za-z& ]{2,30}?),?\s+(?:account|acct)\s+(?:ending|number ending|#)\s*(\d{3,6})/;
+
+/** Bank name + last4 the email asks to pay, for evidence and the activity log only. Never stored
+ * as the bill's bankAccountKey, which always stays the supplier's account on file. */
+export function parseBankDetails(body: string): { bank: string; last4: string } | null {
+  const match = BANK_DETAIL_RE.exec(body);
+  return match ? { bank: match[1]!.trim(), last4: match[2]! } : null;
+}

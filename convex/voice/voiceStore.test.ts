@@ -427,7 +427,7 @@ describe("convex-only", () => {
     expect(recs.filter((r) => r.kind === "email")).toHaveLength(14);
     expect(recs.find((r) => r.ref === "#4471")).toMatchObject({ kind: "invoice", amount_cents: 1840000 });
     expect(recs.find((r) => r.ref === "#4471")?.text).toMatch(/^September 2026 invoice #4471 for main-stage truss rental\. Total \$18,400\.00/);
-    expect(recs.find((r) => r.id === "call_4471_verify")).toMatchObject({ ref: "Call 3 Sep" });
+    expect(recs.find((r) => r.id === "call_4471_verify")).toMatchObject({ ref: "Call 4 Sep" });
     expect(recs.find((r) => r.id === "call_4471_verify")?.text).toContain("4471");
     expect(recs.some((r) => r.kind === "payment" && r.text.includes("#4471"))).toBe(true);
     // No bank account digits ever reach Moss text.

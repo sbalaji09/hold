@@ -22,7 +22,7 @@ import { CopycatPanel } from "@/components/CopycatPanel";
 import { getBill, getCompany, getSettings, listActivity, listChecksForBill } from "@/lib/data";
 import { canCall, canHold, canPay } from "@/lib/policy";
 import { CALL_LINE_STATE, CHECK_RESULT, citeLabel, whyChecks, whyText } from "@/lib/bill";
-import { routeEscalation } from "@/convex/app/checks";
+import { parseBankDetails, routeEscalation } from "@/convex/app/checks";
 
 /** Call length from the last transcript turn (ts is seconds into the call), as mm:ss. */
 function elapsed(transcript: { ts: number }[]): string | undefined {
@@ -60,13 +60,15 @@ export default async function BillPage({
     .sort((a, b) => (a.at < b.at ? -1 : 1));
 
   const bankFlagged = bill.checks.find((c) => c.id === "bank-account")?.state === "flag";
+  // The account the email asks for. The bill itself stays on the account on file.
+  const asked = bankFlagged ? parseBankDetails(bill.email.body) : null;
   // A new supplier's bill waits for a person to confirm who they are before hold calls anyone.
   const awaitingConfirm = bill.supplier.status === "new" && !bill.supplier.onboarding?.confirmedAt && !bill.supplier.key.startsWith("unknown:");
   const noAccount = bill.bankAccount.key === "";
   const failCount = bill.checks.filter((c) => c.state === "flag").length;
   const pay = canPay(bill, settings.watchOnly, co);
   const hold = canHold(bill);
-  const call = canCall(bill);
+  const call = canCall(bill, settings.watchOnly);
 
   const needsSignOff = (bill.status === "Held" || bill.status === "Needs you") && !awaitingConfirm;
   const route = needsSignOff
@@ -149,11 +151,12 @@ export default async function BillPage({
             <p className="m-0 font-mono text-[13px]/[20px] text-ink">
               No bank account on file. {co.name} pays only an account it has verified with {bill.supplier.name}.
             </p>
+          ) : asked ? (
+            <AccountLine bank={asked.bank} last4={asked.last4} state="new" />
           ) : (
             <AccountLine
               bank={bill.bankAccount.bank}
               last4={bill.bankAccount.last4}
-              state={bankFlagged ? "new" : "verified"}
               note={bill.bankAccount.verifiedBy === "call+dev" ? "Verified by call, you approved" : "Verified at onboarding"}
             />
           )}

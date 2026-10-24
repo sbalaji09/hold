@@ -122,7 +122,8 @@ export const requestCall = mutation({
   handler: async (ctx, { billKey }) => {
     const row = await requireBillRow(ctx, billKey);
     const bill = await hydrateBill(ctx, row);
-    const result = canCall(bill);
+    const watchOnly = await getWatchOnlySetting(ctx);
+    const result = canCall(bill, watchOnly);
     if (!result.allowed) return refuse(ctx, "dev", "call supplier", result.reason!, billKey);
 
     const supplier = await ctx.db
@@ -251,9 +252,9 @@ export const decideApproval = mutation({
   },
 });
 
-/** Flips the global Watch only setting from the Payments page. On: Callback still
- * checks, flags and calls, but payBill/runPayments/decideApproval-approve refuse to move money
- * (lib/policy.ts's canMoveMoney). Logged to activity either way. */
+/** Flips the global Watch only setting from the Payments page. On: Callback still flags bills but
+ * won't call suppliers or move money (lib/policy.ts's canMoveMoney gates both). Logged to
+ * activity either way. */
 export const setWatchOnly = mutation({
   args: { watchOnly: v.boolean(), actor: v.literal("dev") },
   handler: async (ctx, { watchOnly, actor }) => {
@@ -267,7 +268,7 @@ export const setWatchOnly = mutation({
       ctx,
       actor,
       watchOnly ? "turned Watch only on" : "turned Watch only off",
-      watchOnly ? "Callback will flag and call but won't move money." : "Callback can move money again.",
+      watchOnly ? "hold will flag bills but won't call suppliers or move money." : "hold can call suppliers and move money again.",
       "settings",
       "global",
     );

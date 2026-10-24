@@ -17,13 +17,13 @@ export interface RunItem {
 }
 
 /** This week's payment run: payments made or due within 7 days of now, plus
- * any Held or Needs-you bill that hasn't gone out and is blocking the run. */
+ * any Scheduled, Held or Needs-you bill that hasn't gone out yet. */
 export async function listRun(): Promise<RunItem[]> {
   const [payments, bills] = await Promise.all([listPayments(), listBills()]);
   const now = Date.now();
   const recent = payments.filter((p) => Math.abs(now - new Date(p.paidAt).getTime()) <= RUN_WINDOW_MS);
   const blocked = bills.filter(
-    (b) => (b.status === "Held" || b.status === "Needs you") && !payments.some((p) => p.billKey === b.key),
+    (b) => (b.status === "Scheduled" || b.status === "Held" || b.status === "Needs you") && !payments.some((p) => p.billKey === b.key),
   );
   const items: RunItem[] = [
     ...blocked.map((bill) => ({ bill, payment: null })),
@@ -41,7 +41,7 @@ export interface RunEligibility {
   lockedReason?: string;
 }
 
-/** Callback can run a payment itself only if it hasn't gone out yet and it
+/** hold can run a payment itself only if it hasn't gone out yet and it
  * passes the same pay policy as the bill page. Anything blocked explains why
  * instead of silently dropping out of the run. */
 export async function runEligibility(items: RunItem[], watchOnly = false, co: Company = companyFor(undefined)): Promise<RunEligibility> {

@@ -473,6 +473,17 @@ export async function listAnswerReviews(): Promise<FunctionReturnType<typeof api
   return [];
 }
 
+import type { TodayStats as HoldStats } from "../convex/app/practice";
+export type { HoldStats };
+
+/** "How hold is doing" numbers for Today (lib card, convex/app/practice.ts's `todayStats`).
+ * The JSON fixture has no held/approval/call history to compute these from, so the fallback
+ * is all zero/empty rather than a guess. */
+export async function getHoldStats(): Promise<HoldStats> {
+  if (CONVEX_URL) return fetchQuery(api.app.practice.todayStats, {}, convexOpts());
+  return { billsChecked: 0, scamsHeld: 0, falseHoldsOverridden: 0, bankChangesConfirmed: 0, moneyHeldCents: 0, avgCallSeconds: null, practice: { caught: 0, total: 0, lastRunAt: null } };
+}
+
 /** The global Watch only setting (Payments page toggle). The JSON fixture has no settings
  * table, so the fallback always reports it off and read-only. */
 export const getSettings = perRender(async function getSettings(): Promise<Settings> {

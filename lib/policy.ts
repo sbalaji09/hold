@@ -23,7 +23,7 @@ function denied(reason: string): PolicyResult {
   return { allowed: false, reason };
 }
 
-export const WATCH_ONLY_REASON = "Watch only is on. hold flags and calls but doesn't move money.";
+export const WATCH_ONLY_REASON = "Watch only is on. hold flags bills but doesn't call suppliers or move money.";
 
 /** Whether anything is allowed to move money right now, independent of the bill at hand. */
 export function canMoveMoney(watchOnly: boolean): PolicyResult {
@@ -56,9 +56,11 @@ export function canHold(bill: Bill): PolicyResult {
   return allowed();
 }
 
-/** Callback can call the supplier's on-file number for anything still open. */
-export function canCall(bill: Bill): PolicyResult {
+/** Callback can call the supplier's on-file number for anything still open, unless watch only is on. */
+export function canCall(bill: Bill, watchOnly = false): PolicyResult {
   if (bill.status === "Paid") return denied("Already paid. No reason to call.");
+  const moneyCheck = canMoveMoney(watchOnly);
+  if (!moneyCheck.allowed) return moneyCheck;
   if (!bill.supplier.trustedPhone) return denied("No number on file yet. Run the background check and confirm a number first.");
   return allowed();
 }

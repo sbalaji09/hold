@@ -69,7 +69,7 @@ test.each(LEGIT_MESS_BILLS)("legit-mess bill %s is never flagged by runChecks", 
 });
 
 test("third verified bank change (SF Fence & Barricade Co. -> Silicon Valley Bank ..3384) is not held", () => {
-  const input = inputForBill("bill_4147");
+  const input = inputForBill("bill_4151");
   expect(input.currentBankAccount.bank).toBe("Silicon Valley Bank");
   expect(input.currentBankAccount.last4).toBe("3384");
   expect(input.currentBankAccount.verifiedBy).toBe("call+dev");

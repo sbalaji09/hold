@@ -139,7 +139,7 @@ describe("payBill", () => {
     await seed({ amountCents: 50_000 });
     await t.mutation(fns.mutations.setWatchOnly, { watchOnly: true, actor: "dev" });
     expect(await t.mutation(fns.mutations.payBill, { billKey: "bill_4471" })).toEqual({
-      refused: "Watch only is on. hold flags and calls but doesn't move money.",
+      refused: "Watch only is on. hold flags bills but doesn't call suppliers or move money.",
     });
     expect((await billRow()).status).toBe("Checking");
   });
@@ -203,7 +203,7 @@ describe("decideApproval", () => {
     const h = await seedApproval({ amountCents: 1_500_000 }, "big_payment");
     await h.t.mutation(h.fns.mutations.setWatchOnly, { watchOnly: true, actor: "dev" });
     expect(await h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "dev" })).toEqual({
-      refused: "Watch only is on. hold flags and calls but doesn't move money.",
+      refused: "Watch only is on. hold flags bills but doesn't call suppliers or move money.",
     });
     expect((await h.billRow()).status).toBe("Checking");
   });
@@ -326,6 +326,16 @@ describe("requestCall", () => {
     const requests = await t.run((ctx) => ctx.db.query("callRequests").collect());
     expect(requests).toHaveLength(0);
   });
+
+  test("refuses to call while Watch only is on", async () => {
+    const { t, fns, seed } = harness();
+    await seed({ checks: [BANK_FLAG] });
+    await t.mutation(fns.mutations.setWatchOnly, { watchOnly: true, actor: "dev" });
+    const result = await t.mutation(fns.mutations.requestCall, { billKey: "bill_4471" });
+    expect(result).toEqual({ refused: "Watch only is on. hold flags bills but doesn't call suppliers or move money." });
+    const requests = await t.run((ctx) => ctx.db.query("callRequests").collect());
+    expect(requests).toHaveLength(0);
+  });
 });
 
 describe("claimPayment", () => {
@@ -334,7 +344,7 @@ describe("claimPayment", () => {
     await seed({ status: "Scheduled" });
     await t.mutation(fns.mutations.setWatchOnly, { watchOnly: true, actor: "dev" });
     const claim = await t.mutation(fns.mutations.claimPayment, { billKey: "bill_4471", bankAccountKey: "bank_stage", amountCents: 500_000 });
-    expect(claim).toEqual({ refused: "Watch only is on. hold flags and calls but doesn't move money." });
+    expect(claim).toEqual({ refused: "Watch only is on. hold flags bills but doesn't call suppliers or move money." });
     expect(await t.run((ctx) => ctx.db.query("payments").collect())).toHaveLength(0);
   });
 

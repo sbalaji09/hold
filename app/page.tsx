@@ -9,7 +9,7 @@ import { AwayToggle } from "@/components/AwayToggle";
 import { LiveNow } from "@/components/LiveNow";
 import { listActivityWithLinks } from "@/lib/activity";
 import { capital } from "@/lib/company";
-import { getCompany, getSettings, listAnswerReviews, listApprovals, listBills, listMessages, listPayments, listPlaybookApprovals, listSuppliers } from "@/lib/data";
+import { getCompany, getHoldStats, getSettings, listAnswerReviews, listApprovals, listBills, listMessages, listPayments, listPlaybookApprovals, listSuppliers } from "@/lib/data";
 import { STATUS_TO_MARK, shortDate } from "@/lib/inbox";
 import { WATCH_ONLY_REASON } from "@/lib/policy";
 import type { ApprovalKind, Bill } from "@/lib/types";
@@ -64,7 +64,7 @@ function billTitle(b: Bill): string {
 }
 
 export default async function TodayPage(): Promise<React.ReactElement> {
-  const [co, bills, approvals, messages, payments, suppliers, changes, settings, activity, reviews] = await Promise.all([
+  const [co, bills, approvals, messages, payments, suppliers, changes, settings, activity, reviews, stats] = await Promise.all([
     getCompany(),
     listBills(),
     listApprovals(),
@@ -75,6 +75,7 @@ export default async function TodayPage(): Promise<React.ReactElement> {
     getSettings(),
     listActivityWithLinks(),
     listAnswerReviews(),
+    getHoldStats(),
   ]);
 
   // ---- waiting on you ----
@@ -223,6 +224,26 @@ export default async function TodayPage(): Promise<React.ReactElement> {
               </Link>
             ))
           )}
+        </Section>
+
+        <Section title="How hold is doing" href="/practice">
+          <p className="pt-dash-note">
+            {stats.billsChecked} {co.bill.many} checked · {stats.scamsHeld} held · {stats.bankChangesConfirmed} bank change{stats.bankChangesConfirmed === 1 ? "" : "s"} confirmed by
+            call
+          </p>
+          <p className="pt-dash-note">
+            <Amount cents={stats.moneyHeldCents} /> held right now
+            {stats.falseHoldsOverridden > 0 ? ` · ${stats.falseHoldsOverridden} false hold${stats.falseHoldsOverridden === 1 ? "" : "s"} you overrode` : ""}
+            {stats.avgCallSeconds !== null ? ` · avg call ${Math.floor(Math.round(stats.avgCallSeconds) / 60)}m ${Math.round(stats.avgCallSeconds) % 60}s` : ""}
+          </p>
+          <p className="pt-dash-note">
+            Practice:{" "}
+            {stats.practice.total === 0
+              ? "no known scams yet"
+              : stats.practice.lastRunAt
+                ? `${stats.practice.caught}/${stats.practice.total} known scams still caught · last run ${shortDate(stats.practice.lastRunAt)}`
+                : `${stats.practice.total} known scams, not run yet`}
+          </p>
         </Section>
       </div>
     </div>

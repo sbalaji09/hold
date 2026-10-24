@@ -379,11 +379,10 @@ function makeRecurringBills(
         ? "casual"
         : undefined;
 
-    // last week's worth of bills ride as "Scheduled"; everything older is Paid.
-    const daysUntilDue = Math.round((due.getTime() - TODAY.getTime()) / 86400000);
-    const isUpcoming = receivedAt > addDays(TODAY, -7) && due >= TODAY;
+    // Historical recurring bills settle as Paid (or Needs you if over the boss's limit); this
+    // week's Scheduled run is the explicit, hand-picked batch below instead.
     const overBoss = amountCents > 1000000; // > $10,000 needs your approval
-    const status: Bill["status"] = isUpcoming ? "Scheduled" : overBoss ? "Needs you" : "Paid";
+    const status: Bill["status"] = overBoss ? "Needs you" : "Paid";
 
     const emailKey = `email_${billKey.replace("bill_", "")}`;
     emails.push({
@@ -422,19 +421,47 @@ function makeRecurringBills(
         transferId: nextTransferId(),
         paidAt: iso(paidAt),
       });
-    } else if (status === "Scheduled") {
-      payments.push({
-        key: `pay_${rawInvoiceNo}`,
-        billKey,
-        amountCents,
-        bankAccountKey: bankKey,
-        status: "Scheduled",
-        paidAt: iso(addDays(TODAY, randInt(1, 4))),
-      });
     }
-    void daysUntilDue;
   }
 }
+
+// --- this week's scheduled run: a handful of safe, under-limit bills across different
+// trusted suppliers riding as "Scheduled" for the current payment run. No payment row yet —
+// a Scheduled bill hasn't been claimed/paid, same as intake.ts's settleBill("pay").
+function makeScheduledBill(s: SupplierDef, dueInDays: number, amountCents: number) {
+  const due = addDays(TODAY, dueInDays);
+  const receivedAt = addDays(due, -randInt(3, 6));
+  const rawInvoiceNo = nextInvoiceNo();
+  const billKey = `bill_${rawInvoiceNo}`;
+  const item = pick(itemLabel[s.category]);
+  const amountDollars = (amountCents / 100).toFixed(2);
+  const bankKey = primaryBankKeyFor.get(s.key)!;
+  const emailKey = `email_${billKey.replace("bill_", "")}`;
+  emails.push({
+    key: emailKey,
+    billKey,
+    fromAddress: s.contactEmail,
+    fromDomain: s.domain,
+    subject: `Invoice #${rawInvoiceNo} — ${item}`,
+    body: invoiceBody(s, rawInvoiceNo, amountDollars, item, isoDate(due)),
+    receivedAt: iso(receivedAt),
+    direction: "in",
+  });
+  bills.push({
+    key: billKey,
+    supplierKey: s.key,
+    invoiceNo: rawInvoiceNo,
+    amountCents,
+    currency: "USD",
+    dueDate: isoDate(due),
+    receivedAt: iso(receivedAt),
+    bankAccountKey: bankKey,
+    status: "Scheduled",
+    emailKey,
+    planted: false,
+  });
+}
+
 
 // --- regular suppliers: recurring boring bills ---
 makeRecurringBills(supplierByKey.get("sup_bayview_staging")!, 6);
@@ -461,6 +488,13 @@ makeRecurringBills(supplierByKey.get("sup_sunset_bbq")!, 5);
 makeRecurringBills(supplierByKey.get("sup_bayfront_waste")!, 6);
 makeRecurringBills(supplierByKey.get("sup_gg_generators")!, 6);
 makeRecurringBills(supplierByKey.get("sup_sf_fence")!, 6);
+
+// --- this week's run: 4 safe, under-limit bills across different trusted suppliers,
+// due over the next several days, so Payments/Inbox show a real Scheduled batch ---
+makeScheduledBill(supplierByKey.get("sup_soundwave")!, 2, 285000);
+makeScheduledBill(supplierByKey.get("sup_mission_tacos")!, 3, 42000);
+makeScheduledBill(supplierByKey.get("sup_sfbay_security")!, 4, 610000);
+makeScheduledBill(supplierByKey.get("sup_bayview_staging")!, 5, 198000);
 
 // --- hero: Stagecraft Rigging Co., 11 bills since April, all Paid to Chase ..2210 ---
 {

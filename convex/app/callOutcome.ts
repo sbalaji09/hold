@@ -9,7 +9,7 @@ import { getCompany } from "./company.js";
 import { hydrateBill } from "./queries.js";
 import { addBillToPracticeSet } from "./practice.js";
 import { openImprovement } from "./techniques.js";
-import { parseBankDetails } from "./intake.js";
+import { parseBankDetails } from "./checks.js";
 
 function monthDay(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });

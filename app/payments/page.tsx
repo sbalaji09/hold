@@ -23,7 +23,7 @@ export default async function PaymentsPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="cb-display text-ink">Payments</h1>
-          <p className="mt-1 text-[13px] text-ink-muted">{settings.watchOnly ? "Watch only is on: Callback checks and calls, but won&rsquo;t send money." : `${capital(co.bill).many} ready to pay, sent through the Increase test bank.`}</p>
+          <p className="mt-1 text-[13px] text-ink-muted">{settings.watchOnly ? "Watch only is on: hold flags bills but doesn&rsquo;t call suppliers or move money." : `${capital(co.bill).many} ready to pay, sent through the Increase test bank.`}</p>
         </div>
         <div className="flex flex-col items-end gap-3">
           <WatchOnlyToggle watchOnly={settings.watchOnly} />

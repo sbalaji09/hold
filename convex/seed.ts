@@ -171,9 +171,10 @@ export async function runSeed(ctx: MutationCtx, args: SeedArgs): Promise<void> {
     await ctx.db.insert("suppliers", demoPhone ? { ...s, trustedPhone: demoPhone } : s);
   }
   for (const b of args.bankAccounts) await ctx.db.insert("bankAccounts", b);
-  // Only settled history is loaded. Unpaid bills from the fixture would show checks and approvals
-  // nothing ran, so they're dropped; the planted scams stay as Practice fixtures, hidden from the inbox.
-  const bills = args.bills.filter((b) => b.status === "Paid" || b.planted);
+  // Settled history (Paid) and this week's Scheduled run are loaded. Other unpaid bills from the
+  // fixture would show checks and approvals nothing ran, so they're dropped; the planted scams
+  // stay as Practice fixtures, hidden from the inbox.
+  const bills = args.bills.filter((b) => b.status === "Paid" || b.status === "Scheduled" || b.planted);
   const kept = new Set(bills.map((b) => b.key));
   const billIdByKey = new Map<string, Id<"bills">>();
   for (const b of bills) billIdByKey.set(b.key, await ctx.db.insert("bills", b.planted ? { ...b, practice: true } : b));

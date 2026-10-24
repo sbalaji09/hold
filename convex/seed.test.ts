@@ -28,10 +28,11 @@ describe("seed", () => {
     }
   });
 
-  test("nothing is pre-staged: no approvals, and every inbox bill is settled history", async () => {
+  test("nothing is pre-staged: no approvals, and every inbox bill is settled history or this week's scheduled run", async () => {
     const t = await seeded();
     expect(await t.run((ctx) => ctx.db.query("approvals").collect())).toHaveLength(0);
+    expect(await t.run((ctx) => ctx.db.query("activity").collect())).toHaveLength(0);
     const bills = await t.run((ctx) => ctx.db.query("bills").collect());
-    expect(bills.filter((b) => !b.practice).every((b) => b.status === "Paid")).toBe(true);
+    expect(bills.filter((b) => !b.practice).every((b) => b.status === "Paid" || b.status === "Scheduled")).toBe(true);
   });
 });

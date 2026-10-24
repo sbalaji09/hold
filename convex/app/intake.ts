@@ -16,6 +16,7 @@ import { lookalikeOf, readNewcomer } from "./onboarding.js";
 import type { Check } from "../../lib/types.js";
 import { routeEmail } from "../../lib/triage.js";
 import { getCompany } from "./company.js";
+import { getWatchOnlySetting } from "./queries.js";
 import { wholeDollars } from "../../lib/company.js";
 
 // ---------- parsing (pure, unit-tested in intake.test.ts) ----------
@@ -27,7 +28,6 @@ const AMOUNT_RE = /\$\s?([\d,]+(?:\.\d{2})?)/g;
 // app already shows invoices as INV-<number>.
 const INVOICE_TOKEN = String.raw`(?:inv-?)?((?=[a-z0-9-]*\d)[a-z0-9]+(?:-[a-z0-9]+)*)`;
 const INVOICE_RE = new RegExp(String.raw`invoice\s*(?:no\.?|number)?\s*#?\s*${INVOICE_TOKEN}|#\s*${INVOICE_TOKEN}`, "i");
-const BANK_DETAIL_RE = /([A-Z][A-Za-z& ]{2,30}?),?\s+account\s+(?:ending|number ending|#)\s*(\d{3,6})/;
 // plan-agent.md addendum §3: a bank change or a $5,000+ bill from a `new` supplier always calls.
 const NEW_SUPPLIER_CALL_THRESHOLD_CENTS = 500_000;
 
@@ -52,12 +52,6 @@ export function parseInvoiceNo(body: string): string | null {
   return (match?.[1] ?? match?.[2])?.toUpperCase() ?? null;
 }
 
-/** Bank name + last4 the email asks to pay, for evidence and the activity log only. Never stored
- * as the bill's bankAccountKey, which always stays the supplier's account on file. */
-export function parseBankDetails(body: string): { bank: string; last4: string } | null {
-  const match = BANK_DETAIL_RE.exec(body);
-  return match ? { bank: match[1]!.trim(), last4: match[2]! } : null;
-}
 
 function freshKey(prefix: string): string {
   return `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
@@ -333,7 +327,9 @@ export const settleBill = internalMutation({
     const billKey = args.billKey;
     const co = await getCompany(ctx);
     const limit = wholeDollars(co.approvalLimitCents);
-    const status: Doc<"bills">["status"] = args.decision === "pay" ? "Scheduled" : args.decision === "ask_dev" ? "Needs you" : "Calling";
+    const watchOnly = args.decision === "call" && (await getWatchOnlySetting(ctx));
+    const status: Doc<"bills">["status"] =
+      args.decision === "pay" ? "Scheduled" : args.decision === "ask_dev" || watchOnly ? "Needs you" : "Calling";
     await ctx.db.patch(bill._id, { status, checks: args.checks });
     const flaggedLabels = args.checks.filter((c) => c.state === "flag").map((c) => c.label);
     const money = fmtMoney(args.amountCents);
@@ -362,6 +358,14 @@ export const settleBill = internalMutation({
         "callback",
         `Asked you to approve ${money} for ${args.supplier.name} (#${args.invoiceNo})`,
         `Safe, but over the ${limit} limit hold can pay on its own.`,
+        "bill",
+        billKey,
+      ));
+    } else if (watchOnly) {
+      await ctx.db.insert("activity", activity(
+        "callback",
+        `Would have called ${args.supplier.name} on the number on file to verify invoice #${args.invoiceNo}`,
+        `${flaggedLabels.length ? flaggedLabels.join(", ") + ". " : ""}hold would have called the ${co.payee.one} on the number on file, but watch only is on.`,
         "bill",
         billKey,
       ));

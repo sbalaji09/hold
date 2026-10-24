@@ -83,6 +83,29 @@ describe("ingestEmail dedupe", () => {
   });
 });
 
+describe("watch only", () => {
+  test("a bank-change bill queues no call and lands in Needs you while Watch only is on", async () => {
+    const { t } = harness();
+    await t.run(async (ctx) => {
+      await ctx.db.insert("suppliers", SUPPLIER);
+      await ctx.db.insert("bankAccounts", BANK);
+    });
+    await t.mutation(api.app.mutations.setWatchOnly, { watchOnly: true, actor: "dev" });
+
+    const { billKey } = await t.action(api.app.intake.ingestEmail, {
+      from: "Rosa Quintero <rosa@stagecraftrigging.com>",
+      subject: "Invoice #4471",
+      body: "Please pay invoice #4471 for $900.00. New details: Chase, account ending 7788.",
+      receivedAt: "2026-09-01T16:00:00.000Z",
+    });
+
+    const bill = await t.run((ctx) => ctx.db.query("bills").withIndex("by_key", (q) => q.eq("key", billKey)).unique());
+    expect(bill?.status).toBe("Needs you");
+    const requests = await t.run((ctx) => ctx.db.query("callRequests").collect());
+    expect(requests).toHaveLength(0);
+  });
+});
+
 describe("unknown sender bills", () => {
   test("listBills and listApprovals hydrate a bill from an unknown sender without throwing", async () => {
     const { t } = harness();

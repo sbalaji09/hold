@@ -110,6 +110,9 @@ export default function PracticePage(): React.ReactElement {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="cb-display text-ink">Practice</h1>
+          <p className="max-w-[60ch] text-[13px] text-ink-muted">
+            A regression set: every scam hold missed or you reported gets replayed against hold&rsquo;s current checks, so a change can&rsquo;t quietly make hold worse.
+          </p>
           <p className="font-mono text-[12px] text-ink-muted">
             {scams === undefined
               ? "Loading…"
@@ -131,11 +134,17 @@ export default function PracticePage(): React.ReactElement {
             {generating ? "Writing\u2026" : "Generate new set"}
           </Button>
           <Button variant="primary" onClick={onRun} disabled={running}>
-            {running ? "Running\u2026" : "Run set"}
+            {running ? "Running\u2026" : "Run all"}
           </Button>
           <SendBill label="Try a scam" />
         </div>
       </div>
+
+      {scams !== undefined && scams.length > 0 && notRun === scams.length ? (
+        <p role="status" className="font-mono text-[13px] text-ink">
+          Not run yet. Run all to see what hold still catches.
+        </p>
+      ) : null}
 
       {error ? (
         <p role="alert" className="text-[13px] text-hold-solid">

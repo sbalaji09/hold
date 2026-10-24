@@ -136,6 +136,66 @@ export const list = query({
   },
 });
 
+// ---------- today stats (Today's "How hold is doing" card) ----------
+
+export interface TodayStats {
+  billsChecked: number;
+  scamsHeld: number;
+  falseHoldsOverridden: number;
+  bankChangesConfirmed: number;
+  moneyHeldCents: number;
+  avgCallSeconds: number | null;
+  practice: { caught: number; total: number; lastRunAt: string | null };
+}
+
+/** Honest numbers for Today's "How hold is doing" card, computed straight
+ * from the real tables (never the Practice set, which is a separate
+ * regression suite reported alongside under `practice`). */
+export const todayStats = query({
+  args: {},
+  handler: async (ctx): Promise<TodayStats> => {
+    const [bills, approvals, bankAccounts, scams] = await Promise.all([
+      ctx.db.query("bills").collect(),
+      ctx.db.query("approvals").collect(),
+      ctx.db.query("bankAccounts").collect(),
+      ctx.db.query("practiceScams").collect(),
+    ]);
+    const realBills = bills.filter((b) => !b.practice);
+    const realBillKeys = new Set(realBills.map((b) => b.key));
+    const heldApprovals = approvals.filter((a) => a.kind === "held_payment" && realBillKeys.has(a.billKey));
+
+    // Finished, non-Practice calls: length = last transcript segment's end_ts (seconds from
+    // call start), averaged across every call that has a result.
+    const [callRequests, callResults] = await Promise.all([ctx.db.query("callRequests").collect(), ctx.db.query("callResults").collect()]);
+    const liveDoneCallIds = new Set(
+      callRequests.filter((c) => c.mode !== "simulated" && realBillKeys.has(c.bill_id)).map((c) => c.call_id),
+    );
+    const lengths: number[] = [];
+    for (const r of callResults) {
+      if (!liveDoneCallIds.has(r.call_id)) continue;
+      const events = await ctx.db
+        .query("callEvents")
+        .withIndex("by_call", (q) => q.eq("call_id", r.call_id))
+        .collect();
+      const end = events.reduce((max, e) => (e.type === "segment" ? Math.max(max, e.end_ts ?? e.ts) : max), 0);
+      if (end > 0) lengths.push(end);
+    }
+
+    const caught = scams.filter((s) => s.caughtLastRun === true).length;
+    const lastRunAt = scams.reduce<string | null>((max, s) => (s.lastRunAt && (!max || s.lastRunAt > max) ? s.lastRunAt : max), null);
+
+    return {
+      billsChecked: realBills.length,
+      scamsHeld: heldApprovals.length,
+      falseHoldsOverridden: heldApprovals.filter((a) => a.status === "approved").length,
+      bankChangesConfirmed: bankAccounts.filter((a) => a.verifiedBy === "call+dev").length,
+      moneyHeldCents: realBills.filter((b) => b.status === "Held").reduce((sum, b) => sum + b.amountCents, 0),
+      avgCallSeconds: lengths.length ? Math.round(lengths.reduce((a, b) => a + b, 0) / lengths.length) : null,
+      practice: { caught, total: scams.length, lastRunAt },
+    };
+  },
+});
+
 // ---------- add to practice set (any bill, e.g. one Callback missed) ----------
 
 /** Adds a bill to the regression suite. Shared by "Add to practice set" and "Report missed scam". */

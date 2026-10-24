@@ -30,6 +30,7 @@ import {
   UNKNOWN_CALLER,
 } from "./rules.js";
 import { getCompany } from "../app/company.js";
+import { getWatchOnlySetting } from "../app/queries.js";
 
 // ---------- auth ----------
 
@@ -206,9 +207,10 @@ export const queuedRequests = query({
 });
 
 /**
- * Atomically queued -> dialing, attempt += 1. Null if it is not queued (someone else claimed it), or
- * if CALLING_HOURS is set and it's outside the payee's: then it waits for their next weekday opening,
- * without using up an attempt.
+ * Atomically queued -> dialing, attempt += 1. Null if it is not queued (someone else claimed it),
+ * if Watch only is on (a call queued before the toggle flipped never dials), or if CALLING_HOURS
+ * is set and it's outside the payee's: then it waits for their next weekday opening, without
+ * using up an attempt.
  */
 export const claimRequest = mutation({
   args: { secret, call_id: v.string() },
@@ -216,6 +218,7 @@ export const claimRequest = mutation({
     assertVoiceSecret(args.secret);
     const row = await findRequest(ctx, args.call_id);
     if (!row || row.status !== "queued") return null;
+    if (await getWatchOnlySetting(ctx)) return null;
     const hours = parseCallingHours(process.env.CALLING_HOURS);
     if (hours && row.mode !== "simulated") {
       const payee = await ctx.db
