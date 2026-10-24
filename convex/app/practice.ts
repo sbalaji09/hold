@@ -8,7 +8,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { v } from "convex/values";
 import { z } from "zod";
 import { makeFunctionReference } from "convex/server";
-import { action, internalMutation, internalQuery, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server.js";
+import { action, internalAction, internalMutation, internalQuery, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server.js";
 // convex/app/checks.ts is owned by another agent; its signature per the
 // contract we agreed on is:
 //   runChecks({ email, supplier, currentBankAccount, pastPaidBankAccounts,
@@ -444,5 +444,40 @@ export const generateSet = action({
     }
     const inserted = await ctx.runMutation(insertGeneratedRef, { scams: parsed.scams });
     return { inserted };
+  },
+});
+
+// ---------- nightly (convex/crons.ts) ----------
+
+type RunSummary = { ran: number; caught: number; missed: number };
+const generateSetRef = makeFunctionReference<"action", Record<string, never>, { inserted: number }>("app/practice:generateSet");
+const runSetRef = makeFunctionReference<"action", Record<string, never>, RunSummary>("app/practice:runSet");
+
+export const logNightly = internalMutation({
+  args: { what: v.string(), why: v.string() },
+  handler: (ctx, { what, why }) =>
+    ctx.db.insert("activity", { key: `act_${crypto.randomUUID()}`, actor: "callback", what, why, refKind: "technique", refKey: "", at: new Date().toISOString() }),
+});
+
+/** No one asks: each night hold writes itself new scams, runs the whole Practice set, and every
+ * miss goes to the learning loop (runSet -> learnFromMisses), which keeps a fix only if replaying
+ * past cases shows it breaks nothing. */
+// ponytail: the set grows by one generated batch a night; prune old generated scams if runs get slow.
+export const nightly = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    let wrote = "";
+    try {
+      const { inserted } = await ctx.runAction(generateSetRef, {});
+      wrote = `Wrote ${inserted} new scam${inserted === 1 ? "" : "s"} it hadn't seen. `;
+    } catch (err) {
+      wrote = `Couldn't write new scams (${err instanceof Error ? err.message : String(err)}). `;
+    }
+    const r = await ctx.runAction(runSetRef, {});
+    const learning = r.missed === 0 ? "Nothing to fix." : `Learning from the ${r.missed} it missed; a fix is kept only if past cases still come out right.`;
+    await ctx.runMutation(internal.app.practice.logNightly, {
+      what: `practised overnight: caught ${r.caught} of ${r.ran} scams`,
+      why: `${wrote}${learning}`,
+    });
   },
 });

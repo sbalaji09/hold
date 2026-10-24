@@ -1,8 +1,8 @@
 import { convexTest } from "convex-test";
-import { api } from "../_generated/api.js";
+import { api, internal } from "../_generated/api.js";
 import schema from "../schema.js";
 import { modules } from "../test.setup.js";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { decide, runChecks, type CheckBankAccount, type RunChecksInput } from "./checks.js";
@@ -141,4 +141,17 @@ test("insertGenerated marks bills practice: true, excluded from listBills but pr
 
   const fetched = await t.query(appApi.app.queries.getBill, { key: practiceBill.key });
   expect(fetched?.key).toBe(practiceBill.key);
+});
+
+test("nightly practice without Claude still runs the set and says why it wrote nothing new", async () => {
+  vi.stubEnv("ANTHROPIC_API_KEY", "");
+  try {
+    const t = convexTest(schema, modules);
+    await t.action(internal.app.practice.nightly, {});
+    const [entry] = await t.run((ctx) => ctx.db.query("activity").collect());
+    expect(entry).toMatchObject({ actor: "callback", what: "practised overnight: caught 0 of 0 scams" });
+    expect(entry!.why).toContain("Couldn't write new scams");
+  } finally {
+    vi.unstubAllEnvs();
+  }
 });

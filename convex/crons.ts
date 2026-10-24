@@ -7,6 +7,9 @@ const crons = cronJobs();
 // 16:00 UTC is 9 AM in San Francisco (8 AM in winter).
 crons.daily("payment run", { hourUTC: 16, minuteUTC: 0 }, internal.app.increase.dailyPaymentRun);
 
+// 10:00 UTC is 3 AM in San Francisco: hold practises on fresh scams while nobody's working.
+crons.daily("nightly practice", { hourUTC: 10, minuteUTC: 0 }, internal.app.practice.nightly);
+
 // Approvals nearly due or just missed: text whoever hold is waiting on (convex/app/followUp.ts).
 crons.interval("approval follow-ups", { minutes: 15 }, internal.app.followUp.run);
 
