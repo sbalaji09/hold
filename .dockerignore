@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.convex
+.env
+.env.*
+!.env.example
+*.log
+recordings
+tsconfig.tsbuildinfo

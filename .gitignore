@@ -8,3 +8,4 @@ dist/
 *.log
 recordings/
 *.tsbuildinfo
+.model-cache/
