@@ -7,6 +7,8 @@
     "dev:all": "concurrently --names convex,web,voice --prefix-colors blue,green,magenta --kill-others-on-fail \"convex dev\" \"next dev\" \"pnpm voice:dev\"",
     "convex:dev": "convex dev",
     "seed": "convex run seed:seed \"$(cat data/fogline.json)\"",
+    "seed:bayline": "convex run seed:seed \"$(cat data/bayline.json)\"",
+    "seed:harbor": "convex run seed:seed \"$(cat data/harbor.json)\"",
     "voice:dev": "tsx watch --include .env --env-file=.env voice/src/main.ts",
     "voice:start": "tsx --env-file-if-exists=.env voice/src/main.ts",
     "typecheck": "tsc --noEmit",

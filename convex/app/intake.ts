@@ -67,10 +67,24 @@ function fmtMoney(cents: number): string {
   return "$" + (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-async function findSupplierByEmail(ctx: QueryCtx, fromDomain: string, subject: string, body: string): Promise<Doc<"suppliers"> | null> {
+/**
+ * Which payee an email is from: the exact address on file, else the one payee that owns the
+ * domain, else a payee the email names. Employees share the company's domain and home sellers
+ * share gmail.com, so a shared domain alone never decides it.
+ */
+async function findSupplierByEmail(
+  ctx: QueryCtx,
+  fromDomain: string,
+  subject: string,
+  body: string,
+  fromAddress?: string,
+): Promise<Doc<"suppliers"> | null> {
   const suppliers = await ctx.db.query("suppliers").collect();
-  const byDomain = suppliers.find((s) => s.domain.toLowerCase() === fromDomain);
-  if (byDomain) return byDomain;
+  const address = fromAddress?.toLowerCase();
+  const byAddress = address ? suppliers.find((s) => s.contactEmail.toLowerCase() === address) : undefined;
+  if (byAddress) return byAddress;
+  const sameDomain = suppliers.filter((s) => s.domain.toLowerCase() === fromDomain);
+  if (sameDomain.length === 1) return sameDomain[0]!;
   const text = `${subject} ${body}`.toLowerCase();
   return suppliers.find((s) => text.includes(s.name.toLowerCase())) ?? null;
 }
@@ -87,9 +101,9 @@ interface IntakeContext {
 }
 
 export const gatherIntakeContext = internalQuery({
-  args: { fromDomain: v.string(), subject: v.string(), body: v.string() },
-  handler: async (ctx, { fromDomain, subject, body }): Promise<IntakeContext | null> => {
-    const supplier = await findSupplierByEmail(ctx, fromDomain, subject, body);
+  args: { fromDomain: v.string(), subject: v.string(), body: v.string(), fromAddress: v.optional(v.string()) },
+  handler: async (ctx, { fromDomain, subject, body, fromAddress }): Promise<IntakeContext | null> => {
+    const supplier = await findSupplierByEmail(ctx, fromDomain, subject, body, fromAddress);
     if (!supplier) return null;
 
     const accounts = await ctx.db
@@ -516,6 +530,7 @@ async function ingest(ctx: ActionCtx, args: IngestArgs, opts: { existingEmailKey
 
     const context: IntakeContext | null = await ctx.runQuery(internal.app.intake.gatherIntakeContext, {
       fromDomain,
+      fromAddress,
       subject: args.subject,
       body: args.body,
     });

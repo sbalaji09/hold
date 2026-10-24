@@ -8,6 +8,7 @@
     "jsx": "react-jsx",
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
     "target": "ESNext",
     "lib": ["ES2022", "dom"],
     "forceConsistentCasingInFileNames": true,

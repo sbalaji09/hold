@@ -16,7 +16,7 @@ export function NotABill({ billKey, supplier, actor }: { billKey: string; suppli
   return (
     <RouteCorrection
       id="not-a-bill"
-      label="Not a bill"
+      label={`Not a ${co.bill.one}`}
       intro="hold holds this bill so it can't be paid. Where does the email belong?"
       options={["to_maya", "file"]}
       consequence={(r) =>

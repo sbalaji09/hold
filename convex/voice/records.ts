@@ -144,9 +144,18 @@ export async function getSupplierRecords(ctx: QueryCtx, supplier_id: string): Pr
     }
   }
 
-  const emails = allEmails.filter(
-    (e) => e.direction === "in" && e.fromDomain === supplier.domain && !(e.billKey && planted.has(e.billKey)),
-  );
+  // An email is theirs if it is about one of their bills, comes from their address, or comes from a
+  // domain only they use (employees share the company's, home sellers share gmail.com).
+  const billKeys = new Set(realBills.map((b) => b.key));
+  const domainIsTheirs =
+    (await ctx.db.query("suppliers").collect()).filter((s) => s.domain.toLowerCase() === supplier.domain.toLowerCase()).length === 1;
+  // A scam is never their history, even when it came from their own (hacked) mailbox.
+  const theirs = (e: Doc<"emails">) =>
+    !(e.billKey && planted.has(e.billKey)) &&
+    ((e.billKey !== null && billKeys.has(e.billKey)) ||
+      e.fromAddress.toLowerCase() === supplier.contactEmail.toLowerCase() ||
+      (domainIsTheirs && e.fromDomain === supplier.domain));
+  const emails = allEmails.filter((e) => e.direction === "in" && theirs(e));
   for (const e of emails) {
     out.push({
       id: e.key,

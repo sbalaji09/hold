@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getPersona } from "@/lib/persona";
 import { countPlaybookApprovals, getCompany, listApprovals } from "@/lib/data";
-import { capital, wholeDollars } from "@/lib/company";
+import { capital, inSentence, wholeDollars } from "@/lib/company";
 import { CHECK_RESULT, citeLabel } from "@/lib/bill";
 import { shortDate } from "@/lib/inbox";
 import { Amount, AccountLine, CheckRow } from "@/components/callback";
@@ -26,8 +26,8 @@ export default async function ApprovalsPage() {
         <h1 className="cb-display text-ink">Approvals</h1>
         <p className="mt-1 text-[13px] text-ink-muted">
           {persona === "dev"
-            ? `Signed in as ${co.dev.full}, ${co.dev.role.toLowerCase()}. ${waiting} waiting on your sign-off.`
-            : `Signed in as ${co.maya.full}, ${co.maya.role.toLowerCase()}. ${waiting} waiting. Payments need ${co.dev.name}'s sign-off; you can read and reply.`}
+            ? `Signed in as ${co.dev.full}, ${inSentence(co.dev.role)}. ${waiting} waiting on your sign-off.`
+            : `Signed in as ${co.maya.full}, ${inSentence(co.maya.role)}. ${waiting} waiting. Payments need ${co.dev.name}'s sign-off; you can read and reply.`}
         </p>
       </div>
 

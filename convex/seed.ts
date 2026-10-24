@@ -1,6 +1,6 @@
-import { internalMutation } from "./_generated/server";
+import { internalMutation, type MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { v } from "convex/values";
+import { v, type ObjectType } from "convex/values";
 import { runChecks, routeEscalation, type CheckBankAccount } from "./app/checks";
 import { insertSeedPlaybook } from "./app/techniques";
 import { companyFor, wholeDollars } from "../lib/company";
@@ -26,6 +26,8 @@ const transcriptLine = v.object({
 export const seedArgs = {
     company: v.optional(v.string()),
     keepPlaybooks: v.optional(v.boolean()),
+    // The payee whose check call the demo rings on a real phone: DEMO_PAYEE_PHONE (Convex env).
+    hero: v.optional(v.string()),
     suppliers: v.array(
       v.object({
         key: v.string(),
@@ -39,6 +41,9 @@ export const seedArgs = {
         language: v.optional(v.string()),
         phoneMenu: v.optional(v.string()),
         timeZone: v.optional(v.string()),
+        // The company's own file on the payee (an employee's HR record, a seller's escrow file).
+        // Same shape as suppliers.onboarding; the schema checks it on insert.
+        onboarding: v.optional(v.any()),
       }),
     ),
     bankAccounts: v.array(
@@ -130,163 +135,169 @@ export const seedArgs = {
     ),
 };
 
-export const seed = internalMutation({
-  args: seedArgs,
-  handler: async (ctx, args) => {
-    const co = companyFor(args.company);
-    const playbookTables = ["fraudTechniques", "improvements"] as const;
-    const tables = [
-      "suppliers",
-      "bankAccounts",
-      "bills",
-      "emails",
-      "payments",
-      "callRequests",
-      "callEvents",
-      "callResults",
-      "inboundCalls",
-      "approvals",
-      "activity",
-      "practiceScams",
-      "learnedRules",
-      "backgroundChecks",
-      ...(args.keepPlaybooks ? [] : playbookTables),
-    ] as const;
-    for (const table of tables) {
-      const existing = await ctx.db.query(table).collect();
-      for (const row of existing) await ctx.db.delete(row._id);
-    }
+export type SeedArgs = ObjectType<typeof seedArgs>;
 
-    for (const s of args.suppliers) await ctx.db.insert("suppliers", s);
-    for (const b of args.bankAccounts) await ctx.db.insert("bankAccounts", b);
-    const billIdByKey = new Map<string, Id<"bills">>();
-    for (const b of args.bills) billIdByKey.set(b.key, await ctx.db.insert("bills", b));
-    for (const e of args.emails) await ctx.db.insert("emails", e);
-    for (const p of args.payments) {
-      const status = p.status === "pending" || p.status === "sent" || p.status === "failed" ? p.status : "sent";
-      await ctx.db.insert("payments", { ...p, status });
-      await ctx.db.insert("activity", {
-        key: `act_pay_${p.key}`,
-        actor: "callback",
-        what: `Paid ${p.key}`,
-        why: `Payment ${p.status.toLowerCase()} for bill ${p.billKey}`,
-        refKind: "payment",
-        refKey: p.key,
-        at: p.paidAt,
-      });
-    }
-    for (const c of args.plantedScams) await ctx.db.insert("practiceScams", c);
-    await insertSeedPlaybook(ctx);
-    const settings = await ctx.db.query("settings").withIndex("by_key", (q) => q.eq("key", "global")).unique();
-    if (settings) await ctx.db.patch(settings._id, { company: co.key });
-    else await ctx.db.insert("settings", { key: "global", watchOnly: false, company: co.key });
+export const seed = internalMutation({ args: seedArgs, handler: (ctx, args) => runSeed(ctx, args) });
 
-    // ponytail: fogline.json stores one flat historical "calls" record per
-    // past call; the live schema splits that into callRequests/Events/
-    // Results to match plan-agent.md's interface contract. Synthesize all
-    // three from each historical call rather than adding a parallel
-    // "calls" table. Revisit if historical calls need richer evidence/
-    // reason data than the flat seed shape carries.
-    const trustedPhoneBySupplier: Record<string, string> = {};
-    for (const s of args.suppliers) trustedPhoneBySupplier[s.key] = s.trustedPhone;
-    for (const c of args.calls) {
-      await ctx.db.insert("callRequests", {
+/** Clears the workspace and loads one company's fixture. Also run by the template switch. */
+export async function runSeed(ctx: MutationCtx, args: SeedArgs): Promise<void> {
+  const co = companyFor(args.company);
+  const playbookTables = ["fraudTechniques", "improvements"] as const;
+  const tables = [
+    "suppliers",
+    "bankAccounts",
+    "bills",
+    "emails",
+    "payments",
+    "callRequests",
+    "callEvents",
+    "callResults",
+    "inboundCalls",
+    "approvals",
+    "activity",
+    "practiceScams",
+    "learnedRules",
+    "backgroundChecks",
+    ...(args.keepPlaybooks ? [] : playbookTables),
+  ] as const;
+  for (const table of tables) {
+    const existing = await ctx.db.query(table).collect();
+    for (const row of existing) await ctx.db.delete(row._id);
+  }
+
+  // A real phone a teammate holds stands in for the demo payee's number on file (setup, not a call).
+  const demoPhone = process.env.DEMO_PAYEE_PHONE;
+  for (const s of args.suppliers) {
+    await ctx.db.insert("suppliers", s.key === args.hero && demoPhone ? { ...s, trustedPhone: demoPhone } : s);
+  }
+  for (const b of args.bankAccounts) await ctx.db.insert("bankAccounts", b);
+  const billIdByKey = new Map<string, Id<"bills">>();
+  for (const b of args.bills) billIdByKey.set(b.key, await ctx.db.insert("bills", b));
+  for (const e of args.emails) await ctx.db.insert("emails", e);
+  for (const p of args.payments) {
+    const status = p.status === "pending" || p.status === "sent" || p.status === "failed" ? p.status : "sent";
+    await ctx.db.insert("payments", { ...p, status });
+    await ctx.db.insert("activity", {
+      key: `act_pay_${p.key}`,
+      actor: "callback",
+      what: `Paid ${p.key}`,
+      why: `Payment ${p.status.toLowerCase()} for bill ${p.billKey}`,
+      refKind: "payment",
+      refKey: p.key,
+      at: p.paidAt,
+    });
+  }
+  for (const c of args.plantedScams) await ctx.db.insert("practiceScams", c);
+  await insertSeedPlaybook(ctx);
+  const settings = await ctx.db.query("settings").withIndex("by_key", (q) => q.eq("key", "global")).unique();
+  if (settings) await ctx.db.patch(settings._id, { company: co.key });
+  else await ctx.db.insert("settings", { key: "global", watchOnly: false, company: co.key });
+
+  // ponytail: fogline.json stores one flat historical "calls" record per
+  // past call; the live schema splits that into callRequests/Events/
+  // Results to match plan-agent.md's interface contract. Synthesize all
+  // three from each historical call rather than adding a parallel
+  // "calls" table. Revisit if historical calls need richer evidence/
+  // reason data than the flat seed shape carries.
+  const trustedPhoneBySupplier: Record<string, string> = {};
+  for (const s of args.suppliers) trustedPhoneBySupplier[s.key] = s.trustedPhone;
+  for (const c of args.calls) {
+    await ctx.db.insert("callRequests", {
+      call_id: c.key,
+      bill_id: c.billKey ?? "",
+      supplier_id: c.supplierKey,
+      to_number: trustedPhoneBySupplier[c.supplierKey] ?? "",
+      number_source: "on_file",
+      reason: [],
+      status: "done",
+      startedAt: c.startedAt,
+    });
+    let ts = 0;
+    for (const line of c.transcript) {
+      await ctx.db.insert("callEvents", {
         call_id: c.key,
-        bill_id: c.billKey ?? "",
-        supplier_id: c.supplierKey,
-        to_number: trustedPhoneBySupplier[c.supplierKey] ?? "",
-        number_source: "on_file",
-        reason: [],
-        status: "done",
-        startedAt: c.startedAt,
-      });
-      let ts = 0;
-      for (const line of c.transcript) {
-        await ctx.db.insert("callEvents", {
-          call_id: c.key,
-          type: "segment",
-          speaker: line.speaker,
-          text: line.text,
-          ts: line.ts ?? ts++,
-        });
-      }
-      await ctx.db.insert("callResults", {
-        call_id: c.key,
-        outcome: c.outcome,
-        evidence: [],
-        summary: c.summary,
-        recording_url: "",
-        startedAt: c.startedAt,
+        type: "segment",
+        speaker: line.speaker,
+        text: line.text,
+        ts: line.ts ?? ts++,
       });
     }
+    await ctx.db.insert("callResults", {
+      call_id: c.key,
+      outcome: c.outcome,
+      evidence: [],
+      summary: c.summary,
+      recording_url: "",
+      startedAt: c.startedAt,
+    });
+  }
 
-    // Derives each bill's `checks` (same pure rules lib/data.ts's buildChecks uses for the JSON
-    // fallback) and opens a pending approval for every Held/Needs-you bill and every unpaid bill
-    // over $10,000, matching what listApprovals shows in JSON mode.
-    const suppliersByKey = new Map(args.suppliers.map((s) => [s.key, s]));
-    const bankAccountsByKey = new Map(args.bankAccounts.map((b) => [b.key, b]));
-    const emailsByKey = new Map(args.emails.map((e) => [e.key, e]));
-    const callByBillKey = new Map<string, (typeof args.calls)[number]>();
-    for (const c of args.calls) if (c.billKey) callByBillKey.set(c.billKey, c);
+  // Derives each bill's `checks` (same pure rules lib/data.ts's buildChecks uses for the JSON
+  // fallback) and opens a pending approval for every Held/Needs-you bill and every unpaid bill
+  // over $10,000, matching what listApprovals shows in JSON mode.
+  const suppliersByKey = new Map(args.suppliers.map((s) => [s.key, s]));
+  const bankAccountsByKey = new Map(args.bankAccounts.map((b) => [b.key, b]));
+  const emailsByKey = new Map(args.emails.map((e) => [e.key, e]));
+  const callByBillKey = new Map<string, (typeof args.calls)[number]>();
+  for (const c of args.calls) if (c.billKey) callByBillKey.set(c.billKey, c);
 
-    const checksByBillKey = new Map<string, Check[]>();
-    for (const b of args.bills) {
-      const supplier = suppliersByKey.get(b.supplierKey);
-      const bankAccount = bankAccountsByKey.get(b.bankAccountKey);
-      const email = emailsByKey.get(b.emailKey);
-      if (!supplier || !bankAccount || !email) continue;
-      const call = callByBillKey.get(b.key) ?? null;
-      const pastPaid = args.bills.filter((x) => x.supplierKey === b.supplierKey && x.key !== b.key && x.status === "Paid");
-      const pastPaidBankAccounts: CheckBankAccount[] = pastPaid.map((x) => {
-        const a = bankAccountsByKey.get(x.bankAccountKey);
-        return { bank: a?.bank ?? "unknown", last4: a?.last4 ?? "0000" };
-      });
-      const checks = runChecks({
-        email: { body: email.body, fromAddress: email.fromAddress, fromDomain: email.fromDomain },
-        supplier: { key: supplier.key, name: supplier.name, domain: supplier.domain },
-        currentBankAccount: {
-          bank: bankAccount.bank,
-          last4: bankAccount.last4,
-          verifiedBy: bankAccount.verifiedBy,
-          confirmedByCall: bankAccount.verifiedBy === "call+dev" && call?.outcome === "confirmed",
-        },
-        pastPaidBankAccounts,
-        pastPaidAmounts: pastPaid.map((x) => x.amountCents),
-        amountCents: b.amountCents,
-        company: co,
-      });
-      checksByBillKey.set(b.key, checks);
-      const id = billIdByKey.get(b.key);
-      if (id) await ctx.db.patch(id, { checks });
-    }
+  const checksByBillKey = new Map<string, Check[]>();
+  for (const b of args.bills) {
+    const supplier = suppliersByKey.get(b.supplierKey);
+    const bankAccount = bankAccountsByKey.get(b.bankAccountKey);
+    const email = emailsByKey.get(b.emailKey);
+    if (!supplier || !bankAccount || !email) continue;
+    const call = callByBillKey.get(b.key) ?? null;
+    const pastPaid = args.bills.filter((x) => x.supplierKey === b.supplierKey && x.key !== b.key && x.status === "Paid");
+    const pastPaidBankAccounts: CheckBankAccount[] = pastPaid.map((x) => {
+      const a = bankAccountsByKey.get(x.bankAccountKey);
+      return { bank: a?.bank ?? "unknown", last4: a?.last4 ?? "0000" };
+    });
+    const checks = runChecks({
+      email: { body: email.body, fromAddress: email.fromAddress, fromDomain: email.fromDomain },
+      supplier: { key: supplier.key, name: supplier.name, domain: supplier.domain },
+      currentBankAccount: {
+        bank: bankAccount.bank,
+        last4: bankAccount.last4,
+        verifiedBy: bankAccount.verifiedBy,
+        confirmedByCall: bankAccount.verifiedBy === "call+dev" && call?.outcome === "confirmed",
+      },
+      pastPaidBankAccounts,
+      pastPaidAmounts: pastPaid.map((x) => x.amountCents),
+      amountCents: b.amountCents,
+      company: co,
+    });
+    checksByBillKey.set(b.key, checks);
+    const id = billIdByKey.get(b.key);
+    if (id) await ctx.db.patch(id, { checks });
+  }
 
-    for (const b of args.bills) {
-      const approvable = b.status === "Held" || b.status === "Needs you" || (b.amountCents >= co.approvalLimitCents && b.status !== "Paid");
-      if (!approvable) continue;
-      const checks = checksByBillKey.get(b.key) ?? [];
-      const call = callByBillKey.get(b.key) ?? null;
-      const flagged = checks.filter((c) => c.state === "flag");
-      const bankAccount = bankAccountsByKey.get(b.bankAccountKey);
-      const recommendation =
-        flagged.length > 0
-          ? `Hold this payment. ${flagged.map((c) => c.evidence).join(" ")}`
-          : `Pay ${fmtMoney(b.amountCents)} to ${bankAccount?.bank ?? "the account on file"} \u00b7\u00b7${bankAccount?.last4 ?? ""}. All checks passed; this is over hold's ${wholeDollars(co.approvalLimitCents)} limit, so ${co.dev.name} needs to approve it.`;
-      const kind = checks.find((c) => c.id === "bank-account" && c.state === "flag")
-        ? "bank_change"
-        : b.status === "Held"
-          ? "held_payment"
-          : "big_payment";
-      const route = routeEscalation(checks, b.amountCents, { callOutcome: call?.outcome === "handed_off" ? "handed_off" : null, company: co });
-      await ctx.db.insert("approvals", {
-        key: `appr_${b.key}`,
-        billKey: b.key,
-        kind,
-        status: "pending",
-        recommendation,
-        routedTo: route.routedTo,
-        reason: route.reason,
-        thread: [],
-      });
-    }
-  },
-});
+  for (const b of args.bills) {
+    const approvable = b.status === "Held" || b.status === "Needs you" || (b.amountCents >= co.approvalLimitCents && b.status !== "Paid");
+    if (!approvable) continue;
+    const checks = checksByBillKey.get(b.key) ?? [];
+    const call = callByBillKey.get(b.key) ?? null;
+    const flagged = checks.filter((c) => c.state === "flag");
+    const bankAccount = bankAccountsByKey.get(b.bankAccountKey);
+    const recommendation =
+      flagged.length > 0
+        ? `Hold this payment. ${flagged.map((c) => c.evidence).join(" ")}`
+        : `Pay ${fmtMoney(b.amountCents)} to ${bankAccount?.bank ?? "the account on file"} \u00b7\u00b7${bankAccount?.last4 ?? ""}. All checks passed; this is over hold's ${wholeDollars(co.approvalLimitCents)} limit, so ${co.dev.name} needs to approve it.`;
+    const kind = checks.find((c) => c.id === "bank-account" && c.state === "flag")
+      ? "bank_change"
+      : b.status === "Held"
+        ? "held_payment"
+        : "big_payment";
+    const route = routeEscalation(checks, b.amountCents, { callOutcome: call?.outcome === "handed_off" ? "handed_off" : null, company: co });
+    await ctx.db.insert("approvals", {
+      key: `appr_${b.key}`,
+      billKey: b.key,
+      kind,
+      status: "pending",
+      recommendation,
+      routedTo: route.routedTo,
+      reason: route.reason,
+      thread: [],
+    });
+  }
+}

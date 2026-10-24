@@ -1,0 +1,2734 @@
+{
+  "company": "bayline",
+  "hero": "sel_delgado",
+  "suppliers": [
+    {
+      "phoneLastCheckedAt": "2026-08-18",
+      "trustedPhone": "+15105550300",
+      "key": "sel_delgado",
+      "name": "Marcia Delgado",
+      "category": "seller",
+      "domain": "gmail.com",
+      "contactName": "Marcia Delgado",
+      "contactEmail": "marcia.delgado@gmail.com",
+      "onboarding": {
+        "source": "manual",
+        "emailPhones": [],
+        "note": {
+          "hiredFor": "Selling 418 Alcatraz Ave, Oakland (escrow 26-1188)",
+          "agreed": "Sale price $1,085,000; proceeds go to the account on her signed seller instructions",
+          "dates": "Closing October 28, 2026",
+          "foglineContact": "Lena Park"
+        }
+      }
+    },
+    {
+      "phoneLastCheckedAt": "2026-08-18",
+      "trustedPhone": "+15105550301",
+      "key": "sel_whitaker",
+      "name": "Tom Whitaker",
+      "category": "seller",
+      "domain": "sbcglobal.net",
+      "contactName": "Tom Whitaker",
+      "contactEmail": "tomwhitaker@sbcglobal.net",
+      "onboarding": {
+        "source": "manual",
+        "emailPhones": [],
+        "note": {
+          "hiredFor": "Selling 2215 Woolsey St, Berkeley (escrow 26-1131) with Ellen Whitaker",
+          "agreed": "Sale price $1,420,000",
+          "dates": "Closed August 14, 2026",
+          "foglineContact": "Lena Park"
+        }
+      }
+    },
+    {
+      "phoneLastCheckedAt": "2026-08-18",
+      "trustedPhone": "+15105550302",
+      "key": "sel_ochoa",
+      "name": "Ramón Ochoa",
+      "category": "seller",
+      "domain": "yahoo.com",
+      "contactName": "Ramón Ochoa",
+      "contactEmail": "ramon.ochoa61@yahoo.com",
+      "language": "es",
+      "onboarding": {
+        "source": "manual",
+        "emailPhones": [],
+        "note": {
+          "hiredFor": "Selling 3307 Galindo St, Oakland (escrow 26-1158)",
+          "agreed": "Sale price $735,000",
+          "dates": "Closed September 22, 2026",
+          "foglineContact": "Lena Park"
+        }
+      }
+    },
+    {
+      "phoneLastCheckedAt": "2026-08-18",
+      "trustedPhone": "+15105550303",
+      "key": "len_pacific",
+      "name": "Pacific Home Loans",
+      "category": "lender",
+      "domain": "pacifichomeloans.com",
+      "contactName": "Payoff department",
+      "contactEmail": "payoffs@pacifichomeloans.com",
+      "phoneMenu": "ww2"
+    },
+    {
+      "phoneLastCheckedAt": "2026-08-18",
+      "trustedPhone": "+15105550304",
+      "key": "len_bayfed",
+      "name": "Bay Federal Credit Union",
+      "category": "lender",
+      "domain": "bayfed.org",
+      "contactName": "Loan servicing",
+      "contactEmail": "servicing@bayfed.org",
+      "phoneMenu": "ww3"
+    },
+    {
+      "phoneLastCheckedAt": "2026-08-18",
+      "trustedPhone": "+15105550305",
+      "key": "len_summit",
+      "name": "Summit Mortgage Servicing",
+      "category": "lender",
+      "domain": "summitservicing.com",
+      "contactName": "Payoff desk",
+      "contactEmail": "payoff@summitservicing.com",
+      "phoneMenu": "ww1ww4"
+    },
+    {
+      "phoneLastCheckedAt": "2026-08-18",
+      "trustedPhone": "+15105550306",
+      "key": "agt_bayside",
+      "name": "Bayside Realty Group",
+      "category": "agent",
+      "domain": "baysiderealty.com",
+      "contactName": "Andrea Lowe",
+      "contactEmail": "commissions@baysiderealty.com"
+    },
+    {
+      "phoneLastCheckedAt": "2026-08-18",
+      "trustedPhone": "+15105550307",
+      "key": "agt_keystone",
+      "name": "Keystone Properties",
+      "category": "agent",
+      "domain": "keystoneprops.com",
+      "contactName": "Devon Price",
+      "contactEmail": "commissions@keystoneprops.com"
+    },
+    {
+      "phoneLastCheckedAt": "2026-08-18",
+      "trustedPhone": "+15105550308",
+      "key": "agt_lakeshore",
+      "name": "Lakeshore Homes Realty",
+      "category": "agent",
+      "domain": "lakeshorehomes.com",
+      "contactName": "Priya Raman",
+      "contactEmail": "accounting@lakeshorehomes.com"
+    },
+    {
+      "phoneLastCheckedAt": "2026-08-18",
+      "trustedPhone": "+15105550309",
+      "key": "ven_recorder",
+      "name": "Alameda County Recorder",
+      "category": "vendor",
+      "domain": "acgov.org",
+      "contactName": "Recording desk",
+      "contactEmail": "recorder@acgov.org"
+    },
+    {
+      "phoneLastCheckedAt": "2026-08-18",
+      "trustedPhone": "+15105550310",
+      "key": "ven_hoa",
+      "name": "Lake Merritt HOA",
+      "category": "vendor",
+      "domain": "lakemerritthoa.org",
+      "contactName": "Gail Foster",
+      "contactEmail": "treasurer@lakemerritthoa.org"
+    },
+    {
+      "phoneLastCheckedAt": "2026-08-18",
+      "trustedPhone": "+15105550311",
+      "key": "ven_termite",
+      "name": "Golden State Termite",
+      "category": "vendor",
+      "domain": "gstermite.com",
+      "contactName": "Billing",
+      "contactEmail": "billing@gstermite.com"
+    }
+  ],
+  "bankAccounts": [
+    {
+      "key": "bank_delgado",
+      "supplierKey": "sel_delgado",
+      "bank": "Chase",
+      "last4": "1415",
+      "routingLast4": "7480",
+      "routingNumber": "727637480",
+      "accountNumber": "7687901415",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2026-06-01"
+    },
+    {
+      "key": "bank_whitaker",
+      "supplierKey": "sel_whitaker",
+      "bank": "Wells Fargo",
+      "last4": "5513",
+      "routingLast4": "4895",
+      "routingNumber": "431504895",
+      "accountNumber": "5159305513",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2026-06-01"
+    },
+    {
+      "key": "bank_ochoa",
+      "supplierKey": "sel_ochoa",
+      "bank": "Bank of America",
+      "last4": "9962",
+      "routingLast4": "0349",
+      "routingNumber": "249140349",
+      "accountNumber": "7351689962",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2026-06-01"
+    },
+    {
+      "key": "bank_pacific",
+      "supplierKey": "len_pacific",
+      "bank": "JPMorgan Chase",
+      "last4": "1342",
+      "routingLast4": "5124",
+      "routingNumber": "386605124",
+      "accountNumber": "1811821342",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-03-11"
+    },
+    {
+      "key": "bank_bayfed",
+      "supplierKey": "len_bayfed",
+      "bank": "Bay Federal Credit Union",
+      "last4": "9719",
+      "routingLast4": "4663",
+      "routingNumber": "213794663",
+      "accountNumber": "7776009719",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-03-11"
+    },
+    {
+      "key": "bank_summit",
+      "supplierKey": "len_summit",
+      "bank": "US Bank",
+      "last4": "9720",
+      "routingLast4": "0040",
+      "routingNumber": "002420040",
+      "accountNumber": "7723739720",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-03-11"
+    },
+    {
+      "key": "bank_bayside",
+      "supplierKey": "agt_bayside",
+      "bank": "First Republic",
+      "last4": "4695",
+      "routingLast4": "5402",
+      "routingNumber": "686175402",
+      "accountNumber": "4056504695",
+      "status": "retired",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-03-11"
+    },
+    {
+      "key": "bank_keystone",
+      "supplierKey": "agt_keystone",
+      "bank": "Wells Fargo",
+      "last4": "6193",
+      "routingLast4": "8327",
+      "routingNumber": "844168327",
+      "accountNumber": "1588386193",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-03-11"
+    },
+    {
+      "key": "bank_lakeshore",
+      "supplierKey": "agt_lakeshore",
+      "bank": "Mechanics Bank",
+      "last4": "0520",
+      "routingLast4": "7994",
+      "routingNumber": "449517994",
+      "accountNumber": "6368230520",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-03-11"
+    },
+    {
+      "key": "bank_recorder",
+      "supplierKey": "ven_recorder",
+      "bank": "Bank of America",
+      "last4": "9731",
+      "routingLast4": "6956",
+      "routingNumber": "240496956",
+      "accountNumber": "5524809731",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-03-11"
+    },
+    {
+      "key": "bank_hoa",
+      "supplierKey": "ven_hoa",
+      "bank": "Patelco",
+      "last4": "2611",
+      "routingLast4": "7010",
+      "routingNumber": "463427010",
+      "accountNumber": "7834592611",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-03-11"
+    },
+    {
+      "key": "bank_termite",
+      "supplierKey": "ven_termite",
+      "bank": "Chase",
+      "last4": "7776",
+      "routingLast4": "0074",
+      "routingNumber": "733310074",
+      "accountNumber": "1077197776",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-03-11"
+    },
+    {
+      "key": "bank_bayside_2",
+      "supplierKey": "agt_bayside",
+      "bank": "Mechanics Bank",
+      "last4": "2888",
+      "routingLast4": "5839",
+      "routingNumber": "301165839",
+      "accountNumber": "4655762888",
+      "status": "active",
+      "verifiedBy": "call+dev",
+      "addedAt": "2026-07-08"
+    }
+  ],
+  "bills": [
+    {
+      "key": "bill_b26-1101-L",
+      "supplierKey": "len_pacific",
+      "invoiceNo": "26-1101-L",
+      "amountCents": 46770787,
+      "currency": "USD",
+      "dueDate": "2026-05-06",
+      "receivedAt": "2026-05-03T17:00:00.000Z",
+      "bankAccountKey": "bank_pacific",
+      "status": "Paid",
+      "emailKey": "email_b26-1101-L",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1101-C",
+      "supplierKey": "agt_keystone",
+      "invoiceNo": "26-1101-C",
+      "amountCents": 3326578,
+      "currency": "USD",
+      "dueDate": "2026-05-06",
+      "receivedAt": "2026-05-03T21:00:00.000Z",
+      "bankAccountKey": "bank_keystone",
+      "status": "Paid",
+      "emailKey": "email_b26-1101-C",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1101-R",
+      "supplierKey": "ven_recorder",
+      "invoiceNo": "26-1101-R",
+      "amountCents": 22957,
+      "currency": "USD",
+      "dueDate": "2026-05-06",
+      "receivedAt": "2026-05-05T16:00:00.000Z",
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "emailKey": "email_b26-1101-R",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1101-H",
+      "supplierKey": "ven_hoa",
+      "invoiceNo": "26-1101-H",
+      "amountCents": 172710,
+      "currency": "USD",
+      "dueDate": "2026-05-06",
+      "receivedAt": "2026-05-03T18:00:00.000Z",
+      "bankAccountKey": "bank_hoa",
+      "status": "Paid",
+      "emailKey": "email_b26-1101-H",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1102-L",
+      "supplierKey": "len_bayfed",
+      "invoiceNo": "26-1102-L",
+      "amountCents": 47604965,
+      "currency": "USD",
+      "dueDate": "2026-05-17",
+      "receivedAt": "2026-05-14T17:00:00.000Z",
+      "bankAccountKey": "bank_bayfed",
+      "status": "Paid",
+      "emailKey": "email_b26-1102-L",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1102-C",
+      "supplierKey": "agt_lakeshore",
+      "invoiceNo": "26-1102-C",
+      "amountCents": 3568718,
+      "currency": "USD",
+      "dueDate": "2026-05-17",
+      "receivedAt": "2026-05-14T21:00:00.000Z",
+      "bankAccountKey": "bank_lakeshore",
+      "status": "Paid",
+      "emailKey": "email_b26-1102-C",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1102-R",
+      "supplierKey": "ven_recorder",
+      "invoiceNo": "26-1102-R",
+      "amountCents": 24159,
+      "currency": "USD",
+      "dueDate": "2026-05-17",
+      "receivedAt": "2026-05-16T16:00:00.000Z",
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "emailKey": "email_b26-1102-R",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1102-T",
+      "supplierKey": "ven_termite",
+      "invoiceNo": "26-1102-T",
+      "amountCents": 146493,
+      "currency": "USD",
+      "dueDate": "2026-05-17",
+      "receivedAt": "2026-05-14T22:00:00.000Z",
+      "bankAccountKey": "bank_termite",
+      "status": "Paid",
+      "emailKey": "email_b26-1102-T",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1103-L",
+      "supplierKey": "len_summit",
+      "invoiceNo": "26-1103-L",
+      "amountCents": 65230833,
+      "currency": "USD",
+      "dueDate": "2026-05-27",
+      "receivedAt": "2026-05-24T17:00:00.000Z",
+      "bankAccountKey": "bank_summit",
+      "status": "Paid",
+      "emailKey": "email_b26-1103-L",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1103-C",
+      "supplierKey": "agt_bayside",
+      "invoiceNo": "26-1103-C",
+      "amountCents": 2325401,
+      "currency": "USD",
+      "dueDate": "2026-05-27",
+      "receivedAt": "2026-05-24T21:00:00.000Z",
+      "bankAccountKey": "bank_bayside",
+      "status": "Paid",
+      "emailKey": "email_b26-1103-C",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1103-R",
+      "supplierKey": "ven_recorder",
+      "invoiceNo": "26-1103-R",
+      "amountCents": 28904,
+      "currency": "USD",
+      "dueDate": "2026-05-27",
+      "receivedAt": "2026-05-26T16:00:00.000Z",
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "emailKey": "email_b26-1103-R",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1104-L",
+      "supplierKey": "len_pacific",
+      "invoiceNo": "26-1104-L",
+      "amountCents": 51006978,
+      "currency": "USD",
+      "dueDate": "2026-06-07",
+      "receivedAt": "2026-06-04T17:00:00.000Z",
+      "bankAccountKey": "bank_pacific",
+      "status": "Paid",
+      "emailKey": "email_b26-1104-L",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1104-C",
+      "supplierKey": "agt_keystone",
+      "invoiceNo": "26-1104-C",
+      "amountCents": 3170843,
+      "currency": "USD",
+      "dueDate": "2026-06-07",
+      "receivedAt": "2026-06-04T21:00:00.000Z",
+      "bankAccountKey": "bank_keystone",
+      "status": "Paid",
+      "emailKey": "email_b26-1104-C",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1104-R",
+      "supplierKey": "ven_recorder",
+      "invoiceNo": "26-1104-R",
+      "amountCents": 31234,
+      "currency": "USD",
+      "dueDate": "2026-06-07",
+      "receivedAt": "2026-06-06T16:00:00.000Z",
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "emailKey": "email_b26-1104-R",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1104-H",
+      "supplierKey": "ven_hoa",
+      "invoiceNo": "26-1104-H",
+      "amountCents": 43649,
+      "currency": "USD",
+      "dueDate": "2026-06-07",
+      "receivedAt": "2026-06-04T18:00:00.000Z",
+      "bankAccountKey": "bank_hoa",
+      "status": "Paid",
+      "emailKey": "email_b26-1104-H",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1104-T",
+      "supplierKey": "ven_termite",
+      "invoiceNo": "26-1104-T",
+      "amountCents": 147330,
+      "currency": "USD",
+      "dueDate": "2026-06-07",
+      "receivedAt": "2026-06-04T22:00:00.000Z",
+      "bankAccountKey": "bank_termite",
+      "status": "Paid",
+      "emailKey": "email_b26-1104-T",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1105-L",
+      "supplierKey": "len_bayfed",
+      "invoiceNo": "26-1105-L",
+      "amountCents": 41344268,
+      "currency": "USD",
+      "dueDate": "2026-06-19",
+      "receivedAt": "2026-06-16T17:00:00.000Z",
+      "bankAccountKey": "bank_bayfed",
+      "status": "Paid",
+      "emailKey": "email_b26-1105-L",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1105-C",
+      "supplierKey": "agt_lakeshore",
+      "invoiceNo": "26-1105-C",
+      "amountCents": 2053286,
+      "currency": "USD",
+      "dueDate": "2026-06-19",
+      "receivedAt": "2026-06-16T21:00:00.000Z",
+      "bankAccountKey": "bank_lakeshore",
+      "status": "Paid",
+      "emailKey": "email_b26-1105-C",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1105-R",
+      "supplierKey": "ven_recorder",
+      "invoiceNo": "26-1105-R",
+      "amountCents": 22927,
+      "currency": "USD",
+      "dueDate": "2026-06-19",
+      "receivedAt": "2026-06-18T16:00:00.000Z",
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "emailKey": "email_b26-1105-R",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1106-L",
+      "supplierKey": "len_summit",
+      "invoiceNo": "26-1106-L",
+      "amountCents": 59698769,
+      "currency": "USD",
+      "dueDate": "2026-06-29",
+      "receivedAt": "2026-06-26T17:00:00.000Z",
+      "bankAccountKey": "bank_summit",
+      "status": "Paid",
+      "emailKey": "email_b26-1106-L",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1106-C",
+      "supplierKey": "agt_bayside",
+      "invoiceNo": "26-1106-C",
+      "amountCents": 3187817,
+      "currency": "USD",
+      "dueDate": "2026-06-29",
+      "receivedAt": "2026-06-26T21:00:00.000Z",
+      "bankAccountKey": "bank_bayside",
+      "status": "Paid",
+      "emailKey": "email_b26-1106-C",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1106-R",
+      "supplierKey": "ven_recorder",
+      "invoiceNo": "26-1106-R",
+      "amountCents": 29737,
+      "currency": "USD",
+      "dueDate": "2026-06-29",
+      "receivedAt": "2026-06-28T16:00:00.000Z",
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "emailKey": "email_b26-1106-R",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1106-T",
+      "supplierKey": "ven_termite",
+      "invoiceNo": "26-1106-T",
+      "amountCents": 235582,
+      "currency": "USD",
+      "dueDate": "2026-06-29",
+      "receivedAt": "2026-06-26T22:00:00.000Z",
+      "bankAccountKey": "bank_termite",
+      "status": "Paid",
+      "emailKey": "email_b26-1106-T",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1107-L",
+      "supplierKey": "len_pacific",
+      "invoiceNo": "26-1107-L",
+      "amountCents": 67914978,
+      "currency": "USD",
+      "dueDate": "2026-07-08",
+      "receivedAt": "2026-07-05T17:00:00.000Z",
+      "bankAccountKey": "bank_pacific",
+      "status": "Paid",
+      "emailKey": "email_b26-1107-L",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1107-C",
+      "supplierKey": "agt_keystone",
+      "invoiceNo": "26-1107-C",
+      "amountCents": 2116251,
+      "currency": "USD",
+      "dueDate": "2026-07-08",
+      "receivedAt": "2026-07-05T21:00:00.000Z",
+      "bankAccountKey": "bank_keystone",
+      "status": "Paid",
+      "emailKey": "email_b26-1107-C",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1107-R",
+      "supplierKey": "ven_recorder",
+      "invoiceNo": "26-1107-R",
+      "amountCents": 28212,
+      "currency": "USD",
+      "dueDate": "2026-07-08",
+      "receivedAt": "2026-07-07T16:00:00.000Z",
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "emailKey": "email_b26-1107-R",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1107-H",
+      "supplierKey": "ven_hoa",
+      "invoiceNo": "26-1107-H",
+      "amountCents": 134256,
+      "currency": "USD",
+      "dueDate": "2026-07-08",
+      "receivedAt": "2026-07-05T18:00:00.000Z",
+      "bankAccountKey": "bank_hoa",
+      "status": "Paid",
+      "emailKey": "email_b26-1107-H",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1108-L",
+      "supplierKey": "len_bayfed",
+      "invoiceNo": "26-1108-L",
+      "amountCents": 33207748,
+      "currency": "USD",
+      "dueDate": "2026-07-17",
+      "receivedAt": "2026-07-14T17:00:00.000Z",
+      "bankAccountKey": "bank_bayfed",
+      "status": "Paid",
+      "emailKey": "email_b26-1108-L",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1108-C",
+      "supplierKey": "agt_lakeshore",
+      "invoiceNo": "26-1108-C",
+      "amountCents": 3197928,
+      "currency": "USD",
+      "dueDate": "2026-07-17",
+      "receivedAt": "2026-07-14T21:00:00.000Z",
+      "bankAccountKey": "bank_lakeshore",
+      "status": "Paid",
+      "emailKey": "email_b26-1108-C",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1108-R",
+      "supplierKey": "ven_recorder",
+      "invoiceNo": "26-1108-R",
+      "amountCents": 27582,
+      "currency": "USD",
+      "dueDate": "2026-07-17",
+      "receivedAt": "2026-07-16T16:00:00.000Z",
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "emailKey": "email_b26-1108-R",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1108-T",
+      "supplierKey": "ven_termite",
+      "invoiceNo": "26-1108-T",
+      "amountCents": 162929,
+      "currency": "USD",
+      "dueDate": "2026-07-17",
+      "receivedAt": "2026-07-14T22:00:00.000Z",
+      "bankAccountKey": "bank_termite",
+      "status": "Paid",
+      "emailKey": "email_b26-1108-T",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1109-L",
+      "supplierKey": "len_summit",
+      "invoiceNo": "26-1109-L",
+      "amountCents": 64070110,
+      "currency": "USD",
+      "dueDate": "2026-07-28",
+      "receivedAt": "2026-07-25T17:00:00.000Z",
+      "bankAccountKey": "bank_summit",
+      "status": "Paid",
+      "emailKey": "email_b26-1109-L",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1109-C",
+      "supplierKey": "agt_bayside",
+      "invoiceNo": "26-1109-C",
+      "amountCents": 3926108,
+      "currency": "USD",
+      "dueDate": "2026-07-28",
+      "receivedAt": "2026-07-25T21:00:00.000Z",
+      "bankAccountKey": "bank_bayside_2",
+      "status": "Paid",
+      "emailKey": "email_b26-1109-C",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1109-R",
+      "supplierKey": "ven_recorder",
+      "invoiceNo": "26-1109-R",
+      "amountCents": 29282,
+      "currency": "USD",
+      "dueDate": "2026-07-28",
+      "receivedAt": "2026-07-27T16:00:00.000Z",
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "emailKey": "email_b26-1109-R",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1110-L",
+      "supplierKey": "len_pacific",
+      "invoiceNo": "26-1110-L",
+      "amountCents": 22075473,
+      "currency": "USD",
+      "dueDate": "2026-08-06",
+      "receivedAt": "2026-08-03T17:00:00.000Z",
+      "bankAccountKey": "bank_pacific",
+      "status": "Paid",
+      "emailKey": "email_b26-1110-L",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1110-C",
+      "supplierKey": "agt_keystone",
+      "invoiceNo": "26-1110-C",
+      "amountCents": 2494743,
+      "currency": "USD",
+      "dueDate": "2026-08-06",
+      "receivedAt": "2026-08-03T21:00:00.000Z",
+      "bankAccountKey": "bank_keystone",
+      "status": "Paid",
+      "emailKey": "email_b26-1110-C",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1110-R",
+      "supplierKey": "ven_recorder",
+      "invoiceNo": "26-1110-R",
+      "amountCents": 15302,
+      "currency": "USD",
+      "dueDate": "2026-08-06",
+      "receivedAt": "2026-08-05T16:00:00.000Z",
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "emailKey": "email_b26-1110-R",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1110-H",
+      "supplierKey": "ven_hoa",
+      "invoiceNo": "26-1110-H",
+      "amountCents": 106188,
+      "currency": "USD",
+      "dueDate": "2026-08-06",
+      "receivedAt": "2026-08-03T18:00:00.000Z",
+      "bankAccountKey": "bank_hoa",
+      "status": "Paid",
+      "emailKey": "email_b26-1110-H",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1110-T",
+      "supplierKey": "ven_termite",
+      "invoiceNo": "26-1110-T",
+      "amountCents": 145737,
+      "currency": "USD",
+      "dueDate": "2026-08-06",
+      "receivedAt": "2026-08-03T22:00:00.000Z",
+      "bankAccountKey": "bank_termite",
+      "status": "Paid",
+      "emailKey": "email_b26-1110-T",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1111-L",
+      "supplierKey": "len_bayfed",
+      "invoiceNo": "26-1111-L",
+      "amountCents": 38239338,
+      "currency": "USD",
+      "dueDate": "2026-08-16",
+      "receivedAt": "2026-08-13T17:00:00.000Z",
+      "bankAccountKey": "bank_bayfed",
+      "status": "Paid",
+      "emailKey": "email_b26-1111-L",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1111-C",
+      "supplierKey": "agt_lakeshore",
+      "invoiceNo": "26-1111-C",
+      "amountCents": 3204126,
+      "currency": "USD",
+      "dueDate": "2026-08-16",
+      "receivedAt": "2026-08-13T21:00:00.000Z",
+      "bankAccountKey": "bank_lakeshore",
+      "status": "Paid",
+      "emailKey": "email_b26-1111-C",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1111-R",
+      "supplierKey": "ven_recorder",
+      "invoiceNo": "26-1111-R",
+      "amountCents": 15273,
+      "currency": "USD",
+      "dueDate": "2026-08-16",
+      "receivedAt": "2026-08-15T16:00:00.000Z",
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "emailKey": "email_b26-1111-R",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1112-L",
+      "supplierKey": "len_summit",
+      "invoiceNo": "26-1112-L",
+      "amountCents": 24756957,
+      "currency": "USD",
+      "dueDate": "2026-08-27",
+      "receivedAt": "2026-08-24T17:00:00.000Z",
+      "bankAccountKey": "bank_summit",
+      "status": "Paid",
+      "emailKey": "email_b26-1112-L",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1112-C",
+      "supplierKey": "agt_bayside",
+      "invoiceNo": "26-1112-C",
+      "amountCents": 2706896,
+      "currency": "USD",
+      "dueDate": "2026-08-27",
+      "receivedAt": "2026-08-24T21:00:00.000Z",
+      "bankAccountKey": "bank_bayside_2",
+      "status": "Paid",
+      "emailKey": "email_b26-1112-C",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1112-R",
+      "supplierKey": "ven_recorder",
+      "invoiceNo": "26-1112-R",
+      "amountCents": 19415,
+      "currency": "USD",
+      "dueDate": "2026-08-27",
+      "receivedAt": "2026-08-26T16:00:00.000Z",
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "emailKey": "email_b26-1112-R",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1112-T",
+      "supplierKey": "ven_termite",
+      "invoiceNo": "26-1112-T",
+      "amountCents": 118141,
+      "currency": "USD",
+      "dueDate": "2026-08-27",
+      "receivedAt": "2026-08-24T22:00:00.000Z",
+      "bankAccountKey": "bank_termite",
+      "status": "Paid",
+      "emailKey": "email_b26-1112-T",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1113-L",
+      "supplierKey": "len_pacific",
+      "invoiceNo": "26-1113-L",
+      "amountCents": 63031604,
+      "currency": "USD",
+      "dueDate": "2026-09-07",
+      "receivedAt": "2026-09-04T17:00:00.000Z",
+      "bankAccountKey": "bank_pacific",
+      "status": "Paid",
+      "emailKey": "email_b26-1113-L",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1113-C",
+      "supplierKey": "agt_keystone",
+      "invoiceNo": "26-1113-C",
+      "amountCents": 2852201,
+      "currency": "USD",
+      "dueDate": "2026-09-07",
+      "receivedAt": "2026-09-04T21:00:00.000Z",
+      "bankAccountKey": "bank_keystone",
+      "status": "Paid",
+      "emailKey": "email_b26-1113-C",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1113-R",
+      "supplierKey": "ven_recorder",
+      "invoiceNo": "26-1113-R",
+      "amountCents": 23459,
+      "currency": "USD",
+      "dueDate": "2026-09-07",
+      "receivedAt": "2026-09-06T16:00:00.000Z",
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "emailKey": "email_b26-1113-R",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1113-H",
+      "supplierKey": "ven_hoa",
+      "invoiceNo": "26-1113-H",
+      "amountCents": 171742,
+      "currency": "USD",
+      "dueDate": "2026-09-07",
+      "receivedAt": "2026-09-04T18:00:00.000Z",
+      "bankAccountKey": "bank_hoa",
+      "status": "Paid",
+      "emailKey": "email_b26-1113-H",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1114-L",
+      "supplierKey": "len_bayfed",
+      "invoiceNo": "26-1114-L",
+      "amountCents": 36938950,
+      "currency": "USD",
+      "dueDate": "2026-09-18",
+      "receivedAt": "2026-09-15T17:00:00.000Z",
+      "bankAccountKey": "bank_bayfed",
+      "status": "Paid",
+      "emailKey": "email_b26-1114-L",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1114-C",
+      "supplierKey": "agt_lakeshore",
+      "invoiceNo": "26-1114-C",
+      "amountCents": 2420373,
+      "currency": "USD",
+      "dueDate": "2026-09-18",
+      "receivedAt": "2026-09-15T21:00:00.000Z",
+      "bankAccountKey": "bank_lakeshore",
+      "status": "Paid",
+      "emailKey": "email_b26-1114-C",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1114-R",
+      "supplierKey": "ven_recorder",
+      "invoiceNo": "26-1114-R",
+      "amountCents": 20295,
+      "currency": "USD",
+      "dueDate": "2026-09-18",
+      "receivedAt": "2026-09-17T16:00:00.000Z",
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "emailKey": "email_b26-1114-R",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1114-T",
+      "supplierKey": "ven_termite",
+      "invoiceNo": "26-1114-T",
+      "amountCents": 121550,
+      "currency": "USD",
+      "dueDate": "2026-09-18",
+      "receivedAt": "2026-09-15T22:00:00.000Z",
+      "bankAccountKey": "bank_termite",
+      "status": "Paid",
+      "emailKey": "email_b26-1114-T",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1115-L",
+      "supplierKey": "len_summit",
+      "invoiceNo": "26-1115-L",
+      "amountCents": 53727346,
+      "currency": "USD",
+      "dueDate": "2026-09-28",
+      "receivedAt": "2026-09-25T17:00:00.000Z",
+      "bankAccountKey": "bank_summit",
+      "status": "Paid",
+      "emailKey": "email_b26-1115-L",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1115-C",
+      "supplierKey": "agt_bayside",
+      "invoiceNo": "26-1115-C",
+      "amountCents": 2144134,
+      "currency": "USD",
+      "dueDate": "2026-09-28",
+      "receivedAt": "2026-09-25T21:00:00.000Z",
+      "bankAccountKey": "bank_bayside_2",
+      "status": "Paid",
+      "emailKey": "email_b26-1115-C",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1115-R",
+      "supplierKey": "ven_recorder",
+      "invoiceNo": "26-1115-R",
+      "amountCents": 20533,
+      "currency": "USD",
+      "dueDate": "2026-09-28",
+      "receivedAt": "2026-09-27T16:00:00.000Z",
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "emailKey": "email_b26-1115-R",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1116-L",
+      "supplierKey": "len_pacific",
+      "invoiceNo": "26-1116-L",
+      "amountCents": 40283868,
+      "currency": "USD",
+      "dueDate": "2026-10-10",
+      "receivedAt": "2026-10-07T17:00:00.000Z",
+      "bankAccountKey": "bank_pacific",
+      "status": "Paid",
+      "emailKey": "email_b26-1116-L",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1116-C",
+      "supplierKey": "agt_keystone",
+      "invoiceNo": "26-1116-C",
+      "amountCents": 2009548,
+      "currency": "USD",
+      "dueDate": "2026-10-10",
+      "receivedAt": "2026-10-07T21:00:00.000Z",
+      "bankAccountKey": "bank_keystone",
+      "status": "Paid",
+      "emailKey": "email_b26-1116-C",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1116-R",
+      "supplierKey": "ven_recorder",
+      "invoiceNo": "26-1116-R",
+      "amountCents": 24956,
+      "currency": "USD",
+      "dueDate": "2026-10-10",
+      "receivedAt": "2026-10-09T16:00:00.000Z",
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "emailKey": "email_b26-1116-R",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1116-H",
+      "supplierKey": "ven_hoa",
+      "invoiceNo": "26-1116-H",
+      "amountCents": 167560,
+      "currency": "USD",
+      "dueDate": "2026-10-10",
+      "receivedAt": "2026-10-07T18:00:00.000Z",
+      "bankAccountKey": "bank_hoa",
+      "status": "Paid",
+      "emailKey": "email_b26-1116-H",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1116-T",
+      "supplierKey": "ven_termite",
+      "invoiceNo": "26-1116-T",
+      "amountCents": 98365,
+      "currency": "USD",
+      "dueDate": "2026-10-10",
+      "receivedAt": "2026-10-07T22:00:00.000Z",
+      "bankAccountKey": "bank_termite",
+      "status": "Paid",
+      "emailKey": "email_b26-1116-T",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1131-S",
+      "supplierKey": "sel_whitaker",
+      "invoiceNo": "26-1131-S",
+      "amountCents": 64218844,
+      "currency": "USD",
+      "dueDate": "2026-08-14",
+      "receivedAt": "2026-08-12T17:00:00.000Z",
+      "bankAccountKey": "bank_whitaker",
+      "status": "Paid",
+      "emailKey": "email_b26-1131-S",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1158-S",
+      "supplierKey": "sel_ochoa",
+      "invoiceNo": "26-1158-S",
+      "amountCents": 31877410,
+      "currency": "USD",
+      "dueDate": "2026-09-22",
+      "receivedAt": "2026-09-19T17:00:00.000Z",
+      "bankAccountKey": "bank_ochoa",
+      "status": "Paid",
+      "emailKey": "email_b26-1158-S",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1188-S",
+      "supplierKey": "sel_delgado",
+      "invoiceNo": "26-1188-S",
+      "amountCents": 61245018,
+      "currency": "USD",
+      "dueDate": "2026-10-28",
+      "receivedAt": "2026-10-21T22:00:00.000Z",
+      "bankAccountKey": "bank_delgado",
+      "status": "Needs you",
+      "emailKey": "email_b26-1188-S",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1188-L",
+      "supplierKey": "len_bayfed",
+      "invoiceNo": "26-1188-L",
+      "amountCents": 38810255,
+      "currency": "USD",
+      "dueDate": "2026-10-28",
+      "receivedAt": "2026-10-20T17:00:00.000Z",
+      "bankAccountKey": "bank_bayfed",
+      "status": "Needs you",
+      "emailKey": "email_b26-1188-L",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1188-C",
+      "supplierKey": "agt_lakeshore",
+      "invoiceNo": "26-1188-C",
+      "amountCents": 3120000,
+      "currency": "USD",
+      "dueDate": "2026-10-28",
+      "receivedAt": "2026-10-20T23:00:00.000Z",
+      "bankAccountKey": "bank_lakeshore",
+      "status": "Needs you",
+      "emailKey": "email_b26-1188-C",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1188-R",
+      "supplierKey": "ven_recorder",
+      "invoiceNo": "26-1188-R",
+      "amountCents": 24500,
+      "currency": "USD",
+      "dueDate": "2026-10-28",
+      "receivedAt": "2026-10-22T16:00:00.000Z",
+      "bankAccountKey": "bank_recorder",
+      "status": "Scheduled",
+      "emailKey": "email_b26-1188-R",
+      "planted": false
+    },
+    {
+      "key": "bill_b26-1179-L",
+      "supplierKey": "len_pacific",
+      "invoiceNo": "26-1179-L",
+      "amountCents": 44688012,
+      "currency": "USD",
+      "dueDate": "2026-10-21",
+      "receivedAt": "2026-10-19T15:00:00.000Z",
+      "bankAccountKey": "bank_pacific",
+      "status": "Held",
+      "emailKey": "email_b26-1179-L",
+      "planted": true
+    },
+    {
+      "key": "bill_b26-1182-C",
+      "supplierKey": "agt_keystone",
+      "invoiceNo": "26-1182-C",
+      "amountCents": 2460000,
+      "currency": "USD",
+      "dueDate": "2026-10-22",
+      "receivedAt": "2026-10-20T20:00:00.000Z",
+      "bankAccountKey": "bank_keystone",
+      "status": "Held",
+      "emailKey": "email_b26-1182-C",
+      "planted": true
+    },
+    {
+      "key": "bill_b26-1185-H",
+      "supplierKey": "ven_hoa",
+      "invoiceNo": "26-1185-H",
+      "amountCents": 124000,
+      "currency": "USD",
+      "dueDate": "2026-10-24",
+      "receivedAt": "2026-10-21T16:00:00.000Z",
+      "bankAccountKey": "bank_hoa",
+      "status": "Needs you",
+      "emailKey": "email_b26-1185-H",
+      "planted": true
+    }
+  ],
+  "emails": [
+    {
+      "key": "email_b26-1101-L",
+      "billKey": "bill_b26-1101-L",
+      "fromAddress": "payoffs@pacifichomeloans.com",
+      "fromDomain": "pacifichomeloans.com",
+      "subject": "Payoff statement — escrow 26-1101",
+      "body": "Bayline Title,\n\nPayoff statement for the loan on 3272 Foothill Blvd, Oakland, escrow 26-1101. Total payoff $467,707.87, good through May 11. Wire to the account on file with your office.\n\nPayoff department\nPacific Home Loans",
+      "receivedAt": "2026-05-03T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1101-C",
+      "billKey": "bill_b26-1101-C",
+      "fromAddress": "commissions@keystoneprops.com",
+      "fromDomain": "keystoneprops.com",
+      "subject": "Commission demand — 3272 Foothill Blvd, Oakland",
+      "body": "Hi Lena,\n\nCommission demand for 3272 Foothill Blvd, Oakland, escrow 26-1101: $33,265.78 per the listing agreement. Same trust account as always.\n\nDevon Price\nKeystone Properties",
+      "receivedAt": "2026-05-03T21:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1101-R",
+      "billKey": "bill_b26-1101-R",
+      "fromAddress": "recorder@acgov.org",
+      "fromDomain": "acgov.org",
+      "subject": "Recording fees — escrow 26-1101",
+      "body": "Recording fees for the grant deed and deed of trust on 3272 Foothill Blvd, Oakland: $229.57.\n\nAlameda County Recorder",
+      "receivedAt": "2026-05-05T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1101-H",
+      "billKey": "bill_b26-1101-H",
+      "fromAddress": "treasurer@lakemerritthoa.org",
+      "fromDomain": "lakemerritthoa.org",
+      "subject": "HOA demand — escrow 26-1101",
+      "body": "Dues and transfer fee through closing for 3272 Foothill Blvd, Oakland: $1,727.10.\n\nGail Foster, Treasurer\nLake Merritt HOA",
+      "receivedAt": "2026-05-03T18:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1102-L",
+      "billKey": "bill_b26-1102-L",
+      "fromAddress": "servicing@bayfed.org",
+      "fromDomain": "bayfed.org",
+      "subject": "Payoff statement — escrow 26-1102",
+      "body": "Bayline Title,\n\nPayoff statement for the loan on 5365 Broadway Terrace, Oakland, escrow 26-1102. Total payoff $476,049.65, good through May 22. Wire to the account on file with your office.\n\nLoan servicing\nBay Federal Credit Union",
+      "receivedAt": "2026-05-14T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1102-C",
+      "billKey": "bill_b26-1102-C",
+      "fromAddress": "accounting@lakeshorehomes.com",
+      "fromDomain": "lakeshorehomes.com",
+      "subject": "Commission demand — 5365 Broadway Terrace, Oakland",
+      "body": "Hi Lena,\n\nCommission demand for 5365 Broadway Terrace, Oakland, escrow 26-1102: $35,687.18 per the listing agreement. Same trust account as always.\n\nPriya Raman\nLakeshore Homes Realty",
+      "receivedAt": "2026-05-14T21:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1102-R",
+      "billKey": "bill_b26-1102-R",
+      "fromAddress": "recorder@acgov.org",
+      "fromDomain": "acgov.org",
+      "subject": "Recording fees — escrow 26-1102",
+      "body": "Recording fees for the grant deed and deed of trust on 5365 Broadway Terrace, Oakland: $241.59.\n\nAlameda County Recorder",
+      "receivedAt": "2026-05-16T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1102-T",
+      "billKey": "bill_b26-1102-T",
+      "fromAddress": "billing@gstermite.com",
+      "fromDomain": "gstermite.com",
+      "subject": "Section 1 clearance — 5365 Broadway Terrace, Oakland",
+      "body": "Invoice for the Section 1 termite work and clearance at 5365 Broadway Terrace, Oakland, escrow 26-1102: $1,464.93.\n\nGolden State Termite",
+      "receivedAt": "2026-05-14T22:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1103-L",
+      "billKey": "bill_b26-1103-L",
+      "fromAddress": "payoff@summitservicing.com",
+      "fromDomain": "summitservicing.com",
+      "subject": "Payoff statement — escrow 26-1103",
+      "body": "Bayline Title,\n\nPayoff statement for the loan on 5384 San Pablo Ave, Oakland, escrow 26-1103. Total payoff $652,308.33, good through June 1. Wire to the account on file with your office.\n\nPayoff desk\nSummit Mortgage Servicing",
+      "receivedAt": "2026-05-24T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1103-C",
+      "billKey": "bill_b26-1103-C",
+      "fromAddress": "commissions@baysiderealty.com",
+      "fromDomain": "baysiderealty.com",
+      "subject": "Commission demand — 5384 San Pablo Ave, Oakland",
+      "body": "Hi Lena,\n\nCommission demand for 5384 San Pablo Ave, Oakland, escrow 26-1103: $23,254.01 per the listing agreement. Same trust account as always.\n\nAndrea Lowe\nBayside Realty Group",
+      "receivedAt": "2026-05-24T21:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1103-R",
+      "billKey": "bill_b26-1103-R",
+      "fromAddress": "recorder@acgov.org",
+      "fromDomain": "acgov.org",
+      "subject": "Recording fees — escrow 26-1103",
+      "body": "Recording fees for the grant deed and deed of trust on 5384 San Pablo Ave, Oakland: $289.04.\n\nAlameda County Recorder",
+      "receivedAt": "2026-05-26T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1104-L",
+      "billKey": "bill_b26-1104-L",
+      "fromAddress": "payoffs@pacifichomeloans.com",
+      "fromDomain": "pacifichomeloans.com",
+      "subject": "Payoff statement — escrow 26-1104",
+      "body": "Bayline Title,\n\nPayoff statement for the loan on 5588 Solano Ave, Oakland, escrow 26-1104. Total payoff $510,069.78, good through June 12. Wire to the account on file with your office.\n\nPayoff department\nPacific Home Loans",
+      "receivedAt": "2026-06-04T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1104-C",
+      "billKey": "bill_b26-1104-C",
+      "fromAddress": "commissions@keystoneprops.com",
+      "fromDomain": "keystoneprops.com",
+      "subject": "Commission demand — 5588 Solano Ave, Oakland",
+      "body": "Hi Lena,\n\nCommission demand for 5588 Solano Ave, Oakland, escrow 26-1104: $31,708.43 per the listing agreement. Same trust account as always.\n\nDevon Price\nKeystone Properties",
+      "receivedAt": "2026-06-04T21:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1104-R",
+      "billKey": "bill_b26-1104-R",
+      "fromAddress": "recorder@acgov.org",
+      "fromDomain": "acgov.org",
+      "subject": "Recording fees — escrow 26-1104",
+      "body": "Recording fees for the grant deed and deed of trust on 5588 Solano Ave, Oakland: $312.34.\n\nAlameda County Recorder",
+      "receivedAt": "2026-06-06T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1104-H",
+      "billKey": "bill_b26-1104-H",
+      "fromAddress": "treasurer@lakemerritthoa.org",
+      "fromDomain": "lakemerritthoa.org",
+      "subject": "HOA demand — escrow 26-1104",
+      "body": "Dues and transfer fee through closing for 5588 Solano Ave, Oakland: $436.49.\n\nGail Foster, Treasurer\nLake Merritt HOA",
+      "receivedAt": "2026-06-04T18:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1104-T",
+      "billKey": "bill_b26-1104-T",
+      "fromAddress": "billing@gstermite.com",
+      "fromDomain": "gstermite.com",
+      "subject": "Section 1 clearance — 5588 Solano Ave, Oakland",
+      "body": "Invoice for the Section 1 termite work and clearance at 5588 Solano Ave, Oakland, escrow 26-1104: $1,473.30.\n\nGolden State Termite",
+      "receivedAt": "2026-06-04T22:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1105-L",
+      "billKey": "bill_b26-1105-L",
+      "fromAddress": "servicing@bayfed.org",
+      "fromDomain": "bayfed.org",
+      "subject": "Payoff statement — escrow 26-1105",
+      "body": "Bayline Title,\n\nPayoff statement for the loan on 5987 High St, Oakland, escrow 26-1105. Total payoff $413,442.68, good through June 24. Wire to the account on file with your office.\n\nLoan servicing\nBay Federal Credit Union",
+      "receivedAt": "2026-06-16T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1105-C",
+      "billKey": "bill_b26-1105-C",
+      "fromAddress": "accounting@lakeshorehomes.com",
+      "fromDomain": "lakeshorehomes.com",
+      "subject": "Commission demand — 5987 High St, Oakland",
+      "body": "Hi Lena,\n\nCommission demand for 5987 High St, Oakland, escrow 26-1105: $20,532.86 per the listing agreement. Same trust account as always.\n\nPriya Raman\nLakeshore Homes Realty",
+      "receivedAt": "2026-06-16T21:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1105-R",
+      "billKey": "bill_b26-1105-R",
+      "fromAddress": "recorder@acgov.org",
+      "fromDomain": "acgov.org",
+      "subject": "Recording fees — escrow 26-1105",
+      "body": "Recording fees for the grant deed and deed of trust on 5987 High St, Oakland: $229.27.\n\nAlameda County Recorder",
+      "receivedAt": "2026-06-18T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1106-L",
+      "billKey": "bill_b26-1106-L",
+      "fromAddress": "payoff@summitservicing.com",
+      "fromDomain": "summitservicing.com",
+      "subject": "Payoff statement — escrow 26-1106",
+      "body": "Bayline Title,\n\nPayoff statement for the loan on 6625 Telegraph Ave, Oakland, escrow 26-1106. Total payoff $596,987.69, good through July 4. Wire to the account on file with your office.\n\nPayoff desk\nSummit Mortgage Servicing",
+      "receivedAt": "2026-06-26T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1106-C",
+      "billKey": "bill_b26-1106-C",
+      "fromAddress": "commissions@baysiderealty.com",
+      "fromDomain": "baysiderealty.com",
+      "subject": "Commission demand — 6625 Telegraph Ave, Oakland",
+      "body": "Hi Lena,\n\nCommission demand for 6625 Telegraph Ave, Oakland, escrow 26-1106: $31,878.17 per the listing agreement. Same trust account as always.\n\nAndrea Lowe\nBayside Realty Group",
+      "receivedAt": "2026-06-26T21:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1106-R",
+      "billKey": "bill_b26-1106-R",
+      "fromAddress": "recorder@acgov.org",
+      "fromDomain": "acgov.org",
+      "subject": "Recording fees — escrow 26-1106",
+      "body": "Recording fees for the grant deed and deed of trust on 6625 Telegraph Ave, Oakland: $297.37.\n\nAlameda County Recorder",
+      "receivedAt": "2026-06-28T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1106-T",
+      "billKey": "bill_b26-1106-T",
+      "fromAddress": "billing@gstermite.com",
+      "fromDomain": "gstermite.com",
+      "subject": "Section 1 clearance — 6625 Telegraph Ave, Oakland",
+      "body": "Invoice for the Section 1 termite work and clearance at 6625 Telegraph Ave, Oakland, escrow 26-1106: $2,355.82.\n\nGolden State Termite",
+      "receivedAt": "2026-06-26T22:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1107-L",
+      "billKey": "bill_b26-1107-L",
+      "fromAddress": "payoffs@pacifichomeloans.com",
+      "fromDomain": "pacifichomeloans.com",
+      "subject": "Payoff statement — escrow 26-1107",
+      "body": "Bayline Title,\n\nPayoff statement for the loan on 1291 College Ave, Oakland, escrow 26-1107. Total payoff $679,149.78, good through July 13. Wire to the account on file with your office.\n\nPayoff department\nPacific Home Loans",
+      "receivedAt": "2026-07-05T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1107-C",
+      "billKey": "bill_b26-1107-C",
+      "fromAddress": "commissions@keystoneprops.com",
+      "fromDomain": "keystoneprops.com",
+      "subject": "Commission demand — 1291 College Ave, Oakland",
+      "body": "Hi Lena,\n\nCommission demand for 1291 College Ave, Oakland, escrow 26-1107: $21,162.51 per the listing agreement. Same trust account as always.\n\nDevon Price\nKeystone Properties",
+      "receivedAt": "2026-07-05T21:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1107-R",
+      "billKey": "bill_b26-1107-R",
+      "fromAddress": "recorder@acgov.org",
+      "fromDomain": "acgov.org",
+      "subject": "Recording fees — escrow 26-1107",
+      "body": "Recording fees for the grant deed and deed of trust on 1291 College Ave, Oakland: $282.12.\n\nAlameda County Recorder",
+      "receivedAt": "2026-07-07T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1107-H",
+      "billKey": "bill_b26-1107-H",
+      "fromAddress": "treasurer@lakemerritthoa.org",
+      "fromDomain": "lakemerritthoa.org",
+      "subject": "HOA demand — escrow 26-1107",
+      "body": "Dues and transfer fee through closing for 1291 College Ave, Oakland: $1,342.56.\n\nGail Foster, Treasurer\nLake Merritt HOA",
+      "receivedAt": "2026-07-05T18:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1108-L",
+      "billKey": "bill_b26-1108-L",
+      "fromAddress": "servicing@bayfed.org",
+      "fromDomain": "bayfed.org",
+      "subject": "Payoff statement — escrow 26-1108",
+      "body": "Bayline Title,\n\nPayoff statement for the loan on 7885 Park Blvd, Oakland, escrow 26-1108. Total payoff $332,077.48, good through July 22. Wire to the account on file with your office.\n\nLoan servicing\nBay Federal Credit Union",
+      "receivedAt": "2026-07-14T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1108-C",
+      "billKey": "bill_b26-1108-C",
+      "fromAddress": "accounting@lakeshorehomes.com",
+      "fromDomain": "lakeshorehomes.com",
+      "subject": "Commission demand — 7885 Park Blvd, Oakland",
+      "body": "Hi Lena,\n\nCommission demand for 7885 Park Blvd, Oakland, escrow 26-1108: $31,979.28 per the listing agreement. Same trust account as always.\n\nPriya Raman\nLakeshore Homes Realty",
+      "receivedAt": "2026-07-14T21:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1108-R",
+      "billKey": "bill_b26-1108-R",
+      "fromAddress": "recorder@acgov.org",
+      "fromDomain": "acgov.org",
+      "subject": "Recording fees — escrow 26-1108",
+      "body": "Recording fees for the grant deed and deed of trust on 7885 Park Blvd, Oakland: $275.82.\n\nAlameda County Recorder",
+      "receivedAt": "2026-07-16T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1108-T",
+      "billKey": "bill_b26-1108-T",
+      "fromAddress": "billing@gstermite.com",
+      "fromDomain": "gstermite.com",
+      "subject": "Section 1 clearance — 7885 Park Blvd, Oakland",
+      "body": "Invoice for the Section 1 termite work and clearance at 7885 Park Blvd, Oakland, escrow 26-1108: $1,629.29.\n\nGolden State Termite",
+      "receivedAt": "2026-07-14T22:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1109-L",
+      "billKey": "bill_b26-1109-L",
+      "fromAddress": "payoff@summitservicing.com",
+      "fromDomain": "summitservicing.com",
+      "subject": "Payoff statement — escrow 26-1109",
+      "body": "Bayline Title,\n\nPayoff statement for the loan on 7848 Fruitvale Ave, Oakland, escrow 26-1109. Total payoff $640,701.10, good through August 2. Wire to the account on file with your office.\n\nPayoff desk\nSummit Mortgage Servicing",
+      "receivedAt": "2026-07-25T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1109-C",
+      "billKey": "bill_b26-1109-C",
+      "fromAddress": "commissions@baysiderealty.com",
+      "fromDomain": "baysiderealty.com",
+      "subject": "Commission demand — 7848 Fruitvale Ave, Oakland",
+      "body": "Hi Lena,\n\nCommission demand for 7848 Fruitvale Ave, Oakland, escrow 26-1109: $39,261.08 per the listing agreement. Same trust account as always.\n\nAndrea Lowe\nBayside Realty Group",
+      "receivedAt": "2026-07-25T21:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1109-R",
+      "billKey": "bill_b26-1109-R",
+      "fromAddress": "recorder@acgov.org",
+      "fromDomain": "acgov.org",
+      "subject": "Recording fees — escrow 26-1109",
+      "body": "Recording fees for the grant deed and deed of trust on 7848 Fruitvale Ave, Oakland: $292.82.\n\nAlameda County Recorder",
+      "receivedAt": "2026-07-27T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1110-L",
+      "billKey": "bill_b26-1110-L",
+      "fromAddress": "payoffs@pacifichomeloans.com",
+      "fromDomain": "pacifichomeloans.com",
+      "subject": "Payoff statement — escrow 26-1110",
+      "body": "Bayline Title,\n\nPayoff statement for the loan on 7445 Shattuck Ave, Oakland, escrow 26-1110. Total payoff $220,754.73, good through August 11. Wire to the account on file with your office.\n\nPayoff department\nPacific Home Loans",
+      "receivedAt": "2026-08-03T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1110-C",
+      "billKey": "bill_b26-1110-C",
+      "fromAddress": "commissions@keystoneprops.com",
+      "fromDomain": "keystoneprops.com",
+      "subject": "Commission demand — 7445 Shattuck Ave, Oakland",
+      "body": "Hi Lena,\n\nCommission demand for 7445 Shattuck Ave, Oakland, escrow 26-1110: $24,947.43 per the listing agreement. Same trust account as always.\n\nDevon Price\nKeystone Properties",
+      "receivedAt": "2026-08-03T21:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1110-R",
+      "billKey": "bill_b26-1110-R",
+      "fromAddress": "recorder@acgov.org",
+      "fromDomain": "acgov.org",
+      "subject": "Recording fees — escrow 26-1110",
+      "body": "Recording fees for the grant deed and deed of trust on 7445 Shattuck Ave, Oakland: $153.02.\n\nAlameda County Recorder",
+      "receivedAt": "2026-08-05T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1110-H",
+      "billKey": "bill_b26-1110-H",
+      "fromAddress": "treasurer@lakemerritthoa.org",
+      "fromDomain": "lakemerritthoa.org",
+      "subject": "HOA demand — escrow 26-1110",
+      "body": "Dues and transfer fee through closing for 7445 Shattuck Ave, Oakland: $1,061.88.\n\nGail Foster, Treasurer\nLake Merritt HOA",
+      "receivedAt": "2026-08-03T18:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1110-T",
+      "billKey": "bill_b26-1110-T",
+      "fromAddress": "billing@gstermite.com",
+      "fromDomain": "gstermite.com",
+      "subject": "Section 1 clearance — 7445 Shattuck Ave, Oakland",
+      "body": "Invoice for the Section 1 termite work and clearance at 7445 Shattuck Ave, Oakland, escrow 26-1110: $1,457.37.\n\nGolden State Termite",
+      "receivedAt": "2026-08-03T22:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1111-L",
+      "billKey": "bill_b26-1111-L",
+      "fromAddress": "servicing@bayfed.org",
+      "fromDomain": "bayfed.org",
+      "subject": "Payoff statement — escrow 26-1111",
+      "body": "Bayline Title,\n\nPayoff statement for the loan on 6857 MacArthur Blvd, Oakland, escrow 26-1111. Total payoff $382,393.38, good through August 21. Wire to the account on file with your office.\n\nLoan servicing\nBay Federal Credit Union",
+      "receivedAt": "2026-08-13T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1111-C",
+      "billKey": "bill_b26-1111-C",
+      "fromAddress": "accounting@lakeshorehomes.com",
+      "fromDomain": "lakeshorehomes.com",
+      "subject": "Commission demand — 6857 MacArthur Blvd, Oakland",
+      "body": "Hi Lena,\n\nCommission demand for 6857 MacArthur Blvd, Oakland, escrow 26-1111: $32,041.26 per the listing agreement. Same trust account as always.\n\nPriya Raman\nLakeshore Homes Realty",
+      "receivedAt": "2026-08-13T21:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1111-R",
+      "billKey": "bill_b26-1111-R",
+      "fromAddress": "recorder@acgov.org",
+      "fromDomain": "acgov.org",
+      "subject": "Recording fees — escrow 26-1111",
+      "body": "Recording fees for the grant deed and deed of trust on 6857 MacArthur Blvd, Oakland: $152.73.\n\nAlameda County Recorder",
+      "receivedAt": "2026-08-15T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1112-L",
+      "billKey": "bill_b26-1112-L",
+      "fromAddress": "payoff@summitservicing.com",
+      "fromDomain": "summitservicing.com",
+      "subject": "Payoff statement — escrow 26-1112",
+      "body": "Bayline Title,\n\nPayoff statement for the loan on 7375 Grand Ave, Oakland, escrow 26-1112. Total payoff $247,569.57, good through September 1. Wire to the account on file with your office.\n\nPayoff desk\nSummit Mortgage Servicing",
+      "receivedAt": "2026-08-24T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1112-C",
+      "billKey": "bill_b26-1112-C",
+      "fromAddress": "commissions@baysiderealty.com",
+      "fromDomain": "baysiderealty.com",
+      "subject": "Commission demand — 7375 Grand Ave, Oakland",
+      "body": "Hi Lena,\n\nCommission demand for 7375 Grand Ave, Oakland, escrow 26-1112: $27,068.96 per the listing agreement. Same trust account as always.\n\nAndrea Lowe\nBayside Realty Group",
+      "receivedAt": "2026-08-24T21:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1112-R",
+      "billKey": "bill_b26-1112-R",
+      "fromAddress": "recorder@acgov.org",
+      "fromDomain": "acgov.org",
+      "subject": "Recording fees — escrow 26-1112",
+      "body": "Recording fees for the grant deed and deed of trust on 7375 Grand Ave, Oakland: $194.15.\n\nAlameda County Recorder",
+      "receivedAt": "2026-08-26T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1112-T",
+      "billKey": "bill_b26-1112-T",
+      "fromAddress": "billing@gstermite.com",
+      "fromDomain": "gstermite.com",
+      "subject": "Section 1 clearance — 7375 Grand Ave, Oakland",
+      "body": "Invoice for the Section 1 termite work and clearance at 7375 Grand Ave, Oakland, escrow 26-1112: $1,181.41.\n\nGolden State Termite",
+      "receivedAt": "2026-08-24T22:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1113-L",
+      "billKey": "bill_b26-1113-L",
+      "fromAddress": "payoffs@pacifichomeloans.com",
+      "fromDomain": "pacifichomeloans.com",
+      "subject": "Payoff statement — escrow 26-1113",
+      "body": "Bayline Title,\n\nPayoff statement for the loan on 2212 Lakeshore Ave, Oakland, escrow 26-1113. Total payoff $630,316.04, good through September 12. Wire to the account on file with your office.\n\nPayoff department\nPacific Home Loans",
+      "receivedAt": "2026-09-04T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1113-C",
+      "billKey": "bill_b26-1113-C",
+      "fromAddress": "commissions@keystoneprops.com",
+      "fromDomain": "keystoneprops.com",
+      "subject": "Commission demand — 2212 Lakeshore Ave, Oakland",
+      "body": "Hi Lena,\n\nCommission demand for 2212 Lakeshore Ave, Oakland, escrow 26-1113: $28,522.01 per the listing agreement. Same trust account as always.\n\nDevon Price\nKeystone Properties",
+      "receivedAt": "2026-09-04T21:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1113-R",
+      "billKey": "bill_b26-1113-R",
+      "fromAddress": "recorder@acgov.org",
+      "fromDomain": "acgov.org",
+      "subject": "Recording fees — escrow 26-1113",
+      "body": "Recording fees for the grant deed and deed of trust on 2212 Lakeshore Ave, Oakland: $234.59.\n\nAlameda County Recorder",
+      "receivedAt": "2026-09-06T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1113-H",
+      "billKey": "bill_b26-1113-H",
+      "fromAddress": "treasurer@lakemerritthoa.org",
+      "fromDomain": "lakemerritthoa.org",
+      "subject": "HOA demand — escrow 26-1113",
+      "body": "Dues and transfer fee through closing for 2212 Lakeshore Ave, Oakland: $1,717.42.\n\nGail Foster, Treasurer\nLake Merritt HOA",
+      "receivedAt": "2026-09-04T18:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1114-L",
+      "billKey": "bill_b26-1114-L",
+      "fromAddress": "servicing@bayfed.org",
+      "fromDomain": "bayfed.org",
+      "subject": "Payoff statement — escrow 26-1114",
+      "body": "Bayline Title,\n\nPayoff statement for the loan on 3384 Piedmont Ave, Oakland, escrow 26-1114. Total payoff $369,389.50, good through September 23. Wire to the account on file with your office.\n\nLoan servicing\nBay Federal Credit Union",
+      "receivedAt": "2026-09-15T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1114-C",
+      "billKey": "bill_b26-1114-C",
+      "fromAddress": "accounting@lakeshorehomes.com",
+      "fromDomain": "lakeshorehomes.com",
+      "subject": "Commission demand — 3384 Piedmont Ave, Oakland",
+      "body": "Hi Lena,\n\nCommission demand for 3384 Piedmont Ave, Oakland, escrow 26-1114: $24,203.73 per the listing agreement. Same trust account as always.\n\nPriya Raman\nLakeshore Homes Realty",
+      "receivedAt": "2026-09-15T21:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1114-R",
+      "billKey": "bill_b26-1114-R",
+      "fromAddress": "recorder@acgov.org",
+      "fromDomain": "acgov.org",
+      "subject": "Recording fees — escrow 26-1114",
+      "body": "Recording fees for the grant deed and deed of trust on 3384 Piedmont Ave, Oakland: $202.95.\n\nAlameda County Recorder",
+      "receivedAt": "2026-09-17T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1114-T",
+      "billKey": "bill_b26-1114-T",
+      "fromAddress": "billing@gstermite.com",
+      "fromDomain": "gstermite.com",
+      "subject": "Section 1 clearance — 3384 Piedmont Ave, Oakland",
+      "body": "Invoice for the Section 1 termite work and clearance at 3384 Piedmont Ave, Oakland, escrow 26-1114: $1,215.50.\n\nGolden State Termite",
+      "receivedAt": "2026-09-15T22:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1115-L",
+      "billKey": "bill_b26-1115-L",
+      "fromAddress": "payoff@summitservicing.com",
+      "fromDomain": "summitservicing.com",
+      "subject": "Payoff statement — escrow 26-1115",
+      "body": "Bayline Title,\n\nPayoff statement for the loan on 1958 Foothill Blvd, Oakland, escrow 26-1115. Total payoff $537,273.46, good through October 3. Wire to the account on file with your office.\n\nPayoff desk\nSummit Mortgage Servicing",
+      "receivedAt": "2026-09-25T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1115-C",
+      "billKey": "bill_b26-1115-C",
+      "fromAddress": "commissions@baysiderealty.com",
+      "fromDomain": "baysiderealty.com",
+      "subject": "Commission demand — 1958 Foothill Blvd, Oakland",
+      "body": "Hi Lena,\n\nCommission demand for 1958 Foothill Blvd, Oakland, escrow 26-1115: $21,441.34 per the listing agreement. Same trust account as always.\n\nAndrea Lowe\nBayside Realty Group",
+      "receivedAt": "2026-09-25T21:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1115-R",
+      "billKey": "bill_b26-1115-R",
+      "fromAddress": "recorder@acgov.org",
+      "fromDomain": "acgov.org",
+      "subject": "Recording fees — escrow 26-1115",
+      "body": "Recording fees for the grant deed and deed of trust on 1958 Foothill Blvd, Oakland: $205.33.\n\nAlameda County Recorder",
+      "receivedAt": "2026-09-27T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1116-L",
+      "billKey": "bill_b26-1116-L",
+      "fromAddress": "payoffs@pacifichomeloans.com",
+      "fromDomain": "pacifichomeloans.com",
+      "subject": "Payoff statement — escrow 26-1116",
+      "body": "Bayline Title,\n\nPayoff statement for the loan on 4330 Broadway Terrace, Oakland, escrow 26-1116. Total payoff $402,838.68, good through October 15. Wire to the account on file with your office.\n\nPayoff department\nPacific Home Loans",
+      "receivedAt": "2026-10-07T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1116-C",
+      "billKey": "bill_b26-1116-C",
+      "fromAddress": "commissions@keystoneprops.com",
+      "fromDomain": "keystoneprops.com",
+      "subject": "Commission demand — 4330 Broadway Terrace, Oakland",
+      "body": "Hi Lena,\n\nCommission demand for 4330 Broadway Terrace, Oakland, escrow 26-1116: $20,095.48 per the listing agreement. Same trust account as always.\n\nDevon Price\nKeystone Properties",
+      "receivedAt": "2026-10-07T21:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1116-R",
+      "billKey": "bill_b26-1116-R",
+      "fromAddress": "recorder@acgov.org",
+      "fromDomain": "acgov.org",
+      "subject": "Recording fees — escrow 26-1116",
+      "body": "Recording fees for the grant deed and deed of trust on 4330 Broadway Terrace, Oakland: $249.56.\n\nAlameda County Recorder",
+      "receivedAt": "2026-10-09T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1116-H",
+      "billKey": "bill_b26-1116-H",
+      "fromAddress": "treasurer@lakemerritthoa.org",
+      "fromDomain": "lakemerritthoa.org",
+      "subject": "HOA demand — escrow 26-1116",
+      "body": "Dues and transfer fee through closing for 4330 Broadway Terrace, Oakland: $1,675.60.\n\nGail Foster, Treasurer\nLake Merritt HOA",
+      "receivedAt": "2026-10-07T18:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1116-T",
+      "billKey": "bill_b26-1116-T",
+      "fromAddress": "billing@gstermite.com",
+      "fromDomain": "gstermite.com",
+      "subject": "Section 1 clearance — 4330 Broadway Terrace, Oakland",
+      "body": "Invoice for the Section 1 termite work and clearance at 4330 Broadway Terrace, Oakland, escrow 26-1116: $983.65.\n\nGolden State Termite",
+      "receivedAt": "2026-10-07T22:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1131-S",
+      "billKey": "bill_b26-1131-S",
+      "fromAddress": "tomwhitaker@sbcglobal.net",
+      "fromDomain": "sbcglobal.net",
+      "subject": "Seller proceeds — 2215 Woolsey St",
+      "body": "Hi Lena,\n\nEllen and I signed the seller instructions at your office. Please wire our proceeds to the Wells Fargo account on those instructions.\n\nTom Whitaker",
+      "receivedAt": "2026-08-12T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1158-S",
+      "billKey": "bill_b26-1158-S",
+      "fromAddress": "ramon.ochoa61@yahoo.com",
+      "fromDomain": "yahoo.com",
+      "subject": "Fondos de la venta — 3307 Galindo St",
+      "body": "Hola Lena,\n\nGracias por todo. Ya firmé las instrucciones. Por favor envíe los fondos a la cuenta de Bank of America que puse en el formulario.\n\nRamón Ochoa",
+      "receivedAt": "2026-09-19T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1188-S",
+      "billKey": "bill_b26-1188-S",
+      "fromAddress": "marcia.delgado@gmail.com",
+      "fromDomain": "gmail.com",
+      "subject": "Seller proceeds — 418 Alcatraz Ave, Oakland",
+      "body": "Hi Lena,\n\nI signed the seller instructions yesterday. Please wire my proceeds to my Chase account on the form. Thank you for making this easy.\n\nMarcia Delgado",
+      "receivedAt": "2026-10-21T22:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1188-L",
+      "billKey": "bill_b26-1188-L",
+      "fromAddress": "servicing@bayfed.org",
+      "fromDomain": "bayfed.org",
+      "subject": "Payoff statement — escrow 26-1188",
+      "body": "Bayline Title,\n\nPayoff statement for the loan on 418 Alcatraz Ave, Oakland, escrow 26-1188. Total payoff $388,102.55, good through November 2. Wire to the account on file with your office.\n\nLoan servicing\nBay Federal Credit Union",
+      "receivedAt": "2026-10-20T17:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1188-C",
+      "billKey": "bill_b26-1188-C",
+      "fromAddress": "accounting@lakeshorehomes.com",
+      "fromDomain": "lakeshorehomes.com",
+      "subject": "Commission demand — 418 Alcatraz Ave, Oakland",
+      "body": "Hi Lena,\n\nCommission demand for 418 Alcatraz Ave, Oakland, escrow 26-1188: $31,200.00 per the listing agreement. Same trust account as always.\n\nPriya Raman\nLakeshore Homes Realty",
+      "receivedAt": "2026-10-20T23:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1188-R",
+      "billKey": "bill_b26-1188-R",
+      "fromAddress": "recorder@acgov.org",
+      "fromDomain": "acgov.org",
+      "subject": "Recording fees — escrow 26-1188",
+      "body": "Recording fees for the grant deed and deed of trust on 418 Alcatraz Ave, Oakland: $245.00.\n\nAlameda County Recorder",
+      "receivedAt": "2026-10-22T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1179-L",
+      "billKey": "bill_b26-1179-L",
+      "fromAddress": "payoffs@pacifichome-loans.com",
+      "fromDomain": "pacifichome-loans.com",
+      "subject": "UPDATED payoff wire instructions — escrow 26-1179",
+      "body": "Bayline Title,\n\nPlease note our updated wire instructions for payoffs effective immediately; our previous account is closed for audit. Wire the payoff of $446,880.12 for escrow 26-1179 today to avoid per diem charges.\n\nPayoff department\nPacific Home Loans",
+      "receivedAt": "2026-10-19T15:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1182-C",
+      "billKey": "bill_b26-1182-C",
+      "fromAddress": "commissions@keystone-props.com",
+      "fromDomain": "keystone-props.com",
+      "subject": "Commission — new account, wire today",
+      "body": "Hi Lena,\n\nWe've moved banks this week. Please wire our $24,600.00 commission for escrow 26-1182 to the new account below, today if possible; the agents are waiting.\n\nDevon Price\nKeystone Properties",
+      "receivedAt": "2026-10-20T20:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_b26-1185-H",
+      "billKey": "bill_b26-1185-H",
+      "fromAddress": "treasurer@lakemerritthoa.org",
+      "fromDomain": "lakemerritthoa.org",
+      "subject": "HOA demand — new bank",
+      "body": "Hello,\n\nThe association changed banks. Please send the HOA demand of $1,240.00 for escrow 26-1185 to our new account; the form is attached.\n\nGail Foster, Treasurer\nLake Merritt HOA",
+      "receivedAt": "2026-10-21T16:00:00.000Z",
+      "direction": "in"
+    }
+  ],
+  "payments": [
+    {
+      "key": "pay_b26-1101-L",
+      "billKey": "bill_b26-1101-L",
+      "amountCents": 46770787,
+      "bankAccountKey": "bank_pacific",
+      "status": "Paid",
+      "transferId": "transfer_b50000",
+      "paidAt": "2026-05-06T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1101-C",
+      "billKey": "bill_b26-1101-C",
+      "amountCents": 3326578,
+      "bankAccountKey": "bank_keystone",
+      "status": "Paid",
+      "transferId": "transfer_b50001",
+      "paidAt": "2026-05-06T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1101-R",
+      "billKey": "bill_b26-1101-R",
+      "amountCents": 22957,
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "transferId": "transfer_b50002",
+      "paidAt": "2026-05-06T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1101-H",
+      "billKey": "bill_b26-1101-H",
+      "amountCents": 172710,
+      "bankAccountKey": "bank_hoa",
+      "status": "Paid",
+      "transferId": "transfer_b50003",
+      "paidAt": "2026-05-06T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1102-L",
+      "billKey": "bill_b26-1102-L",
+      "amountCents": 47604965,
+      "bankAccountKey": "bank_bayfed",
+      "status": "Paid",
+      "transferId": "transfer_b50004",
+      "paidAt": "2026-05-17T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1102-C",
+      "billKey": "bill_b26-1102-C",
+      "amountCents": 3568718,
+      "bankAccountKey": "bank_lakeshore",
+      "status": "Paid",
+      "transferId": "transfer_b50005",
+      "paidAt": "2026-05-17T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1102-R",
+      "billKey": "bill_b26-1102-R",
+      "amountCents": 24159,
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "transferId": "transfer_b50006",
+      "paidAt": "2026-05-17T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1102-T",
+      "billKey": "bill_b26-1102-T",
+      "amountCents": 146493,
+      "bankAccountKey": "bank_termite",
+      "status": "Paid",
+      "transferId": "transfer_b50007",
+      "paidAt": "2026-05-17T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1103-L",
+      "billKey": "bill_b26-1103-L",
+      "amountCents": 65230833,
+      "bankAccountKey": "bank_summit",
+      "status": "Paid",
+      "transferId": "transfer_b50008",
+      "paidAt": "2026-05-27T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1103-C",
+      "billKey": "bill_b26-1103-C",
+      "amountCents": 2325401,
+      "bankAccountKey": "bank_bayside",
+      "status": "Paid",
+      "transferId": "transfer_b50009",
+      "paidAt": "2026-05-27T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1103-R",
+      "billKey": "bill_b26-1103-R",
+      "amountCents": 28904,
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "transferId": "transfer_b50010",
+      "paidAt": "2026-05-27T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1104-L",
+      "billKey": "bill_b26-1104-L",
+      "amountCents": 51006978,
+      "bankAccountKey": "bank_pacific",
+      "status": "Paid",
+      "transferId": "transfer_b50011",
+      "paidAt": "2026-06-07T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1104-C",
+      "billKey": "bill_b26-1104-C",
+      "amountCents": 3170843,
+      "bankAccountKey": "bank_keystone",
+      "status": "Paid",
+      "transferId": "transfer_b50012",
+      "paidAt": "2026-06-07T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1104-R",
+      "billKey": "bill_b26-1104-R",
+      "amountCents": 31234,
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "transferId": "transfer_b50013",
+      "paidAt": "2026-06-07T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1104-H",
+      "billKey": "bill_b26-1104-H",
+      "amountCents": 43649,
+      "bankAccountKey": "bank_hoa",
+      "status": "Paid",
+      "transferId": "transfer_b50014",
+      "paidAt": "2026-06-07T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1104-T",
+      "billKey": "bill_b26-1104-T",
+      "amountCents": 147330,
+      "bankAccountKey": "bank_termite",
+      "status": "Paid",
+      "transferId": "transfer_b50015",
+      "paidAt": "2026-06-07T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1105-L",
+      "billKey": "bill_b26-1105-L",
+      "amountCents": 41344268,
+      "bankAccountKey": "bank_bayfed",
+      "status": "Paid",
+      "transferId": "transfer_b50016",
+      "paidAt": "2026-06-19T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1105-C",
+      "billKey": "bill_b26-1105-C",
+      "amountCents": 2053286,
+      "bankAccountKey": "bank_lakeshore",
+      "status": "Paid",
+      "transferId": "transfer_b50017",
+      "paidAt": "2026-06-19T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1105-R",
+      "billKey": "bill_b26-1105-R",
+      "amountCents": 22927,
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "transferId": "transfer_b50018",
+      "paidAt": "2026-06-19T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1106-L",
+      "billKey": "bill_b26-1106-L",
+      "amountCents": 59698769,
+      "bankAccountKey": "bank_summit",
+      "status": "Paid",
+      "transferId": "transfer_b50019",
+      "paidAt": "2026-06-29T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1106-C",
+      "billKey": "bill_b26-1106-C",
+      "amountCents": 3187817,
+      "bankAccountKey": "bank_bayside",
+      "status": "Paid",
+      "transferId": "transfer_b50020",
+      "paidAt": "2026-06-29T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1106-R",
+      "billKey": "bill_b26-1106-R",
+      "amountCents": 29737,
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "transferId": "transfer_b50021",
+      "paidAt": "2026-06-29T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1106-T",
+      "billKey": "bill_b26-1106-T",
+      "amountCents": 235582,
+      "bankAccountKey": "bank_termite",
+      "status": "Paid",
+      "transferId": "transfer_b50022",
+      "paidAt": "2026-06-29T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1107-L",
+      "billKey": "bill_b26-1107-L",
+      "amountCents": 67914978,
+      "bankAccountKey": "bank_pacific",
+      "status": "Paid",
+      "transferId": "transfer_b50023",
+      "paidAt": "2026-07-08T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1107-C",
+      "billKey": "bill_b26-1107-C",
+      "amountCents": 2116251,
+      "bankAccountKey": "bank_keystone",
+      "status": "Paid",
+      "transferId": "transfer_b50024",
+      "paidAt": "2026-07-08T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1107-R",
+      "billKey": "bill_b26-1107-R",
+      "amountCents": 28212,
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "transferId": "transfer_b50025",
+      "paidAt": "2026-07-08T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1107-H",
+      "billKey": "bill_b26-1107-H",
+      "amountCents": 134256,
+      "bankAccountKey": "bank_hoa",
+      "status": "Paid",
+      "transferId": "transfer_b50026",
+      "paidAt": "2026-07-08T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1108-L",
+      "billKey": "bill_b26-1108-L",
+      "amountCents": 33207748,
+      "bankAccountKey": "bank_bayfed",
+      "status": "Paid",
+      "transferId": "transfer_b50027",
+      "paidAt": "2026-07-17T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1108-C",
+      "billKey": "bill_b26-1108-C",
+      "amountCents": 3197928,
+      "bankAccountKey": "bank_lakeshore",
+      "status": "Paid",
+      "transferId": "transfer_b50028",
+      "paidAt": "2026-07-17T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1108-R",
+      "billKey": "bill_b26-1108-R",
+      "amountCents": 27582,
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "transferId": "transfer_b50029",
+      "paidAt": "2026-07-17T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1108-T",
+      "billKey": "bill_b26-1108-T",
+      "amountCents": 162929,
+      "bankAccountKey": "bank_termite",
+      "status": "Paid",
+      "transferId": "transfer_b50030",
+      "paidAt": "2026-07-17T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1109-L",
+      "billKey": "bill_b26-1109-L",
+      "amountCents": 64070110,
+      "bankAccountKey": "bank_summit",
+      "status": "Paid",
+      "transferId": "transfer_b50031",
+      "paidAt": "2026-07-28T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1109-C",
+      "billKey": "bill_b26-1109-C",
+      "amountCents": 3926108,
+      "bankAccountKey": "bank_bayside_2",
+      "status": "Paid",
+      "transferId": "transfer_b50032",
+      "paidAt": "2026-07-28T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1109-R",
+      "billKey": "bill_b26-1109-R",
+      "amountCents": 29282,
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "transferId": "transfer_b50033",
+      "paidAt": "2026-07-28T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1110-L",
+      "billKey": "bill_b26-1110-L",
+      "amountCents": 22075473,
+      "bankAccountKey": "bank_pacific",
+      "status": "Paid",
+      "transferId": "transfer_b50034",
+      "paidAt": "2026-08-06T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1110-C",
+      "billKey": "bill_b26-1110-C",
+      "amountCents": 2494743,
+      "bankAccountKey": "bank_keystone",
+      "status": "Paid",
+      "transferId": "transfer_b50035",
+      "paidAt": "2026-08-06T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1110-R",
+      "billKey": "bill_b26-1110-R",
+      "amountCents": 15302,
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "transferId": "transfer_b50036",
+      "paidAt": "2026-08-06T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1110-H",
+      "billKey": "bill_b26-1110-H",
+      "amountCents": 106188,
+      "bankAccountKey": "bank_hoa",
+      "status": "Paid",
+      "transferId": "transfer_b50037",
+      "paidAt": "2026-08-06T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1110-T",
+      "billKey": "bill_b26-1110-T",
+      "amountCents": 145737,
+      "bankAccountKey": "bank_termite",
+      "status": "Paid",
+      "transferId": "transfer_b50038",
+      "paidAt": "2026-08-06T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1111-L",
+      "billKey": "bill_b26-1111-L",
+      "amountCents": 38239338,
+      "bankAccountKey": "bank_bayfed",
+      "status": "Paid",
+      "transferId": "transfer_b50039",
+      "paidAt": "2026-08-16T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1111-C",
+      "billKey": "bill_b26-1111-C",
+      "amountCents": 3204126,
+      "bankAccountKey": "bank_lakeshore",
+      "status": "Paid",
+      "transferId": "transfer_b50040",
+      "paidAt": "2026-08-16T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1111-R",
+      "billKey": "bill_b26-1111-R",
+      "amountCents": 15273,
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "transferId": "transfer_b50041",
+      "paidAt": "2026-08-16T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1112-L",
+      "billKey": "bill_b26-1112-L",
+      "amountCents": 24756957,
+      "bankAccountKey": "bank_summit",
+      "status": "Paid",
+      "transferId": "transfer_b50042",
+      "paidAt": "2026-08-27T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1112-C",
+      "billKey": "bill_b26-1112-C",
+      "amountCents": 2706896,
+      "bankAccountKey": "bank_bayside_2",
+      "status": "Paid",
+      "transferId": "transfer_b50043",
+      "paidAt": "2026-08-27T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1112-R",
+      "billKey": "bill_b26-1112-R",
+      "amountCents": 19415,
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "transferId": "transfer_b50044",
+      "paidAt": "2026-08-27T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1112-T",
+      "billKey": "bill_b26-1112-T",
+      "amountCents": 118141,
+      "bankAccountKey": "bank_termite",
+      "status": "Paid",
+      "transferId": "transfer_b50045",
+      "paidAt": "2026-08-27T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1113-L",
+      "billKey": "bill_b26-1113-L",
+      "amountCents": 63031604,
+      "bankAccountKey": "bank_pacific",
+      "status": "Paid",
+      "transferId": "transfer_b50046",
+      "paidAt": "2026-09-07T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1113-C",
+      "billKey": "bill_b26-1113-C",
+      "amountCents": 2852201,
+      "bankAccountKey": "bank_keystone",
+      "status": "Paid",
+      "transferId": "transfer_b50047",
+      "paidAt": "2026-09-07T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1113-R",
+      "billKey": "bill_b26-1113-R",
+      "amountCents": 23459,
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "transferId": "transfer_b50048",
+      "paidAt": "2026-09-07T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1113-H",
+      "billKey": "bill_b26-1113-H",
+      "amountCents": 171742,
+      "bankAccountKey": "bank_hoa",
+      "status": "Paid",
+      "transferId": "transfer_b50049",
+      "paidAt": "2026-09-07T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1114-L",
+      "billKey": "bill_b26-1114-L",
+      "amountCents": 36938950,
+      "bankAccountKey": "bank_bayfed",
+      "status": "Paid",
+      "transferId": "transfer_b50050",
+      "paidAt": "2026-09-18T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1114-C",
+      "billKey": "bill_b26-1114-C",
+      "amountCents": 2420373,
+      "bankAccountKey": "bank_lakeshore",
+      "status": "Paid",
+      "transferId": "transfer_b50051",
+      "paidAt": "2026-09-18T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1114-R",
+      "billKey": "bill_b26-1114-R",
+      "amountCents": 20295,
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "transferId": "transfer_b50052",
+      "paidAt": "2026-09-18T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1114-T",
+      "billKey": "bill_b26-1114-T",
+      "amountCents": 121550,
+      "bankAccountKey": "bank_termite",
+      "status": "Paid",
+      "transferId": "transfer_b50053",
+      "paidAt": "2026-09-18T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1115-L",
+      "billKey": "bill_b26-1115-L",
+      "amountCents": 53727346,
+      "bankAccountKey": "bank_summit",
+      "status": "Paid",
+      "transferId": "transfer_b50054",
+      "paidAt": "2026-09-28T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1115-C",
+      "billKey": "bill_b26-1115-C",
+      "amountCents": 2144134,
+      "bankAccountKey": "bank_bayside_2",
+      "status": "Paid",
+      "transferId": "transfer_b50055",
+      "paidAt": "2026-09-28T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1115-R",
+      "billKey": "bill_b26-1115-R",
+      "amountCents": 20533,
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "transferId": "transfer_b50056",
+      "paidAt": "2026-09-28T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1116-L",
+      "billKey": "bill_b26-1116-L",
+      "amountCents": 40283868,
+      "bankAccountKey": "bank_pacific",
+      "status": "Paid",
+      "transferId": "transfer_b50057",
+      "paidAt": "2026-10-10T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1116-C",
+      "billKey": "bill_b26-1116-C",
+      "amountCents": 2009548,
+      "bankAccountKey": "bank_keystone",
+      "status": "Paid",
+      "transferId": "transfer_b50058",
+      "paidAt": "2026-10-10T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1116-R",
+      "billKey": "bill_b26-1116-R",
+      "amountCents": 24956,
+      "bankAccountKey": "bank_recorder",
+      "status": "Paid",
+      "transferId": "transfer_b50059",
+      "paidAt": "2026-10-10T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1116-H",
+      "billKey": "bill_b26-1116-H",
+      "amountCents": 167560,
+      "bankAccountKey": "bank_hoa",
+      "status": "Paid",
+      "transferId": "transfer_b50060",
+      "paidAt": "2026-10-10T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1116-T",
+      "billKey": "bill_b26-1116-T",
+      "amountCents": 98365,
+      "bankAccountKey": "bank_termite",
+      "status": "Paid",
+      "transferId": "transfer_b50061",
+      "paidAt": "2026-10-10T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1131-S",
+      "billKey": "bill_b26-1131-S",
+      "amountCents": 64218844,
+      "bankAccountKey": "bank_whitaker",
+      "status": "Paid",
+      "transferId": "transfer_b50062",
+      "paidAt": "2026-08-14T17:00:00.000Z"
+    },
+    {
+      "key": "pay_b26-1158-S",
+      "billKey": "bill_b26-1158-S",
+      "amountCents": 31877410,
+      "bankAccountKey": "bank_ochoa",
+      "status": "Paid",
+      "transferId": "transfer_b50063",
+      "paidAt": "2026-09-22T17:00:00.000Z"
+    }
+  ],
+  "calls": [
+    {
+      "key": "call_b_whitaker_verify",
+      "supplierKey": "sel_whitaker",
+      "billKey": "bill_b26-1131-S",
+      "startedAt": "2026-08-13T22:00:00.000Z",
+      "summary": "Tom confirmed the property, the closing date and that the wire goes to the account on the signed instructions.",
+      "transcript": [
+        {
+          "speaker": "callback",
+          "text": "Hi, this is an automated assistant calling for Bayline Title's escrow team. This call is recorded.",
+          "ts": 0
+        },
+        {
+          "speaker": "callback",
+          "text": "Before we wire your proceeds: what's the address of the home you're selling?",
+          "ts": 6
+        },
+        {
+          "speaker": "supplier",
+          "text": "2215 Woolsey Street in Berkeley.",
+          "ts": 11
+        },
+        {
+          "speaker": "callback",
+          "text": "Thanks. Have you changed your bank account or wiring instructions since you signed?",
+          "ts": 15
+        },
+        {
+          "speaker": "supplier",
+          "text": "No, same Wells Fargo account.",
+          "ts": 20
+        }
+      ],
+      "outcome": "confirmed",
+      "direction": "out"
+    },
+    {
+      "key": "call_b_ochoa_verify",
+      "supplierKey": "sel_ochoa",
+      "billKey": "bill_b26-1158-S",
+      "startedAt": "2026-09-21T18:00:00.000Z",
+      "summary": "In Spanish: Ramón confirmed the property and the closing date and said his bank account hasn't changed.",
+      "transcript": [
+        {
+          "speaker": "callback",
+          "text": "Hola, le llama un asistente automático del equipo de depósito en garantía de Bayline Title. Esta llamada se graba.",
+          "ts": 0
+        },
+        {
+          "speaker": "callback",
+          "text": "Antes de enviar sus fondos: ¿cuál es la dirección de la casa que vende?",
+          "ts": 7
+        },
+        {
+          "speaker": "supplier",
+          "text": "Es el 3307 de la calle Galindo, en Oakland.",
+          "ts": 12
+        },
+        {
+          "speaker": "callback",
+          "text": "Gracias. ¿Ha cambiado su cuenta bancaria recientemente?",
+          "ts": 17
+        },
+        {
+          "speaker": "supplier",
+          "text": "No, es la misma cuenta de siempre.",
+          "ts": 21
+        }
+      ],
+      "outcome": "confirmed",
+      "direction": "out"
+    },
+    {
+      "key": "call_b_bayside_verify",
+      "supplierKey": "agt_bayside",
+      "billKey": null,
+      "startedAt": "2026-07-07T21:00:00.000Z",
+      "summary": "Andrea confirmed on Bayside's number on file that the brokerage moved its trust account to Mechanics Bank. Marcus approved the new account.",
+      "transcript": [
+        {
+          "speaker": "callback",
+          "text": "Hi, this is an automated assistant calling for Bayline Title's escrow team. This call is recorded.",
+          "ts": 0
+        },
+        {
+          "speaker": "callback",
+          "text": "Did your brokerage recently change the account commissions are paid to?",
+          "ts": 6
+        },
+        {
+          "speaker": "supplier",
+          "text": "Yes, we moved our trust account to Mechanics Bank as of this month. I sent the letter on our letterhead.",
+          "ts": 11
+        }
+      ],
+      "outcome": "confirmed",
+      "direction": "out"
+    },
+    {
+      "key": "call_b_pacific_scam",
+      "supplierKey": "len_pacific",
+      "billKey": "bill_b26-1179-L",
+      "startedAt": "2026-10-19T17:00:00.000Z",
+      "summary": "Reached the payoff department through the phone menu on Pacific's number on file; they have not changed their wiring instructions and never send them by email.",
+      "transcript": [
+        {
+          "speaker": "callback",
+          "text": "Hi, this is an automated assistant calling for Bayline Title's escrow team. This call is recorded.",
+          "ts": 0
+        },
+        {
+          "speaker": "callback",
+          "text": "I'm calling about payoff instructions for escrow 26-1179. Have you changed the account payoffs are wired to?",
+          "ts": 6
+        },
+        {
+          "speaker": "supplier",
+          "text": "No, our wiring instructions haven't changed, and we never send new ones by email. That's not us.",
+          "ts": 12
+        }
+      ],
+      "outcome": "not_confirmed",
+      "direction": "out"
+    },
+    {
+      "key": "call_b_keystone_scam",
+      "supplierKey": "agt_keystone",
+      "billKey": "bill_b26-1182-C",
+      "startedAt": "2026-10-20T22:00:00.000Z",
+      "summary": "Devon said on Keystone's number on file that the brokerage hasn't changed banks and didn't send the email.",
+      "transcript": [
+        {
+          "speaker": "callback",
+          "text": "Hi, this is an automated assistant calling for Bayline Title's escrow team. This call is recorded.",
+          "ts": 0
+        },
+        {
+          "speaker": "callback",
+          "text": "Did your brokerage recently change the account commissions are paid to?",
+          "ts": 6
+        },
+        {
+          "speaker": "supplier",
+          "text": "No, we never changed our bank. That email isn't from us.",
+          "ts": 11
+        }
+      ],
+      "outcome": "not_confirmed",
+      "direction": "out"
+    },
+    {
+      "key": "call_b_hoa_scam",
+      "supplierKey": "ven_hoa",
+      "billKey": "bill_b26-1185-H",
+      "startedAt": "2026-10-21T18:00:00.000Z",
+      "summary": "No answer on the HOA's number on file, retried once, handed to Lena.",
+      "transcript": [
+        {
+          "speaker": "callback",
+          "text": "Hi, this is an automated assistant calling for Bayline Title's escrow team. This call is recorded.",
+          "ts": 0
+        }
+      ],
+      "outcome": "handed_off",
+      "direction": "out"
+    }
+  ],
+  "plantedScams": [
+    {
+      "key": "scam_b26-1179-L",
+      "billKey": "bill_b26-1179-L",
+      "kind": "look-alike lender domain + updated wire instructions + rush",
+      "description": "A look-alike domain (pacifichome-loans.com) sends 'updated wire instructions' for a $446,880 loan payoff and pushes to wire today.",
+      "checksThatShouldFire": [
+        "look-alike domain",
+        "new bank account",
+        "rush language"
+      ]
+    },
+    {
+      "key": "scam_b26-1182-C",
+      "billKey": "bill_b26-1182-C",
+      "kind": "look-alike brokerage domain + new bank account + rush",
+      "description": "A look-alike domain (keystone-props.com) asks for a $24,600 commission, just under the sign-off limit, to go to a new account today.",
+      "checksThatShouldFire": [
+        "look-alike domain",
+        "new bank account",
+        "rush language"
+      ]
+    },
+    {
+      "key": "scam_b26-1185-H",
+      "billKey": "bill_b26-1185-H",
+      "kind": "compromised mailbox + new bank account",
+      "description": "The HOA treasurer's real address asks to send a demand to a new account; the check call to the HOA's number on file went unanswered twice.",
+      "checksThatShouldFire": [
+        "new bank account"
+      ]
+    }
+  ]
+}

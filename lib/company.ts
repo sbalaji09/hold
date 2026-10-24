@@ -130,7 +130,7 @@ export function wholeDollars(cents: number): string {
   return "$" + Math.round(cents / 100).toLocaleString("en-US");
 }
 
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** "Supplier", "Party", "Employee". */
 export const capital = (n: Noun) => ({ one: cap(n.one), many: cap(n.many) });
@@ -148,3 +148,6 @@ export function languageName(code: string): string {
     return code;
   }
 }
+
+/** A role mid-sentence: "Controller" -> "controller", but "HR director" stays as it is. */
+export const inSentence = (s: string) => (/^[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s);

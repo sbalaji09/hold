@@ -1,4 +1,5 @@
 import * as React from "react";
+import Link from "next/link";
 import { Guilloche } from "@/components/callback";
 import { NavLinks, type NavItem } from "@/components/NavLinks";
 import { countPlaybookApprovals, getCompany, listApprovals, listBills, listMessages } from "@/lib/data";
@@ -31,7 +32,9 @@ export async function Sidebar(): Promise<React.ReactElement> {
         <Guilloche size={26} lobes={9} strands={6} className="pt-brand-seal" />
         <div>
           <div className="pt-word">hold</div>
-          <div className="cb-caps">{co.name} · {co.dept}</div>
+          <Link href="/workspace" className="cb-caps no-underline hover:underline" title="Switch company template">
+            {co.name} · {co.dept}
+          </Link>
         </div>
       </div>
       {/* renderedAt marks each server render, so the client can tell a background refresh landed. */}

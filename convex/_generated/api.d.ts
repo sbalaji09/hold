@@ -28,6 +28,7 @@ import type * as app_rules from "../app/rules.js";
 import type * as app_suppliers from "../app/suppliers.js";
 import type * as app_techniques from "../app/techniques.js";
 import type * as app_triage from "../app/triage.js";
+import type * as app_workspace from "../app/workspace.js";
 import type * as crons from "../crons.js";
 import type * as http from "../http.js";
 import type * as migrations from "../migrations.js";
@@ -67,6 +68,7 @@ declare const fullApi: ApiFromModules<{
   "app/suppliers": typeof app_suppliers;
   "app/techniques": typeof app_techniques;
   "app/triage": typeof app_triage;
+  "app/workspace": typeof app_workspace;
   crons: typeof crons;
   http: typeof http;
   migrations: typeof migrations;
