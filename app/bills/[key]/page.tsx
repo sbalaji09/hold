@@ -123,7 +123,7 @@ export default async function BillPage({
       ) : null}
 
       <div className="flex min-w-0 flex-col gap-4">
-      <article className="cb-doc relative min-w-0 self-start p-5">
+      <article className="cb-doc relative min-w-0 p-5">
         <div className="grid grid-cols-[64px_1fr] gap-y-0.5 border-b border-dashed border-line pb-3 font-mono text-[12px]/[18px] text-ink-muted">
           <span>From</span>
           <b className="font-normal text-ink">
