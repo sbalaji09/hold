@@ -13,6 +13,8 @@ import { BackgroundCheckPanel } from "@/components/BackgroundCheckPanel";
 import { TIME_ZONE, formatPhone } from "@/components/voice/format";
 import { STATUS_TO_MARK } from "@/lib/inbox";
 import { PERSON_NAME } from "@/lib/playbook";
+import { useCompany } from "@/lib/useCompany";
+import type { Company } from "@/lib/company";
 import type { BackgroundCheck, Bill, Supplier } from "@/lib/types";
 
 type Persona = keyof typeof PERSON_NAME;
@@ -28,27 +30,24 @@ const invoiceLabel = (b: Bill) => (b.invoiceNo === "unknown" ? "Bill with no inv
 
 const FIELD = "w-full rounded-sm border border-line-control bg-surface px-2.5 py-2 text-[14px]/[20px] text-ink";
 
-const FACTS: Array<{ key: keyof Note; label: string }> = [
-  { key: "hiredFor", label: "What Fogline hired them for" },
-  { key: "agreed", label: "What was agreed (price, terms)" },
-  { key: "dates", label: "Dates" },
-  { key: "foglineContact", label: "Who at Fogline arranged it" },
-];
+const factsOf = (co: Company): Array<{ key: keyof Note; label: string }> =>
+  (["hiredFor", "agreed", "dates", "foglineContact"] as const).map((key) => ({ key, label: co.facts[key] }));
 
 /** Fogline's confirmation of a new supplier, read-only. Also shown once they're Trusted. */
 export function OnboardingRecord({ supplier }: { supplier: Supplier }): React.ReactElement | null {
+  const co = useCompany();
   const o = supplier.onboarding;
   if (!o?.note) return null;
   return (
     <section className="cb-doc" aria-labelledby="onboarding-head">
       <div className="cb-doc-head">
-        <span id="onboarding-head">Confirmed as a new supplier</span>
+        <span id="onboarding-head">{o.confirmedBy ? `Confirmed as a new ${co.payee.one}` : `On ${co.owner} file`}</span>
         {o.confirmedAt ? <small>{whenFmt.format(new Date(o.confirmedAt))}</small> : null}
       </div>
       <dl className="grid grid-cols-1 gap-x-4 gap-y-1 p-4 sm:grid-cols-[minmax(0,200px)_minmax(0,1fr)]">
         <dt className="cb-caps pt-1">Trusted number</dt>
         <dd className="m-0 mb-2 font-mono text-[14px] text-ink">{supplier.trustedPhone ? formatPhone(supplier.trustedPhone) : "None on file"}</dd>
-        {FACTS.map((f) => (
+        {factsOf(co).map((f) => (
           <React.Fragment key={f.key}>
             <dt className="cb-caps pt-1">{f.label}</dt>
             <dd className="m-0 mb-2 text-[14px]/[20px] text-ink">{o.note![f.key] || <span className="text-ink-muted">Not given</span>}</dd>
@@ -57,7 +56,7 @@ export function OnboardingRecord({ supplier }: { supplier: Supplier }): React.Re
         {o.confirmedBy ? (
           <>
             <dt className="cb-caps pt-1">Confirmed by</dt>
-            <dd className="m-0 font-serif text-[17px]/[24px] italic text-signatory">{PERSON_NAME[o.confirmedBy]}</dd>
+            <dd className="m-0 font-serif text-[17px]/[24px] italic text-signatory">{co[o.confirmedBy].full}</dd>
           </>
         ) : null}
       </dl>
@@ -121,6 +120,7 @@ interface ConfirmSupplierProps {
 }
 
 export function ConfirmSupplier({ supplier, bills, lastCheck, actor }: ConfirmSupplierProps): React.ReactElement {
+  const co = useCompany();
   const router = useRouter();
   const confirm = useMutation(api.app.onboarding.confirmNewSupplier);
   const emailPhones = supplier.onboarding?.emailPhones ?? [];
@@ -170,12 +170,12 @@ export function ConfirmSupplier({ supplier, bills, lastCheck, actor }: ConfirmSu
       <div className="flex flex-col items-start gap-2">
         {confirmed ? <span className="cb-caps">New · confirmed</span> : <StatusMark status="needs-you">Needs confirming</StatusMark>}
         <h2 id="confirm-head" className="cb-subject text-ink">
-          {confirmed ? `${supplier.name} is confirmed` : "Confirm this new supplier"}
+          {confirmed ? `${supplier.name} is confirmed` : `Confirm this new ${co.payee.one}`}
         </h2>
         <p className="m-0 max-w-[68ch] font-mono text-[13px]/[21px] text-ink">
           {confirmed
-            ? `${supplier.name} stays New until hold reaches them on the trusted number and they confirm the bill. Then they're Trusted, and Dev approves the first payment.`
-            : `Fogline has never paid ${supplier.name}. Nothing is paid until you confirm who they are and hold reaches them on a number that didn't come from their email.`}
+            ? `${supplier.name} stays New until hold reaches them on the trusted number and they confirm the ${co.bill.one}. Then they're Trusted, and ${co.dev.name} approves the first payment.`
+            : `${co.name} has never paid ${supplier.name}. Nothing is paid until you confirm who they are and hold reaches them on a number that didn't come from their email.`}
         </p>
       </div>
 
@@ -243,7 +243,7 @@ export function ConfirmSupplier({ supplier, bills, lastCheck, actor }: ConfirmSu
           <form onSubmit={onSubmit} className="cb-doc min-w-0" aria-labelledby="confirm-form-head" noValidate>
             <div className="cb-doc-head">
               <span id="confirm-form-head">Your confirmation</span>
-              <small>Signing as {PERSON_NAME[actor]}</small>
+              <small>Signing as {co[actor].full}</small>
             </div>
             <div className="flex flex-col gap-4 p-4">
               <div className="flex flex-col gap-1.5">
@@ -268,12 +268,12 @@ export function ConfirmSupplier({ supplier, bills, lastCheck, actor }: ConfirmSu
                 />
                 <p id="confirm-phone-help" className={"m-0 text-[12px]/[17px] " + (fromEmail(phone) ? "text-hold" : "text-ink-muted")}>
                   {fromEmail(phone)
-                    ? "That number is in their own email, so it can't verify them. Use the background check's number or one from Fogline's records."
+                    ? `That number is in their own email, so it can't verify them. Use the background check's number or one from ${co.owner} records.`
                     : suggested && digits(phone) === digits(suggested)
                       ? "From the background check. Check it against the source before you confirm."
                       : lastCheck?.suggestedPhone && fromEmail(lastCheck.suggestedPhone)
-                        ? "The number on their site is the one in their email, so it can't verify them. Use one from Fogline's own records."
-                        : "From the background check or Fogline's own records, never from their email."}
+                        ? `The number on their site is the one in their email, so it can't verify them. Use one from ${co.owner} own records.`
+                        : `From the background check or ${co.owner} own records, never from their email.`}
                 </p>
               </div>
 
@@ -286,12 +286,12 @@ export function ConfirmSupplier({ supplier, bills, lastCheck, actor }: ConfirmSu
 
               <fieldset className="m-0 flex flex-col gap-4 border-0 border-t border-dashed border-line p-0 pt-4">
                 <legend className="float-left mb-1 w-full p-0">
-                  <span className="text-[14px]/[20px] font-semibold text-ink">Fogline&rsquo;s facts</span>
+                  <span className="text-[14px]/[20px] font-semibold text-ink">{co.owner} facts</span>
                   <span className="mt-1 block font-mono text-[12.5px]/[19px] font-normal text-ink-muted">
-                    hold asks about these on the check call; nothing on the web is secret enough to verify a new supplier.
+                    hold asks about these on the check call; nothing on the web is secret enough to verify a new {co.payee.one}.
                   </span>
                 </legend>
-                {FACTS.map((f) => {
+                {factsOf(co).map((f) => {
                   const required = f.key === "hiredFor" || f.key === "agreed";
                   const id = `confirm-${f.key}`;
                   return (

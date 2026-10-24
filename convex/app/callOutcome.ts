@@ -4,6 +4,7 @@
 import { v } from "convex/values";
 import { internalMutation } from "../_generated/server.js";
 import { decideCallOutcome, sentence } from "../../lib/callOutcome.js";
+import { getCompany } from "./company.js";
 import { hydrateBill } from "./queries.js";
 import { addBillToPracticeSet } from "./practice.js";
 import { openImprovement } from "./techniques.js";
@@ -49,7 +50,7 @@ export const applyCallResult = internalMutation({
     }
 
     const bill = await hydrateBill(ctx, row);
-    const decision = decideCallOutcome(bill, result.outcome, result.summary);
+    const decision = decideCallOutcome(bill, result.outcome, result.summary, await getCompany(ctx));
     await ctx.db.patch(row._id, { status: decision.status });
     if (decision.approval) {
       const pending = await ctx.db

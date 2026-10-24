@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button, CheckRow, Line, StatusMark } from "@/components/callback";
 import { CALLBACK_PROMISE } from "@/shared/contract";
 import { PERSON_NAME } from "@/lib/playbook";
+import { useCompany } from "@/lib/useCompany";
 import { usePhoneLine, useReportCall, useSupplierName, useTacticNames, type CallVerdict, type InboundCallDoc } from "./api";
 import { AGENT, formatElapsed, formatPhone, formatWhen, parseTime, type TranscriptRow } from "./format";
 import { liveCallPath, Recording, useNow } from "./LiveCall";
@@ -34,9 +35,10 @@ function screenState(call: InboundCallDoc, now: number): Screen {
   return now - ended < SCREENING_MS ? "screening" : "unscreened";
 }
 
-/** The Phone line screen for `/phone`: Fogline's number, live incoming calls, past calls. `callId` opens that call. */
+/** The Phone line screen for `/phone`: the company's number, live incoming calls, past calls. `callId` opens that call. */
 export function PhoneLineScreen({ actor = "maya", callId }: { actor?: Actor; callId?: string }) {
   const line = usePhoneLine();
+  const co = useCompany();
 
   if (line === undefined) {
     return (
@@ -53,10 +55,10 @@ export function PhoneLineScreen({ actor = "maya", callId }: { actor?: Actor; cal
       <header className="hv-head">
         <div className="hv-head-text">
           <h1 className="cb-display">Phone line</h1>
-          <p className="hv-sub">Fogline&apos;s accounts line. {AGENT} answers every call.</p>
+          <p className="hv-sub">{co.owner} {co.team.replace(/ team$/, "")} line. {AGENT} answers every call.</p>
         </div>
         <div className="hv-number">
-          <div className="cb-caps">Fogline&apos;s number</div>
+          <div className="cb-caps">{co.owner} number</div>
           {line.number ? (
             <a className="hv-number-value" href={`tel:${line.number}`}>
               {number}
@@ -104,6 +106,7 @@ function ActiveCall({ call }: { call: InboundCallDoc }) {
 }
 
 function PastCalls({ calls, number, actor, callId }: { calls: InboundCallDoc[]; number: string | null; actor: Actor; callId?: string }) {
+  const co = useCompany();
   // The open call is tracked by call_id so links from the Activity log (/phone?call=in_...) land on it.
   const [openId, setOpenId] = useState<string | null>(callId ?? null);
   // Ticks so a just-ended call moves from "Screening" to its verdict (or to unscreened) without a reload.
@@ -121,7 +124,7 @@ function PastCalls({ calls, number, actor, callId }: { calls: InboundCallDoc[]; 
       <section className="cb-doc">
         <div className="cb-doc-head">Incoming calls</div>
         <p className="hv-empty">
-          {number ? `No calls yet. Fogline's line is ${number}.` : "No calls yet."} Calls show up here as they happen.
+          {number ? `No calls yet. ${co.owner} line is ${number}.` : "No calls yet."} Calls show up here as they happen.
         </p>
       </section>
     );

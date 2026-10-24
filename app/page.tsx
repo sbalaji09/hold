@@ -1,7 +1,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { InboxRow, StatusMark } from "@/components/callback";
-import { listApprovals, listBills, listMessages, type Message } from "@/lib/data";
+import { getCompany, listApprovals, listBills, listMessages, type Message } from "@/lib/data";
+import { capital } from "@/lib/company";
 import { INBOX_FILTERS, MESSAGE_MARK, STATUS_TO_MARK, UNSETTLED_STATUS, emailPreview, inboxItems, parseView, shortDate, type InboxView } from "@/lib/inbox";
 
 const EMPTY: Record<string, string> = {
@@ -36,7 +37,7 @@ export default async function InboxPage({
   searchParams: Promise<{ status?: string }>;
 }): Promise<React.ReactElement> {
   const view = parseView((await searchParams).status);
-  const [bills, approvals, messages] = await Promise.all([listBills(), listApprovals(), listMessages()]);
+  const [bills, approvals, messages, co] = await Promise.all([listBills(), listApprovals(), listMessages(), getCompany()]);
   const routed = new Map(approvals.map((a) => [a.bill.key, a.routedTo]));
   const rows = inboxItems(bills, messages, view);
   const count = (v: InboxView | undefined) => inboxItems(bills, messages, v).length;
@@ -48,7 +49,7 @@ export default async function InboxPage({
         <div className="pt-head-text">
           <h1 className="cb-display">{view === "filed" ? "Done and filed" : "Inbox"}</h1>
           <p className="pt-sub">
-            {view === "filed" ? "Supplier emails hold filed, and messages marked done · newest first" : "bills@fogline.fm · newest first"}
+            {view === "filed" ? `${capital(co.payee).one} emails hold filed, and messages marked done · newest first` : `${co.inbox} · newest first`}
           </p>
         </div>
       </header>
@@ -75,14 +76,14 @@ export default async function InboxPage({
       <div className="pt-scroll"><div className="cb-ledger pt-ledger">
         <div className="cb-ledger-head">
           <span />
-          <span>Supplier</span>
+          <span>{capital(co.payee).one}</span>
           <span>Subject</span>
           <span className="cb-r">Amount</span>
           <span>Status</span>
           <span className="cb-r">In</span>
         </div>
         {rows.length === 0 ? (
-          <div className="pt-empty">{(view && EMPTY[view]) ?? "Nothing here. hold has no bills in this state."}</div>
+          <div className="pt-empty">{(view && EMPTY[view]) ?? `Nothing here. hold has no ${co.bill.many} in this state.`}</div>
         ) : (
           rows.map((row) =>
             row.kind === "message" ? (

@@ -11,6 +11,7 @@
 import type * as app_background from "../app/background.js";
 import type * as app_callOutcome from "../app/callOutcome.js";
 import type * as app_checks from "../app/checks.js";
+import type * as app_company from "../app/company.js";
 import type * as app_improve from "../app/improve.js";
 import type * as app_increase from "../app/increase.js";
 import type * as app_intake from "../app/intake.js";
@@ -49,6 +50,7 @@ declare const fullApi: ApiFromModules<{
   "app/background": typeof app_background;
   "app/callOutcome": typeof app_callOutcome;
   "app/checks": typeof app_checks;
+  "app/company": typeof app_company;
   "app/improve": typeof app_improve;
   "app/increase": typeof app_increase;
   "app/intake": typeof app_intake;

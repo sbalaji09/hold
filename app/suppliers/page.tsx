@@ -1,6 +1,7 @@
 import * as React from "react";
 import Link from "next/link";
-import { listBills, listSupplierSummaries } from "@/lib/data";
+import { getCompany, listBills, listSupplierSummaries } from "@/lib/data";
+import { capital } from "@/lib/company";
 import { buildSupplierGraph } from "@/lib/supplierGraph";
 import { StatusMark } from "@/components/callback";
 import { AddSupplierForm } from "@/components/AddSupplierForm";
@@ -25,7 +26,8 @@ export default async function SuppliersPage({
   searchParams: Promise<{ view?: string }>;
 }): Promise<React.ReactElement> {
   const graphView = (await searchParams).view === "graph";
-  const [suppliers, bills] = await Promise.all([listSupplierSummaries(), graphView ? listBills() : []]);
+  const [suppliers, bills, co] = await Promise.all([listSupplierSummaries(), graphView ? listBills() : [], getCompany()]);
+  const Payee = capital(co.payee);
   // New suppliers nobody has confirmed yet: Maya's (or Dev's) turn, so they lead the list.
   const needsConfirming = (s: (typeof suppliers)[number]) => s.status === "new" && !s.onboarding?.confirmedAt;
   const awaiting = suppliers.filter(needsConfirming).length;
@@ -35,14 +37,14 @@ export default async function SuppliersPage({
     <div className="flex flex-col gap-4 p-6 max-[760px]:p-0">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="cb-display text-ink">Suppliers</h1>
+          <h1 className="cb-display text-ink">{Payee.many}</h1>
           <p className="font-mono text-[12px] text-ink-muted">
             {suppliers.length} on file
             {awaiting > 0 ? (
               <>
                 {" · "}
                 <Link href={`/suppliers/${rows[0]!.key}`} className="text-ink underline underline-offset-4">
-                  {awaiting} new {awaiting === 1 ? "supplier needs" : "suppliers need"} confirming
+                  {awaiting} new {awaiting === 1 ? `${co.payee.one} needs` : `${co.payee.many} need`} confirming
                 </Link>
               </>
             ) : null}
@@ -51,7 +53,7 @@ export default async function SuppliersPage({
         <AddSupplierForm />
       </div>
 
-      <nav className="pt-filters" aria-label="Show suppliers as">
+      <nav className="pt-filters" aria-label={`Show ${co.payee.many} as`}>
         {[
           { label: "List", href: "/suppliers", on: !graphView },
           { label: "Graph", href: "/suppliers?view=graph", on: graphView },
@@ -63,18 +65,18 @@ export default async function SuppliersPage({
       </nav>
 
       {graphView ? (
-        <SupplierGraph graph={buildSupplierGraph(suppliers, bills)} />
+        <SupplierGraph graph={buildSupplierGraph(suppliers, bills, co)} />
       ) : (
         <div className="pt-scroll"><div className="cb-ledger min-w-[720px]">
           <div className="grid grid-cols-[minmax(160px,220px)_1fr_150px_130px_90px] items-center gap-3 border-b-[1.5px] border-ink px-4 py-2 font-sans text-[10.5px] font-semibold uppercase tracking-[.09em] text-ink-muted">
-            <span>Supplier</span>
+            <span>{Payee.one}</span>
             <span>Domain</span>
             <span>Status</span>
             <span>Last checked</span>
             <span>Open</span>
           </div>
           {suppliers.length === 0 ? (
-            <div className="p-6 text-[13px] text-ink-muted">No suppliers yet. Add Fogline's first one above.</div>
+            <div className="p-6 text-[13px] text-ink-muted">No {co.payee.many} yet. Add {co.owner} first one above.</div>
           ) : (
             rows.map((s) => (
               <div

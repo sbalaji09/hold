@@ -1,18 +1,26 @@
 import * as React from "react";
 import { Guilloche } from "@/components/callback";
 import { NavLinks, type NavItem } from "@/components/NavLinks";
-import { countPlaybookApprovals, listApprovals, listBills, listMessages } from "@/lib/data";
+import { countPlaybookApprovals, getCompany, listApprovals, listBills, listMessages } from "@/lib/data";
+import { capital } from "@/lib/company";
 import { UNSETTLED_STATUS } from "@/lib/inbox";
 import { getPersona, setPersona } from "@/lib/persona";
 
 export async function Sidebar(): Promise<React.ReactElement> {
-  const [approvals, changes, bills, messages, persona] = await Promise.all([listApprovals(), countPlaybookApprovals(), listBills(), listMessages(), getPersona()]);
+  const [approvals, changes, bills, messages, persona, co] = await Promise.all([
+    listApprovals(),
+    countPlaybookApprovals(),
+    listBills(),
+    listMessages(),
+    getPersona(),
+    getCompany(),
+  ]);
   const open = bills.filter((b) => UNSETTLED_STATUS[b.status]).length + messages.open.length;
   const items: NavItem[] = [
     { href: "/", label: "Inbox", icon: "inbox", badge: open },
     { href: "/approvals", label: "Approvals", icon: "approvals", badge: approvals.length + changes, tone: "you" },
     { href: "/payments", label: "Payments", icon: "payments" },
-    { href: "/suppliers", label: "Suppliers", icon: "suppliers" },
+    { href: "/suppliers", label: capital(co.payee).many, icon: "suppliers" },
     { href: "/phone", label: "Phone line", icon: "phone" },
     { href: "/activity", label: "Activity log", icon: "activity" },
   ];
@@ -23,7 +31,7 @@ export async function Sidebar(): Promise<React.ReactElement> {
         <Guilloche size={26} lobes={9} strands={6} className="pt-brand-seal" />
         <div>
           <div className="pt-word">hold</div>
-          <div className="cb-caps">Fogline · AP</div>
+          <div className="cb-caps">{co.name} · {co.dept}</div>
         </div>
       </div>
       {/* renderedAt marks each server render, so the client can tell a background refresh landed. */}
@@ -33,8 +41,8 @@ export async function Sidebar(): Promise<React.ReactElement> {
         <form action={setPersona} className="pt-seg">
           {(
             [
-              ["maya", "Maya", "Bookkeeper"],
-              ["dev", "Dev", "Controller"],
+              ["maya", co.maya.name, co.maya.role],
+              ["dev", co.dev.name, co.dev.role],
             ] as const
           ).map(([who, name, role]) => (
             <button key={who} type="submit" name="who" value={who} className={persona === who ? "on" : undefined} aria-pressed={persona === who}>

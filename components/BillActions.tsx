@@ -7,6 +7,7 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/callback";
 import type { PolicyResult } from "@/lib/policy";
+import { useCompany } from "@/lib/useCompany";
 
 interface BillActionsProps {
   billKey: string;
@@ -18,6 +19,7 @@ interface BillActionsProps {
 
 export function BillActions({ billKey, amount, pay, hold, call }: BillActionsProps): React.ReactElement {
   const router = useRouter();
+  const co = useCompany();
   const convexConfigured = Boolean(process.env.NEXT_PUBLIC_CONVEX_URL);
   const payBill = useMutation(api.app.mutations.payBill);
   const holdBill = useMutation(api.app.mutations.holdBill);
@@ -48,11 +50,11 @@ export function BillActions({ billKey, amount, pay, hold, call }: BillActionsPro
       <div className="flex flex-wrap items-start gap-2.5">
         {call.allowed ? (
           <Button variant="secondary" icon="phone" disabled={pending !== null} onClick={() => run("call")}>
-            {pending === "call" ? "Calling…" : "Call supplier"}
+            {pending === "call" ? "Calling…" : `Call ${co.payee.one}`}
           </Button>
         ) : (
           <Button variant="secondary" icon="phone" locked={call.reason}>
-            Call supplier
+            Call {co.payee.one}
           </Button>
         )}
         {hold.allowed ? (

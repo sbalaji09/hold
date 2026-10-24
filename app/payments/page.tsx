@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listRun, runEligibility } from "@/lib/payments";
-import { getSettings } from "@/lib/data";
+import { getCompany, getSettings } from "@/lib/data";
+import { capital } from "@/lib/company";
 import { STATUS_TO_MARK } from "@/lib/inbox";
 import { Amount, AccountLine, StatusMark } from "@/components/callback";
 import { RunPayments } from "@/components/RunPayments";
@@ -13,8 +14,8 @@ const COLS = "120px minmax(140px,1fr) 110px 230px 120px 130px";
 
 export default async function PaymentsPage() {
   const items = await listRun();
-  const settings = await getSettings();
-  const { eligible, lockedReason } = await runEligibility(items, settings.watchOnly);
+  const [settings, co] = await Promise.all([getSettings(), getCompany()]);
+  const { eligible, lockedReason } = await runEligibility(items, settings.watchOnly, co);
   const total = eligible.reduce((sum, i) => sum + i.bill.amountCents, 0);
 
   return (
@@ -22,7 +23,7 @@ export default async function PaymentsPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="cb-display text-ink">Payments</h1>
-          <p className="mt-1 text-[13px] text-ink-muted">{settings.watchOnly ? "Watch only is on: Callback checks and calls, but won&rsquo;t send money." : "Bills ready to pay, sent through the Increase test bank."}</p>
+          <p className="mt-1 text-[13px] text-ink-muted">{settings.watchOnly ? "Watch only is on: Callback checks and calls, but won&rsquo;t send money." : `${capital(co.bill).many} ready to pay, sent through the Increase test bank.`}</p>
         </div>
         <div className="flex flex-col items-end gap-3">
           <WatchOnlyToggle watchOnly={settings.watchOnly} />
@@ -32,8 +33,8 @@ export default async function PaymentsPage() {
 
       <div className="cb-doc overflow-hidden">
         <div className="grid items-center gap-3 border-b-[1.5px] border-ink px-4 py-2" style={{ gridTemplateColumns: COLS }}>
-          <span className="cb-caps">Bill</span>
-          <span className="cb-caps">Supplier</span>
+          <span className="cb-caps">{capital(co.bill).one}</span>
+          <span className="cb-caps">{capital(co.payee).one}</span>
           <span className="cb-caps text-right">Amount</span>
           <span className="cb-caps">To account</span>
           <span className="cb-caps">Status</span>

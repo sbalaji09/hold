@@ -18,7 +18,7 @@ import { ReportMissedScam } from "@/components/ReportMissedScam";
 import { NotABill } from "@/components/NotABill";
 import { getPersona } from "@/lib/persona";
 import { CopycatPanel } from "@/components/CopycatPanel";
-import { getBill, getSettings, listActivity, listChecksForBill } from "@/lib/data";
+import { getBill, getCompany, getSettings, listActivity, listChecksForBill } from "@/lib/data";
 import { canCall, canHold, canPay } from "@/lib/policy";
 import { CALL_LINE_STATE, CHECK_RESULT, citeLabel, whyChecks, whyText } from "@/lib/bill";
 import { routeEscalation } from "@/convex/app/checks";
@@ -45,7 +45,7 @@ export default async function BillPage({
   if (!bill) notFound();
 
   const copycatChecks = bill.email.fromDomain !== bill.supplier.domain ? await listChecksForBill(key) : [];
-  const [settings, persona] = await Promise.all([getSettings(), getPersona()]);
+  const [settings, persona, co] = await Promise.all([getSettings(), getPersona(), getCompany()]);
 
   const activity = await listActivity();
   const timeline = activity
@@ -57,13 +57,13 @@ export default async function BillPage({
   const awaitingConfirm = bill.supplier.status === "new" && !bill.supplier.onboarding?.confirmedAt && !bill.supplier.key.startsWith("unknown:");
   const noAccount = bill.bankAccount.key === "";
   const failCount = bill.checks.filter((c) => c.state === "flag").length;
-  const pay = canPay(bill, settings.watchOnly);
+  const pay = canPay(bill, settings.watchOnly, co);
   const hold = canHold(bill);
   const call = canCall(bill);
 
   const needsSignOff = (bill.status === "Held" || bill.status === "Needs you") && !awaitingConfirm;
   const route = needsSignOff
-    ? routeEscalation(bill.checks, bill.amountCents, { callOutcome: bill.call?.outcome === "handed_off" ? "handed_off" : null })
+    ? routeEscalation(bill.checks, bill.amountCents, { callOutcome: bill.call?.outcome === "handed_off" ? "handed_off" : null, company: co })
     : null;
   const bodyParagraphs = bill.email.body.split(/\n+/).filter((l) => l.trim().length > 0);
   const amount = "$" + (bill.amountCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -102,12 +102,12 @@ export default async function BillPage({
       {awaitingConfirm ? (
         <section className="cb-doc col-span-full flex flex-wrap items-center justify-between gap-x-5 gap-y-3 p-4" aria-labelledby="new-supplier-head">
           <div className="flex min-w-0 flex-1 basis-[320px] flex-col items-start gap-1.5">
-            <StatusMark status="needs-you">New supplier</StatusMark>
+            <StatusMark status="needs-you">New {co.payee.one}</StatusMark>
             <h2 id="new-supplier-head" className="m-0 text-[15px]/[22px] font-semibold text-ink">
-              New supplier: confirm who they are
+              New {co.payee.one}: confirm who they are
             </h2>
             <p className="m-0 font-mono text-[12.5px]/[19px] text-ink-muted">
-              Fogline has never paid {bill.supplier.name}. Confirm a trusted number and what Fogline hired them for; then hold calls them about this bill. Dev approves the first payment.
+              {co.name} has never paid {bill.supplier.name}. Confirm a trusted number and what {co.name} hired them for; then hold calls them about this {co.bill.one}. {co.dev.name} approves the first payment.
             </p>
           </div>
           <Link href={`/suppliers/${bill.supplier.key}`} className="cb-btn cb-btn-primary no-underline">
@@ -123,7 +123,7 @@ export default async function BillPage({
             {bill.email.fromAddress}
           </b>
           <span>To</span>
-          <b className="font-normal text-ink">bills@fogline.fm</b>
+          <b className="font-normal text-ink">{co.inbox}</b>
           <span>Received</span>
           <b className="font-normal text-ink">{formatDateTime(bill.receivedAt)}</b>
         </div>
@@ -139,14 +139,14 @@ export default async function BillPage({
           <Amount cents={bill.amountCents} size="lg" />
           {noAccount ? (
             <p className="m-0 font-mono text-[13px]/[20px] text-ink">
-              No bank account on file. Fogline pays only an account it has verified with {bill.supplier.name}.
+              No bank account on file. {co.name} pays only an account it has verified with {bill.supplier.name}.
             </p>
           ) : (
             <AccountLine
               bank={bill.bankAccount.bank}
               last4={bill.bankAccount.last4}
               state={bankFlagged ? "new" : "verified"}
-              note={bill.bankAccount.verifiedBy === "call+dev" ? "Verified by call, Dev approved" : "Verified at onboarding"}
+              note={bill.bankAccount.verifiedBy === "call+dev" ? `Verified by call, ${co.dev.name} approved` : "Verified at onboarding"}
             />
           )}
         </div>
@@ -204,10 +204,10 @@ export default async function BillPage({
 
         {needsSignOff ? (
           <section className="cb-doc p-4">
-            <SignOff state="awaiting" name="Dev Okafor" role="Controller" time={`Flagged ${formatDateTime(bill.receivedAt)}`} />
+            <SignOff state="awaiting" name={co.dev.full} role={co.dev.role} time={`Flagged ${formatDateTime(bill.receivedAt)}`} />
             {route ? (
               <p className="mt-3 border-t border-dashed border-line pt-3 font-mono text-[12px] text-ink-muted">
-                Routed to {route.routedTo === "dev" ? "Dev" : "Maya"}. {route.reason}
+                Routed to {co[route.routedTo].name}. {route.reason}
               </p>
             ) : null}
           </section>
@@ -223,7 +223,7 @@ export default async function BillPage({
               {timeline.map((e) => (
                 <LogEntry
                   key={e.key}
-                  actor={e.actor === "callback" ? "Callback" : e.actor === "dev" ? "Dev Okafor" : "Maya Lin"}
+                  actor={e.actor === "callback" ? "Callback" : co[e.actor].full}
                   agent={e.actor === "callback"}
                   time={formatDateTime(e.at)}
                   why={e.why}

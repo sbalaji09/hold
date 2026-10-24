@@ -103,6 +103,9 @@ export interface SupplierProfile {
   name: string;
   phone_on_file: string; // E.164
   aliases: string[]; // names a caller might use ("Stagecraft", "the stage people")
+  language?: string; // BCP-47 code to speak on check calls ("es"). Absent = "en".
+  phone_menu?: string; // keys to press after pickup to reach them (Twilio sendDigits, "ww2")
+  time_zone?: string; // IANA zone for calling hours. Absent = the company's.
 }
 
 export interface InboundCallRecord {

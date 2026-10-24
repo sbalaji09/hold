@@ -5,6 +5,7 @@ import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button, CheckRow, Cite } from "@/components/callback";
 import type { BackgroundCheck } from "@/lib/types";
+import { useCompany } from "@/lib/useCompany";
 
 const RESULT: Record<"pass" | "flag" | "info", "pass" | "fail" | "warn"> = { pass: "pass", flag: "fail", info: "warn" };
 
@@ -19,6 +20,7 @@ interface BackgroundCheckPanelProps {
 
 export function BackgroundCheckPanel({ supplierKey, lastCheck, autoRunning, onUseNumber }: BackgroundCheckPanelProps): React.ReactElement {
   const convexConfigured = Boolean(process.env.NEXT_PUBLIC_CONVEX_URL);
+  const co = useCompany();
   const run = useAction(api.app.background.runBackgroundCheck);
   const [ran, setRan] = React.useState<BackgroundCheck | null>(null);
   // The page re-renders with newer rows as they land; show whichever check is newest.
@@ -90,7 +92,7 @@ export function BackgroundCheckPanel({ supplierKey, lastCheck, autoRunning, onUs
               Use as trusted number
             </Button>
           ) : (
-            <Button size="sm" locked="Dev confirms numbers">
+            <Button size="sm" locked={`${co.dev.name} confirms numbers`}>
               Use as trusted number
             </Button>
           )}

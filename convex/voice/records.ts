@@ -9,6 +9,7 @@ import { v } from "convex/values";
 import type { SupplierProfile, SupplierRecord } from "../../shared/contract.js";
 import type { Doc } from "../_generated/dataModel.js";
 import { internalQuery, type QueryCtx } from "../_generated/server.js";
+import { getCompany } from "../app/company.js";
 
 const usd = (cents: number) =>
   `$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -41,7 +42,15 @@ export function aliasesFor(name: string): string[] {
 }
 
 function toProfile(s: Doc<"suppliers">): SupplierProfile {
-  return { supplier_id: s.key, name: s.name, phone_on_file: s.trustedPhone, aliases: aliasesFor(s.name) };
+  return {
+    supplier_id: s.key,
+    name: s.name,
+    phone_on_file: s.trustedPhone,
+    aliases: aliasesFor(s.name),
+    ...(s.language ? { language: s.language } : {}),
+    ...(s.phoneMenu ? { phone_menu: s.phoneMenu } : {}),
+    ...(s.timeZone ? { time_zone: s.timeZone } : {}),
+  };
 }
 
 async function supplierByKey(ctx: QueryCtx, key: string) {
@@ -66,7 +75,7 @@ export async function getSupplierProfile(ctx: QueryCtx, supplier_id: string): Pr
 }
 
 export async function listSupplierProfiles(ctx: QueryCtx): Promise<SupplierProfile[]> {
-  // ponytail: full scan; Fogline has ~25 suppliers. Paginate if this ever holds thousands.
+  // ponytail: full scan; a workspace has ~25 payees. Paginate if this ever holds thousands.
   return (await ctx.db.query("suppliers").collect()).map(toProfile);
 }
 
@@ -74,6 +83,8 @@ export async function listSupplierProfiles(ctx: QueryCtx): Promise<SupplierProfi
 export async function getSupplierRecords(ctx: QueryCtx, supplier_id: string): Promise<SupplierRecord[]> {
   const supplier = await supplierByKey(ctx, supplier_id);
   if (!supplier) return [];
+  const co = await getCompany(ctx);
+  const billWord = co.record;
 
   const bills = await ctx.db
     .query("bills")
@@ -91,7 +102,7 @@ export async function getSupplierRecords(ctx: QueryCtx, supplier_id: string): Pr
   };
   const out: SupplierRecord[] = [];
 
-  // Fogline's own facts about a new supplier: the only thing a check call can verify them with,
+  // The company's own facts about a payee (a new supplier's engagement, an employee's HR file): the only thing a check call can verify them with,
   // since everything else on file came from emails they wrote themselves.
   const note = supplier.onboarding?.note;
   if (note) {
@@ -101,7 +112,7 @@ export async function getSupplierRecords(ctx: QueryCtx, supplier_id: string): Pr
       kind: "onboarding",
       ref: "Onboarding note",
       date: isoDay(supplier.onboarding?.confirmedAt ?? new Date().toISOString()),
-      text: `Fogline hired ${supplier.name} for ${note.hiredFor}. Agreed: ${note.agreed}.${note.dates ? ` Dates: ${note.dates}.` : ""}${note.foglineContact ? ` Arranged by ${note.foglineContact} at Fogline.` : ""}`,
+      text: `${co.name} hired ${supplier.name} for ${note.hiredFor}. Agreed: ${note.agreed}.${note.dates ? ` Dates: ${note.dates}.` : ""}${note.foglineContact ? ` Arranged by ${note.foglineContact} at ${co.name}.` : ""}`,
     });
   }
 
@@ -114,7 +125,7 @@ export async function getSupplierRecords(ctx: QueryCtx, supplier_id: string): Pr
       date: isoDay(b.receivedAt),
       amount_cents: b.amountCents,
       // Distinctive parts first (month, number, scope, total): embeddings weigh the opening most.
-      text: `${monthYear(b.receivedAt)} invoice #${b.invoiceNo}${scopeOf(b.emailKey)}. Total ${usd(b.amountCents)}. From ${supplier.name}, received ${isoDay(b.receivedAt)}, due ${b.dueDate}, status ${b.status}.`,
+      text: `${monthYear(b.receivedAt)} ${billWord} #${b.invoiceNo}${scopeOf(b.emailKey)}. Total ${usd(b.amountCents)}. For ${supplier.name}, received ${isoDay(b.receivedAt)}, due ${b.dueDate}, status ${b.status}.`,
     });
     const payments = await ctx.db
       .query("payments")
@@ -128,7 +139,7 @@ export async function getSupplierRecords(ctx: QueryCtx, supplier_id: string): Pr
         ref: `Payment ${shortDate(p.paidAt)}`,
         date: isoDay(p.paidAt),
         amount_cents: p.amountCents,
-        text: `Fogline paid ${supplier.name} ${usd(p.amountCents)} for invoice #${b.invoiceNo} on ${isoDay(p.paidAt)}${p.transferId ? ` (transfer ${p.transferId})` : ""}. Status ${p.status}.`,
+        text: `${co.name} paid ${supplier.name} ${usd(p.amountCents)} for ${billWord} #${b.invoiceNo} on ${isoDay(p.paidAt)}${p.transferId ? ` (transfer ${p.transferId})` : ""}. Status ${p.status}.`,
       });
     }
   }

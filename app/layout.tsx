@@ -7,7 +7,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "hold",
-  description: "hold pays Fogline's bills and phones the supplier when a bank change looks wrong.",
+  description: "hold pays what a company owes and phones the payee on the number on file when a bank change looks wrong.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

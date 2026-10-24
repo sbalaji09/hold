@@ -7,9 +7,11 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { RouteCorrection } from "@/components/RouteCorrection";
 import { ROUTE_WORDS } from "@/lib/triage";
+import { useCompany } from "@/lib/useCompany";
 
 export function NotABill({ billKey, supplier, actor }: { billKey: string; supplier: string; actor: "maya" | "dev" }): React.ReactElement {
   const notABill = useMutation(api.app.triage.notABill);
+  const co = useCompany();
   const router = useRouter();
   return (
     <RouteCorrection
@@ -18,7 +20,7 @@ export function NotABill({ billKey, supplier, actor }: { billKey: string; suppli
       intro="hold holds this bill so it can't be paid. Where does the email belong?"
       options={["to_maya", "file"]}
       consequence={(r) =>
-        `${r === "file" ? `It's filed on ${supplier}'s record.` : "It's kept as a message for Maya."} hold learns from the correction and replays it before it changes how it sorts.`
+        `${r === "file" ? `It's filed on ${supplier}'s record.` : `It's kept as a message for ${co.maya.name}.`} hold learns from the correction and replays it before it changes how it sorts.`
       }
       confirmLabel="Hold it"
       onMove={async (r) => {

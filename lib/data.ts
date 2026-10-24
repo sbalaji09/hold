@@ -11,6 +11,7 @@ import { fetchQuery } from "convex/nextjs";
 import type { FunctionReturnType } from "convex/server";
 import { routeEscalation } from "../convex/app/checks";
 import { api } from "../convex/_generated/api";
+import { companyFor, type Company } from "./company";
 import type {
   ActivityEntry,
   Approval,
@@ -462,4 +463,10 @@ export async function getSettings(): Promise<Settings> {
     return fetchQuery(api.app.queries.getSettings, {}, convexOpts());
   }
   return { watchOnly: false };
+}
+
+/** Who hold works for (lib/company.ts). The JSON fixture is always Fogline. */
+export async function getCompany(): Promise<Company> {
+  if (CONVEX_URL) return fetchQuery(api.app.company.current, {}, convexOpts());
+  return companyFor(undefined);
 }

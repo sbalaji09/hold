@@ -1,7 +1,10 @@
 // Pure rules for what Callback, Maya and Dev can each do. No data access,
 // no side effects — callers pass in the records they already have.
 
+import { companyFor, wholeDollars, type Company } from "./company";
 import type { Bill } from "./types";
+
+const FOGLINE = companyFor(undefined);
 
 export type Actor = "callback" | "maya" | "dev";
 
@@ -28,19 +31,20 @@ export function canMoveMoney(watchOnly: boolean): PolicyResult {
   return allowed();
 }
 
-/** Callback can pay under $10k safe bills only. */
-export function canPay(bill: Bill, watchOnly = false): PolicyResult {
+/** Callback can pay safe bills under the company's approval limit only. */
+export function canPay(bill: Bill, watchOnly = false, co: Company = FOGLINE): PolicyResult {
   if (bill.status === "Paid") return denied("Already paid. There's nothing left to send.");
   if (bill.status !== "Checking" && bill.status !== "Scheduled") {
-    if (bill.status === "Needs you") return denied("This bill needs you to review it first, not ready to pay.");
-    return denied(`This bill is ${bill.status.toLowerCase()}, not ready to pay.`);
+    if (bill.status === "Needs you") return denied(`This ${co.bill.one} needs you to review it first, not ready to pay.`);
+    return denied(`This ${co.bill.one} is ${bill.status.toLowerCase()}, not ready to pay.`);
   }
   const moneyCheck = canMoveMoney(watchOnly);
   if (!moneyCheck.allowed) return moneyCheck;
   const flagged = bill.checks.find((c) => c.state === "flag");
-  if (flagged) return denied(`Callback can't pay this bill. ${flagged.label} didn't check out.`);
-  if (bill.amountCents >= TEN_THOUSAND_CENTS) {
-    return denied("Callback can't pay this on its own. Bills of $10,000 or more need Dev's approval.");
+  if (flagged) return denied(`Callback can't pay this ${co.bill.one}. ${flagged.label} didn't check out.`);
+  if (bill.amountCents >= co.approvalLimitCents) {
+    const Bills = co.bill.many.charAt(0).toUpperCase() + co.bill.many.slice(1);
+    return denied(`Callback can't pay this on its own. ${Bills} of ${wholeDollars(co.approvalLimitCents)} or more need ${co.dev.name}'s approval.`);
   }
   return allowed();
 }
@@ -60,21 +64,21 @@ export function canCall(bill: Bill): PolicyResult {
 }
 
 /** Nobody can approve a request they made themselves, and Callback can't sign at all. */
-export function canApprove(approver: Actor, requestedBy: Actor): PolicyResult {
-  if (approver === "callback") return denied("Callback can't approve its own requests. Maya or Dev has to sign off.");
-  if (approver === requestedBy) return denied(`${approver === "maya" ? "Maya" : "Dev"} can't approve a request they made themselves.`);
+export function canApprove(approver: Actor, requestedBy: Actor, co: Company = FOGLINE): PolicyResult {
+  if (approver === "callback") return denied(`Callback can't approve its own requests. ${co.maya.name} or ${co.dev.name} has to sign off.`);
+  if (approver === requestedBy) return denied(`${co[approver].name} can't approve a request they made themselves.`);
   return allowed();
 }
 
 /** Releasing a held payment needs a person, and a bank change on it needs Dev plus a confirmed call. */
-export function canRelease(bill: Bill, releaser: Actor): PolicyResult {
-  if (bill.status !== "Held") return denied("This bill isn't held.");
-  if (releaser === "callback") return denied("Callback can't release a held payment. Dev has to approve it.");
+export function canRelease(bill: Bill, releaser: Actor, co: Company = FOGLINE): PolicyResult {
+  if (bill.status !== "Held") return denied(`This ${co.bill.one} isn't held.`);
+  if (releaser === "callback") return denied(`Callback can't release a held payment. ${co.dev.name} has to approve it.`);
   const bankFlagged = bill.checks.find((c) => c.id === "bank-account")?.state === "flag";
   if (bankFlagged) {
-    if (releaser !== "dev") return denied("This release needs Dev's approval: the bank details on this bill changed.");
+    if (releaser !== "dev") return denied(`This release needs ${co.dev.name}'s approval: the bank details on this ${co.bill.one} changed.`);
     if (bill.call?.outcome !== "confirmed") {
-      return denied("Callback can't change bank details without a confirmed call. Call the supplier on the number on file first.");
+      return denied(`Callback can't change bank details without a confirmed call. Call the ${co.payee.one} on the number on file first.`);
     }
   }
   return allowed();

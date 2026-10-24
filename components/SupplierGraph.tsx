@@ -4,7 +4,9 @@ import Link from "next/link";
 import { AccountLine, Amount, Cite, StatusMark } from "@/components/callback";
 import { formatPhone } from "@/components/voice/format";
 import { shortDate } from "@/lib/inbox";
-import { CATEGORY_LABEL, RING, type GraphNode, type SupplierFacts, type SupplierGraph as Graph } from "@/lib/supplierGraph";
+import { RING, type GraphNode, type SupplierFacts, type SupplierGraph as Graph } from "@/lib/supplierGraph";
+import { useCompany } from "@/lib/useCompany";
+import type { Company } from "@/lib/company";
 
 const STATUS_LABEL = { new: "New", trusted: "Trusted", under_review: "Under review" } as const;
 const SPAN = RING.supplier + 190; // room for the longest supplier name outside the ring
@@ -35,6 +37,8 @@ function supplierTone(f: SupplierFacts): string {
 }
 
 export function SupplierGraph({ graph }: { graph: Graph }): React.ReactElement {
+  const co = useCompany();
+  const label = (category: string) => graph.labels[category] ?? "Other";
   const [selected, setSelected] = React.useState<string | null>(null);
   const [view, setView] = React.useState<View>(FULL);
   const svgRef = React.useRef<SVGSVGElement>(null);
@@ -156,17 +160,17 @@ export function SupplierGraph({ graph }: { graph: Graph }): React.ReactElement {
               <g key={n.id} transform="translate(0,0)">
                 <circle r={30} fill="var(--action)" />
                 <text textAnchor="middle" dy="0.35em" fill="var(--on-action)" fontFamily="var(--font-serif)" fontSize={15} fontWeight={500}>
-                  Fogline
+                  {graph.center}
                 </text>
               </g>
             );
           }
           if (n.kind === "category") {
             return (
-              <g key={n.id} transform={`translate(${n.x},${n.y})`} {...nodeProps(n, `${CATEGORY_LABEL[n.category]}, ${n.count} suppliers`)}>
+              <g key={n.id} transform={`translate(${n.x},${n.y})`} {...nodeProps(n, `${label(n.category)}, ${n.count} ${co.payee.many}`)}>
                 <circle r={9} fill="var(--surface)" stroke="var(--ink)" strokeWidth={1.5} />
                 <text className="cb-caps" textAnchor="middle" y={24} fill="currentColor">
-                  {CATEGORY_LABEL[n.category]} · {n.count}
+                  {label(n.category)} · {n.count}
                 </text>
               </g>
             );
@@ -186,7 +190,7 @@ export function SupplierGraph({ graph }: { graph: Graph }): React.ReactElement {
           const deg = (n.angle * 180) / Math.PI + (left ? 180 : 0);
           const tone = supplierTone(f);
           return (
-            <g key={n.id} transform={`translate(${n.x},${n.y})`} {...nodeProps(n, `${f.supplier.name}, ${CATEGORY_LABEL[f.supplier.category]}`)}>
+            <g key={n.id} transform={`translate(${n.x},${n.y})`} {...nodeProps(n, `${f.supplier.name}, ${label(f.supplier.category)}`)}>
               <circle r={selected === n.id ? 9 : 7} fill={selected === n.id ? tone : "var(--surface)"} stroke={tone} strokeWidth={1.5} />
               <text
                 transform={`rotate(${deg})`}
@@ -219,7 +223,7 @@ export function SupplierGraph({ graph }: { graph: Graph }): React.ReactElement {
       </div>
 
       <p className="pt-graph-key font-mono text-[11.5px] text-ink-muted">
-        Lines run Fogline → category → supplier. Red links: a look-alike sender domain, or one bank account asked for by two suppliers. Blue: a new supplier waiting for a person to confirm who they are.
+        Lines run {graph.center} → category → {co.payee.one}. Red links: a look-alike sender domain, or one bank account asked for by two {co.payee.many}. Blue: a new {co.payee.one} waiting for a person to confirm who they are.
         Scroll to zoom, drag to move.
       </p>
 
@@ -228,14 +232,14 @@ export function SupplierGraph({ graph }: { graph: Graph }): React.ReactElement {
           <button type="button" className="pt-back self-end" onClick={() => setSelected(null)}>
             Close
           </button>
-          {open.kind === "supplier" && <SupplierCard f={open.facts} names={byId} />}
-          {open.kind === "lookalike" && <LookalikeCard domain={open.domain} supplier={byId.get(open.supplierKey)} />}
+          {open.kind === "supplier" && <SupplierCard f={open.facts} names={byId} label={label} co={co} />}
+          {open.kind === "lookalike" && <LookalikeCard domain={open.domain} supplier={byId.get(open.supplierKey)} co={co} />}
           {open.kind === "category" && (
             <>
               <div className="cb-caps">Category</div>
-              <h2 className="cb-subject text-ink">{CATEGORY_LABEL[open.category]}</h2>
+              <h2 className="cb-subject text-ink">{label(open.category)}</h2>
               <p className="font-mono text-[12.5px] text-ink">
-                {open.count} supplier{open.count === 1 ? "" : "s"} on file. Pick one on the ring to see it.
+                {open.count} {open.count === 1 ? co.payee.one : co.payee.many} on file. Pick one on the ring to see it.
               </p>
             </>
           )}
@@ -245,7 +249,17 @@ export function SupplierGraph({ graph }: { graph: Graph }): React.ReactElement {
   );
 }
 
-function SupplierCard({ f, names }: { f: SupplierFacts; names: Map<string, GraphNode> }): React.ReactElement {
+function SupplierCard({
+  f,
+  names,
+  label,
+  co,
+}: {
+  f: SupplierFacts;
+  names: Map<string, GraphNode>;
+  label: (category: string) => string;
+  co: Company;
+}): React.ReactElement {
   const s = f.supplier;
   const nameOf = (key: string) => {
     const n = names.get(key);
@@ -255,7 +269,7 @@ function SupplierCard({ f, names }: { f: SupplierFacts; names: Map<string, Graph
   return (
     <>
       <div className="cb-caps">
-        {CATEGORY_LABEL[s.category]} · {STATUS_LABEL[s.status ?? "trusted"]}
+        {label(s.category)} · {STATUS_LABEL[s.status ?? "trusted"]}
       </div>
       {needsConfirming && (
         <div>
@@ -277,7 +291,7 @@ function SupplierCard({ f, names }: { f: SupplierFacts; names: Map<string, Graph
         <dd className="font-mono text-[12.5px] text-ink">
           <Amount cents={f.paidCents} />
           <span className="block text-ink-muted">
-            {f.bills} bill{f.bills === 1 ? "" : "s"}
+            {f.bills} {f.bills === 1 ? co.bill.one : co.bill.many}
             {f.lastBillAt ? `, last on ${shortDate(f.lastBillAt)}` : ""}
           </span>
         </dd>
@@ -298,7 +312,7 @@ function SupplierCard({ f, names }: { f: SupplierFacts; names: Map<string, Graph
 
       {f.lookalikes.map((d) => (
         <p key={d} className="font-mono text-[12.5px] text-hold">
-          {d} sent a bill pretending to be {s.domain}.
+          {d} sent a {co.bill.one} pretending to be {s.domain}.
         </p>
       ))}
       {f.sharesAccountWith.map((x) => (
@@ -307,22 +321,22 @@ function SupplierCard({ f, names }: { f: SupplierFacts; names: Map<string, Graph
         </p>
       ))}
 
-      <Cite href={`/suppliers/${s.key}`}>Supplier record</Cite>
+      <Cite href={`/suppliers/${s.key}`}>{co.payee.one.charAt(0).toUpperCase() + co.payee.one.slice(1)} record</Cite>
       <Link href={`/suppliers/${s.key}`} className="cb-btn cb-btn-primary cb-btn-sm no-underline">
-        {needsConfirming ? "Confirm who they are" : "Open supplier page"}
+        {needsConfirming ? "Confirm who they are" : `Open ${co.payee.one} page`}
       </Link>
     </>
   );
 }
 
-function LookalikeCard({ domain, supplier }: { domain: string; supplier?: GraphNode }): React.ReactElement {
+function LookalikeCard({ domain, supplier, co }: { domain: string; supplier?: GraphNode; co: Company }): React.ReactElement {
   const s = supplier?.kind === "supplier" ? supplier.facts.supplier : null;
   return (
     <>
       <div className="cb-caps">Look-alike domain</div>
       <h2 className="cb-subject text-hold">{domain}</h2>
       <p className="font-mono text-[12.5px] text-ink">
-        Sent Fogline a bill as {s?.name ?? "a supplier"}. Their domain on file is {s?.domain ?? "different"}.
+        Sent {co.name} a {co.bill.one} as {s?.name ?? `a ${co.payee.one}`}. Their domain on file is {s?.domain ?? "different"}.
       </p>
       {s && <Cite href={`/suppliers/${s.key}`}>{s.name}</Cite>}
     </>

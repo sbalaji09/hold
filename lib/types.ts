@@ -7,7 +7,8 @@ export type DataBillStatus = "Paid" | "Scheduled" | "Checking" | "Calling" | "He
 export interface Supplier {
   key: string;
   name: string;
-  category: "stage" | "sound" | "security" | "agency" | "food" | "other";
+  /** A key of the company's categories (lib/company.ts), or "other". */
+  category: string;
   domain: string;
   contactName: string;
   contactEmail: string;
@@ -15,6 +16,10 @@ export interface Supplier {
   phoneLastCheckedAt: string;
   /** Absent = trusted. */
   status?: "new" | "trusted" | "under_review";
+  /** Check calls: language spoken ("en", "es"), keys to reach them through a phone menu, their time zone. */
+  language?: string;
+  phoneMenu?: string;
+  timeZone?: string;
   /** New suppliers only: how hold met them and Fogline's own facts about the engagement. */
   onboarding?: {
     source: "email" | "manual";

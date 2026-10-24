@@ -1,19 +1,11 @@
-// The Suppliers graph: Fogline at the centre, one hub per category, every supplier on the ring
+// The payees graph: the company at the centre, one hub per category, every payee on the ring
 // around them. Two kinds of link are worth a person's attention and drawn in serial red: a sender
 // domain that pretended to be a supplier (look-alike), and one bank account that more than one
 // supplier asked to be paid into. Pure and deterministic, so the same data draws the same graph.
+import { companyFor, type Company } from "./company";
 import type { BankAccount, Bill, Supplier } from "./types";
 
 export type Category = Supplier["category"];
-
-export const CATEGORY_LABEL: Record<Category, string> = {
-  stage: "Stage",
-  sound: "Sound",
-  security: "Security",
-  agency: "Artist agencies",
-  food: "Food",
-  other: "Site services",
-};
 
 export interface SupplierFacts {
   supplier: Supplier;
@@ -23,7 +15,7 @@ export interface SupplierFacts {
   lastBillAt: string | null;
   /** Bills held right now: money stopped. */
   held: number;
-  /** Accounts Fogline has paid into or been asked to, newest first. */
+  /** Accounts the company has paid into or been asked to, newest first. */
   accounts: BankAccount[];
   lookalikes: string[];
   /** Other suppliers' keys that asked for the same account. */
@@ -46,14 +38,23 @@ export interface GraphEdge {
 export interface SupplierGraph {
   nodes: GraphNode[];
   edges: GraphEdge[];
+  /** The company's name, drawn at the centre. */
+  center: string;
+  /** Category key -> label, including "Other" for payees outside the company's categories. */
+  labels: Record<string, string>;
 }
 
 export const RING = { category: 130, lookalike: 225, supplier: 300 };
-const CATEGORY_ORDER: Category[] = ["stage", "sound", "security", "agency", "food", "other"];
 
 const accountName = (a: BankAccount) => `${a.bank} ··${a.last4}`;
 
-export function buildSupplierGraph(suppliers: Array<Supplier & { openItems: number }>, bills: Bill[]): SupplierGraph {
+export function buildSupplierGraph(
+  suppliers: Array<Supplier & { openItems: number }>,
+  bills: Bill[],
+  co: Company = companyFor(undefined),
+): SupplierGraph {
+  const labels: Record<string, string> = { ...co.categories };
+  for (const s of suppliers) labels[s.category] ??= "Other";
   const facts = new Map<string, SupplierFacts>();
   for (const s of suppliers) {
     facts.set(s.key, { supplier: s, openItems: s.openItems, bills: 0, paidCents: 0, lastBillAt: null, held: 0, accounts: [], lookalikes: [], sharesAccountWith: [] });
@@ -90,7 +91,7 @@ export function buildSupplierGraph(suppliers: Array<Supplier & { openItems: numb
   for (const f of facts.values()) f.accounts.sort((a, b) => (a.addedAt < b.addedAt ? 1 : -1));
 
   // Suppliers sit on one ring, grouped by category with a one-slot gap between groups.
-  const groups = CATEGORY_ORDER.map((c) => ({
+  const groups = Object.keys(labels).map((c) => ({
     category: c,
     members: [...facts.values()].filter((f) => f.supplier.category === c).sort((a, b) => a.supplier.name.localeCompare(b.supplier.name)),
   })).filter((g) => g.members.length > 0);
@@ -119,5 +120,5 @@ export function buildSupplierGraph(suppliers: Array<Supplier & { openItems: numb
     edges.push({ from: "fogline", to: catId, kind: "category" });
     slot++; // the gap
   }
-  return { nodes, edges };
+  return { nodes, edges, center: co.name, labels };
 }

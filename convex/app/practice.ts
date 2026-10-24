@@ -15,9 +15,10 @@ import { action, internalMutation, internalQuery, mutation, query, type Mutation
 //               pastPaidAmounts, amountCents, styleMatch? }) -> Check[]
 //   decide(checks, amountCents) -> "pay" | "ask_dev" | "call"
 import { decide, runChecks } from "./checks.js";
-import { internal } from "../_generated/api.js";
+import { api, internal } from "../_generated/api.js";
+import type { Company } from "../../lib/company.js";
 import { forChannel, techniqueCheck } from "../../lib/fraudTechniques.js";
-import { anthropic, assessCall, assessEmail } from "./techniques.js";
+import { anthropic, assessCall, assessEmail, companyLine } from "./techniques.js";
 import { judgeEmail, toKinds } from "./triage.js";
 import { routeEmail } from "../../lib/triage.js";
 import { parseAmountCents } from "./intake.js";
@@ -275,7 +276,7 @@ export const runSet = action({
     const mailResults = (
       await Promise.all(
         mails.map(async (m) =>
-          judgeEmail(anthropic(), { fromAddress: "supplier", subject: "", body: m.text, supplierName: "a Fogline supplier" }, kinds).then(
+          judgeEmail(anthropic(), { fromAddress: "supplier", subject: "", body: m.text, supplierName: "a payee on file" }, kinds).then(
             (j) => ({ key: m.key, correct: routeEmail(j, kinds, { hasAmount: parseAmountCents(m.text) !== null, fraudFlagged: false }).route === m.expected }),
             () => null,
           ),
@@ -320,18 +321,19 @@ const generatedScamValidator = v.object({
   checksThatShouldFire: v.array(v.string()),
 });
 
-const SYSTEM = `You write realistic payment-scam emails for Fogline, a made-up music festival, to test a bill-checking agent called Callback. Each scam impersonates a real Fogline supplier and should trip one or more of these checks: a bank account Fogline hasn't paid before, a look-alike sender domain, rush/urgent language, or an unusual amount vs the supplier's history. Write the way a real scammer or a hacked supplier account would: plausible invoice references, normal business tone with the scam signal woven in, not cartoonish. Vary the kind across the set, favoring pretexts the current set doesn't already have: generic urgency, a CEO-impersonation request ("I need this paid right now, I'm in a meeting"), a partial bank change where only the routing number changes and the account number stays the same, reuse of a real past invoice number to look legitimate, and a forwarded-thread hijack (a reply to an old real thread with the payment details swapped). Never repeat a description already in the set below — write a genuinely new pretext for each.`;
+const SYSTEM = `You write realistic payment-scam emails for a made-up company (described in the message), to test the payment-checking agent that guards it. Each scam impersonates one of the company's real payees (a supplier, a closing party or an employee) and should trip one or more of these checks: a bank account the company hasn't paid before, a look-alike sender domain, rush/urgent language, or an unusual amount vs the supplier's history. Write the way a real scammer or a hacked supplier account would: plausible invoice references, normal business tone with the scam signal woven in, not cartoonish. Vary the kind across the set, favoring pretexts the current set doesn't already have: generic urgency, a CEO-impersonation request ("I need this paid right now, I'm in a meeting"), a partial bank change where only the routing number changes and the account number stays the same, reuse of a real past invoice number to look legitimate, and a forwarded-thread hijack (a reply to an old real thread with the payment details swapped). Never repeat a description already in the set below — write a genuinely new pretext for each.`;
 
 function buildPrompt(
   suppliers: Array<{ key: string; name: string; domain: string }>,
   existingDescriptions: string[],
+  co: Company,
 ): string {
   const list = suppliers.map((s) => `- ${s.key}: ${s.name} (${s.domain})`).join("\n");
   const avoid =
     existingDescriptions.length > 0
       ? `\n\nScams already in the practice set — do not repeat these pretexts or wording:\n${existingDescriptions.map((d) => `- ${d}`).join("\n")}`
       : "";
-  return `Fogline's suppliers:\n${list}\n\nWrite 8 scam emails, each impersonating one of the suppliers above by key. For each: kind (short label), from (a plausible sender address — the supplier's real domain for a hacked-account scam, or a look-alike domain for a spoofed one), fromDomain, subject, body (a few sentences, an invoice-style email), supplierKey (must be one of the keys above), amountCents (a plausible invoice amount in cents), and checksThatShouldFire (which of: "new bank account", "look-alike domain", "rush language", "unusual amount" this email should trip).${avoid}`;
+  return `${companyLine(co)}\n\n${co.owner} ${co.payee.many}:\n${list}\n\nWrite 8 scam emails, each impersonating one of the ${co.payee.many} above by key. For each: kind (short label), from (a plausible sender address — the supplier's real domain for a hacked-account scam, or a look-alike domain for a spoofed one), fromDomain, subject, body (a few sentences, an invoice-style email), supplierKey (must be one of the keys above), amountCents (a plausible invoice amount in cents), and checksThatShouldFire (which of: "new bank account", "look-alike domain", "rush language", "unusual amount" this email should trip).${avoid}`;
 }
 
 export const listSuppliersForPrompt = internalQuery({
@@ -424,6 +426,7 @@ export const generateSet = action({
       throw new Error("generateSet needs ANTHROPIC_API_KEY set in the Convex deployment's environment.");
     }
     const { suppliers, existingDescriptions } = await ctx.runQuery(listSuppliersForPromptRef, {});
+    const co = await ctx.runQuery(api.app.company.current, {});
     if (suppliers.length === 0) {
       throw new Error("generateSet: no suppliers to impersonate. Seed the workspace first.");
     }
@@ -433,7 +436,7 @@ export const generateSet = action({
       max_tokens: 4000,
       output_config: { effort: "medium", format: zodOutputFormat(GeneratedSet) },
       system: SYSTEM,
-      messages: [{ role: "user", content: buildPrompt(suppliers, existingDescriptions) }],
+      messages: [{ role: "user", content: buildPrompt(suppliers, existingDescriptions, co) }],
     });
     const parsed = response.parsed_output;
     if (response.stop_reason === "refusal" || !parsed) {

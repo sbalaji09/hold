@@ -4,10 +4,12 @@
 // functions (no ctx) so they are trivial to unit test and reuse from Practice; checkValidator
 // is just the convex/values shape of their output, for schema.ts and callers that store it.
 import { v } from "convex/values";
-import { TEN_THOUSAND_CENTS } from "../../lib/policy.js";
+import { companyFor, wholeDollars, type Company } from "../../lib/company.js";
 import type { Check, Cite } from "../../lib/types.js";
 
-const NEW_ACCOUNT_RE = /new (?:bank|account)|updated account|moved banks|switched (?:to a new )?bank|changed bank/i;
+// Supplier "new bank", an employee's "update my direct deposit", a closing party's "updated wire instructions".
+const NEW_ACCOUNT_RE =
+  /new (?:bank|account|routing)|updated account|moved banks|switched (?:to a new )?bank|changed bank|direct deposit|(?:new|updated|revised|corrected) wir(?:e|ing) instructions/i;
 const RUSH_RE = /\b(urgent|asap|as soon as possible|today|expedite|right away|immediately|same[- ]day|before (?:tomorrow|close of business))\b/i;
 
 function matchingLine(body: string, re: RegExp): string | undefined {
@@ -79,10 +81,15 @@ export interface RunChecksInput {
   /** hold's playbook check (lib/fraudTechniques.ts techniqueCheck), built by the caller from
    * Claude's assessment of this email. Skipped when not supplied. */
   fraudTechnique?: Check;
+  /** Whose words the evidence uses. Absent = Fogline. */
+  company?: Company;
 }
 
 export function runChecks(input: RunChecksInput): Check[] {
   const { email, supplier, currentBankAccount, pastPaidBankAccounts, pastPaidAmounts, amountCents, styleMatch, learnedRules, fraudTechnique } = input;
+  const co = input.company ?? companyFor(undefined);
+  const us = co.name;
+  const billWord = co.bill.one;
   const emailCite = { kind: "email" as const, ref: email.fromAddress };
   const priorPaidCount = pastPaidAmounts.length;
   const priorPaidSameAccount = pastPaidBankAccounts.filter(
@@ -100,7 +107,7 @@ export function runChecks(input: RunChecksInput): Check[] {
       id: "bank-account",
       label: "New bank account",
       state: "pass",
-      evidence: `${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4} was verified by call and Dev's approval. Saved rule: ${accountRule.text}`,
+      evidence: `${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4} was verified by call and ${co.dev.name}'s approval. Saved rule: ${accountRule.text}`,
       cite: ruleCite(accountRule, supplier.key),
     };
   } else if (NEW_ACCOUNT_RE.test(email.body)) {
@@ -110,8 +117,8 @@ export function runChecks(input: RunChecksInput): Check[] {
       state: "flag",
       evidence:
         priorPaidCount > 0
-          ? `Fogline has paid ${supplier.name} ${priorPaidCount} time${priorPaidCount === 1 ? "" : "s"}, always to ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4}. This email asks to change the account.`
-          : `Fogline has no payment history with ${supplier.name}. This email asks to pay a bank account different from the one on file, ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4}.`,
+          ? `${us} has paid ${supplier.name} ${priorPaidCount} time${priorPaidCount === 1 ? "" : "s"}, always to ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4}. This email asks to change the account.`
+          : `${us} has no payment history with ${supplier.name}. This email asks to pay a bank account different from the one on file, ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4}.`,
       quote: matchingLine(email.body, NEW_ACCOUNT_RE),
       cite: emailCite,
     };
@@ -121,7 +128,7 @@ export function runChecks(input: RunChecksInput): Check[] {
         id: "bank-account",
         label: "New bank account",
         state: "pass",
-        evidence: `Fogline verified the ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4} account by call; Dev approved the change.`,
+        evidence: `${us} verified the ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4} account by call; ${co.dev.name} approved the change.`,
         cite: { kind: "supplier", ref: supplier.key },
       };
     } else {
@@ -129,7 +136,7 @@ export function runChecks(input: RunChecksInput): Check[] {
         id: "bank-account",
         label: "New bank account",
         state: "flag",
-        evidence: `This bill uses ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4}, which Fogline has not paid ${supplier.name} before.`,
+        evidence: `This ${billWord} uses ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4}, which ${us} has not paid ${supplier.name} before.`,
         cite: emailCite,
       };
     }
@@ -138,7 +145,7 @@ export function runChecks(input: RunChecksInput): Check[] {
       id: "bank-account",
       label: "New bank account",
       state: "info",
-      evidence: `This is Fogline's first bill from ${supplier.name}. The ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4} account was verified at onboarding.`,
+      evidence: `This is ${co.owner} first ${billWord} for ${supplier.name}. The ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4} account was verified at onboarding.`,
       cite: { kind: "supplier", ref: supplier.key },
     };
   } else {
@@ -146,7 +153,7 @@ export function runChecks(input: RunChecksInput): Check[] {
       id: "bank-account",
       label: "New bank account",
       state: "pass",
-      evidence: `Fogline has paid ${supplier.name} ${priorPaidCount} times, always to ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4}.`,
+      evidence: `${us} has paid ${supplier.name} ${priorPaidCount} times, always to ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4}.`,
       cite: { kind: "supplier", ref: supplier.key },
     };
   }
@@ -158,7 +165,7 @@ export function runChecks(input: RunChecksInput): Check[] {
           id: "domain",
           label: "Sender domain",
           state: "pass",
-          evidence: `Email came from ${email.fromDomain}, matching the supplier record.`,
+          evidence: `Email came from ${email.fromDomain}, matching the ${co.payee.one} record.`,
           cite: emailCite,
         }
       : {
@@ -166,7 +173,7 @@ export function runChecks(input: RunChecksInput): Check[] {
           label: "Look-alike domain",
           state: "flag",
           evidence:
-            `Fogline's supplier record lists ${supplier.domain}. This email came from ${email.fromDomain}.` +
+            `${co.owner} ${co.payee.one} record lists ${supplier.domain}. This email came from ${email.fromDomain}.` +
             (supplier.domainRegisteredDays !== undefined
               ? ` That domain was registered ${supplier.domainRegisteredDays} day${supplier.domainRegisteredDays === 1 ? "" : "s"} ago.`
               : ""),
@@ -181,7 +188,7 @@ export function runChecks(input: RunChecksInput): Check[] {
         id: "rush-language",
         label: "Rush language",
         state: "flag",
-        evidence: `Prior invoices from ${supplier.name} carried no same-day deadline. This one pushes for immediate payment.`,
+        evidence: `Prior ${co.bill.many} for ${supplier.name} carried no same-day deadline. This one pushes for immediate payment.`,
         quote: rushLine,
         cite: emailCite,
       }
@@ -200,7 +207,7 @@ export function runChecks(input: RunChecksInput): Check[] {
       id: "amount",
       label: "Amount vs history",
       state: "info",
-      evidence: `This is Fogline's first bill from ${supplier.name}; there's no history to compare ${fmtMoney(amountCents)} against.`,
+      evidence: `This is ${co.owner} first ${billWord} for ${supplier.name}; there's no history to compare ${fmtMoney(amountCents)} against.`,
       cite: { kind: "supplier", ref: supplier.key },
     };
   } else {
@@ -211,7 +218,7 @@ export function runChecks(input: RunChecksInput): Check[] {
       id: "amount",
       label: "Amount vs history",
       state: unusual ? "flag" : "pass",
-      evidence: `Fogline has paid ${supplier.name} ${priorPaidCount} times, from ${fmtMoney(min)} to ${fmtMoney(max)}. This bill asks for ${fmtMoney(amountCents)}.`,
+      evidence: `${us} has paid ${supplier.name} ${priorPaidCount} times, from ${fmtMoney(min)} to ${fmtMoney(max)}. This ${billWord} asks for ${fmtMoney(amountCents)}.`,
       cite: { kind: "supplier", ref: supplier.key },
     };
   }
@@ -253,11 +260,11 @@ export function runChecks(input: RunChecksInput): Check[] {
 
 export type Decision = "pay" | "ask_dev" | "call";
 
-/** Server-side limits (plan-agent.md step 4): safe + under $10k pays, safe + over $10k asks Dev,
- * anything flagged gets a check call. */
-export function decide(checks: Check[], amountCents: number): Decision {
+/** Server-side limits (plan-agent.md step 4): safe + under the company's limit pays, safe + over
+ * it asks the approver, anything flagged gets a check call. */
+export function decide(checks: Check[], amountCents: number, company?: Company): Decision {
   if (checks.some((c) => c.state === "flag")) return "call";
-  return amountCents >= TEN_THOUSAND_CENTS ? "ask_dev" : "pay";
+  return amountCents >= (company ?? companyFor(undefined)).approvalLimitCents ? "ask_dev" : "pay";
 }
 
 export type EscalationRouting = { routedTo: "maya" | "dev"; reason: string };
@@ -271,8 +278,9 @@ export type EscalationRouting = { routedTo: "maya" | "dev"; reason: string };
 export function routeEscalation(
   checks: Check[],
   amountCents: number,
-  options: { callOutcome?: "handed_off" | null } = {},
+  options: { callOutcome?: "handed_off" | null; company?: Company } = {},
 ): EscalationRouting {
+  const co = options.company ?? companyFor(undefined);
   if (options.callOutcome === "handed_off") {
     return { routedTo: "maya", reason: "The check call got no answer and the retry didn't connect either." };
   }
@@ -282,7 +290,7 @@ export function routeEscalation(
   if (otherFlags.length > 0) {
     return { routedTo: "dev", reason: otherFlags.map((c) => c.evidence).join(" ") };
   }
-  return { routedTo: "dev", reason: `${fmtMoney(amountCents)} is over Callback's $10,000 limit, so it needs Dev's approval.` };
+  return { routedTo: "dev", reason: `${fmtMoney(amountCents)} is over hold's ${wholeDollars(co.approvalLimitCents)} limit, so it needs ${co.dev.name}'s approval.` };
 }
 
 /** Matches lib/types.ts's Check shape, for schema.ts and any caller storing runChecks's output. */

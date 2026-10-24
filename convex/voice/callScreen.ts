@@ -10,6 +10,7 @@ import type { InboundCallRecord } from "../../shared/contract.js";
 import { anthropic, assessCall, loadPlaybook, transcriptText } from "../app/techniques.js";
 import * as records from "./records.js";
 import { followUpRequest } from "./rules.js";
+import { getCompany } from "../app/company.js";
 
 export const callForScreen = internalQuery({
   args: { call_id: v.string() },
@@ -18,7 +19,7 @@ export const callForScreen = internalQuery({
       .query("inboundCalls")
       .withIndex("by_key", (q) => q.eq("call_id", call_id))
       .unique();
-    return call ? { call, playbook: forChannel(await loadPlaybook(ctx, "fraud"), "phone") } : null;
+    return call ? { call, playbook: forChannel(await loadPlaybook(ctx, "fraud"), "phone"), company: await getCompany(ctx) } : null;
   },
 });
 
@@ -29,7 +30,7 @@ export const screen = internalAction({
     if (!found || found.call.fraud) return;
     const transcript = transcriptText(found.call.transcript);
     if (!found.call.transcript.some((t) => t.speaker === "caller")) return; // the caller never spoke
-    const a = await assessCall(anthropic(), { transcript, callerNumber: found.call.caller_number }, found.playbook);
+    const a = await assessCall(anthropic(), { transcript, callerNumber: found.call.caller_number, company: found.company }, found.playbook);
     const check = techniqueCheck(a, found.playbook, found.call.caller_number);
     await ctx.runMutation(internal.voice.callScreen.recordVerdict, {
       call_id,

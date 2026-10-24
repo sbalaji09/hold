@@ -12,10 +12,11 @@ import { RouteCorrection, capitalise } from "@/components/RouteCorrection";
 import { MESSAGE_MARK } from "@/lib/inbox";
 import { PERSON_NAME } from "@/lib/playbook";
 import { ROUTE_WORDS, type Route } from "@/lib/triage";
+import { useCompany } from "@/lib/useCompany";
+import type { Company } from "@/lib/company";
 
 type Actor = "maya" | "dev";
 const ROUTES: Route[] = ["bill", "to_maya", "file"];
-const ACTOR_NAME = { callback: "Callback", maya: "Maya Lin", dev: "Dev Okafor" } as const;
 
 function formatDateTime(iso: string): string {
   const d = new Date(iso);
@@ -26,10 +27,10 @@ function Person({ name }: { name: string }): React.ReactElement {
   return <span className="font-serif text-[15px] italic text-signatory">{name}</span>;
 }
 
-function consequence(r: Route, supplier: string): string {
+function consequence(r: Route, supplier: string, co: Company): string {
   if (r === "bill") return "hold runs it through the full bill checks, like any new bill. Nothing is paid unless they pass.";
   if (r === "file") return `hold files it on ${supplier}'s record and it leaves the inbox.`;
-  return "It stays in Maya's inbox as a message until someone marks it done.";
+  return `It stays in ${co.maya.name}'s inbox as a message until someone marks it done.`;
 }
 
 /** The bill the bill checks made from this email, once they have. */
@@ -39,6 +40,8 @@ function useBillFor(emailKey: string, look: boolean) {
 }
 
 function View({ emailKey, actor }: { emailKey: string; actor: Actor }): React.ReactElement {
+  const co = useCompany();
+  const ACTOR_NAME = { callback: "Callback", maya: co.maya.full, dev: co.dev.full } as const;
   const data = useQuery(api.app.triage.getMessage, { emailKey });
   const activity = useQuery(api.app.queries.listActivity, {});
   const resolve = useMutation(api.app.triage.resolveMessage);
@@ -141,7 +144,7 @@ function View({ emailKey, actor }: { emailKey: string; actor: Actor }): React.Re
               intro={`hold sorted this as ${ROUTE_WORDS[now]}. Where does it belong?`}
               options={ROUTES}
               current={now}
-              consequence={(r) => `${consequence(r, m.supplierName)} hold learns from the correction and replays it before it changes how it sorts.`}
+              consequence={(r) => `${consequence(r, m.supplierName, co)} hold learns from the correction and replays it before it changes how it sorts.`}
               confirmLabel="Move it"
               onMove={move}
             />
@@ -168,7 +171,7 @@ function View({ emailKey, actor }: { emailKey: string; actor: Actor }): React.Re
           <span>From</span>
           <b className="font-normal text-ink [overflow-wrap:anywhere]">{m.fromAddress}</b>
           <span>To</span>
-          <b className="font-normal text-ink">bills@fogline.fm</b>
+          <b className="font-normal text-ink">{co.inbox}</b>
           <span>Received</span>
           <b className="font-normal text-ink">{formatDateTime(m.receivedAt)}</b>
         </div>

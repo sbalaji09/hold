@@ -4,12 +4,7 @@ import { ActivityFilters } from "@/components/ActivityFilters";
 import { LogEntry } from "@/components/callback";
 import { listActivityWithLinks } from "@/lib/activity";
 import type { ActivityActor } from "@/lib/types";
-
-const ACTOR_NAME: Record<ActivityActor, string> = {
-  callback: "Callback",
-  maya: "Maya",
-  dev: "Dev",
-};
+import { getCompany } from "@/lib/data";
 
 function fmtTime(iso: string): string {
   return new Date(iso).toLocaleString("en-US", {
@@ -26,7 +21,8 @@ export default async function ActivityPage({
   searchParams: Promise<{ q?: string; actor?: string }>;
 }): Promise<React.ReactElement> {
   const { q, actor } = await searchParams;
-  const all = await listActivityWithLinks();
+  const [all, co] = await Promise.all([listActivityWithLinks(), getCompany()]);
+  const ACTOR_NAME: Record<ActivityActor, string> = { callback: "Callback", maya: co.maya.name, dev: co.dev.name };
   const query = (q ?? "").trim().toLowerCase();
   const actorFilter = actor as ActivityActor | undefined;
 
@@ -42,7 +38,7 @@ export default async function ActivityPage({
       <div className="flex flex-col gap-1">
         <h1 className="font-serif text-2xl text-ink">Activity log</h1>
         <p className="text-[13px] text-ink-muted">
-          Every action by Callback, Maya and Dev: who, when, what, why.
+          Every action by Callback, {co.maya.name} and {co.dev.name}: who, when, what, why.
         </p>
       </div>
 

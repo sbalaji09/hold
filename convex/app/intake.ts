@@ -15,6 +15,8 @@ import { judgeEmail, toKinds } from "./triage.js";
 import { lookalikeOf, readNewcomer } from "./onboarding.js";
 import type { Check } from "../../lib/types.js";
 import { routeEmail } from "../../lib/triage.js";
+import { getCompany } from "./company.js";
+import { wholeDollars } from "../../lib/company.js";
 
 // ---------- parsing (pure, unit-tested in intake.test.ts) ----------
 
@@ -184,6 +186,7 @@ export const recordUnknownSender = internalMutation({
     checks: v.optional(v.array(checkValidator)),
   },
   handler: async (ctx, args): Promise<{ billKey: string; supplierKey: string; status: "Needs you" }> => {
+    const co = await getCompany(ctx);
     const billKey = freshKey("bill_in");
     const emailKey = freshKey("email_in");
     // ponytail: no real supplier row to point at, so the bill carries a sentinel supplierKey
@@ -219,7 +222,7 @@ export const recordUnknownSender = internalMutation({
     await ctx.db.insert("activity", activity(
       "callback",
       "Flagged an email from an unrecognized sender",
-      flagged ? flagged.evidence : `No supplier record matches ${args.fromDomain || "this sender"}. Maya needs to review it by hand.`,
+      flagged ? flagged.evidence : `No ${co.payee.one} record matches ${args.fromDomain || "this sender"}. ${co.maya.name} needs to review it by hand.`,
       "bill",
       billKey,
     ));
@@ -245,6 +248,8 @@ export const finalizeIntake = internalMutation({
     existingEmailKey: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<{ billKey: string; supplierKey: string; status: Doc<"bills">["status"] }> => {
+    const co = await getCompany(ctx);
+    const limit = wholeDollars(co.approvalLimitCents);
     const billKey = freshKey("bill_in");
     const status: Doc<"bills">["status"] = args.decision === "pay" ? "Scheduled" : args.decision === "ask_dev" ? "Needs you" : "Calling";
 
@@ -292,26 +297,26 @@ export const finalizeIntake = internalMutation({
       await ctx.db.insert("activity", activity(
         "callback",
         `Scheduled ${money} for ${args.supplier.name} (invoice #${args.invoiceNo})`,
-        "Every check passed and it's under the $10,000 limit.",
+        `Every check passed and it's under the ${limit} limit.`,
         "bill",
         billKey,
       ));
     } else if (args.decision === "ask_dev") {
-      const route = routeEscalation(args.checks, args.amountCents);
+      const route = routeEscalation(args.checks, args.amountCents, { company: co });
       await ctx.db.insert("approvals", {
         key: freshKey("appr"),
         billKey,
         kind: "big_payment",
         status: "pending",
-        recommendation: `Every check passed. This is ${money}, over Callback's $10,000 limit, so it needs Dev's approval.`,
+        recommendation: `Every check passed. This is ${money}, over hold's ${limit} limit, so it needs ${co.dev.name}'s approval.`,
         routedTo: route.routedTo,
         reason: route.reason,
         thread: [],
       });
       await ctx.db.insert("activity", activity(
         "callback",
-        `Asked Dev to approve ${money} for ${args.supplier.name} (invoice #${args.invoiceNo})`,
-        "Safe, but over the $10,000 limit Callback can approve on its own.",
+        `Asked ${co.dev.name} to approve ${money} for ${args.supplier.name} (#${args.invoiceNo})`,
+        `Safe, but over the ${limit} limit hold can pay on its own.`,
         "bill",
         billKey,
       ));
@@ -361,6 +366,7 @@ export const recordMessage = internalMutation({
     }),
   },
   handler: async (ctx, args): Promise<{ billKey: string; emailKey: string; supplierKey: string; status: string }> => {
+    const co = await getCompany(ctx);
     const emailKey = freshKey("email_in");
     await ctx.db.insert("emails", {
       key: emailKey,
@@ -378,7 +384,7 @@ export const recordMessage = internalMutation({
       "callback",
       args.triage.route === "file"
         ? `Filed an email from ${args.supplier.name} (${args.triage.kindName})`
-        : `Sent an email from ${args.supplier.name} to Maya (${args.triage.kindName})`,
+        : `Sent an email from ${args.supplier.name} to ${co.maya.name} (${args.triage.kindName})`,
       args.triage.why,
       "email",
       emailKey,
@@ -453,10 +459,11 @@ async function fromUnknownDomain(ctx: ActionCtx, args: IngestArgs, fromAddress: 
   if (!fromDomain) return unknown();
 
   const amountCents = parseAmountCents(args.body) ?? 0;
+  const co = await ctx.runQuery(api.app.company.current, {});
   const playbook = forChannel(await ctx.runQuery(internal.app.techniques.activePlaybook, {}), "email");
   const [read, assessed] = await Promise.allSettled([
     readNewcomer(anthropic(), { from: args.from, subject: args.subject, body: args.body }),
-    assessEmail(anthropic(), { fromAddress, subject: args.subject, body: args.body, supplierName: "a company Fogline has no record of", supplierDomain: fromDomain, amountCents }, playbook),
+    assessEmail(anthropic(), { fromAddress, subject: args.subject, body: args.body, supplierName: `a company ${co.name} has no record of`, supplierDomain: fromDomain, amountCents, company: co }, playbook),
   ]);
   if (read.status === "rejected") {
     console.warn(`reading a new sender's email failed for ${fromDomain}:`, read.reason);
@@ -473,7 +480,7 @@ async function fromUnknownDomain(ctx: ActionCtx, args: IngestArgs, fromAddress: 
       receivedAt: args.receivedAt,
       messageId: args.messageId,
       supplier: { key: `unknown:${fromDomain}`, name: read.value.companyName || fromDomain },
-      triage: { kindName: "From an unknown sender", route: "to_maya", why: `${fromDomain} isn't a supplier Fogline knows. ${read.value.whatFor}`.trim() },
+      triage: { kindName: "From an unknown sender", route: "to_maya", why: `${fromDomain} isn't a ${co.payee.one} ${co.name} knows. ${read.value.whatFor}`.trim() },
     });
   }
   return ctx.runMutation(internal.app.onboarding.onboardFromEmail, {
@@ -516,6 +523,7 @@ async function ingest(ctx: ActionCtx, args: IngestArgs, opts: { existingEmailKey
     if (!context) return await fromUnknownDomain(ctx, args, fromAddress, fromDomain);
 
     const amountCents = parseAmountCents(args.body) ?? 0;
+    const co = await ctx.runQuery(api.app.company.current, {});
 
     // The two Claude checks run side by side, so neither adds to the other's wait.
     const playbook = forChannel(await ctx.runQuery(internal.app.techniques.activePlaybook, {}), "email");
@@ -533,6 +541,7 @@ async function ingest(ctx: ActionCtx, args: IngestArgs, opts: { existingEmailKey
           supplierName: context.supplier.name,
           supplierDomain: context.supplier.domain,
           amountCents,
+          company: co,
         },
         playbook,
       ),
@@ -571,6 +580,7 @@ async function ingest(ctx: ActionCtx, args: IngestArgs, opts: { existingEmailKey
       styleMatch,
       learnedRules: context.learnedRules,
       fraudTechnique,
+      company: co,
     });
     if (styleMatchError) {
       checks.push({
@@ -603,7 +613,7 @@ async function ingest(ctx: ActionCtx, args: IngestArgs, opts: { existingEmailKey
       console.warn(`triage failed for ${context.supplier.key}:`, triaged.reason);
     }
 
-    let decision: Decision = decide(checks, amountCents);
+    let decision: Decision = decide(checks, amountCents, co);
     // New-supplier addendum (plan-agent.md addendum §3): a bank change or a bill of $5,000+ from
     // a supplier Callback hasn't confirmed by call yet always gets a call, even if every check
     // passed (there's simply no history to trust yet).

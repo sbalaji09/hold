@@ -3,17 +3,19 @@ import type { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { runChecks, routeEscalation, type CheckBankAccount } from "./app/checks";
 import { insertSeedPlaybook } from "./app/techniques";
-import { TEN_THOUSAND_CENTS } from "../lib/policy";
+import { companyFor, wholeDollars } from "../lib/company";
 import type { Check } from "../lib/types";
 
 function fmtMoney(cents: number): string {
   return "$" + (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// Usage: `npm run seed` (reads data/fogline.json and runs this via
-// `convex run seed:seed`). Internal-only: it clears every table and
-// reloads it from the Fogline fixture, so never point it at a real
-// deployment with live data.
+// Usage: `pnpm seed` (data/fogline.json), `pnpm seed:bayline` or `pnpm seed:harbor` runs this via
+// `convex run seed:seed`; the app's template switch (convex/app/workspace.ts) runs it too.
+// Internal-only: it clears the workspace's tables and reloads them from a fixture, so never point it
+// at a real deployment with live data. `company` names whose data this is (lib/company.ts); absent =
+// Fogline. `keepPlaybooks` leaves the learned playbooks alone, so what hold learned at one company
+// carries over to the next.
 
 const transcriptLine = v.object({
   speaker: v.union(v.literal("callback"), v.literal("supplier")),
@@ -21,25 +23,22 @@ const transcriptLine = v.object({
   ts: v.number(),
 });
 
-export const seed = internalMutation({
-  args: {
+export const seedArgs = {
+    company: v.optional(v.string()),
+    keepPlaybooks: v.optional(v.boolean()),
     suppliers: v.array(
       v.object({
         key: v.string(),
         name: v.string(),
-        category: v.union(
-          v.literal("stage"),
-          v.literal("sound"),
-          v.literal("security"),
-          v.literal("agency"),
-          v.literal("food"),
-          v.literal("other"),
-        ),
+        category: v.string(),
         domain: v.string(),
         contactName: v.string(),
         contactEmail: v.string(),
         trustedPhone: v.string(),
         phoneLastCheckedAt: v.string(),
+        language: v.optional(v.string()),
+        phoneMenu: v.optional(v.string()),
+        timeZone: v.optional(v.string()),
       }),
     ),
     bankAccounts: v.array(
@@ -129,8 +128,13 @@ export const seed = internalMutation({
         checksThatShouldFire: v.array(v.string()),
       }),
     ),
-  },
+};
+
+export const seed = internalMutation({
+  args: seedArgs,
   handler: async (ctx, args) => {
+    const co = companyFor(args.company);
+    const playbookTables = ["fraudTechniques", "improvements"] as const;
     const tables = [
       "suppliers",
       "bankAccounts",
@@ -144,8 +148,9 @@ export const seed = internalMutation({
       "approvals",
       "activity",
       "practiceScams",
-      "fraudTechniques",
-      "improvements",
+      "learnedRules",
+      "backgroundChecks",
+      ...(args.keepPlaybooks ? [] : playbookTables),
     ] as const;
     for (const table of tables) {
       const existing = await ctx.db.query(table).collect();
@@ -172,6 +177,9 @@ export const seed = internalMutation({
     }
     for (const c of args.plantedScams) await ctx.db.insert("practiceScams", c);
     await insertSeedPlaybook(ctx);
+    const settings = await ctx.db.query("settings").withIndex("by_key", (q) => q.eq("key", "global")).unique();
+    if (settings) await ctx.db.patch(settings._id, { company: co.key });
+    else await ctx.db.insert("settings", { key: "global", watchOnly: false, company: co.key });
 
     // ponytail: fogline.json stores one flat historical "calls" record per
     // past call; the live schema splits that into callRequests/Events/
@@ -245,6 +253,7 @@ export const seed = internalMutation({
         pastPaidBankAccounts,
         pastPaidAmounts: pastPaid.map((x) => x.amountCents),
         amountCents: b.amountCents,
+        company: co,
       });
       checksByBillKey.set(b.key, checks);
       const id = billIdByKey.get(b.key);
@@ -252,7 +261,7 @@ export const seed = internalMutation({
     }
 
     for (const b of args.bills) {
-      const approvable = b.status === "Held" || b.status === "Needs you" || (b.amountCents > TEN_THOUSAND_CENTS && b.status !== "Paid");
+      const approvable = b.status === "Held" || b.status === "Needs you" || (b.amountCents >= co.approvalLimitCents && b.status !== "Paid");
       if (!approvable) continue;
       const checks = checksByBillKey.get(b.key) ?? [];
       const call = callByBillKey.get(b.key) ?? null;
@@ -261,13 +270,13 @@ export const seed = internalMutation({
       const recommendation =
         flagged.length > 0
           ? `Hold this payment. ${flagged.map((c) => c.evidence).join(" ")}`
-          : `Pay ${fmtMoney(b.amountCents)} to ${bankAccount?.bank ?? "the account on file"} \u00b7\u00b7${bankAccount?.last4 ?? ""}. All checks passed; this is over Callback's $10,000 limit, so Dev needs to approve it.`;
+          : `Pay ${fmtMoney(b.amountCents)} to ${bankAccount?.bank ?? "the account on file"} \u00b7\u00b7${bankAccount?.last4 ?? ""}. All checks passed; this is over hold's ${wholeDollars(co.approvalLimitCents)} limit, so ${co.dev.name} needs to approve it.`;
       const kind = checks.find((c) => c.id === "bank-account" && c.state === "flag")
         ? "bank_change"
         : b.status === "Held"
           ? "held_payment"
           : "big_payment";
-      const route = routeEscalation(checks, b.amountCents, { callOutcome: call?.outcome === "handed_off" ? "handed_off" : null });
+      const route = routeEscalation(checks, b.amountCents, { callOutcome: call?.outcome === "handed_off" ? "handed_off" : null, company: co });
       await ctx.db.insert("approvals", {
         key: `appr_${b.key}`,
         billKey: b.key,

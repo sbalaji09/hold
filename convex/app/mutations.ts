@@ -11,6 +11,8 @@ import type { Actor } from "../../lib/policy.js";
 import type { Bill } from "../../lib/types.js";
 import { canApprove, canCall, canHold, canMoveMoney, canPay, canRelease } from "../../lib/policy.js";
 import { getWatchOnlySetting, hydrateBill } from "./queries.js";
+import { getCompany } from "./company.js";
+import { wholeDollars } from "../../lib/company.js";
 import { routeEscalation } from "./checks.js";
 
 const actorValidator = v.union(v.literal("callback"), v.literal("maya"), v.literal("dev"));
@@ -60,10 +62,11 @@ export const payBill = mutation({
     const row = await requireBillRow(ctx, billKey);
     const bill = await hydrateBill(ctx, row);
     const watchOnly = await getWatchOnlySetting(ctx);
-    const result = canPay(bill, watchOnly);
+    const co = await getCompany(ctx);
+    const result = canPay(bill, watchOnly, co);
     if (!result.allowed) return refuse(ctx, "maya", "pay", result.reason!, billKey);
     await ctx.db.patch(row._id, { status: "Scheduled" });
-    await logActivity(ctx, "callback", "scheduled payment", "Amount was under $10,000 and every check passed.", "bill", billKey);
+    await logActivity(ctx, "callback", "scheduled payment", `Amount was under ${wholeDollars(co.approvalLimitCents)} and every check passed.`, "bill", billKey);
   },
 });
 
@@ -142,6 +145,7 @@ export const requestCall = mutation({
       return activeCall.call_id;
     }
 
+    const co = await getCompany(ctx);
     const reason = bill.checks.filter((c) => c.state === "flag").map((c) => c.label);
     const call_id = `call_${crypto.randomUUID()}`;
     await ctx.db.insert("callRequests", {
@@ -150,7 +154,7 @@ export const requestCall = mutation({
       supplier_id: supplier.key,
       to_number: supplier.trustedPhone,
       number_source: "on_file",
-      reason: reason.length > 0 ? reason : ["Maya asked to confirm this bill"],
+      reason: reason.length > 0 ? reason : [`${co.maya.name} asked to confirm this ${co.bill.one}`],
       status: "queued",
       attempt: 0,
       mode: "live",
@@ -159,8 +163,8 @@ export const requestCall = mutation({
     await logActivity(
       ctx,
       "callback",
-      `called ${supplier.name} to verify this bill`,
-      reason.length > 0 ? reason.join("; ") : "Maya asked to confirm this bill.",
+      `called ${supplier.name} to verify this ${co.bill.one}`,
+      reason.length > 0 ? reason.join("; ") : `${co.maya.name} asked to confirm this ${co.bill.one}.`,
       "bill",
       billKey,
     );
@@ -190,10 +194,11 @@ export const decideApproval = mutation({
       .first();
     if (!approvalRow) throw new ConvexError(`No pending approval for bill ${billKey}`);
 
-    const approveCheck = canApprove(actor, "callback");
+    const co = await getCompany(ctx);
+    const approveCheck = canApprove(actor, "callback", co);
     if (!approveCheck.allowed) return refuse(ctx, actor, "approve", approveCheck.reason!, billKey);
     if (actor !== "dev") {
-      return refuse(ctx, actor, "approve", "Maya can't approve this. Dev has to sign off.", billKey);
+      return refuse(ctx, actor, "approve", `${co.maya.name} can't approve this. ${co.dev.name} has to sign off.`, billKey);
     }
 
     const row = await requireBillRow(ctx, billKey);
@@ -208,7 +213,7 @@ export const decideApproval = mutation({
           .withIndex("by_key", (q) => q.eq("key", payToBankAccountKey))
           .unique();
         if (!target || target.supplierKey !== bill.supplierKey) {
-          return refuse(ctx, actor, "approve", "That bank account isn't on file for this supplier.", billKey);
+          return refuse(ctx, actor, "approve", `That bank account isn't on file for this ${co.payee.one}.`, billKey);
         }
         if (target.key === bill.bankAccountKey) {
           return refuse(ctx, actor, "approve", "That's the account already on this bill, not the verified alternative.", billKey);
@@ -224,14 +229,14 @@ export const decideApproval = mutation({
           "approved paying the verified account",
           bill.call?.outcome
             ? `Call outcome: ${bill.call.outcome}. Paying ${target.bank} \u00b7\u00b7${target.last4} instead of the unverified account.`
-            : `Paying ${target.bank} \u00b7\u00b7${target.last4}, the supplier's verified account on file.`,
+            : `Paying ${target.bank} \u00b7\u00b7${target.last4}, the ${co.payee.one}'s verified account on file.`,
           "bill",
           billKey,
         );
         return;
       }
       if (bill.status === "Held") {
-        const release = canRelease(bill, actor);
+        const release = canRelease(bill, actor, co);
         if (!release.allowed) return refuse(ctx, actor, "approve", release.reason!, billKey);
         // Dev approved a bank change after a confirmed call: that account is now verified, so a
         // saved rule for it can stop the same change being asked about again (checks.ts).

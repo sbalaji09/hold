@@ -2,7 +2,7 @@
 // result, and apply the decision. The answers decide whether the bill is paid or held (plan step 4),
 // and a confirmed call never moves money past a hard limit on its own.
 
-import { TEN_THOUSAND_CENTS } from "./policy";
+import { companyFor, wholeDollars, type Company } from "./company";
 import type { ApprovalKind, Bill, DataBillStatus } from "./types";
 
 export type CallOutcome = "confirmed" | "not_confirmed" | "handed_off";
@@ -25,8 +25,15 @@ const money = (cents: number) =>
 /** Call summaries come from the voice side and may lack a final full stop. */
 export const sentence = (s: string) => (/[.!?]$/.test(s.trim()) ? s.trim() : `${s.trim()}.`);
 
-export function decideCallOutcome(bill: Bill, outcome: CallOutcome, rawSummary: string): CallOutcomeDecision {
+export function decideCallOutcome(
+  bill: Bill,
+  outcome: CallOutcome,
+  rawSummary: string,
+  co: Company = companyFor(undefined),
+): CallOutcomeDecision {
   const summary = sentence(rawSummary);
+  const b = co.bill.one;
+  const { maya, dev } = co;
   const bankChange = bill.checks.some((c) => c.id === "bank-account" && c.state === "flag");
   const kind = bankChange ? "bank_change" : "held_payment";
   const who = bill.supplier.name;
@@ -37,10 +44,10 @@ export function decideCallOutcome(bill: Bill, outcome: CallOutcome, rawSummary: 
       approval: {
         kind,
         routedTo: "dev",
-        reason: `The check call to ${who} didn't confirm this bill. ${summary}`,
+        reason: `The check call to ${who} didn't confirm this ${b}. ${summary}`,
         recommendation: `Hold this payment. ${summary}`,
       },
-      activity: { what: "held this bill after the check call", why: summary },
+      activity: { what: `held this ${b} after the check call`, why: summary },
     };
   }
 
@@ -53,7 +60,7 @@ export function decideCallOutcome(bill: Bill, outcome: CallOutcome, rawSummary: 
         reason: `The check call to ${who} didn't finish. ${summary}`,
         recommendation: `Nothing was paid. ${summary} Call ${who} back or decide by hand.`,
       },
-      activity: { what: "handed this bill to Maya after the check call", why: summary },
+      activity: { what: `handed this ${b} to ${maya.name} after the check call`, why: summary },
     };
   }
 
@@ -65,10 +72,10 @@ export function decideCallOutcome(bill: Bill, outcome: CallOutcome, rawSummary: 
       approval: {
         kind: "bank_change",
         routedTo: "dev",
-        reason: `${who} confirmed this first bill on a call to the number Maya confirmed. It's a new supplier, so Dev approves the first payment and the account it goes to.`,
+        reason: `${who} confirmed this first ${b} on a call to the number ${maya.name} confirmed. It's a new ${co.payee.one}, so ${dev.name} approves the first payment and the account it goes to.`,
         recommendation: `Approve the first payment once their bank account is verified. ${summary}`,
       },
-      activity: { what: "asked Dev to approve a new supplier's first payment", why: summary },
+      activity: { what: `asked ${dev.name} to approve a new ${co.payee.one}'s first payment`, why: summary },
     };
   }
   // Confirmed. A bank change still needs Dev: Callback can't change bank details alone.
@@ -78,26 +85,26 @@ export function decideCallOutcome(bill: Bill, outcome: CallOutcome, rawSummary: 
       approval: {
         kind: "bank_change",
         routedTo: "dev",
-        reason: `${who} confirmed the bank change on a call to the number on file. Dev has to approve the new account.`,
+        reason: `${who} confirmed the bank change on a call to the number on file. ${dev.name} has to approve the new account.`,
         recommendation: `Approve the new account. ${summary}`,
       },
-      activity: { what: "asked Dev to approve the confirmed bank change", why: summary },
+      activity: { what: `asked ${dev.name} to approve the confirmed bank change`, why: summary },
     };
   }
-  if (bill.amountCents >= TEN_THOUSAND_CENTS) {
+  if (bill.amountCents >= co.approvalLimitCents) {
     return {
       status: "Needs you",
       approval: {
         kind: "big_payment",
         routedTo: "dev",
-        reason: `${who} confirmed this bill on a call, but ${money(bill.amountCents)} is over Callback's $10,000 limit.`,
+        reason: `${who} confirmed this ${b} on a call, but ${money(bill.amountCents)} is over hold's ${wholeDollars(co.approvalLimitCents)} limit.`,
         recommendation: `Approve this payment. ${summary}`,
       },
-      activity: { what: "asked Dev to approve the confirmed bill", why: summary },
+      activity: { what: `asked ${dev.name} to approve the confirmed ${b}`, why: summary },
     };
   }
   return {
     status: "Scheduled",
-    activity: { what: "scheduled payment after the check call", why: `${who} confirmed this bill on a call to the number on file. ${summary}` },
+    activity: { what: "scheduled payment after the check call", why: `${who} confirmed this ${b} on a call to the number on file. ${summary}` },
   };
 }

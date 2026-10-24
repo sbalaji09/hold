@@ -29,14 +29,8 @@ export default defineSchema({
   suppliers: defineTable({
     key: v.string(),
     name: v.string(),
-    category: v.union(
-      v.literal("stage"),
-      v.literal("sound"),
-      v.literal("security"),
-      v.literal("agency"),
-      v.literal("food"),
-      v.literal("other"),
-    ),
+    // A key of the company's categories (lib/company.ts), or "other". Was a festival-only union.
+    category: v.string(),
     domain: v.string(),
     contactName: v.string(),
     contactEmail: v.string(),
@@ -44,6 +38,12 @@ export default defineSchema({
     phoneLastCheckedAt: v.string(),
     // Hyphenate addendum: New until first confirmed call. Absent = Trusted.
     status: v.optional(v.union(v.literal("new"), v.literal("trusted"), v.literal("under_review"))),
+    // Calls (voice): the language to speak, a BCP-47 code Cartesia takes ("en", "es"). Absent = "en".
+    language: v.optional(v.string()),
+    // Keys pressed after the line picks up to reach the right person, Twilio sendDigits ("ww2").
+    phoneMenu: v.optional(v.string()),
+    // IANA zone for calling hours. Absent = the company's.
+    timeZone: v.optional(v.string()),
     // New suppliers (convex/app/onboarding.ts): how hold met them and what Fogline knows about them.
     onboarding: v.optional(
       v.object({
@@ -401,6 +401,8 @@ export default defineSchema({
   settings: defineTable({
     key: v.string(),
     watchOnly: v.boolean(),
+    // Which company this deployment works for (lib/company.ts). Absent = Fogline.
+    company: v.optional(v.string()),
   }).index("by_key", ["key"]),
 
   // hold's playbooks, one per job of its loop: fraud techniques (job absent or "fraud") and the

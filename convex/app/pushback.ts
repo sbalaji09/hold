@@ -7,6 +7,7 @@ import { ConvexError, v } from "convex/values";
 import { z } from "zod";
 import { api, internal } from "../_generated/api.js";
 import { action, internalQuery } from "../_generated/server.js";
+import { companyFor, type Company } from "../../lib/company.js";
 
 export const PUSHBACK_MODEL = "claude-sonnet-5-5";
 
@@ -22,16 +23,18 @@ export interface PushbackInput {
   supplierName: string;
   amountCents: number;
   devText: string;
+  /** Whose approver is writing. Absent = Fogline's Dev. */
+  company?: Company;
   call: PushbackEvidence;
   oldAccount: { bank: string; last4: string };
 }
 
 const Reply = z.object({ text: z.string() });
 
-const SYSTEM = `You are Callback, an automated bookkeeping assistant. Dev, the controller, is pushing back on a bill
-you held because a check call didn't confirm the supplier's new bank details.
+const SYSTEM = `You are hold, an automated payments assistant. The person who signs off on payments (named below) is pushing back on a payment
+you held because a check call didn't confirm the payee's new bank details.
 Reply in 2-4 short sentences, in Callback's voice: calm, specific, never defensive.
-- Quote what the supplier actually said on the call (from the evidence given), not a generic warning.
+- Quote what the payee actually said on the call (from the evidence given), not a generic warning.
 - Name the specific check that failed and why that matters.
 - Offer to pay the old, verified account instead, naming its bank and last 4 digits.
 - Never agree to release the payment to the unverified account. Never invent facts not in the evidence.`;
@@ -41,17 +44,19 @@ export function buildPrompt(input: PushbackInput): string {
   const turns = input.call.turns.length
     ? input.call.turns.map((t) => `- Asked: "${t.ask}" | Answer: "${t.answer}" | Matches invoice: ${t.matches}`).join("\n")
     : "(no recorded Q&A)";
+  const co = input.company ?? companyFor(undefined);
   const clip = input.call.clip ? `Clip available at ${input.call.clip.start_s}s-${input.call.clip.end_s}s.` : "No clip recorded.";
-  return `Bill: invoice #${input.invoiceNo} from ${input.supplierName}, ${amount}.
+  return `Company: ${co.about}.
+Payment: ${co.record} #${input.invoiceNo} for ${input.supplierName}, ${amount}.
 Call outcome: ${input.call.outcome}. Call summary: ${input.call.summary}
 Call evidence:
 ${turns}
 ${clip}
 Old, verified account on file: ${input.oldAccount.bank} ··${input.oldAccount.last4}.
 
-Dev wrote: "${input.devText}"
+${co.dev.name} (${co.dev.role}) wrote: "${input.devText}"
 
-Reply to Dev.`;
+Reply to ${co.dev.name}.`;
 }
 
 /** The bill's most recent call result, with its evidence and clip, for Claude's prompt. */
@@ -132,6 +137,7 @@ export const reply = action({
             supplierName: bill.supplier.name,
             amountCents: bill.amountCents,
             devText: text,
+            company: await ctx.runQuery(api.app.company.current, {}),
             call,
             oldAccount,
           }),

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getPersona } from "@/lib/persona";
-import { countPlaybookApprovals, listApprovals } from "@/lib/data";
+import { countPlaybookApprovals, getCompany, listApprovals } from "@/lib/data";
+import { capital, wholeDollars } from "@/lib/company";
 import { CHECK_RESULT, citeLabel } from "@/lib/bill";
-import { TEN_THOUSAND_CENTS } from "@/lib/policy";
 import { shortDate } from "@/lib/inbox";
 import { Amount, AccountLine, CheckRow } from "@/components/callback";
 import { PushbackThread } from "@/components/PushbackThread";
@@ -11,16 +11,13 @@ import type { ApprovalKind, CheckState } from "@/lib/types";
 
 export const metadata = { title: "Approvals · hold" };
 
-const KIND_LABEL: Record<ApprovalKind, string> = {
-  big_payment: "Over $10,000",
-  held_payment: "Held",
-  bank_change: "Bank change",
-};
+const kindLabel = (kind: ApprovalKind, limitCents: number): string =>
+  ({ big_payment: `Over ${wholeDollars(limitCents)}`, held_payment: "Held", bank_change: "Bank change" })[kind];
 
 const CHECK_ORDER: Record<CheckState, number> = { flag: 0, info: 1, pass: 2 };
 
 export default async function ApprovalsPage() {
-  const [approvals, changes, persona] = await Promise.all([listApprovals(), countPlaybookApprovals(), getPersona()]);
+  const [approvals, changes, persona, co] = await Promise.all([listApprovals(), countPlaybookApprovals(), getPersona(), getCompany()]);
   const waiting = approvals.length + changes;
 
   return (
@@ -29,8 +26,8 @@ export default async function ApprovalsPage() {
         <h1 className="cb-display text-ink">Approvals</h1>
         <p className="mt-1 text-[13px] text-ink-muted">
           {persona === "dev"
-            ? `Signed in as Dev Okafor, controller. ${waiting} waiting on your sign-off.`
-            : `Signed in as Maya Lin, bookkeeper. ${waiting} waiting. Payments need Dev's sign-off; you can read and reply.`}
+            ? `Signed in as ${co.dev.full}, ${co.dev.role.toLowerCase()}. ${waiting} waiting on your sign-off.`
+            : `Signed in as ${co.maya.full}, ${co.maya.role.toLowerCase()}. ${waiting} waiting. Payments need ${co.dev.name}'s sign-off; you can read and reply.`}
         </p>
       </div>
 
@@ -38,7 +35,7 @@ export default async function ApprovalsPage() {
 
       {waiting === 0 ? (
         <div className="cb-doc p-6 text-[13px] text-ink-muted">
-          Nothing waiting. Callback will ask when a payment is over <Amount cents={TEN_THOUSAND_CENTS} /> or held.
+          Nothing waiting. hold will ask when a payment is over <Amount cents={co.approvalLimitCents} /> or held.
         </div>
       ) : (
         <div className="flex flex-col gap-6">
@@ -50,9 +47,9 @@ export default async function ApprovalsPage() {
               <article key={approval.key} className="cb-doc">
                 <div className="cb-doc-head">
                   <span>
-                    {bill.supplier.name} · Invoice {bill.invoiceNo}
+                    {bill.supplier.name} · {capital(co.bill).one} {bill.invoiceNo}
                   </span>
-                  <small>{KIND_LABEL[approval.kind]}</small>
+                  <small>{kindLabel(approval.kind, co.approvalLimitCents)}</small>
                 </div>
                 <div className="flex flex-col gap-6 p-4 md:flex-row">
                   <div className="flex min-w-0 flex-1 flex-col gap-4">

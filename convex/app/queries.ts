@@ -35,6 +35,9 @@ function toSupplier(s: Doc<"suppliers">): Supplier {
     phoneLastCheckedAt: s.phoneLastCheckedAt,
     status: s.status,
     onboarding: s.onboarding,
+    language: s.language,
+    phoneMenu: s.phoneMenu,
+    timeZone: s.timeZone,
   };
 }
 

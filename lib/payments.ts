@@ -6,6 +6,7 @@
 
 import { listBills, listPayments } from "./data";
 import { canPay } from "./policy";
+import { companyFor, type Company } from "./company";
 import type { Bill, Payment } from "./types";
 
 const RUN_WINDOW_MS = 7 * 24 * 3600 * 1000;
@@ -43,10 +44,10 @@ export interface RunEligibility {
 /** Callback can run a payment itself only if it hasn't gone out yet and it
  * passes the same pay policy as the bill page. Anything blocked explains why
  * instead of silently dropping out of the run. */
-export async function runEligibility(items: RunItem[], watchOnly = false): Promise<RunEligibility> {
+export async function runEligibility(items: RunItem[], watchOnly = false, co: Company = companyFor(undefined)): Promise<RunEligibility> {
   const pending = items.filter((i) => i.payment?.status !== "Paid");
-  const eligible = pending.filter((i) => canPay(i.bill, watchOnly).allowed);
+  const eligible = pending.filter((i) => canPay(i.bill, watchOnly, co).allowed);
   if (eligible.length > 0) return { eligible };
-  const reason = pending.map((i) => canPay(i.bill, watchOnly).reason).find((r) => r);
-  return { eligible, lockedReason: reason ?? "Nothing due. Every bill this week is already paid." };
+  const reason = pending.map((i) => canPay(i.bill, watchOnly, co).reason).find((r) => r);
+  return { eligible, lockedReason: reason ?? `Nothing due. Every ${co.bill.one} this week is already paid.` };
 }
