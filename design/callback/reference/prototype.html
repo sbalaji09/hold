@@ -1,0 +1,1129 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0"><title>Callback</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: fixed ledger sidebar + one work column; documents rest on a bone desk. Tokens = the Callback design system. */
+:root{--paper:#f3f2ed;--surface:#fcfbf8;--surface-sunk:#ebe9e2;--surface-hover:#f6f5f0;--line:#dedbd2;--microline:#e4e1d8;--line-control:#8b877c;--ink:#15191b;--ink-muted:#585d60;--ink-faint:#9a9c9a;--action:#15191b;--action-hover:#2c3236;--on-action:#fcfbf8;--hold:#a32d1e;--hold-tint:#f4e1dc;--hold-solid:#a8301f;--on-hold:#fcfbf8;--brass:#765210;--brass-tint:#f0e7d2;--brass-solid:#b8862c;--signatory:#253a7c;--signatory-tint:#e3e7f2;--graphite:#50555a;--graphite-tint:#eceae4;--paid:var(--ink-muted);--shadow-doc:0 0 0 1px #dedbd2, 0 12px 28px -18px rgba(21,25,27,0.28);--shadow-pop:0 0 0 1px #dedbd2, 0 16px 40px -12px rgba(21,25,27,0.25);--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:24px;--space-6:32px;--space-8:48px;--radius-xs:2px;--radius-sm:4px;--radius-md:6px;--radius-round:999px;--row-height:40px;--control-height:32px;--control-height-sm:26px;--sidebar-width:232px;--evidence-width:440px;--margin-width:120px;--rule-hair:1px;--font-serif:Newsreader, "Iowan Old Style", Georgia, serif;--font-sans:"Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;--font-mono:"DM Mono", ui-monospace, "SF Mono", Menlo, monospace;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#0f1214;--surface:#161a1d;--surface-sunk:#0b0d0f;--surface-hover:#1c2125;--line:#272c31;--microline:#1f2428;--line-control:#6b7278;--ink:#e9e7e1;--ink-muted:#a2a5a6;--ink-faint:#62676b;--action:#e9e7e1;--action-hover:#cfccc4;--on-action:#0f1214;--hold:#f08a76;--hold-tint:#3a1a15;--hold-solid:#d9533d;--on-hold:#0f1214;--brass:#d9b46a;--brass-tint:#2e2412;--brass-solid:#c99a3f;--signatory:#9fb2ec;--signatory-tint:#1a2340;--graphite:#b3b6b6;--graphite-tint:#1f2428;--shadow-doc:0 0 0 1px #272c31, 0 12px 28px -18px rgba(0,0,0,0.8);--shadow-pop:0 0 0 1px #272c31, 0 16px 40px -12px rgba(0,0,0,0.85);color-scheme:dark;}}
+:root[data-theme="dark"]{--paper:#0f1214;--surface:#161a1d;--surface-sunk:#0b0d0f;--surface-hover:#1c2125;--line:#272c31;--microline:#1f2428;--line-control:#6b7278;--ink:#e9e7e1;--ink-muted:#a2a5a6;--ink-faint:#62676b;--action:#e9e7e1;--action-hover:#cfccc4;--on-action:#0f1214;--hold:#f08a76;--hold-tint:#3a1a15;--hold-solid:#d9533d;--on-hold:#0f1214;--brass:#d9b46a;--brass-tint:#2e2412;--brass-solid:#c99a3f;--signatory:#9fb2ec;--signatory-tint:#1a2340;--graphite:#b3b6b6;--graphite-tint:#1f2428;--shadow-doc:0 0 0 1px #272c31, 0 12px 28px -18px rgba(0,0,0,0.8);--shadow-pop:0 0 0 1px #272c31, 0 16px 40px -12px rgba(0,0,0,0.85);color-scheme:dark;}
+
+/* Callback — security-printed ledger. Every colour is a token. */
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-sans); font-size: 14px; line-height: 21px; -webkit-font-smoothing: antialiased; }
+.cb-stack { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5); }
+.cb-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-5); }
+.cb-doc { background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow-doc); }
+.cb-doc-head { display: flex; justify-content: space-between; align-items: baseline; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--line); font: 600 13px/20px var(--font-sans); }
+.cb-doc-head small, .cb-caps { font: 600 10.5px/14px var(--font-sans); letter-spacing: .09em; text-transform: uppercase; color: var(--ink-muted); }
+.cb-display { font: 500 30px/36px var(--font-serif); letter-spacing: -.015em; margin: 0; }
+.cb-subject { font: 500 24px/30px var(--font-serif); letter-spacing: -.01em; margin: 0; }
+.cb-micro { background-color: var(--surface-sunk); background-image: repeating-linear-gradient(-28deg, var(--microline) 0 1px, transparent 1px 3px); }
+
+:where(.cb-btn, .cb-ledger-row, .cb-cite, .cb-ask):focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* ── Button ───────────────────────────────────── */
+.cb-btn { display: inline-flex; align-items: center; gap: 6px; height: var(--control-height); padding: 0 14px; border-radius: var(--radius-sm); border: 1px solid transparent; font: 500 13px/16px var(--font-sans); cursor: pointer; white-space: nowrap; transition: background-color 120ms ease; }
+.cb-btn svg { width: 14px; height: 14px; flex: none; }
+.cb-btn-sm { height: var(--control-height-sm); padding: 0 10px; font-size: 12px; }
+.cb-btn-primary { background: var(--action); color: var(--on-action); }
+.cb-btn-primary:hover { background: var(--action-hover); }
+.cb-btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--line-control); }
+.cb-btn-secondary:hover { background: var(--surface-hover); }
+.cb-btn-hold { background: var(--surface); color: var(--hold); border-color: var(--hold); }
+.cb-btn-hold:hover { background: var(--hold-tint); }
+.cb-ask { background: none; border: 0; padding: 0; font: 400 13px/20px var(--font-sans); color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-control); text-underline-offset: 4px; cursor: help; }
+.cb-ask:hover { text-decoration-color: var(--ink); }
+.cb-btn[disabled] { cursor: not-allowed; background: transparent; color: var(--ink-faint); border: 1px solid var(--line); }
+.cb-locked { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.cb-locked-why { display: flex; gap: 6px; max-width: 280px; font: 400 12px/16px var(--font-sans); color: var(--ink-muted); }
+.cb-locked-why svg { width: 12px; height: 12px; flex: none; margin-top: 2px; }
+
+/* ── StatusMark ───────────────────────────────── */
+.cb-mark { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: var(--radius-xs); border: 1px solid currentColor; font: 600 10.5px/14px var(--font-sans); letter-spacing: .09em; text-transform: uppercase; white-space: nowrap; }
+.cb-mark svg { width: 11px; height: 11px; flex: none; }
+.cb-mark-paid { color: var(--paid); border-color: var(--line); }
+.cb-mark-scheduled { color: var(--paid); border-color: var(--line); border-style: dashed; }
+.cb-mark-checking { color: var(--graphite); background: var(--graphite-tint); border-style: dotted; }
+.cb-mark-calling { color: var(--brass); background: var(--brass-tint); border-color: transparent; }
+.cb-mark-held { color: var(--hold); background: var(--hold-tint); border-color: transparent; box-shadow: inset 0 0 0 1px var(--hold), inset 0 0 0 2px var(--hold-tint), inset 0 0 0 3px var(--hold); }
+.cb-mark-needs-you { color: var(--signatory); background: var(--signatory-tint); border-color: transparent; }
+.cb-ind { position: relative; width: 7px; height: 7px; border-radius: var(--radius-round); background: var(--brass-solid); flex: none; }
+.cb-ind::after { content: ""; position: absolute; inset: -3px; border-radius: inherit; border: 1px solid var(--brass-solid); opacity: 0; animation: cb-ring 1.8s ease-out infinite; }
+@keyframes cb-ring { 0% { opacity: .9; transform: scale(.6); } 100% { opacity: 0; transform: scale(1.6); } }
+.cb-dots::after { content: "…"; }
+
+/* ── Endorsement ──────────────────────────────── */
+.cb-endorse { display: inline-grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: center; padding: 10px 16px 10px 12px; color: var(--hold); background: var(--surface); border: 1px solid currentColor; box-shadow: inset 0 0 0 3px var(--surface), inset 0 0 0 4px currentColor; border-radius: var(--radius-xs); }
+.cb-endorse-seal { width: 44px; height: 44px; }
+.cb-endorse-word { font: 500 20px/24px var(--font-serif); letter-spacing: .01em; }
+.cb-endorse-meta { font: 600 10px/14px var(--font-sans); letter-spacing: .09em; text-transform: uppercase; opacity: .9; }
+.cb-endorse-paid, .cb-endorse-confirmed { color: var(--ink-muted); }
+.cb-endorse-in { animation: cb-press 240ms cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes cb-press { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: none; } }
+
+/* ── Guilloche ────────────────────────────────── */
+.cb-guilloche { display: block; }
+.cb-guilloche path { fill: none; stroke: currentColor; stroke-width: .5; vector-effect: non-scaling-stroke; }
+
+/* ── SignOff ──────────────────────────────────── */
+.cb-sign { display: grid; grid-template-columns: 1fr auto; column-gap: var(--space-4); align-items: end; min-width: 300px; }
+.cb-sign-line { display: flex; align-items: baseline; gap: 10px; min-height: 34px; border-bottom: 1px solid var(--ink); padding-bottom: 4px; }
+.cb-sign-by { font: 600 10px/14px var(--font-sans); letter-spacing: .09em; text-transform: uppercase; color: var(--ink-muted); }
+.cb-sign-name { font: italic 400 20px/26px var(--font-serif); color: var(--signatory); }
+.cb-sign-ghost { font: 400 13px/20px var(--font-sans); color: var(--ink-muted); }
+.cb-sign-cap { grid-column: 1; display: flex; justify-content: space-between; gap: var(--space-3); margin-top: 6px; font: 400 11px/16px var(--font-mono); color: var(--ink-muted); }
+.cb-sign-seal { grid-row: 1 / span 2; grid-column: 2; width: 52px; height: 52px; color: var(--signatory); }
+.cb-sign-awaiting .cb-sign-seal, .cb-sign-locked .cb-sign-seal { color: var(--line-control); opacity: .7; }
+.cb-sign-locked .cb-sign-line { border-bottom-style: dashed; border-color: var(--line-control); }
+@media (prefers-reduced-motion: reduce) { .cb-endorse-in, .cb-ind::after, .cb-caret { animation: none !important; } }
+
+/* ── Amount ───────────────────────────────────── */
+.cb-amount { font: 500 13.5px/20px var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+.cb-courtesy { display: inline-flex; align-items: baseline; padding: 6px 14px; border: 1px solid var(--ink); border-radius: var(--radius-xs); font: 400 24px/32px var(--font-mono); letter-spacing: -.02em; color: var(--ink); white-space: nowrap; }
+.cb-courtesy .cb-fill { color: var(--ink-faint); letter-spacing: .02em; }
+.cb-courtesy .cb-cur { font-family: var(--font-serif); font-size: 22px; margin-right: 4px; }
+
+/* ── AccountLine (MICR) ───────────────────────── */
+.cb-acct { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.cb-micr { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: var(--radius-xs); background: var(--surface-sunk); font: 400 12.5px/16px var(--font-mono); letter-spacing: .08em; color: var(--ink); white-space: nowrap; }
+.cb-micr svg { width: 7px; height: 10px; fill: currentColor; }
+.cb-micr-bank { font: 500 12.5px/16px var(--font-sans); letter-spacing: 0; margin-right: 2px; }
+.cb-acct-new .cb-micr-digits { text-decoration: underline; text-decoration-color: var(--hold); text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+.cb-acct-note { font: 600 10px/14px var(--font-sans); letter-spacing: .09em; text-transform: uppercase; color: var(--ink-muted); display: inline-flex; gap: 5px; align-items: center; }
+.cb-acct-note svg { width: 11px; height: 11px; }
+.cb-acct-new .cb-acct-note { color: var(--hold); }
+
+/* ── Cite ─────────────────────────────────────── */
+.cb-cite { display: inline-flex; align-items: center; gap: 5px; padding: 0 7px; border: 1px solid var(--line); border-radius: var(--radius-xs); background: var(--surface); font: 400 11.5px/20px var(--font-mono); color: var(--ink-muted); text-decoration: none; white-space: nowrap; cursor: pointer; }
+.cb-cite::before { content: "↗"; font-family: var(--font-sans); font-size: 10px; }
+.cb-cite:hover { color: var(--ink); border-color: var(--line-control); }
+
+/* ── CheckRow ─────────────────────────────────── */
+.cb-check { display: grid; grid-template-columns: 20px 18px 1fr; column-gap: 10px; padding: 14px var(--space-4); border-top: 1px solid var(--line); }
+.cb-check:first-child { border-top: 0; }
+.cb-check-n { font: 400 11px/21px var(--font-mono); color: var(--ink-faint); }
+.cb-check-glyph { width: 16px; height: 16px; margin-top: 2px; display: grid; place-items: center; border-radius: var(--radius-xs); }
+.cb-check-glyph svg { width: 12px; height: 12px; }
+.cb-check-pass .cb-check-glyph { color: var(--ink-muted); }
+.cb-check-fail .cb-check-glyph { color: var(--on-hold); background: var(--hold-solid); }
+.cb-check-warn .cb-check-glyph { color: var(--graphite); box-shadow: inset 0 0 0 1px var(--graphite); }
+.cb-check-body { min-width: 0; }
+.cb-check-title { font-weight: 600; }
+.cb-check-pass .cb-check-title { font-weight: 400; color: var(--ink-muted); }
+.cb-check-pass .cb-check-ev { color: var(--ink-muted); font-size: 12px; line-height: 16px; }
+.cb-check-ev { margin-top: 2px; }
+.cb-quote { margin: 10px 0 0; padding: 8px 12px; border-left: 0; font: 400 13px/20px var(--font-mono); color: var(--ink); border-radius: var(--radius-xs); }
+.cb-flag { background: linear-gradient(transparent 62%, var(--hold-tint) 62%); text-decoration: underline; text-decoration-color: var(--hold); text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+.cb-check-warn .cb-flag { background: none; text-decoration-color: var(--graphite); text-decoration-style: dotted; text-decoration-thickness: 1.5px; }
+.cb-check-src { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ── Line (a phone call) ──────────────────────── */
+.cb-line { display: grid; grid-template-columns: 16px 1fr auto; gap: 2px var(--space-3); align-items: center; padding: 14px var(--space-4); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-doc); }
+.cb-line-live { background: linear-gradient(var(--brass-tint), var(--brass-tint)) top / 100% 3px no-repeat, var(--surface); }
+.cb-line-not-confirmed { background: linear-gradient(var(--hold), var(--hold)) top / 100% 3px no-repeat, var(--surface); }
+.cb-lamp { width: 8px; height: 8px; border-radius: var(--radius-round); border: 1px solid var(--line-control); justify-self: center; }
+.cb-line-live .cb-lamp { position: relative; background: var(--brass-solid); border-color: var(--brass-solid); }
+.cb-line-live .cb-lamp::after { content: ""; position: absolute; inset: -4px; border-radius: inherit; border: 1px solid var(--brass-solid); animation: cb-ring 1.8s ease-out infinite; }
+.cb-line-not-confirmed .cb-lamp { background: var(--hold-solid); border-color: var(--hold-solid); }
+.cb-line-who { font: 600 14px/20px var(--font-sans); }
+.cb-line-dial { grid-column: 2; font: 400 12px/16px var(--font-mono); color: var(--ink-muted); }
+.cb-line-right { grid-row: 1 / span 2; grid-column: 3; text-align: right; }
+.cb-line-clock { font: 400 20px/24px var(--font-mono); color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.cb-line-state { font: 600 10px/14px var(--font-sans); letter-spacing: .09em; text-transform: uppercase; color: var(--ink-muted); }
+.cb-line-live .cb-line-state { color: var(--brass); }
+.cb-line-not-confirmed .cb-line-state { color: var(--hold); }
+.cb-line-note { grid-column: 2 / span 2; margin-top: 6px; font: 400 13px/18px var(--font-sans); color: var(--ink); }
+.cb-wave { grid-column: 1 / span 3; display: flex; align-items: center; gap: 2px; height: 24px; margin-top: 10px; }
+.cb-wave i { flex: 1; max-width: 2px; background: var(--brass-solid); }
+.cb-wave i.cb-quiet { background: var(--line); }
+
+/* ── TranscriptLine ───────────────────────────── */
+.cb-script { display: grid; grid-template-columns: var(--margin-width) 1fr; column-gap: var(--space-5); padding: 12px 0; }
+.cb-margin { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-top: 1px; }
+.cb-tc { font: 400 11.5px/16px var(--font-mono); color: var(--ink-muted); }
+.cb-cue { font: 600 10.5px/16px var(--font-sans); letter-spacing: .09em; text-transform: uppercase; color: var(--ink-muted); display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.cb-script-callback .cb-cue { color: var(--ink); }
+.cb-aside { font: italic 400 13px/20px var(--font-serif); color: var(--ink-muted); }
+.cb-dialogue { font: 400 15px/24px var(--font-sans); color: var(--ink); max-width: 62ch; }
+.cb-script-callback .cb-dialogue { font: 400 13.5px/22px var(--font-mono); }
+.cb-caret { display: inline-block; width: 1px; height: 1.1em; margin-left: 3px; vertical-align: -3px; background: var(--ink); animation: cb-blink 1s steps(1, end) infinite; }
+@keyframes cb-blink { 50% { opacity: 0; } }
+
+/* ── LogEntry ─────────────────────────────────── */
+.cb-log { display: grid; grid-template-columns: 72px 24px 1fr; column-gap: var(--space-3); align-items: start; padding: 11px var(--space-4); border-top: 1px solid var(--line); }
+.cb-log:first-child { border-top: 0; }
+.cb-log-time { font: 400 11.5px/22px var(--font-mono); color: var(--ink-muted); }
+.cb-who { width: 22px; height: 22px; display: grid; place-items: center; }
+.cb-who-agent { background: var(--action); color: var(--on-action); border-radius: var(--radius-xs); font: 500 9.5px/1 var(--font-mono); letter-spacing: .02em; }
+.cb-who-person { border: 1px solid var(--signatory); border-radius: var(--radius-round); color: var(--signatory); font: italic 400 11px/1 var(--font-serif); }
+.cb-log-what { font: 400 14px/22px var(--font-sans); }
+.cb-log-agent .cb-log-what { font: 400 13px/22px var(--font-mono); }
+.cb-log-what b { font: 600 14px/22px var(--font-sans); }
+.cb-log-why { display: block; font: 400 12.5px/18px var(--font-sans); color: var(--ink-muted); }
+.cb-log-person .cb-log-why { font: italic 400 14px/20px var(--font-serif); color: var(--signatory); }
+
+/* ── InboxRow ─────────────────────────────────── */
+.cb-ledger { background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow-doc); overflow: hidden; }
+.cb-ledger-head, .cb-ledger-row { display: grid; grid-template-columns: 10px minmax(150px, 200px) 1fr 120px 118px 56px; align-items: center; column-gap: var(--space-3); padding: 0 var(--space-4) 0 var(--space-3); }
+.cb-ledger-head { height: 34px; font: 600 10.5px/14px var(--font-sans); letter-spacing: .09em; text-transform: uppercase; color: var(--ink-muted); border-bottom: 1.5px solid var(--ink); }
+.cb-r { text-align: right; justify-self: end; }
+.cb-ledger-row { height: var(--row-height); border-top: 1px solid var(--line); color: var(--ink); text-decoration: none; cursor: pointer; }
+.cb-ledger-head + .cb-ledger-row { border-top: 0; }
+.cb-ledger-row:hover { background: var(--surface-hover); }
+.cb-ledger-row[aria-selected="true"] { background: var(--surface-sunk); box-shadow: inset 2px 0 0 var(--ink); }
+.cb-dot { width: 6px; height: 6px; border-radius: var(--radius-round); }
+.cb-ledger-unread .cb-dot { background: var(--ink); }
+.cb-ledger-live .cb-dot { position: relative; background: var(--brass-solid); }
+.cb-ledger-live .cb-dot::after { content: ""; position: absolute; inset: -3px; border-radius: inherit; border: 1px solid var(--brass-solid); animation: cb-ring 1.8s ease-out infinite; }
+.cb-from { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cb-ledger-unread .cb-from { font-weight: 600; }
+.cb-subj { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-muted); }
+.cb-subj b { font-weight: 400; color: var(--ink); }
+.cb-when { font: 400 11.5px/16px var(--font-mono); color: var(--ink-muted); }
+
+/* Prototype shell: sidebar ledger + work column. Uses only system tokens. */
+html, body { height: 100%; }
+body { background: var(--paper); color: var(--ink); }
+#app { height: 100%; }
+.pt-app { display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); height: 100%; }
+.pt-nav { display: flex; flex-direction: column; gap: var(--space-5); padding: var(--space-5) var(--space-3); background: var(--surface-sunk); border-right: 1px solid var(--line); overflow-y: auto; }
+.pt-brand { display: flex; align-items: center; gap: 10px; padding: 0 var(--space-2); }
+.pt-brand-seal { color: var(--ink); flex: none; }
+.pt-word { font: 500 22px/24px var(--font-serif); letter-spacing: -.02em; }
+.pt-navlist { display: flex; flex-direction: column; gap: 2px; }
+.pt-navitem { display: flex; justify-content: space-between; align-items: center; height: 34px; padding: 0 var(--space-2) 0 10px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink-muted); font: 500 13.5px/20px var(--font-sans); text-align: left; cursor: pointer; }
+.pt-navitem:hover { background: var(--surface-hover); color: var(--ink); }
+.pt-navitem.on { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+.pt-navitem:focus-visible, .pt-filter:focus-visible, .pt-seg button:focus-visible, .pt-apprrow:focus-visible, .pt-back:focus-visible, .pt-mini:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.pt-badge { min-width: 20px; height: 18px; padding: 0 6px; border-radius: var(--radius-xs); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); font: 500 11px/18px var(--font-mono); color: var(--ink); text-align: center; }
+.pt-badge-you { background: var(--signatory-tint); color: var(--signatory); box-shadow: none; }
+.pt-persona { margin-top: auto; display: flex; flex-direction: column; gap: var(--space-2); padding: 0 var(--space-2); }
+.pt-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.pt-seg button { display: flex; flex-direction: column; align-items: flex-start; padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: transparent; color: var(--ink-muted); cursor: pointer; text-align: left; }
+.pt-seg button b { font: 600 13px/18px var(--font-sans); color: var(--ink); }
+.pt-seg button span { font: 400 11px/14px var(--font-sans); }
+.pt-seg button.on { background: var(--surface); border-color: var(--line-control); }
+.pt-seg button.on b { color: var(--signatory); }
+.pt-line { display: flex; align-items: center; gap: 8px; }
+
+.pt-main { position: relative; overflow-y: auto; padding-block: var(--space-5) var(--space-8); padding-left: var(--space-6); padding-right: var(--space-6); min-width: 0; }
+.pt-main > div { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--space-4); }
+.pt-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: var(--space-3) var(--space-5); padding-bottom: var(--space-2); }
+.pt-head-text { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.pt-head h1 { text-wrap: balance; }
+.pt-sub { margin: 0; font: 400 13px/20px var(--font-sans); color: var(--ink-muted); }
+.pt-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; }
+.pt-back { align-self: flex-start; border: 0; background: none; padding: 0; color: var(--ink-muted); font: 500 12.5px/18px var(--font-sans); cursor: pointer; }
+.pt-back:hover { color: var(--ink); }
+
+.pt-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.pt-filter { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink-muted); font: 500 12.5px/16px var(--font-sans); cursor: pointer; }
+.pt-filter:hover { color: var(--ink); }
+.pt-filter.on { color: var(--on-action); background: var(--action); border-color: var(--action); }
+.pt-count { font: 400 11px/16px var(--font-mono); opacity: .8; }
+.pt-scroll { overflow-x: auto; border-radius: var(--radius-md); }
+.pt-ledger { min-width: 760px; }
+.pt-empty { padding: var(--space-6) var(--space-4); text-align: center; color: var(--ink-muted); font-size: 13px; }
+
+.pt-bill { display: grid; grid-template-columns: minmax(0, 1fr) var(--evidence-width); gap: var(--space-5); align-items: start; }
+.pt-side { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+.pt-email { position: relative; padding: var(--space-5); min-width: 0; }
+.pt-meta { display: grid; grid-template-columns: 72px minmax(0, 1fr); row-gap: 2px; font: 400 12px/18px var(--font-mono); color: var(--ink-muted); padding-bottom: var(--space-3); border-bottom: 1px dashed var(--line); }
+.pt-meta b { color: var(--ink); font-weight: 400; overflow-wrap: anywhere; }
+.pt-body { padding: var(--space-4) 0; max-width: 62ch; }
+.pt-body p { margin: 0 0 10px; }
+.pt-pay { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding-top: var(--space-4); border-top: 1px dashed var(--line); }
+.pt-endorse { display: flex; justify-content: flex-end; margin-top: var(--space-5); }
+.pt-pad { padding: var(--space-4); }
+.pt-mt { margin-top: var(--space-3); }
+.pt-mt2 { margin-top: var(--space-2); }
+.pt-row { display: flex; gap: 8px; justify-content: flex-end; }
+.pt-click { cursor: pointer; }
+.pt-click:hover .cb-line, .pt-click:hover .cb-log { background-color: var(--surface-hover); }
+.pt-small { font: 400 12px/17px var(--font-sans); color: var(--ink-muted); margin: 0; }
+.pt-strong { font: 600 14px/20px var(--font-sans); }
+.pt-statement { margin: 8px 0 0; font: 400 13.5px/22px var(--font-mono); color: var(--ink); }
+.pt-quote { margin: 8px 0 0; font: italic 400 17px/24px var(--font-serif); color: var(--signatory); }
+.pt-cites, .pt-why-cites { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+
+.pt-whywrap { position: relative; display: inline-flex; align-items: center; height: var(--control-height); }
+.pt-why { position: absolute; top: calc(100% + 8px); right: 0; z-index: 5; width: min(380px, 80vw); padding: var(--space-4); background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow-pop); display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.pt-why .cb-ask { margin-top: 10px; }
+
+.pt-call { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--space-5); align-items: start; }
+.pt-call-main { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+.pt-transcript { padding: var(--space-3) var(--space-5) var(--space-3) 0; max-height: 560px; overflow-y: auto; min-width: 0; }
+
+.pt-list { overflow: hidden; }
+.pt-apprrow { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: var(--space-4); padding: 14px var(--space-4); border: 0; border-top: 1px solid var(--line); background: transparent; color: var(--ink); text-align: left; cursor: pointer; font: inherit; }
+.cb-doc-head + .pt-apprrow { border-top: 0; }
+.pt-apprrow:hover, .pt-apprrow.on { background: var(--surface-hover); }
+.pt-apprrow.on { box-shadow: inset 2px 0 0 var(--ink); }
+.pt-static { cursor: default; grid-template-columns: minmax(0, 1fr) auto; }
+.pt-static:hover { background: transparent; }
+
+.pt-thread { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.pt-msg { padding: var(--space-4); }
+.pt-msg-who { display: flex; align-items: center; gap: 10px; }
+.pt-msg-who b { font: 600 13.5px/20px var(--font-sans); }
+.pt-msg-person { background: var(--surface); }
+.pt-compose { padding: var(--space-4); display: flex; flex-direction: column; gap: 8px; }
+.pt-compose textarea, .pt-input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--line-control); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); font: 400 14px/20px var(--font-sans); resize: vertical; }
+.pt-compose textarea:focus, .pt-input:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
+.pt-compose textarea:disabled { background: var(--surface-sunk); color: var(--ink-faint); }
+.pt-decide { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--line); }
+.pt-danger { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: var(--space-3); padding: var(--space-3); background: var(--hold-tint); border-radius: var(--radius-sm); }
+.pt-danger .pt-small { color: var(--hold); }
+.pt-danger .pt-input { max-width: 120px; font-family: var(--font-mono); }
+
+.pt-pay-row { grid-template-columns: minmax(150px, 1.2fr) minmax(140px, 1fr) 120px 118px 92px !important; padding-left: var(--space-4) !important; }
+.pt-sup-row { grid-template-columns: minmax(170px, 1.3fr) minmax(120px, 1fr) 140px 150px 70px !important; padding-left: var(--space-4) !important; }
+.pt-mini { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: var(--space-3); align-items: center; padding: 10px var(--space-4); border-top: 1px solid var(--line); color: var(--ink); text-decoration: none; font-size: 13px; }
+.pt-mini:hover { background: var(--surface-hover); }
+.pt-kv { display: flex; justify-content: space-between; gap: var(--space-3); padding: 8px 0; border-top: 1px solid var(--line); }
+.pt-kv:first-of-type { margin-top: var(--space-2); }
+.pt-topline { border-top: 1px dashed var(--line); display: flex; flex-direction: column; gap: 8px; }
+.pt-add { display: flex; flex-direction: column; gap: var(--space-4); }
+.pt-add-fields { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: flex-end; }
+.pt-field { display: flex; flex-direction: column; gap: 6px; flex: 1 1 200px; min-width: 0; }
+.pt-steps { display: flex; flex-direction: column; gap: 8px; }
+.pt-step { display: grid; grid-template-columns: 110px 150px minmax(0, 1fr); gap: var(--space-3); align-items: center; font-size: 13px; }
+.pt-try { display: flex; flex-direction: column; gap: var(--space-3); }
+.pt-tools { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.pt-search { max-width: 320px; }
+
+.pt-toast { position: fixed; right: max(var(--space-5), env(safe-area-inset-right, 0px)); bottom: calc(var(--space-5) + env(safe-area-inset-bottom, 0px)); z-index: 20; max-width: min(420px, calc(100vw - 32px)); padding: 12px 16px; background: var(--action); color: var(--on-action); border-radius: var(--radius-sm); box-shadow: var(--shadow-pop); font: 500 13px/19px var(--font-sans); animation: pt-in 180ms ease-out both; }
+@keyframes pt-in { from { opacity: 0; transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { .pt-toast { animation: none; } }
+
+@media (max-width: 1100px) {
+  .pt-bill, .pt-call { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .pt-app { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .pt-nav { flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding-block: var(--space-3); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); border-right: 0; border-bottom: 1px solid var(--line); overflow: visible; }
+  .pt-brand { padding: 0; }
+  .pt-navlist { order: 3; flex: 1 1 100%; flex-direction: row; overflow-x: auto; gap: 4px; }
+  .pt-navitem { flex: none; gap: 8px; }
+  .pt-persona { margin: 0 0 0 auto; flex-direction: row; align-items: center; padding: 0; }
+  .pt-persona > .cb-caps, .pt-line { display: none; }
+  .pt-seg button span { display: none; }
+  .pt-main { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .pt-step { grid-template-columns: 100px minmax(0, 1fr); }
+  .pt-step .pt-small { grid-column: 2; }
+  .pt-email { padding: var(--space-4); }
+  .cb-courtesy { font-size: 20px; }
+  .pt-transcript { padding-right: var(--space-3); }
+  .cb-script { grid-template-columns: 64px minmax(0, 1fr); column-gap: var(--space-3); }
+}
+
+</style>
+<div id="app"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script>
+/* @ds-bundle: {"format":4,"namespace":"Callback","components":[{"name":"Button"},{"name":"StatusMark"},{"name":"Endorsement"},{"name":"SignOff"},{"name":"Guilloche"},{"name":"Amount"},{"name":"AccountLine"},{"name":"Cite"},{"name":"CheckRow"},{"name":"Line"},{"name":"TranscriptLine"},{"name":"LogEntry"},{"name":"InboxRow"}]} */
+(function () {
+  var React = window.React;
+  var h = React.createElement;
+  function cx() { return Array.prototype.filter.call(arguments, Boolean).join(" "); }
+  function omit(o, keys) { var r = {}; for (var k in o) if (keys.indexOf(k) < 0) r[k] = o[k]; return r; }
+
+  /* Glyphs — 16 grid, 1.5 stroke, currentColor. */
+  function svg(kids) { return h("svg", { viewBox: "0 0 16 16", fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, kids); }
+  var G = {
+    tick: function () { return svg(h("path", { d: "M3.5 8.5l3 3 6-7" })); },
+    x: function () { return svg(h("path", { d: "M4.5 4.5l7 7M11.5 4.5l-7 7", strokeWidth: 1.8 })); },
+    q: function () { return svg([h("path", { key: 1, d: "M6 6a2 2 0 113 1.7c-.7.4-1 .8-1 1.5" }), h("circle", { key: 2, cx: 8, cy: 11.6, r: .6, fill: "currentColor" })]); },
+    clock: function () { return svg([h("circle", { key: 1, cx: 8, cy: 8, r: 5.8 }), h("path", { key: 2, d: "M8 4.8V8l2.2 1.4" })]); },
+    person: function () { return svg([h("circle", { key: 1, cx: 8, cy: 5.5, r: 2.5 }), h("path", { key: 2, d: "M3.5 13.5c.6-2.5 2.4-3.7 4.5-3.7s3.9 1.2 4.5 3.7" })]); },
+    hold: function () { return svg(h("path", { d: "M6 4v8M10 4v8", strokeWidth: 2 })); },
+    lock: function () { return svg([h("rect", { key: 1, x: 3.5, y: 7, width: 9, height: 6.5, rx: 1 }), h("path", { key: 2, d: "M5.5 7V5.2a2.5 2.5 0 015 0V7" })]); },
+    phone: function () { return svg(h("path", { d: "M5.2 2.5H3.4a1 1 0 00-1 1.1 10.5 10.5 0 009.8 9.8 1 1 0 001.1-1v-1.8a1 1 0 00-.8-1l-2-.5a1 1 0 00-1 .3l-.7.8a7.5 7.5 0 01-3.3-3.3l.8-.7a1 1 0 00.3-1l-.5-2a1 1 0 00-1-.7z" })); },
+    transit: function () { return h("svg", { viewBox: "0 0 8 11", "aria-hidden": "true" }, [h("rect", { key: 1, x: 0, y: 0, width: 2, height: 11 }), h("rect", { key: 2, x: 4.4, y: 0, width: 3.6, height: 3.4 }), h("rect", { key: 3, x: 4.4, y: 7.6, width: 3.6, height: 3.4 })]); },
+    onus: function () { return h("svg", { viewBox: "0 0 8 11", "aria-hidden": "true" }, [h("rect", { key: 1, x: 0, y: 0, width: 2.4, height: 6.5 }), h("rect", { key: 2, x: 5.6, y: 0, width: 2.4, height: 6.5 }), h("rect", { key: 3, x: 0, y: 8.2, width: 8, height: 2.8 })]); }
+  };
+
+  /* Guilloche — security-print rosette: interleaved sine rings, like the seal on a banknote. */
+  function rosettePaths(size, opt) {
+    opt = opt || {};
+    var c = size / 2, k = opt.lobes || 18, n = opt.strands || 16, out = [];
+    var rings = [[0.36, opt.amp ? opt.amp / size : 0.07, k, n], [0.21, 0.05, Math.max(5, Math.round(k * 0.6)), Math.max(5, Math.round(n * 0.6))]];
+    rings.forEach(function (g) {
+      var R = g[0] * size, A = g[1] * size;
+      for (var s = 0; s < g[3]; s++) {
+        var ph = s * Math.PI * 2 / g[3], d = "";
+        for (var i = 0; i <= 360; i++) {
+          var t = i / 360 * Math.PI * 2, r = R + A * Math.sin(g[2] * t + ph);
+          d += (i ? "L" : "M") + (c + r * Math.cos(t)).toFixed(2) + " " + (c + r * Math.sin(t)).toFixed(2);
+        }
+        out.push(d + "Z");
+      }
+    });
+    return out;
+  }
+  function Guilloche(p) {
+    var size = p.size || 64;
+    return h("svg", { className: cx("cb-guilloche", p.className), viewBox: "0 0 " + size + " " + size, width: size, height: size, "aria-hidden": "true", style: p.style },
+      rosettePaths(size, p).map(function (d, i) { return h("path", { key: i, d: d }); }));
+  }
+
+  /* Button — primary | secondary | hold | ask. `locked` = why it can't be pressed. */
+  function Button(p) {
+    var v = p.variant || "secondary";
+    var rest = omit(p, ["variant", "size", "locked", "icon", "className", "children"]);
+    var cls = v === "ask" ? cx("cb-ask", p.className) : cx("cb-btn", "cb-btn-" + v, p.size === "sm" && "cb-btn-sm", p.className);
+    var icon = p.icon && G[p.icon] ? G[p.icon]() : null;
+    if (p.locked) {
+      return h("span", { className: "cb-locked" },
+        h("button", Object.assign(rest, { type: "button", disabled: true, className: cx("cb-btn", "cb-btn-" + v, p.size === "sm" && "cb-btn-sm") }), G.lock(), p.children),
+        h("span", { className: "cb-locked-why" }, p.locked));
+    }
+    return h("button", Object.assign({ type: "button" }, rest, { className: cls }), icon, p.children);
+  }
+
+  /* StatusMark — six states. Glyph + word, always. */
+  var MARK = { "paid": "Paid", "scheduled": "Scheduled", "checking": "Checking", "calling": "Calling", "held": "Held", "needs-you": "Needs you" };
+  function StatusMark(p) {
+    var s = MARK[p.status] ? p.status : "paid";
+    var glyph = s === "paid" ? G.tick() : s === "scheduled" ? G.clock() : s === "calling" ? h("span", { className: "cb-ind" }) : s === "held" ? G.hold() : s === "needs-you" ? G.person() : null;
+    var label = p.children || MARK[s];
+    return h("span", { className: cx("cb-mark", "cb-mark-" + s), role: "status" }, glyph, s === "checking" ? h("span", { className: "cb-dots" }, label) : label);
+  }
+
+  /* Endorsement — the formal mark placed on a document when Callback decides. */
+  var END = { held: "Payment held", void: "Void", paid: "Paid", confirmed: "Confirmed by call" };
+  function Endorsement(p) {
+    var k = END[p.kind] ? p.kind : "held";
+    return h("div", { className: cx("cb-endorse", "cb-endorse-" + (k === "void" ? "held" : k), p.animate !== false && "cb-endorse-in"), role: "img", "aria-label": END[k] + (p.meta ? ", " + p.meta : "") },
+      h(Guilloche, { size: 44, className: "cb-endorse-seal", lobes: 7, strands: 5 }),
+      h("div", null,
+        h("div", { className: "cb-endorse-word" }, p.children || END[k]),
+        p.meta ? h("div", { className: "cb-endorse-meta" }, p.meta) : null));
+  }
+
+  /* SignOff — a person's approval on a signature line, with a guilloche seal. Callback can't sign. */
+  function SignOff(p) {
+    var st = p.state || "signed";
+    return h("div", { className: cx("cb-sign", "cb-sign-" + st) },
+      h("div", { className: "cb-sign-line" },
+        h("span", { className: "cb-sign-by" }, st === "signed" ? (p.verb || "Approved") : "Sign-off"),
+        st === "signed" ? h("span", { className: "cb-sign-name" }, p.name) :
+        st === "awaiting" ? h("span", { className: "cb-sign-ghost" }, "Waiting for " + (p.name || "a person")) :
+        h("span", { className: "cb-sign-ghost" }, p.reason || "Callback can’t approve its own requests")),
+      h(Guilloche, { size: 52, className: "cb-sign-seal", lobes: 8, strands: 6 }),
+      h("div", { className: "cb-sign-cap" }, h("span", null, p.role || (st === "locked" ? "Requires controller" : "")), p.time ? h("span", null, p.time) : null));
+  }
+
+  /* Amount — integer cents. size "lg" = the courtesy box, padded with protective asterisks. */
+  function Amount(p) {
+    var c = Math.round(Number(p.cents || 0)), neg = c < 0; c = Math.abs(c);
+    var s = Math.floor(c / 100).toLocaleString("en-US") + "." + String(c % 100).padStart(2, "0");
+    if (p.size === "lg") {
+      var fill = Math.max(2, 12 - s.length);
+      return h("span", { className: "cb-courtesy cb-micro", "aria-label": (neg ? "minus " : "") + "$" + s }, h("span", { className: "cb-cur" }, "$"), h("span", { className: "cb-fill", "aria-hidden": "true" }, new Array(fill + 1).join("*")), (neg ? "−" : "") + s);
+    }
+    return h("span", { className: "cb-amount" }, (neg ? "−" : "") + "$" + s);
+  }
+
+  /* AccountLine — a bank account set like a cheque's MICR line. */
+  function AccountLine(p) {
+    var st = p.state || "verified";
+    return h("span", { className: cx("cb-acct", "cb-acct-" + st) },
+      h("span", { className: "cb-micr" },
+        p.bank ? h("span", { className: "cb-micr-bank" }, p.bank) : null,
+        p.routing ? h(React.Fragment, null, G.transit(), h("span", null, p.routing), G.transit()) : null,
+        h("span", { className: "cb-micr-digits" }, "··" + (p.last4 || "0000")),
+        G.onus()),
+      h("span", { className: "cb-acct-note" }, st === "new" ? "Never paid before" : h(React.Fragment, null, G.tick(), p.note || "Verified")));
+  }
+
+  /* Cite — a reference to the record a claim came from. */
+  function Cite(p) { return h("a", { className: "cb-cite", href: p.href || "#", onClick: p.onClick }, p.children); }
+
+  /* CheckRow — one numbered check. The words that gave it away are marked, not scored. */
+  function quoteWith(q, flag) {
+    if (!flag || q.indexOf(flag) < 0) return q;
+    var i = q.indexOf(flag);
+    return [q.slice(0, i), h("span", { key: "f", className: "cb-flag" }, flag), q.slice(i + flag.length)];
+  }
+  function CheckRow(p) {
+    var r = p.result || "pass";
+    return h("div", { className: cx("cb-check", "cb-check-" + r), role: "listitem" },
+      h("span", { className: "cb-check-n" }, p.n != null ? String(p.n).padStart(2, "0") : ""),
+      h("span", { className: "cb-check-glyph", "aria-label": r === "fail" ? "Failed" : r === "warn" ? "Look closer" : "Passed" }, r === "fail" ? G.x() : r === "warn" ? G.q() : G.tick()),
+      h("div", { className: "cb-check-body" },
+        h("div", { className: "cb-check-title" }, p.title),
+        p.evidence ? h("div", { className: "cb-check-ev" }, p.evidence) : null,
+        p.quote && r !== "pass" ? h("div", { className: "cb-quote cb-micro" }, "“", quoteWith(p.quote, p.flag), "”") : null,
+        r !== "pass" && p.sources && p.sources.length ? h("div", { className: "cb-check-src" }, p.sources.map(function (s, i) { return h(Cite, { key: i }, s); })) : null));
+  }
+
+  /* Line — one phone call. The indicator is lit only while the line is open. */
+  var LINE = { "ringing": "Ringing", "connected": "On the line", "no-answer": "No answer", "dropped": "Line dropped", "confirmed": "Confirmed", "not-confirmed": "Not confirmed" };
+  function Line(p) {
+    var st = LINE[p.state] ? p.state : "ringing", live = st === "ringing" || st === "connected";
+    var bars = p.bars || [3, 6, 11, 16, 9, 5, 13, 20, 12, 7, 15, 9, 4, 11, 18, 8, 5, 10, 14, 7, 4, 9, 12, 6, 3, 8, 13, 17, 9, 5, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+    return h("div", { className: cx("cb-line", "cb-line-" + st, live && "cb-line-live"), role: "status" },
+      h("span", { className: "cb-lamp", "aria-hidden": "true" }),
+      h("div", { className: "cb-line-who" }, p.supplier),
+      h("div", { className: "cb-line-right" },
+        h("div", { className: "cb-line-clock" }, p.elapsed || "––:––"),
+        h("div", { className: "cb-line-state" }, p.label || LINE[st])),
+      h("div", { className: "cb-line-dial" }, p.number + (p.source ? "  ·  " + p.source : "")),
+      p.note ? h("div", { className: "cb-line-note" }, p.note) : null,
+      st === "connected" ? h("div", { className: "cb-wave", "aria-hidden": "true" }, bars.map(function (b, i) { return h("i", { key: i, className: b <= 2 ? "cb-quiet" : null, style: { height: Math.max(2, b) + "px" } }); })) : null);
+  }
+
+  /* TranscriptLine — one turn of a call. Timecode and source sit in the margin. */
+  function TranscriptLine(p) {
+    var cb = p.speaker === "callback";
+    return h("div", { className: cx("cb-script", cb ? "cb-script-callback" : "cb-script-other") },
+      h("div", { className: "cb-margin" }, h("span", { className: "cb-tc" }, p.time), p.cite ? h(Cite, null, p.cite) : null),
+      h("div", null,
+        h("div", { className: "cb-cue" }, p.name || (cb ? "Callback" : "Supplier"), !cb && p.speaking ? h("span", { className: "cb-ind" }) : null),
+        h("div", { className: "cb-dialogue" }, p.children, cb && p.speaking ? h("span", { className: "cb-caret", "aria-hidden": "true" }) : null),
+        p.aside ? h("div", { className: "cb-aside" }, p.aside) : null));
+  }
+
+  /* LogEntry — a ledger line. Callback's entries are set in mono; people's words in signatory blue. */
+  function LogEntry(p) {
+    var agent = p.agent || p.actor === "Callback";
+    var initials = String(p.actor || "?").split(/\s+/).map(function (w) { return w[0]; }).join("").slice(0, 2);
+    return h("div", { className: cx("cb-log", agent ? "cb-log-agent" : "cb-log-person"), role: "listitem" },
+      h("span", { className: "cb-log-time" }, p.time),
+      h("span", { className: cx("cb-who", agent ? "cb-who-agent" : "cb-who-person"), title: p.actor }, agent ? "CB" : initials),
+      h("div", null,
+        h("span", { className: "cb-log-what" }, h("b", null, p.actor), " ", p.children),
+        p.why ? h("span", { className: "cb-log-why" }, agent ? p.why : "“" + p.why + "”") : null));
+  }
+
+  /* InboxRow — one ledger row of the Inbox. */
+  function InboxRow(p) {
+    return h("a", { href: p.href || "#", onClick: p.onClick, className: cx("cb-ledger-row", p.unread && "cb-ledger-unread", p.status === "calling" && "cb-ledger-live"), "aria-selected": p.selected ? "true" : undefined },
+      h("span", { className: "cb-dot", "aria-label": p.unread ? "Unread" : undefined }),
+      h("span", { className: "cb-from" }, p.from),
+      h("span", { className: "cb-subj" }, h("b", null, p.subject), p.preview ? " — " + p.preview : ""),
+      h("span", { className: "cb-r" }, p.cents != null ? h(Amount, { cents: p.cents }) : ""),
+      h("span", null, h(StatusMark, { status: p.status })),
+      h("span", { className: "cb-when cb-r" }, p.time));
+  }
+
+  window.Callback = Object.assign(window.Callback || {}, {
+    Button: Button, StatusMark: StatusMark, Endorsement: Endorsement, SignOff: SignOff, Guilloche: Guilloche, Amount: Amount,
+    AccountLine: AccountLine, Cite: Cite, CheckRow: CheckRow, Line: Line, TranscriptLine: TranscriptLine, LogEntry: LogEntry, InboxRow: InboxRow
+  });
+})();
+
+</script>
+<script>
+(function () {
+  var React = window.React, h = React.createElement, C = window.Callback;
+  var useState = React.useState, useEffect = React.useEffect, useRef = React.useRef;
+  function cx() { return Array.prototype.filter.call(arguments, Boolean).join(" "); }
+  function money(c) { return "$" + Math.floor(c / 100).toLocaleString("en-US") + "." + String(c % 100).padStart(2, "0"); }
+  function txid() { var s = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789", o = "tr_"; for (var i = 0; i < 6; i++) o += s[Math.floor(Math.random() * s.length)]; return o; }
+  var clockMin = 10 * 60 + 58;
+  function now() { clockMin += 1; var hh = Math.floor(clockMin / 60), mm = clockMin % 60; return (hh > 12 ? hh - 12 : hh) + ":" + String(mm).padStart(2, "0") + (hh >= 12 ? " PM" : " AM"); }
+  function hhmm(t) { return t.replace(/ (AM|PM)$/, ""); }
+
+  /* ───────────── Fogline's workspace (example data) ───────────── */
+  var SUPPLIERS = {
+    stagecraft: { name: "Stagecraft Rigging Co.", short: "Stagecraft", kind: "Stage and truss", contact: "Rosa Quintero", phone: "(415) 555-0142", phoneSrc: "on file since Apr 2", bank: "Chase", routing: "021000021", last4: "2210", verified: "Verified by call · Mar 4", domain: "stagecraftrigging.com", since: 2014, paid: 11, checked: "Oct 21" },
+    bayline: { name: "Bayline Sound Rental", short: "Bayline", kind: "Audio rental", contact: "Marcus Lee", phone: "(510) 555-0199", phoneSrc: "on file since Jan 9", bank: "Wells Fargo", routing: "121000248", last4: "6631", verified: "Verified by call · Jan 9", domain: "baylinesound.com", since: 2009, paid: 7, checked: "Oct 21" },
+    northpaw: { name: "Northpaw Talent", short: "Northpaw", kind: "Artist agency", contact: "Jules Arroyo", phone: "(323) 555-0177", phoneSrc: "on file since Feb 14", bank: "City National", routing: "122016066", last4: "4410", verified: "Verified by call · Feb 14", domain: "northpaw.co", since: 2016, paid: 4, checked: "Oct 14" },
+    fogice: { name: "Fog City Ice Co.", short: "Fog City Ice", kind: "Ice and cold storage", contact: "Dana Kim", phone: "(415) 555-0123", phoneSrc: "on file since Jun 3", bank: "Bank of America", routing: "026009593", last4: "9077", verified: "Verified by call · Jun 3", domain: "fogcityice.com", since: 1998, paid: 9, checked: "Oct 2" },
+    tacos: { name: "Mission Street Tacos", short: "Mission St Tacos", kind: "Crew catering", contact: "Luis Ortega", phone: "(415) 555-0168", phoneSrc: "on file since May 20", bank: "First Republic", routing: "321081669", last4: "1185", verified: "Verified by call · May 20", domain: "missionsttacos.com", since: 2012, paid: 6, checked: "Sep 30" },
+    ironside: { name: "Ironside Event Security", short: "Ironside", kind: "Security", contact: "Pat Brennan", phone: "(415) 555-0131", phoneSrc: "on file since Apr 11", bank: "Chase", routing: "021000021", last4: "7302", verified: "Verified by call · Apr 11", domain: "ironsidesecurity.com", since: 2005, paid: 6, checked: "Oct 7" },
+    golden: { name: "Golden Hour Lighting", short: "Golden Hour", kind: "Lighting rig", contact: "Sam Ito", phone: "(408) 555-0150", phoneSrc: "on file since Mar 1", bank: "SVB", routing: "121140399", last4: "5521", verified: "Verified by call · Mar 1", domain: "goldenhourlx.com", since: 2011, paid: 8, checked: "Oct 9" },
+    presidio: { name: "Presidio Portables", short: "Presidio", kind: "Restrooms", contact: "Anne Fox", phone: "(415) 555-0186", phoneSrc: "on file since May 2", bank: "US Bank", routing: "091000022", last4: "3048", verified: "Verified by call · May 2", domain: "presidioportables.com", since: 2003, paid: 5, checked: "Oct 1" },
+    coastline: { name: "Coastline Generators", short: "Coastline", kind: "Power", contact: "Rick Navarro", phone: "(650) 555-0109", phoneSrc: "on file since Apr 18", bank: "Chase", routing: "021000021", last4: "8840", verified: "Verified by call · Apr 18", domain: "coastlinepower.com", since: 2008, paid: 6, checked: "Oct 4" },
+    fencing: { name: "Bay Bridge Fencing", short: "Bay Bridge", kind: "Perimeter fencing", contact: "Tom Reyes", phone: "(510) 555-0112", phoneSrc: "on file since Jun 22", bank: "Wells Fargo", routing: "121000248", last4: "2297", verified: "Verified by call · Jun 22", domain: "baybridgefence.com", since: 2010, paid: 3, checked: "Sep 28" }
+  };
+  var ORDER = ["stagecraft", "bayline", "northpaw", "fogice", "tacos", "ironside", "golden", "presidio", "coastline", "fencing"];
+
+  var STAGECRAFT_CALL = [
+    { speaker: "callback", time: "00:04", text: "Hi Rosa, this is the accounts desk at Fogline. I'm calling about an email we got this morning from your accounts address." },
+    { speaker: "supplier", time: "00:12", text: "Sure, go ahead." },
+    { speaker: "callback", time: "00:21", cite: "INV-4471", text: "Before I update anything: your September invoice for the main-stage truss. What was the invoice number?" },
+    { speaker: "supplier", time: "00:34", text: "Forty-four seventy-one. Why, is something wrong?", aside: "Answer matches INV-4471." },
+    { speaker: "callback", time: "00:39", text: "We got an email today saying you moved banks to Mercury, account ending 8817." },
+    { speaker: "supplier", time: "00:44", text: "We never changed our bank. Who sent that?" },
+    { speaker: "callback", time: "00:51", cite: "Chase ··2210", text: "Understood. We'll keep paying Chase ending 2210 and hold this one. Thanks, Rosa." }
+  ];
+  var BAYLINE_CALL = [
+    { speaker: "callback", time: "00:03", text: "Hi Marcus, Fogline accounts desk. Quick check on invoice BSR-2291 before we pay it." },
+    { speaker: "supplier", time: "00:10", text: "Hey. Sure." },
+    { speaker: "callback", time: "00:16", cite: "BSR-2187", text: "It's about 31% higher than your August invoice. What changed?" },
+    { speaker: "supplier", time: "00:26", text: "Dev asked for two extra subs and a delay tower for the second stage. It's on the rider.", aside: "Matches the rider change Dev sent on Oct 14." },
+    { speaker: "callback", time: "00:37", cite: "Wells Fargo ··6631", text: "Got it. And payment still goes to Wells Fargo ending 6631?" },
+    { speaker: "supplier", time: "00:42", text: "Yep, same account." },
+    { speaker: "callback", time: "00:46", text: "Thanks. It goes out in Friday's run." }
+  ];
+
+  function stagecraftChecks() {
+    return [
+      { result: "fail", title: "Bank account never used before", evidence: "Fogline has paid Stagecraft 11 times since April, always to Chase ··2210. This bill asks for Mercury ··8817.", sources: ["11 payments", "INV-4471 · Sep 12"] },
+      { result: "fail", title: "Doesn’t write like Stagecraft", evidence: "Their last 14 emails were signed “— Rosa”.", quote: "Kind regards, Accounts Team", flag: "Accounts Team", sources: ["14 emails · Apr–Oct"] },
+      { result: "warn", title: "Rush language", quote: "This needs to go out today or the build slips.", flag: "go out today" },
+      { result: "pass", title: "Sent from the real domain", evidence: "stagecraftrigging.com · registered 2014" },
+      { result: "pass", title: "Not on the shared blocklist", evidence: "Mercury ··8817 hasn’t been reported" },
+      { result: "pass", title: "Amount looks normal", evidence: "Within 6% of their September bill" }
+    ];
+  }
+  function cleanChecks(s, note) {
+    return [
+      { result: "pass", title: "Known bank account", evidence: s.bank + " ··" + s.last4 + " · paid " + s.paid + " times" },
+      { result: "pass", title: "Sent from the real domain", evidence: s.domain + " · registered " + s.since },
+      { result: "pass", title: "Writes like " + s.short, evidence: "Matches their recent emails" },
+      { result: note ? "warn" : "pass", title: note ? "Amount higher than usual" : "Amount looks normal", evidence: note || "In line with past bills" }
+    ];
+  }
+
+  function seedBills() {
+    return [
+      { id: "b4502", sup: "stagecraft", inv: "INV-4502", subject: "Updated remittance details", preview: "Please use our new account", cents: 1840000, status: "held", time: "10:43", unread: true, from: "accounts@stagecraftrigging.com", received: "Oct 21, 9:58 AM",
+        body: ["Hi Fogline team,", "Please note we have moved banks. Use the details below for INV-4502 (main stage truss, final). This needs to go out today or the build slips.", "Kind regards, Accounts Team"],
+        payTo: { bank: "Mercury", routing: "084106768", last4: "8817", state: "new" }, checks: stagecraftChecks(),
+        call: { state: "not-confirmed", elapsed: "00:58", note: "“We never changed our bank.”", lines: STAGECRAFT_CALL, at: "10:41 AM" },
+        approval: { kind: "bank", reason: "Held after a failed call", state: "open" } },
+      { id: "b2291", sup: "bayline", inv: "BSR-2291", subject: "Invoice BSR-2291", preview: "Line array + subs, Oct 30–Nov 1", cents: 965000, status: "calling", time: "10:12", unread: true, from: "billing@baylinesound.com", received: "Oct 21, 10:02 AM",
+        body: ["Hi Maya,", "Attached is BSR-2291 for the line array, subs and delay tower, Oct 30 – Nov 1. Same account as always.", "Thanks,", "Marcus"],
+        payTo: { bank: "Wells Fargo", routing: "121000248", last4: "6631", state: "verified", note: "Verified by call · Jan 9" }, checks: cleanChecks(SUPPLIERS.bayline, "31% above their August bill (BSR-2187)"),
+        call: { state: "connected", elapsed: "00:00", lines: BAYLINE_CALL, live: true, at: "10:12 AM" } },
+      { id: "b0611", sup: "northpaw", inv: "NP-0611", subject: "Deposit — Sunday headliner", preview: "50% on signing", cents: 2500000, status: "needs-you", time: "09:30", unread: true, from: "jules@northpaw.co", received: "Oct 21, 9:30 AM",
+        body: ["Hi Fogline,", "Per the signed offer, here's the 50% deposit invoice for Sunday's headliner. Wire details unchanged.", "Best,", "Jules"],
+        payTo: { bank: "City National", routing: "122016066", last4: "4410", state: "verified", note: "Verified by call · Feb 14" }, checks: cleanChecks(SUPPLIERS.northpaw),
+        approval: { kind: "limit", reason: "Over $10,000", state: "open" } },
+      { id: "b0093", sup: "fogice", inv: "0093", subject: "Invoice 0093", preview: "40 bags, daily", cents: 64000, status: "checking", time: "09:02", unread: false, from: "dana@fogcityice.com", received: "Oct 21, 9:02 AM",
+        body: ["Invoice 0093 attached: 40 bags daily, Oct 30 – Nov 1.", "Dana"], payTo: { bank: "Bank of America", routing: "026009593", last4: "9077", state: "verified", note: "Verified by call · Jun 3" }, checks: cleanChecks(SUPPLIERS.fogice) },
+      { id: "b0318", sup: "tacos", inv: "#318", subject: "Invoice #318", preview: "Crew catering, week 1", cents: 186000, status: "scheduled", time: "Tue", from: "luis@missionsttacos.com", received: "Oct 20, 4:12 PM",
+        body: ["Crew catering for build week 1. Thanks!", "Luis"], payTo: { bank: "First Republic", routing: "321081669", last4: "1185", state: "verified", note: "Verified by call · May 20" }, checks: cleanChecks(SUPPLIERS.tacos) },
+      { id: "b1010", sup: "ironside", inv: "IES-1010", subject: "October retainer", cents: 425000, status: "paid", time: "Mon", tx: "tr_8fK2xQ", from: "ar@ironsidesecurity.com", received: "Oct 19, 8:00 AM",
+        body: ["October retainer, 12 guards on site from Oct 28."], payTo: { bank: "Chase", routing: "021000021", last4: "7302", state: "verified", note: "Verified by call · Apr 11" }, checks: cleanChecks(SUPPLIERS.ironside) },
+      { id: "b0772", sup: "golden", inv: "GH-772", subject: "Lighting rig, deposit 2 of 2", cents: 730000, status: "paid", time: "Mon", tx: "tr_Wq7nPa", from: "sam@goldenhourlx.com", received: "Oct 19, 7:40 AM",
+        body: ["Second deposit for the main and second stage rigs."], payTo: { bank: "SVB", routing: "121140399", last4: "5521", state: "verified", note: "Verified by call · Mar 1" }, checks: cleanChecks(SUPPLIERS.golden) },
+      { id: "b2207", sup: "presidio", inv: "PP-2207", subject: "Unit order — 48 standard, 6 ADA", cents: 248000, status: "paid", time: "Oct 18", tx: "tr_Hd3mVt", from: "anne@presidioportables.com", received: "Oct 18, 2:15 PM",
+        body: ["Confirming 48 standard and 6 ADA units."], payTo: { bank: "US Bank", routing: "091000022", last4: "3048", state: "verified", note: "Verified by call · May 2" }, checks: cleanChecks(SUPPLIERS.presidio) },
+      { id: "b0915", sup: "coastline", inv: "CG-915", subject: "Generator hire, 3 days", cents: 620000, status: "paid", time: "Oct 17", tx: "tr_Lm9cRe", from: "rick@coastlinepower.com", received: "Oct 17, 11:30 AM",
+        body: ["Two 200kVA units with fuel service."], payTo: { bank: "Chase", routing: "021000021", last4: "8840", state: "verified", note: "Verified by call · Apr 18" }, checks: cleanChecks(SUPPLIERS.coastline) },
+      { id: "b0388", sup: "fencing", inv: "BBF-388", subject: "Perimeter fencing, 1.2 mi", cents: 312000, status: "paid", time: "Oct 16", tx: "tr_Ux2bNs", from: "tom@baybridgefence.com", received: "Oct 16, 9:05 AM",
+        body: ["1.2 miles of perimeter fence, install Oct 26."], payTo: { bank: "Wells Fargo", routing: "121000248", last4: "2297", state: "verified", note: "Verified by call · Jun 22" }, checks: cleanChecks(SUPPLIERS.fencing) },
+      { id: "b0302", sup: "tacos", inv: "#302", subject: "Invoice #302", preview: "Production office lunches", cents: 94000, status: "paid", time: "Oct 14", tx: "tr_Qe4hJz", from: "luis@missionsttacos.com", received: "Oct 14, 1:10 PM",
+        body: ["Production office lunches, two weeks."], payTo: { bank: "First Republic", routing: "321081669", last4: "1185", state: "verified", note: "Verified by call · May 20" }, checks: cleanChecks(SUPPLIERS.tacos) },
+      { id: "b0081", sup: "fogice", inv: "0081", subject: "Invoice 0081", preview: "Walk-in freezer rental", cents: 158000, status: "paid", time: "Oct 12", tx: "tr_Ab6tGy", from: "dana@fogcityice.com", received: "Oct 12, 10:00 AM",
+        body: ["Walk-in freezer rental, deposit."], payTo: { bank: "Bank of America", routing: "026009593", last4: "9077", state: "verified", note: "Verified by call · Jun 3" }, checks: cleanChecks(SUPPLIERS.fogice) }
+    ];
+  }
+  function seedLog() {
+    return [
+      { actor: "Callback", time: "10:43 AM", what: "held $18,400.00 to Mercury ··8817", why: "Rosa said they never changed banks.", bill: "b4502" },
+      { actor: "Callback", time: "10:41 AM", what: "called Stagecraft on (415) 555-0142", why: "New bank account; writing doesn’t match the last 14 emails.", bill: "b4502" },
+      { actor: "Callback", time: "10:12 AM", what: "called Bayline on (510) 555-0199", why: "Invoice is 31% above their August bill.", bill: "b2291" },
+      { actor: "Callback", time: "9:31 AM", what: "asked Dev to approve $25,000.00 to Northpaw Talent", why: "Over the $10,000 limit. All checks passed.", bill: "b0611" },
+      { actor: "Maya Lin", time: "9:15 AM", what: "added Golden Hour Lighting’s second contact", why: "Sam is out until Nov 3." },
+      { actor: "Callback", time: "Mon 8:02 AM", what: "paid $4,250.00 to Chase ··7302 (Ironside)", why: "All checks passed. tr_8fK2xQ", bill: "b1010" },
+      { actor: "Callback", time: "Mon 7:44 AM", what: "paid $7,300.00 to SVB ··5521 (Golden Hour)", why: "All checks passed. tr_Wq7nPa", bill: "b0772" }
+    ];
+  }
+  var PRACTICE = [
+    { id: "p1", name: "Bank change from a hacked supplier inbox", channel: "Email", by: "Writing style + new account" },
+    { id: "p2", name: "Look-alike domain: stagecraft-rigging.co", channel: "Email", by: "Domain age (4 days)" },
+    { id: "p3", name: "CEO asks for an urgent wire", channel: "Email", by: "Unknown payee + rush language" },
+    { id: "p4", name: "Invoice for an agency Fogline never booked", channel: "Email", by: "No supplier record" },
+    { id: "p5", name: "Caller claiming to be Bayline, new account", channel: "Phone", by: "Never changes details on inbound calls" },
+    { id: "p6", name: "Amount nudged 3× on a real invoice", channel: "Email", by: "Amount vs. history" },
+    { id: "p7", name: "Account on the shared blocklist", channel: "Email", by: "Shared blocklist" },
+    { id: "p8", name: "Cloned voice of Rosa on a check call", channel: "Phone", by: "Not covered yet: voice-clone check" }
+  ];
+
+  /* ───────────── small pieces ───────────── */
+  function Toast(p) { return p.msg ? h("div", { className: "pt-toast", role: "status" }, p.msg) : null; }
+  function PageHead(p) {
+    return h("header", { className: "pt-head" },
+      h("div", { className: "pt-head-text" },
+        p.crumb ? h("div", { className: "cb-caps pt-crumb" }, p.crumb) : null,
+        h(p.small ? "h1" : "h1", { className: p.small ? "cb-subject" : "cb-display" }, p.title),
+        p.sub ? h("p", { className: "pt-sub" }, p.sub) : null),
+      p.actions ? h("div", { className: "pt-actions" }, p.actions) : null);
+  }
+  function Back(p) { return h("button", { className: "pt-back", onClick: p.onClick }, "← ", p.children); }
+
+  /* ───────────── Inbox ───────────── */
+  var FILTERS = [["all", "All"], ["needs-you", "Needs you"], ["held", "Held"], ["calling", "Calling"], ["checking", "Checking"], ["scheduled", "Scheduled"], ["paid", "Paid"]];
+  function Inbox(p) {
+    var f = useState("all"), filter = f[0], setFilter = f[1];
+    var rows = p.bills.filter(function (b) { return filter === "all" || b.status === filter; });
+    var count = function (k) { return p.bills.filter(function (b) { return k === "all" || b.status === k; }).length; };
+    return h("div", null,
+      h(PageHead, { title: "Inbox", sub: "bills@fogline.fm · newest first", actions: [h(C.Button, { key: 1, variant: "secondary", onClick: function () { p.go("practice"); } }, "Try a scam")] }),
+      h("div", { className: "pt-filters", role: "tablist" }, FILTERS.map(function (x) {
+        return h("button", { key: x[0], role: "tab", "aria-selected": filter === x[0], className: cx("pt-filter", filter === x[0] && "on"), onClick: function () { setFilter(x[0]); } }, x[1], h("span", { className: "pt-count" }, count(x[0])));
+      })),
+      h("div", { className: "pt-scroll" }, h("div", { className: "cb-ledger pt-ledger" },
+        h("div", { className: "cb-ledger-head" }, h("span"), h("span", null, "Supplier"), h("span", null, "Subject"), h("span", { className: "cb-r" }, "Amount"), h("span", null, "Status"), h("span", { className: "cb-r" }, "In")),
+        rows.length ? rows.map(function (b) {
+          return h(C.InboxRow, { key: b.id, from: SUPPLIERS[b.sup].name, subject: b.subject, preview: b.preview, cents: b.cents, status: b.status, time: b.time, unread: b.unread, onClick: function () { p.open(b.id); } });
+        }) : h("div", { className: "pt-empty" }, "Nothing here. Callback has no bills in this state."))));
+  }
+
+  /* ───────────── Bill page ───────────── */
+  function Why(p) {
+    var b = p.bill, s = SUPPLIERS[b.sup];
+    var text = b.status === "held" || (b.approval && b.approval.kind === "bank")
+      ? "I held this because the bank account is new and the email doesn’t read like Stagecraft. I called Rosa on the number we’ve had since April. She said they never changed banks, so the money stays put until Dev decides."
+      : b.status === "needs-you" ? "Every check passed, but " + money(b.cents) + " is over the $10,000 limit, so Dev has to approve it."
+      : b.status === "calling" ? "The amount is 31% higher than their August bill, so I’m confirming the change with " + s.contact + " before paying."
+      : b.status === "checking" ? "I’m comparing this bill against " + s.short + "’s history. Nothing is decided yet."
+      : "Known account, real domain, normal amount, and it reads like " + s.short + ". Bills like this under $10,000 are paid on the next run.";
+    return h("div", { className: "pt-why", role: "dialog", "aria-label": "Why Callback did this" },
+      h("div", { className: "cb-caps" }, "Why?"),
+      h("p", { className: "pt-statement" }, text),
+      h("div", { className: "pt-why-cites" }, b.checks.filter(function (c) { return c.sources; }).slice(0, 3).map(function (c, i) { return c.sources.map(function (sct, j) { return h(C.Cite, { key: i + "-" + j }, sct); }); })),
+      h("button", { className: "cb-ask", onClick: p.onClose }, "Close"));
+  }
+
+  function BillPage(p) {
+    var b = p.bill, s = SUPPLIERS[b.sup];
+    var w = useState(false), why = w[0], setWhy = w[1];
+    var dev = p.persona === "dev";
+    var fails = b.checks.filter(function (c) { return c.result === "fail"; }).length;
+    var order = { fail: 0, warn: 1, pass: 2 };
+    var checks = b.checks.slice().sort(function (a, c) { return order[a.result] - order[c.result]; });
+    var payBtn;
+    if (b.status === "paid") payBtn = h(C.Button, { variant: "secondary", disabled: true }, "Paid · " + b.tx);
+    else if (b.status === "held") payBtn = h(C.Button, { variant: "primary", locked: "Held after a failed call. Callback can’t release it; Dev has to approve." }, "Pay " + money(b.cents));
+    else if (b.status === "needs-you") payBtn = dev ? h(C.Button, { variant: "primary", onClick: function () { p.go("approval", b.id); } }, "Review and approve") : h(C.Button, { variant: "primary", locked: "Over $10,000. Only Dev can approve." }, "Pay " + money(b.cents));
+    else if (b.status === "calling" || b.status === "checking") payBtn = h(C.Button, { variant: "primary", locked: "Callback is still " + (b.status === "calling" ? "on the phone with " + s.contact : "checking") + "." }, "Pay " + money(b.cents));
+    else payBtn = h(C.Button, { variant: "primary", onClick: function () { p.payNow(b.id); } }, "Pay " + money(b.cents) + " now");
+    var actions = [
+      h("span", { key: "w", className: "pt-whywrap" }, h(C.Button, { variant: "ask", onClick: function () { setWhy(!why); } }, "Why?"), why ? h(Why, { bill: b, onClose: function () { setWhy(false); } }) : null),
+      b.status !== "paid" && b.status !== "held" ? h(C.Button, { key: "h", variant: "hold", icon: "hold", onClick: function () { p.hold(b.id); } }, "Hold") : null,
+      b.call ? h(C.Button, { key: "c", variant: "secondary", icon: "phone", onClick: function () { p.go("call", b.id); } }, b.call.live ? "Listen in" : "Call recording") :
+        (b.status !== "paid" ? h(C.Button, { key: "c", variant: "secondary", icon: "phone", onClick: function () { p.callNow(b.id); } }, "Call supplier") : null),
+      h("span", { key: "p" }, payBtn)
+    ];
+    var endorse = b.status === "held" ? h(C.Endorsement, { kind: "held", meta: "Oct 21 · 10:43 AM · Callback", animate: false })
+      : b.status === "paid" ? h(C.Endorsement, { kind: "paid", meta: (b.tx || "") + " · " + (b.paidTo || (b.payTo.bank + " ··" + b.payTo.last4)), animate: !!b.justPaid })
+      : null;
+    var timeline = p.log.filter(function (l) { return l.bill === b.id; });
+    return h("div", null,
+      h(Back, { onClick: function () { p.go("inbox"); } }, "Inbox"),
+      h(PageHead, { small: true, crumb: s.name + " / " + b.inv, title: b.subject, actions: actions }),
+      h("div", { className: "pt-bill" },
+        h("article", { className: "cb-doc pt-email" },
+          h("div", { className: "pt-meta" }, h("span", null, "From"), h("b", null, b.from), h("span", null, "To"), h("b", null, "bills@fogline.fm"), h("span", null, "Received"), h("b", null, b.received)),
+          h("div", { className: "pt-body" }, b.body.map(function (t, i) { return h("p", { key: i }, t); })),
+          h("div", { className: "pt-pay" },
+            h("div", { className: "cb-caps" }, "Pay to"),
+            h(C.Amount, { cents: b.cents, size: "lg" }),
+            h(C.AccountLine, b.payTo)),
+          endorse ? h("div", { className: "pt-endorse" }, endorse) : null),
+        h("aside", { className: "pt-side" },
+          h("section", { className: "cb-doc" },
+            h("div", { className: "cb-doc-head" }, "Callback’s checks", h("small", null, b.status === "checking" ? "Running" : fails ? fails + " failed" : "All passed")),
+            h("div", { role: "list" }, checks.map(function (c, i) { return h(C.CheckRow, Object.assign({ key: i, n: i + 1 }, c)); }))),
+          b.call ? h("div", { className: "pt-click", onClick: function () { p.go("call", b.id); } }, h(C.Line, { state: b.call.state, supplier: s.contact + " · " + s.short, number: s.phone, source: s.phoneSrc, elapsed: b.call.elapsed, note: b.call.note })) : null,
+          b.approval ? h("section", { className: "cb-doc pt-pad" },
+            h(C.SignOff, b.approval.state === "signed" ? { state: "signed", name: "Dev Okafor", role: "Controller", time: b.approval.at, verb: b.approval.verb } : { state: "awaiting", name: "Dev Okafor", role: b.approval.reason, time: "Sent 10:43 AM" }),
+            b.approval.state === "open" ? h("div", { className: "pt-mt" }, h(C.Button, { variant: dev ? "primary" : "secondary", size: "sm", onClick: function () { p.go("approval", b.id); } }, dev ? "Open in Approvals" : "View request")) : null) : null,
+          timeline.length ? h("section", { className: "cb-doc" }, h("div", { className: "cb-doc-head" }, "Timeline", h("small", null, timeline.length + " events")),
+            h("div", { role: "list" }, timeline.map(function (l, i) { return h(C.LogEntry, { key: i, actor: l.actor, time: l.time, why: l.why }, l.what); }))) : null)));
+  }
+
+  /* ───────────── Live call ───────────── */
+  function CallScreen(p) {
+    var b = p.bill, s = SUPPLIERS[b.sup], call = b.call;
+    var shown = call.live ? (call.shown || 0) : call.lines.length;
+    var lines = call.lines.slice(0, shown);
+    var box = useRef(null);
+    useEffect(function () { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [shown]);
+    return h("div", null,
+      h(Back, { onClick: function () { p.open(b.id); } }, s.short + " / " + b.inv),
+      h(PageHead, { small: true, crumb: "Live call · outgoing check", title: s.name, actions: call.live ? [h(C.Button, { key: "t", variant: "secondary", onClick: function () { p.takeOver(b.id); } }, "End and take over")] : null }),
+      h("div", { className: "pt-call" },
+        h("div", { className: "pt-call-main" },
+          h(C.Line, { state: call.state, supplier: s.contact + " · " + s.short, number: s.phone, source: s.phoneSrc, elapsed: call.elapsed, note: call.note }),
+          h("div", { className: "cb-doc pt-transcript", ref: box },
+            lines.length ? lines.map(function (l, i) {
+              return h(C.TranscriptLine, { key: i, speaker: l.speaker, name: l.speaker === "callback" ? "Callback" : s.contact.split(" ")[0] + " (" + s.short + ")", time: l.time, cite: l.cite, aside: l.aside, speaking: call.live && i === lines.length - 1 }, l.text);
+            }) : h("div", { className: "pt-empty" }, "Ringing " + s.phone + "…"))),
+        h("aside", { className: "pt-side" },
+          h("section", { className: "cb-doc pt-pad" },
+            h("div", { className: "cb-caps" }, "Why this number"),
+            h("p", { className: "pt-small" }, s.phone + " came from " + s.short + "’s website and business registry when they were added, " + s.phoneSrc + ". Callback never dials a number from the email."),
+            h("div", { className: "cb-caps pt-mt" }, "Questions come from"),
+            h("div", { className: "pt-cites" }, (b.sup === "stagecraft" ? ["INV-4471 · Sep 12", "11 payments", "Chase ··2210"] : ["BSR-2187 · Aug 28", "Rider change · Oct 14", "Wells Fargo ··6631"]).map(function (c) { return h(C.Cite, { key: c }, c); }))),
+          !call.live ? h("section", { className: "cb-doc pt-pad" }, h("div", { className: "cb-caps" }, "Result"),
+            h("div", { className: "pt-mt" }, h(C.Endorsement, { kind: call.state === "confirmed" ? "confirmed" : "held", meta: call.state === "confirmed" ? s.phone + " · " + call.at : "Oct 21 · " + call.at + " · Callback", animate: false }))) : null)));
+  }
+
+  /* ───────────── Approvals ───────────── */
+  function Approvals(p) {
+    var open = p.bills.filter(function (b) { return b.approval && b.approval.state === "open"; });
+    var done = p.bills.filter(function (b) { return b.approval && b.approval.state !== "open"; });
+    function row(b) {
+      var s = SUPPLIERS[b.sup];
+      return h("button", { key: b.id, className: "pt-apprrow", onClick: function () { p.go("approval", b.id); } },
+        h("div", null, h("div", { className: "pt-strong" }, s.name), h("div", { className: "pt-small" }, b.approval.reason + " · " + b.inv)),
+        h(C.Amount, { cents: b.cents }),
+        h(C.StatusMark, { status: b.approval.state === "open" ? (b.status === "held" ? "held" : "needs-you") : "paid" }, b.approval.state === "open" ? null : "Signed"));
+    }
+    return h("div", null,
+      h(PageHead, { title: "Approvals", sub: p.persona === "dev" ? "Signed in as Dev Okafor, controller. Only you can sign these." : "Signed in as Maya. Dev signs these; you can read them." }),
+      h("div", { className: "cb-doc pt-list" }, h("div", { className: "cb-doc-head" }, "Waiting for Dev", h("small", null, open.length + " open")), open.length ? open.map(row) : h("div", { className: "pt-empty" }, "Nothing waiting. Callback will ask when a payment is over $10,000 or held.")),
+      done.length ? h("div", { className: "cb-doc pt-list pt-mt2" }, h("div", { className: "cb-doc-head" }, "Signed today", h("small", null, done.length)), done.map(row)) : null);
+  }
+
+  function ApprovalDetail(p) {
+    var b = p.bill, s = SUPPLIERS[b.sup], dev = p.persona === "dev", a = b.approval;
+    var d = useState(a.kind === "bank" ? "Release it, we’ll miss the stage build." : ""), draft = d[0], setDraft = d[1];
+    var cf = useState(""), confirm = cf[0], setConfirm = cf[1];
+    var sr = useState(false), showRelease = sr[0], setShowRelease = sr[1];
+    var thread = a.thread || [];
+    var lock = dev ? null : "Signed in as Maya. Only Dev can sign.";
+    var offered = thread.some(function (m) { return m.offer; });
+    function send() { if (!draft.trim()) return; p.reply(b.id, draft.trim()); setDraft(""); }
+    var request = a.kind === "bank"
+      ? "Holding " + money(b.cents) + " to " + s.short + ". The email asks for a new account (Mercury ··8817). I called Rosa on " + s.phone + " and she said they never changed banks. I recommend rejecting this bank change and paying the verified Chase ··2210 account."
+      : "All checks passed on " + b.inv + ". It’s " + money(b.cents) + " to " + s.bank + " ··" + s.last4 + ", the account verified by call on Feb 14. It’s over the $10,000 limit, so I need your approval.";
+    return h("div", null,
+      h(Back, { onClick: function () { p.go("approvals"); } }, "Approvals"),
+      h(PageHead, { small: true, crumb: a.reason + " · " + b.inv, title: s.name, actions: [h(C.Button, { key: "b", variant: "secondary", onClick: function () { p.open(b.id); } }, "Open bill")] }),
+      h("div", { className: "pt-bill" },
+        h("div", { className: "pt-thread" },
+          h("div", { className: "cb-doc pt-msg" },
+            h("div", { className: "pt-msg-who" }, h("span", { className: "cb-who cb-who-agent" }, "CB"), h("b", null, "Callback"), h("span", { className: "pt-small" }, "10:43 AM")),
+            h("p", { className: "pt-statement" }, request),
+            h("div", { className: "pt-cites" }, (a.kind === "bank" ? ["Call · 00:44", "11 payments", "14 emails"] : ["4 checks", "Verified Feb 14"]).map(function (c) { return h(C.Cite, { key: c }, c); }))),
+          thread.map(function (m, i) {
+            return m.from === "dev"
+              ? h("div", { key: i, className: "cb-doc pt-msg pt-msg-person" }, h("div", { className: "pt-msg-who" }, h("span", { className: "cb-who cb-who-person" }, "DO"), h("b", null, "Dev Okafor"), h("span", { className: "pt-small" }, m.time)), h("p", { className: "pt-quote" }, "“" + m.text + "”"))
+              : h("div", { key: i, className: "cb-doc pt-msg" }, h("div", { className: "pt-msg-who" }, h("span", { className: "cb-who cb-who-agent" }, "CB"), h("b", null, "Callback"), h("span", { className: "pt-small" }, m.time)), h("p", { className: "pt-statement" }, m.text), m.cites ? h("div", { className: "pt-cites" }, m.cites.map(function (c) { return h(C.Cite, { key: c }, c); })) : null);
+          }),
+          a.state === "open" ? h("form", { className: "cb-doc pt-compose", onSubmit: function (e) { e.preventDefault(); send(); } },
+            h("label", { htmlFor: "reply", className: "cb-caps" }, dev ? "Reply to Callback" : "Only Dev can reply"),
+            h("textarea", { id: "reply", rows: 2, value: draft, disabled: !dev, onChange: function (e) { setDraft(e.target.value); }, placeholder: "Ask a question or push back" }),
+            h("div", { className: "pt-row" }, dev ? h(C.Button, { variant: "secondary", size: "sm", type: "submit" }, "Send") : h(C.Button, { variant: "secondary", size: "sm", locked: lock }, "Send"))) : null),
+        h("aside", { className: "pt-side" },
+          h("section", { className: "cb-doc pt-pad" },
+            h("div", { className: "cb-caps" }, "Decision"),
+            h("div", { className: "pt-mt" }, h(C.Amount, { cents: b.cents, size: "lg" })),
+            h("div", { className: "pt-mt" }, a.kind === "bank" ? h(C.AccountLine, b.payTo) : h(C.AccountLine, b.payTo)),
+            a.kind === "bank" && a.state === "open" ? h("div", { className: "pt-mt" }, h("div", { className: "pt-small" }, "Verified alternative"), h(C.AccountLine, { bank: s.bank, routing: s.routing, last4: s.last4, state: "verified", note: s.verified })) : null,
+            a.state === "open" ? h("div", { className: "pt-decide" },
+              a.kind === "bank"
+                ? [h(C.Button, { key: 1, variant: "primary", locked: lock || undefined, onClick: function () { p.payVerified(b.id); } }, (offered ? "Pay verified " : "Pay ") + s.bank + " ··" + s.last4),
+                   h(C.Button, { key: 2, variant: "secondary", locked: lock || undefined, onClick: function () { p.reject(b.id); } }, "Reject bank change"),
+                   dev ? h(C.Button, { key: 3, variant: "ask", onClick: function () { setShowRelease(!showRelease); } }, "Release to Mercury anyway") : null]
+                : [h(C.Button, { key: 1, variant: "primary", locked: lock || undefined, onClick: function () { p.approve(b.id); } }, "Approve " + money(b.cents)),
+                   h(C.Button, { key: 2, variant: "secondary", locked: lock || undefined, onClick: function () { p.reject(b.id); } }, "Reject")]) : null,
+            showRelease && a.state === "open" ? h("div", { className: "pt-danger" },
+              h("p", { className: "pt-small" }, "This sends " + money(b.cents) + " to an account Rosa says isn’t theirs. Type the last four digits, 8817, to release it."),
+              h("input", { id: "confirm8817", className: "pt-input", value: confirm, inputMode: "numeric", onChange: function (e) { setConfirm(e.target.value); }, "aria-label": "Last four digits" }),
+              h(C.Button, { variant: "hold", disabled: confirm !== "8817", onClick: function () { p.releaseAnyway(b.id); } }, "Release " + money(b.cents))) : null),
+          h("section", { className: "cb-doc pt-pad" },
+            a.state === "signed" ? h(C.SignOff, { state: "signed", name: "Dev Okafor", role: "Controller", time: a.at, verb: a.verb })
+              : dev ? h(C.SignOff, { state: "awaiting", name: "Dev Okafor", role: "Your sign-off", time: "Sent 10:43 AM" })
+              : h(C.SignOff, { state: "locked", reason: "Only Dev can sign this" })),
+          h("section", { className: "cb-doc pt-pad" }, h(C.SignOff, { state: "locked" })))));
+  }
+
+  /* ───────────── Payments ───────────── */
+  function Payments(p) {
+    var run = p.bills.filter(function (b) { return b.status === "scheduled" || (b.status === "paid" && b.tx); });
+    var due = run.filter(function (b) { return b.status === "scheduled"; });
+    var total = due.reduce(function (a, b) { return a + b.cents; }, 0);
+    return h("div", null,
+      h(PageHead, { title: "Payments", sub: "This week’s run · Increase sandbox (test bank)", actions: [h(C.Button, { key: 1, variant: "primary", disabled: !due.length, onClick: p.runPayments }, due.length ? "Run payments · " + money(total) : "Nothing to run")] }),
+      h("div", { className: "pt-scroll" }, h("div", { className: "cb-ledger pt-ledger pt-pay-ledger" },
+        h("div", { className: "cb-ledger-head pt-pay-row" }, h("span", null, "Supplier"), h("span", null, "To account"), h("span", { className: "cb-r" }, "Amount"), h("span", null, "Status"), h("span", { className: "cb-r" }, "Transfer")),
+        run.map(function (b) {
+          var s = SUPPLIERS[b.sup];
+          return h("a", { key: b.id, href: "#", className: "cb-ledger-row pt-pay-row", onClick: function () { p.open(b.id); } },
+            h("span", { className: "cb-from" }, s.name),
+            h("span", { className: "cb-when" }, b.paidTo || (b.payTo.bank + " ··" + b.payTo.last4)),
+            h("span", { className: "cb-r" }, h(C.Amount, { cents: b.cents })),
+            h("span", null, h(C.StatusMark, { status: b.status })),
+            h("span", { className: "cb-when cb-r" }, b.tx || "—"));
+        }))));
+  }
+
+  /* ───────────── Suppliers ───────────── */
+  function Suppliers(p) {
+    var a = useState(false), adding = a[0], setAdding = a[1];
+    var st = useState(0), step = st[0], setStep = st[1];
+    var nm = useState("Twin Peaks Staging"), name = nm[0], setName = nm[1];
+    var site = useState("twinpeaksstaging.com"), url = site[0], setUrl = site[1];
+    useEffect(function () { if (!adding || step === 0 || step >= 5) return; var t = setTimeout(function () { setStep(step + 1); }, 650); return function () { clearTimeout(t); }; }, [adding, step]);
+    var STEPS = [["Website", url + " · live, lists (415) 555-0190"], ["Business registry", "CA Secretary of State · active since 2017"], ["Google Maps", "Listing at 1550 Evans Ave · same phone"], ["Domain age", "Registered 2016 · 10 years"]];
+    return h("div", null,
+      h(PageHead, { title: "Suppliers", sub: ORDER.length + " suppliers · the trusted number is the only one Callback dials", actions: [h(C.Button, { key: 1, variant: "secondary", onClick: function () { setAdding(!adding); setStep(0); } }, adding ? "Close" : "Add supplier")] }),
+      adding ? h("form", { className: "cb-doc pt-pad pt-add", onSubmit: function (e) { e.preventDefault(); setStep(1); } },
+        h("div", { className: "pt-add-fields" },
+          h("label", { className: "pt-field" }, h("span", { className: "cb-caps" }, "Name"), h("input", { id: "supname", className: "pt-input", value: name, onChange: function (e) { setName(e.target.value); } })),
+          h("label", { className: "pt-field" }, h("span", { className: "cb-caps" }, "Website"), h("input", { id: "supsite", className: "pt-input", value: url, onChange: function (e) { setUrl(e.target.value); } })),
+          h(C.Button, { variant: "primary", type: "submit", disabled: step > 0 }, step ? "Checking…" : "Run background check")),
+        step ? h("div", { className: "pt-steps" }, STEPS.map(function (x, i) {
+          var done = step > i + 1;
+          return h("div", { key: i, className: "pt-step" }, h(C.StatusMark, { status: done ? "paid" : step === i + 1 ? "checking" : "scheduled" }, done ? "Done" : step === i + 1 ? "Checking" : "Queued"), h("b", null, x[0]), h("span", { className: "pt-small" }, done ? x[1] : ""));
+        }), step >= 5 ? h("div", { className: "pt-small pt-mt" }, "Trusted number set to (415) 555-0190 from the website and Maps listing. Callback will call it to verify bank details before the first payment.") : null) : null) : null,
+      h("div", { className: "pt-scroll" }, h("div", { className: "cb-ledger pt-ledger" },
+        h("div", { className: "cb-ledger-head pt-sup-row" }, h("span", null, "Supplier"), h("span", null, "Kind"), h("span", null, "Trusted number"), h("span", null, "Bank"), h("span", { className: "cb-r" }, "Checked")),
+        ORDER.map(function (k) {
+          var s = SUPPLIERS[k];
+          return h("a", { key: k, href: "#", className: "cb-ledger-row pt-sup-row", onClick: function () { p.go("supplier", k); } },
+            h("span", { className: "cb-from" }, s.name), h("span", { className: "cb-subj" }, s.kind), h("span", { className: "cb-when" }, s.phone), h("span", { className: "cb-when" }, s.bank + " ··" + s.last4), h("span", { className: "cb-when cb-r" }, s.checked));
+        }))));
+  }
+  function SupplierPage(p) {
+    var s = SUPPLIERS[p.id], bills = p.bills.filter(function (b) { return b.sup === p.id; });
+    return h("div", null,
+      h(Back, { onClick: function () { p.go("suppliers"); } }, "Suppliers"),
+      h(PageHead, { small: true, crumb: s.kind + " · since " + s.since, title: s.name }),
+      h("div", { className: "pt-bill" },
+        h("div", { className: "pt-side" },
+          h("section", { className: "cb-doc" }, h("div", { className: "cb-doc-head" }, "Bank details", h("small", null, "Changes need a passed call and Dev")),
+            h("div", { className: "pt-pad" }, h(C.AccountLine, { bank: s.bank, routing: s.routing, last4: s.last4, state: "verified", note: s.verified })),
+            p.id === "stagecraft" ? h("div", { className: "pt-pad pt-topline" }, h("div", { className: "pt-small" }, "Attempted change · Oct 21 · rejected by call"), h(C.AccountLine, { bank: "Mercury", routing: "084106768", last4: "8817", state: "new" })) : null),
+          h("section", { className: "cb-doc" }, h("div", { className: "cb-doc-head" }, "Bills", h("small", null, bills.length)),
+            bills.map(function (b) { return h("a", { key: b.id, href: "#", className: "pt-mini", onClick: function () { p.open(b.id); } }, h("span", null, b.inv + " · " + b.subject), h(C.Amount, { cents: b.cents }), h(C.StatusMark, { status: b.status })); }))),
+        h("aside", { className: "pt-side" },
+          h("section", { className: "cb-doc pt-pad" }, h("div", { className: "cb-caps" }, "Trusted contact"),
+            h("div", { className: "pt-strong pt-mt" }, s.contact), h("div", { className: "cb-when" }, s.phone + " · " + s.phoneSrc), h("div", { className: "pt-small pt-mt" }, "From the background check: " + s.domain + ", business registry, Google Maps.")),
+          h("section", { className: "cb-doc pt-pad" }, h("div", { className: "cb-caps" }, "Background check"),
+            [["Website", s.domain], ["Business registry", "Active"], ["Google Maps", "Listing matches"], ["Domain age", "Registered " + s.since]].map(function (x) { return h("div", { key: x[0], className: "pt-kv" }, h("span", { className: "pt-small" }, x[0]), h("span", { className: "cb-when" }, x[1])); })))));
+  }
+
+  /* ───────────── Phone line ───────────── */
+  function PhoneLine(p) {
+    var o = useState(0), open = o[0], setOpen = o[1];
+    var CALLS = [
+      { who: "Unknown caller · says Bayline", from: "(628) 555-0143", time: "Today 9:47 AM", result: "Called back on file", lines: [
+        { speaker: "caller", time: "00:03", text: "Hi, this is Marcus from Bayline. We switched banks, I need to give you the new account for Friday." },
+        { speaker: "callback", time: "00:11", text: "Thanks for calling. I can’t change bank details on an incoming call. I’ll call you back on the number we have for Bayline." },
+        { speaker: "caller", time: "00:18", text: "It’s urgent, can’t you just take it down?" },
+        { speaker: "callback", time: "00:22", cite: "(510) 555-0199", text: "I’ll call Bayline now on (510) 555-0199. If it’s you, we’ll sort it in two minutes." }] },
+      { who: "Northpaw Talent", from: "(323) 555-0177", time: "Yesterday 4:05 PM", result: "Question answered", lines: [
+        { speaker: "caller", time: "00:02", text: "Hey, Jules from Northpaw. Did the deposit invoice come through?" },
+        { speaker: "callback", time: "00:07", text: "It did, NP-0611 for $25,000.00. It’s waiting on Dev’s approval because it’s over our limit." }] }
+    ];
+    var c = CALLS[open];
+    return h("div", null,
+      h(PageHead, { title: "Phone line", sub: "Fogline · (415) 555-0100 · Callback answers every call" }),
+      h("div", { className: "pt-bill" },
+        h("div", { className: "pt-side" },
+          h("div", { className: "cb-doc pt-list" }, h("div", { className: "cb-doc-head" }, "Incoming calls", h("small", null, CALLS.length)),
+            CALLS.map(function (x, i) { return h("button", { key: i, className: cx("pt-apprrow", open === i && "on"), onClick: function () { setOpen(i); } }, h("div", null, h("div", { className: "pt-strong" }, x.who), h("div", { className: "cb-when" }, x.from + " · " + x.time)), h(C.StatusMark, { status: i === 0 ? "held" : "paid" }, x.result)); })),
+          h("div", { className: "cb-doc pt-pad" }, h("div", { className: "cb-caps" }, "Rule"), h("p", { className: "pt-statement" }, "Callback never changes bank details from an incoming call. It says “we’ll call you back on the number we have” and starts an outgoing check call."))),
+        h("div", { className: "cb-doc pt-transcript" }, c.lines.map(function (l, i) { return h(C.TranscriptLine, { key: open + "-" + i, speaker: l.speaker === "callback" ? "callback" : "caller", name: l.speaker === "callback" ? "Callback" : "Caller", time: l.time, cite: l.cite }, l.text); }))));
+  }
+
+  /* ───────────── Practice ───────────── */
+  function Practice(p) {
+    var r = useState(null), running = r[0], setRunning = r[1];
+    var res = useState({ p1: "caught", p2: "caught", p3: "caught", p4: "caught", p5: "caught", p6: "caught", p7: "caught", p8: "missed" }), results = res[0], setResults = res[1];
+    var f = useState({ sup: "bayline", subject: "New remittance account", bank: "Chime ··5520" }), form = f[0], setForm = f[1];
+    useEffect(function () {
+      if (running == null) return;
+      if (running >= PRACTICE.length) { setRunning(null); p.toast("Practice run finished: 7 of 8 caught."); return; }
+      var t = setTimeout(function () { var id = PRACTICE[running].id, n = Object.assign({}, results); n[id] = id === "p8" ? "missed" : "caught"; setResults(n); setRunning(running + 1); }, 520);
+      return function () { clearTimeout(t); };
+    }, [running]);
+    var caught = Object.keys(results).filter(function (k) { return results[k] === "caught"; }).length;
+    return h("div", null,
+      h(PageHead, { title: "Practice", sub: "Scams written by Grok, run against a copy of the workspace. Run it after any change, like tests.", actions: [h(C.Button, { key: 1, variant: "primary", disabled: running != null, onClick: function () { var n = {}; PRACTICE.forEach(function (x) { n[x.id] = "pending"; }); setResults(n); setRunning(0); } }, running != null ? "Running…" : "Run all 8")] }),
+      h("div", { className: "pt-bill" },
+        h("div", { className: "cb-doc pt-list" }, h("div", { className: "cb-doc-head" }, "Scam set", h("small", null, running != null ? "Running " + (running + 1) + " of 8" : caught + " of 8 caught")),
+          PRACTICE.map(function (x, i) {
+            var st = results[x.id];
+            return h("div", { key: x.id, className: "pt-apprrow pt-static" },
+              h("div", null, h("div", { className: "pt-strong" }, x.name), h("div", { className: "pt-small" }, x.channel + " · " + (st === "missed" ? x.by : "Caught by: " + x.by))),
+              h(C.StatusMark, { status: running === i ? "checking" : st === "caught" ? "paid" : st === "missed" ? "held" : "scheduled" }, running === i ? "Running" : st === "caught" ? "Caught" : st === "missed" ? "Missed" : "Queued"));
+          })),
+        h("form", { className: "cb-doc pt-pad pt-try", onSubmit: function (e) { e.preventDefault(); p.tryScam(form); } },
+          h("div", { className: "cb-caps" }, "Try a scam"),
+          h("p", { className: "pt-small" }, "Write your own. It lands in the real Inbox and Callback handles it like any other bill."),
+          h("label", { className: "pt-field" }, h("span", { className: "cb-caps" }, "Pretend to be"),
+            h("select", { id: "scamsup", className: "pt-input", value: form.sup, onChange: function (e) { setForm(Object.assign({}, form, { sup: e.target.value })); } }, ORDER.filter(function (k) { return k !== "stagecraft"; }).map(function (k) { return h("option", { key: k, value: k }, SUPPLIERS[k].name); }))),
+          h("label", { className: "pt-field" }, h("span", { className: "cb-caps" }, "Subject"), h("input", { id: "scamsubj", className: "pt-input", value: form.subject, onChange: function (e) { setForm(Object.assign({}, form, { subject: e.target.value })); } })),
+          h("label", { className: "pt-field" }, h("span", { className: "cb-caps" }, "New bank account"), h("input", { id: "scambank", className: "pt-input", value: form.bank, onChange: function (e) { setForm(Object.assign({}, form, { bank: e.target.value })); } })),
+          h("div", { className: "pt-mt" }, h(C.Button, { variant: "primary", type: "submit" }, "Send to Inbox")))));
+  }
+
+  /* ───────────── Activity log ───────────── */
+  function Activity(p) {
+    var q = useState(""), query = q[0], setQuery = q[1];
+    var who = useState("all"), actor = who[0], setActor = who[1];
+    var rows = p.log.filter(function (l) {
+      return (actor === "all" || (actor === "cb" ? l.actor === "Callback" : l.actor !== "Callback")) && (!query || (l.actor + " " + l.what + " " + (l.why || "")).toLowerCase().indexOf(query.toLowerCase()) >= 0);
+    });
+    return h("div", null,
+      h(PageHead, { title: "Activity log", sub: "Every action by Callback, Maya and Dev: who, when, what, why" }),
+      h("div", { className: "pt-tools" },
+        h("input", { id: "logsearch", className: "pt-input pt-search", placeholder: "Search the log", value: query, onChange: function (e) { setQuery(e.target.value); }, "aria-label": "Search the log" }),
+        h("div", { className: "pt-filters" }, [["all", "Everyone"], ["cb", "Callback"], ["people", "People"]].map(function (x) { return h("button", { key: x[0], className: cx("pt-filter", actor === x[0] && "on"), onClick: function () { setActor(x[0]); } }, x[1]); }))),
+      h("div", { className: "cb-doc", role: "list" }, rows.length ? rows.map(function (l, i) {
+        return h("div", { key: i, className: cx(l.bill && "pt-click"), onClick: l.bill ? function () { p.open(l.bill); } : null }, h(C.LogEntry, { actor: l.actor, time: l.time, why: l.why }, l.what));
+      }) : h("div", { className: "pt-empty" }, "No entries match “" + query + "”.")));
+  }
+
+  /* ───────────── App shell ───────────── */
+  var NAV = [["inbox", "Inbox"], ["approvals", "Approvals"], ["payments", "Payments"], ["suppliers", "Suppliers"], ["phone", "Phone line"], ["practice", "Practice"], ["log", "Activity log"]];
+  var ROUTE_NAV = { bill: "inbox", call: "inbox", approval: "approvals", supplier: "suppliers" };
+
+  function App() {
+    var r = useState({ name: "inbox" }), route = r[0], setRoute = r[1];
+    var bs = useState(seedBills), bills = bs[0], setBills = bs[1];
+    var ls = useState(seedLog), log = ls[0], setLog = ls[1];
+    var ps = useState("maya"), persona = ps[0], setPersona = ps[1];
+    var ts = useState(""), toastMsg = ts[0], setToast = ts[1];
+    var main = useRef(null);
+    var billsRef = useRef(bills); billsRef.current = bills;
+
+    function toast(m) { setToast(m); clearTimeout(toast.t); toast.t = setTimeout(function () { setToast(""); }, 3200); }
+    function go(name, param) { setRoute({ name: name, param: param }); if (main.current) main.current.scrollTop = 0; window.scrollTo(0, 0); }
+    function patch(id, fn) { setBills(function (all) { return all.map(function (b) { return b.id === id ? fn(Object.assign({}, b)) : b; }); }); }
+    function addLog(e) { setLog(function (l) { return [e].concat(l); }); }
+    function open(id) { patch(id, function (b) { b.unread = false; return b; }); go("bill", id); }
+
+    /* Bayline live call plays out; Fog City Ice finishes checking */
+    useEffect(function () {
+      var t1 = setTimeout(function () {
+        patch("b0093", function (b) { b.status = "scheduled"; return b; });
+        addLog({ actor: "Callback", time: now(), what: "scheduled $640.00 to Bank of America ··9077 (Fog City Ice)", why: "All checks passed. Goes out in Friday’s run.", bill: "b0093" });
+      }, 6000);
+      var i = 0;
+      var iv = setInterval(function () {
+        var b = billsRef.current.find(function (x) { return x.id === "b2291"; });
+        if (!b || !b.call.live) { clearInterval(iv); return; }
+        i += 1;
+        if (i <= BAYLINE_CALL.length) {
+          patch("b2291", function (x) { x.call = Object.assign({}, x.call, { shown: i, elapsed: BAYLINE_CALL[i - 1].time }); return x; });
+        } else {
+          clearInterval(iv);
+          patch("b2291", function (x) { x.call = Object.assign({}, x.call, { live: false, state: "confirmed", elapsed: "00:49", note: "Marcus confirmed the extra subs and the same account." }); x.status = "scheduled"; x.checks = x.checks.map(function (c) { return c.result === "warn" ? Object.assign({}, c, { result: "pass", title: "Amount confirmed by call", evidence: "Extra subs and delay tower, per Dev’s Oct 14 rider change" }) : c; }); return x; });
+          addLog({ actor: "Callback", time: now(), what: "scheduled $9,650.00 to Wells Fargo ··6631 (Bayline)", why: "Marcus confirmed the extra subs on the call.", bill: "b2291" });
+          toast("Bayline confirmed on the call. Scheduled for Friday’s run.");
+        }
+      }, 2600);
+      return function () { clearTimeout(t1); clearInterval(iv); };
+    }, []);
+
+    var actions = {
+      hold: function (id) { var b = billsRef.current.find(function (x) { return x.id === id; }); patch(id, function (x) { x.status = "held"; return x; }); addLog({ actor: persona === "dev" ? "Dev Okafor" : "Maya Lin", time: now(), what: "held " + money(b.cents) + " to " + SUPPLIERS[b.sup].short, why: "Held by hand.", bill: id }); toast("Held. It won’t go out until someone releases it."); },
+      payNow: function (id) { var b = billsRef.current.find(function (x) { return x.id === id; }), tx = txid(); patch(id, function (x) { x.status = "paid"; x.tx = tx; x.justPaid = true; return x; }); addLog({ actor: "Callback", time: now(), what: "paid " + money(b.cents) + " to " + b.payTo.bank + " ··" + b.payTo.last4, why: "Sent early at Maya’s request. " + tx, bill: id }); toast("Sent " + money(b.cents) + " · " + tx); },
+      callNow: function (id) { toast("Callback is calling " + SUPPLIERS[billsRef.current.find(function (x) { return x.id === id; }).sup].phone + ", the number on file."); },
+      takeOver: function (id) { patch(id, function (x) { x.call = Object.assign({}, x.call, { live: false, state: "dropped", note: "Maya took over the call." }); return x; }); addLog({ actor: "Maya Lin", time: now(), what: "took over the call with Bayline", why: "Ended Callback’s check call.", bill: id }); toast("You’re on the line. Callback stopped talking."); },
+      reply: function (id, text) {
+        var t = now();
+        patch(id, function (x) { x.approval = Object.assign({}, x.approval, { thread: (x.approval.thread || []).concat([{ from: "dev", text: text, time: t }]) }); return x; });
+        addLog({ actor: "Dev Okafor", time: t, what: "replied on " + SUPPLIERS[billsRef.current.find(function (x) { return x.id === id; }).sup].short, why: text, bill: id });
+        setTimeout(function () {
+          var b = billsRef.current.find(function (x) { return x.id === id; }), s = SUPPLIERS[b.sup], tt = now();
+          var msg = b.approval.kind === "bank"
+            ? { from: "cb", time: tt, offer: true, text: "Rosa confirmed on the call that Stagecraft never changed banks, so the Mercury account isn’t theirs. The build doesn’t have to slip: I can pay the verified Chase ··2210 account today. Stagecraft has been paid there 11 times.", cites: ["Call · 00:44", "Chase ··2210", "11 payments"] }
+            : { from: "cb", time: tt, text: "Every check passed and the account was verified by call on Feb 14. Approving sends it in today’s run.", cites: ["Verified Feb 14"] };
+          patch(id, function (x) { x.approval = Object.assign({}, x.approval, { thread: (x.approval.thread || []).concat([msg]) }); return x; });
+        }, 1100);
+      },
+      payVerified: function (id) {
+        var b = billsRef.current.find(function (x) { return x.id === id; }), s = SUPPLIERS[b.sup], tx = txid(), t = now();
+        patch(id, function (x) { x.status = "paid"; x.tx = tx; x.justPaid = true; x.paidTo = s.bank + " ··" + s.last4; x.payTo = { bank: s.bank, routing: s.routing, last4: s.last4, state: "verified", note: s.verified }; x.approval = Object.assign({}, x.approval, { state: "signed", at: "Oct 21 · " + t, verb: "Approved" }); return x; });
+        addLog({ actor: "Dev Okafor", time: t, what: "approved " + money(b.cents) + " to " + s.bank + " ··" + s.last4, why: "Pay the old, verified account.", bill: id });
+        addLog({ actor: "Callback", time: t, what: "paid " + money(b.cents) + " to " + s.bank + " ··" + s.last4, why: "Increase sandbox transfer " + tx + ". Bank change to Mercury ··8817 rejected.", bill: id });
+        toast("Signed. " + money(b.cents) + " sent to " + s.bank + " ··" + s.last4 + " · " + tx);
+      },
+      approve: function (id) {
+        var b = billsRef.current.find(function (x) { return x.id === id; }), s = SUPPLIERS[b.sup], tx = txid(), t = now();
+        patch(id, function (x) { x.status = "paid"; x.tx = tx; x.justPaid = true; x.approval = Object.assign({}, x.approval, { state: "signed", at: "Oct 21 · " + t, verb: "Approved" }); return x; });
+        addLog({ actor: "Dev Okafor", time: t, what: "approved " + money(b.cents) + " to " + s.short, why: "Deposit per signed offer.", bill: id });
+        addLog({ actor: "Callback", time: t, what: "paid " + money(b.cents) + " to " + s.bank + " ··" + s.last4, why: "Increase sandbox transfer " + tx + ".", bill: id });
+        toast("Signed. " + money(b.cents) + " sent · " + tx);
+      },
+      reject: function (id) {
+        var b = billsRef.current.find(function (x) { return x.id === id; }), t = now();
+        patch(id, function (x) { x.approval = Object.assign({}, x.approval, { state: "signed", at: "Oct 21 · " + t, verb: "Rejected" }); x.status = "held"; return x; });
+        addLog({ actor: "Dev Okafor", time: t, what: "rejected " + b.inv + " from " + SUPPLIERS[b.sup].short, why: "Rejected in Approvals.", bill: id });
+        toast("Rejected. Nothing was paid.");
+      },
+      releaseAnyway: function (id) {
+        var b = billsRef.current.find(function (x) { return x.id === id; }), tx = txid(), t = now();
+        patch(id, function (x) { x.status = "paid"; x.tx = tx; x.justPaid = true; x.paidTo = "Mercury ··8817"; x.approval = Object.assign({}, x.approval, { state: "signed", at: "Oct 21 · " + t, verb: "Released" }); return x; });
+        addLog({ actor: "Dev Okafor", time: t, what: "released " + money(b.cents) + " to Mercury ··8817", why: "Overrode Callback’s hold after typing the account digits.", bill: id });
+        toast("Released to Mercury ··8817 · " + tx + ". Logged as Dev’s override.");
+      },
+      runPayments: function () {
+        var t = now(), due = billsRef.current.filter(function (b) { return b.status === "scheduled"; });
+        var sent = due.reduce(function (a, b) { return a + b.cents; }, 0), ids = due.map(function (b) { return b.id; });
+        setBills(function (all) { return all.map(function (b) { return ids.indexOf(b.id) >= 0 ? Object.assign({}, b, { status: "paid", tx: txid() }) : b; }); });
+        addLog({ actor: "Callback", time: t, what: "ran this week’s payments", why: due.length + " transfers, " + money(sent) + ", through the Increase sandbox." });
+        toast("Payment run sent · " + money(sent));
+      },
+      tryScam: function (form) {
+        var s = SUPPLIERS[form.sup], id = "bx" + Date.now(), cents = 812000, t = now(), parts = form.bank.split(/\s*··\s*/);
+        var bill = { id: id, sup: form.sup, inv: "TRY-" + String(Date.now()).slice(-4), subject: form.subject || "New remittance account", preview: "Sent from Practice", cents: cents, status: "checking", time: hhmm(t), unread: true, from: "accounts@" + s.domain.replace(".com", "-billing.com"), received: "Oct 21, " + t,
+          body: ["Hello,", "Our bank has changed. Please send this and future payments to " + form.bank + ". Payment is due today.", "Regards, Accounts"],
+          payTo: { bank: parts[0] || "Unknown bank", last4: (parts[1] || "0000").slice(-4), state: "new" },
+          checks: [
+            { result: "fail", title: "Bank account never used before", evidence: "Fogline has always paid " + s.short + " at " + s.bank + " ··" + s.last4 + ".", sources: [s.paid + " payments"] },
+            { result: "fail", title: "Look-alike domain", evidence: "Sent from " + s.domain.replace(".com", "-billing.com") + ", registered 3 days ago. Their real domain is " + s.domain + ".", sources: ["WHOIS"] },
+            { result: "warn", title: "Rush language", quote: "Payment is due today.", flag: "due today" },
+            { result: "pass", title: "Amount looks normal", evidence: "Within range of past bills" }] };
+        setBills(function (all) { return [bill].concat(all); });
+        addLog({ actor: "Maya Lin", time: t, what: "sent a practice scam as " + s.short, why: form.subject, bill: id });
+        toast("Landed in the Inbox. Watch Callback handle it.");
+        go("inbox");
+        setTimeout(function () { patch(id, function (x) { x.status = "calling"; return x; }); addLog({ actor: "Callback", time: now(), what: "called " + s.short + " on " + s.phone, why: "New account and a look-alike domain.", bill: id }); }, 2600);
+        setTimeout(function () {
+          patch(id, function (x) { x.status = "held"; x.call = { state: "not-confirmed", elapsed: "00:41", note: "“That’s not us. Our account hasn’t changed.”", lines: [{ speaker: "callback", time: "00:05", text: "Hi " + s.contact.split(" ")[0] + ", Fogline accounts. Did " + s.short + " change bank accounts this week?" }, { speaker: "supplier", time: "00:12", text: "No. That’s not us. Our account hasn’t changed." }], at: now() }; return x; });
+          addLog({ actor: "Callback", time: now(), what: "held " + money(cents) + " to " + form.bank, why: s.contact.split(" ")[0] + " said the account hasn’t changed.", bill: id });
+          toast("Held. " + s.short + " said it wasn’t them.");
+        }, 6200);
+      }
+    };
+
+    var bill = route.param && bills.find(function (b) { return b.id === route.param; });
+    var openApprovals = bills.filter(function (b) { return b.approval && b.approval.state === "open"; }).length;
+    var counts = { inbox: bills.filter(function (b) { return b.unread; }).length, approvals: openApprovals };
+    var P = { bills: bills, log: log, persona: persona, go: go, open: open, toast: toast };
+    var view;
+    switch (route.name) {
+      case "bill": view = h(BillPage, Object.assign({ key: route.param, bill: bill }, P, actions)); break;
+      case "call": view = h(CallScreen, Object.assign({ bill: bill }, P, actions)); break;
+      case "approvals": view = h(Approvals, P); break;
+      case "approval": view = h(ApprovalDetail, Object.assign({ key: route.param + persona, bill: bill }, P, actions)); break;
+      case "payments": view = h(Payments, Object.assign({}, P, actions)); break;
+      case "suppliers": view = h(Suppliers, P); break;
+      case "supplier": view = h(SupplierPage, Object.assign({ id: route.param }, P)); break;
+      case "phone": view = h(PhoneLine, P); break;
+      case "practice": view = h(Practice, Object.assign({}, P, actions)); break;
+      case "log": view = h(Activity, P); break;
+      default: view = h(Inbox, P);
+    }
+    var active = ROUTE_NAV[route.name] || route.name;
+    return h("div", { className: "pt-app" },
+      h("nav", { className: "pt-nav", "aria-label": "Callback" },
+        h("div", { className: "pt-brand" }, h(C.Guilloche, { size: 26, lobes: 9, strands: 6, className: "pt-brand-seal" }), h("div", null, h("div", { className: "pt-word" }, "Callback"), h("div", { className: "cb-caps" }, "Fogline · AP"))),
+        h("div", { className: "pt-navlist" }, NAV.map(function (n) {
+          var c = counts[n[0]];
+          return h("button", { key: n[0], className: cx("pt-navitem", active === n[0] && "on"), "aria-current": active === n[0] ? "page" : undefined, onClick: function () { go(n[0]); } },
+            h("span", null, n[1]), c ? h("span", { className: cx("pt-badge", n[0] === "approvals" && "pt-badge-you") }, c) : null);
+        })),
+        h("div", { className: "pt-persona" },
+          h("div", { className: "cb-caps" }, "Signed in as"),
+          h("div", { className: "pt-seg", role: "radiogroup" },
+            [["maya", "Maya", "Bookkeeper"], ["dev", "Dev", "Controller"]].map(function (x) {
+              return h("button", { key: x[0], role: "radio", "aria-checked": persona === x[0], className: cx(persona === x[0] && "on"), onClick: function () { setPersona(x[0]); toast("Signed in as " + (x[0] === "dev" ? "Dev Okafor, controller" : "Maya Lin, bookkeeper") + "."); } }, h("b", null, x[1]), h("span", null, x[2]));
+            })),
+          h("div", { className: "pt-line cb-when" }, h("span", { className: "cb-ind" }), "(415) 555-0100"))),
+      h("main", { className: "pt-main", ref: main }, view, h(Toast, { msg: toastMsg })));
+  }
+
+  document.addEventListener("click", function (e) { var a = e.target.closest && e.target.closest('a[href="#"]'); if (a) e.preventDefault(); });
+  ReactDOM.createRoot(document.getElementById("app")).render(h(App));
+})();
+
+</script>
+</body></html>

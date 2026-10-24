@@ -1,0 +1,115 @@
+/* Callback — generated from tokens.json. Do not hand-edit; change tokens.json and regenerate. */
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap");
+
+:root {
+  --paper: #f3f2ed;
+  --surface: #fcfbf8;
+  --surface-sunk: #ebe9e2;
+  --surface-hover: #f6f5f0;
+  --line: #dedbd2;
+  --microline: #e4e1d8;
+  --line-control: #8b877c;
+  --ink: #15191b;
+  --ink-muted: #585d60;
+  --ink-faint: #9a9c9a;
+  --action: #15191b;
+  --action-hover: #2c3236;
+  --on-action: #fcfbf8;
+  --hold: #a32d1e;
+  --hold-tint: #f4e1dc;
+  --hold-solid: #a8301f;
+  --on-hold: #fcfbf8;
+  --brass: #765210;
+  --brass-tint: #f0e7d2;
+  --brass-solid: #b8862c;
+  --signatory: #253a7c;
+  --signatory-tint: #e3e7f2;
+  --graphite: #50555a;
+  --graphite-tint: #eceae4;
+  --paid: var(--ink-muted);
+  --shadow-doc: 0 0 0 1px #dedbd2, 0 12px 28px -18px rgba(21,25,27,0.28);
+  --shadow-pop: 0 0 0 1px #dedbd2, 0 16px 40px -12px rgba(21,25,27,0.25);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 48px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-round: 999px;
+  --row-height: 40px;
+  --control-height: 32px;
+  --control-height-sm: 26px;
+  --sidebar-width: 232px;
+  --evidence-width: 440px;
+  --margin-width: 120px;
+  --rule-hair: 1px;
+  --font-serif: Newsreader, "Iowan Old Style", Georgia, serif;
+  --font-sans: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+/* Vault (dark): follows the OS unless data-theme is set on <html> */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1214;
+    --surface: #161a1d;
+    --surface-sunk: #0b0d0f;
+    --surface-hover: #1c2125;
+    --line: #272c31;
+    --microline: #1f2428;
+    --line-control: #6b7278;
+    --ink: #e9e7e1;
+    --ink-muted: #a2a5a6;
+    --ink-faint: #62676b;
+    --action: #e9e7e1;
+    --action-hover: #cfccc4;
+    --on-action: #0f1214;
+    --hold: #f08a76;
+    --hold-tint: #3a1a15;
+    --hold-solid: #d9533d;
+    --on-hold: #0f1214;
+    --brass: #d9b46a;
+    --brass-tint: #2e2412;
+    --brass-solid: #c99a3f;
+    --signatory: #9fb2ec;
+    --signatory-tint: #1a2340;
+    --graphite: #b3b6b6;
+    --graphite-tint: #1f2428;
+    --shadow-doc: 0 0 0 1px #272c31, 0 12px 28px -18px rgba(0,0,0,0.8);
+    --shadow-pop: 0 0 0 1px #272c31, 0 16px 40px -12px rgba(0,0,0,0.85);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1214;
+  --surface: #161a1d;
+  --surface-sunk: #0b0d0f;
+  --surface-hover: #1c2125;
+  --line: #272c31;
+  --microline: #1f2428;
+  --line-control: #6b7278;
+  --ink: #e9e7e1;
+  --ink-muted: #a2a5a6;
+  --ink-faint: #62676b;
+  --action: #e9e7e1;
+  --action-hover: #cfccc4;
+  --on-action: #0f1214;
+  --hold: #f08a76;
+  --hold-tint: #3a1a15;
+  --hold-solid: #d9533d;
+  --on-hold: #0f1214;
+  --brass: #d9b46a;
+  --brass-tint: #2e2412;
+  --brass-solid: #c99a3f;
+  --signatory: #9fb2ec;
+  --signatory-tint: #1a2340;
+  --graphite: #b3b6b6;
+  --graphite-tint: #1f2428;
+  --shadow-doc: 0 0 0 1px #272c31, 0 12px 28px -18px rgba(0,0,0,0.8);
+  --shadow-pop: 0 0 0 1px #272c31, 0 16px 40px -12px rgba(0,0,0,0.85);
+  color-scheme: dark;
+}

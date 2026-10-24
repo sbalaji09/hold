@@ -1,0 +1,15 @@
+<!-- @dsCard group="Decisions" height=150 subtitle="Placed on the invoice when Callback decides" -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Endorsement — preview</title></head>
+<body>
+<div id="root" class="cb-row" style="gap:24px;padding:28px"></div>
+<script>
+  var C = window.Callback, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h(C.Endorsement, { kind: 'held', meta: 'Oct 21 \u00b7 10:43 AM \u00b7 Callback' }),
+    h(C.Endorsement, { kind: 'confirmed', meta: '(415) 555-0142 \u00b7 on file' }),
+    h(C.Endorsement, { kind: 'paid', meta: 'tr_8fK2xQ \u00b7 Oct 21' })));
+</script>
+</body>
+</html>

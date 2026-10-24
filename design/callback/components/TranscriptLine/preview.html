@@ -1,0 +1,16 @@
+<!-- @dsCard group="Calls" height=340 subtitle="Sources sit in the margin" -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>TranscriptLine — preview</title></head>
+<body>
+<div style="padding:20px"><div class="cb-doc" style="padding:10px 24px 10px 0;max-width:680px" id="root"></div></div>
+<script>
+  var C = window.Callback, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h(C.TranscriptLine, { speaker: 'callback', time: '00:21', cite: 'INV-4471' }, 'Before I update anything \u2014 your September invoice for the main-stage truss. What was the invoice number?'),
+    h(C.TranscriptLine, { speaker: 'supplier', name: 'Rosa (Stagecraft)', time: '00:34' }, 'Forty-four seventy-one. Why, is something wrong?'),
+    h(C.TranscriptLine, { speaker: 'callback', time: '00:39', aside: 'Answer matches INV-4471.' }, 'We got an email today saying you moved banks to Mercury.'),
+    h(C.TranscriptLine, { speaker: 'supplier', name: 'Rosa (Stagecraft)', time: '00:44', speaking: true }, 'We never changed our bank. Who sent that?')));
+</script>
+</body>
+</html>

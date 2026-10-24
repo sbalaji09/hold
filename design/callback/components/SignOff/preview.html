@@ -1,0 +1,15 @@
+<!-- @dsCard group="Decisions" height=150 subtitle="Only people sign off. Callback's line stays dashed." -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>SignOff — preview</title></head>
+<body>
+<div id="root" class="cb-row" style="gap:40px;align-items:flex-start;padding:28px"></div>
+<script>
+  var C = window.Callback, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h(C.SignOff, { state: 'signed', name: 'Dev Okafor', role: 'Controller', time: 'Oct 21 \u00b7 10:53 AM' }),
+    h(C.SignOff, { state: 'awaiting', name: 'Dev', role: 'Over $10,000', time: 'Sent 10:43 AM' }),
+    h(C.SignOff, { state: 'locked' })));
+</script>
+</body>
+</html>

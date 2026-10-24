@@ -1,0 +1,16 @@
+<!-- @dsCard group="Records" height=80 subtitle="The courtesy box pads with asterisks, like a cheque" -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Amount — preview</title></head>
+<body>
+<div id="root" class="cb-row" style="gap:32px"></div>
+<script>
+  var C = window.Callback, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h(C.Amount, { cents: 1840000, size: 'lg' }),
+    h(C.Amount, { cents: 425000 }),
+    h(C.Amount, { cents: 98650 }),
+    h(C.Amount, { cents: -12000 })));
+</script>
+</body>
+</html>

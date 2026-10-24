@@ -1,0 +1,22 @@
+<!-- @dsCard group="Records" height=280 subtitle="Mostly dull. One problem." -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>InboxRow — preview</title></head>
+<body>
+<div style="padding:20px"><div class="cb-ledger" id="root"></div></div>
+<script>
+  var C = window.Callback, h = React.createElement;
+  var rows = [
+    { from: 'Stagecraft Rigging Co.', subject: 'Updated remittance details', preview: 'Please use our new account', cents: 1840000, status: 'held', time: '10:43', unread: true, selected: true },
+    { from: 'Bayline Sound Rental', subject: 'Invoice BSR-2291', preview: 'Line array + subs, Oct 30\u2013Nov 1', cents: 965000, status: 'calling', time: '10:12', unread: true },
+    { from: 'Northpaw Talent', subject: 'Deposit \u2014 Sunday headliner', cents: 2500000, status: 'needs-you', time: '09:30', unread: true },
+    { from: 'Fog City Ice Co.', subject: 'Invoice 0093', preview: '40 bags, daily', cents: 64000, status: 'checking', time: '09:02' },
+    { from: 'Mission Street Tacos', subject: 'Invoice #318', preview: 'Crew catering, week 1', cents: 186000, status: 'scheduled', time: 'Tue' },
+    { from: 'Ironside Event Security', subject: 'October retainer', cents: 425000, status: 'paid', time: 'Mon' }
+  ];
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h('div', { className: 'cb-ledger-head' }, h('span'), h('span', null, 'Supplier'), h('span', null, 'Subject'), h('span', { className: 'cb-r' }, 'Amount'), h('span', null, 'Status'), h('span', { className: 'cb-r' }, 'In')),
+    rows.map(function (r, i) { return h(C.InboxRow, Object.assign({ key: i }, r)); })));
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!-- @dsCard group="Decisions" height=160 subtitle="Security-print rosette: the seal behind every decision" -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Guilloche — preview</title></head>
+<body>
+<div id="root" class="cb-row" style="gap:32px;padding:20px 28px"></div>
+<script>
+  var C = window.Callback, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h(C.Guilloche, { size: 112, lobes: 14, strands: 9, style: { color: 'var(--ink)' } }),
+    h(C.Guilloche, { size: 112, lobes: 20, strands: 10, style: { color: 'var(--signatory)' } }),
+    h(C.Guilloche, { size: 112, lobes: 9, strands: 7, style: { color: 'var(--hold)' } }),
+    h(C.Guilloche, { size: 112, lobes: 26, strands: 6, amp: 5, style: { color: 'var(--brass-solid)' } })));
+</script>
+</body>
+</html>

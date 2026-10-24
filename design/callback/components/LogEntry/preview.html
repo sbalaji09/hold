@@ -1,0 +1,16 @@
+<!-- @dsCard group="Records" height=250 subtitle="Callback in mono; people in signatory blue" -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>LogEntry — preview</title></head>
+<body>
+<div style="padding:20px"><div class="cb-doc" id="root" role="list"></div></div>
+<script>
+  var C = window.Callback, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h(C.LogEntry, { actor: 'Callback', time: '10:41 AM', why: 'New bank account; writing doesn\u2019t match the last 14 emails.' }, 'called Stagecraft on (415) 555-0142'),
+    h(C.LogEntry, { actor: 'Callback', time: '10:43 AM', why: 'Rosa said they never changed banks.' }, 'held $18,400.00 to Mercury \u00b7\u00b78817'),
+    h(C.LogEntry, { actor: 'Dev Okafor', time: '10:51 AM', why: 'Release it, we\u2019ll miss the stage build.' }, 'asked to release the hold'),
+    h(C.LogEntry, { actor: 'Dev Okafor', time: '10:53 AM', why: 'Fine \u2014 pay the old account.' }, 'signed $18,400.00 to Chase \u00b7\u00b72210')));
+</script>
+</body>
+</html>

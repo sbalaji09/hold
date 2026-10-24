@@ -1,0 +1,13 @@
+<!-- @dsCard group="Marks" height=64 subtitle="Colour only where someone should look" -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>StatusMark — preview</title></head>
+<body>
+<div id="root" class="cb-row"></div>
+<script>
+  var C = window.Callback, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    ['paid','scheduled','checking','calling','held','needs-you'].map(function (s) { return h(C.StatusMark, { key: s, status: s }); })));
+</script>
+</body>
+</html>

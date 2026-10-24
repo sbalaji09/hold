@@ -1,0 +1,17 @@
+<!-- @dsCard group="Agent work" height=420 subtitle="The words that gave it away are marked, not scored" -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>CheckRow — preview</title></head>
+<body>
+<div style="padding:20px"><div class="cb-doc" style="max-width:460px"><div class="cb-doc-head">Callback’s checks <small>2 failed · 1 to look at</small></div><div id="root" role="list"></div></div></div>
+<script>
+  var C = window.Callback, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h(C.CheckRow, { n: 1, result: 'fail', title: 'Bank account never used before', evidence: 'Fogline has paid Stagecraft 11 times since April, always to Chase \u00b7\u00b72210. This bill asks for Mercury \u00b7\u00b78817.', sources: ['11 payments', 'INV-4471 \u00b7 Sep 12'] }),
+    h(C.CheckRow, { n: 2, result: 'fail', title: 'Doesn\u2019t write like Stagecraft', evidence: 'Their last 14 emails were signed \u201c\u2014 Rosa\u201d.', quote: 'Kind regards, Accounts Team', flag: 'Accounts Team', sources: ['14 emails \u00b7 Apr\u2013Oct'] }),
+    h(C.CheckRow, { n: 3, result: 'warn', title: 'Rush language', quote: 'This needs to go out today or the build slips.', flag: 'go out today' }),
+    h(C.CheckRow, { n: 4, result: 'pass', title: 'Sent from the real domain', evidence: 'stagecraftrigging.com \u00b7 registered 2014' }),
+    h(C.CheckRow, { n: 5, result: 'pass', title: 'Amount looks normal', evidence: 'Within 6% of their September bill' })));
+</script>
+</body>
+</html>

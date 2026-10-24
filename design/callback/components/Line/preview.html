@@ -1,0 +1,15 @@
+<!-- @dsCard group="Calls" height=300 subtitle="The indicator is lit only while the line is open" -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Line — preview</title></head>
+<body>
+<div id="root" class="cb-stack" style="max-width:600px"></div>
+<script>
+  var C = window.Callback, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h(C.Line, { state: 'connected', supplier: 'Rosa Quintero \u00b7 Stagecraft Rigging', number: '(415) 555-0142', source: 'on file since Apr 2', elapsed: '01:12' }),
+    h(C.Line, { state: 'not-confirmed', supplier: 'Stagecraft Rigging', number: '(415) 555-0142', elapsed: '01:31', note: '\u201cWe never changed our bank.\u201d Payment held.' }),
+    h(C.Line, { state: 'no-answer', supplier: 'Bayline Sound Rental', number: '(510) 555-0199', source: 'on file since Jan 9', note: 'Rang 6 times. Trying again at 2:15 PM.' })));
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<!-- @dsCard group="Records" height=100 subtitle="Printed like a MICR line" -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>AccountLine — preview</title></head>
+<body>
+<div id="root" class="cb-stack"></div>
+<script>
+  var C = window.Callback, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h(C.AccountLine, { bank: 'Chase', routing: '021000021', last4: '2210', state: 'verified', note: 'Verified by call \u00b7 Mar 4' }),
+    h(C.AccountLine, { bank: 'Mercury', routing: '084106768', last4: '8817', state: 'new' })));
+</script>
+</body>
+</html>

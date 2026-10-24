@@ -1,0 +1,38 @@
+/* Tailwind v4: @import "tailwindcss"; @import "./tokens.css"; @import "./tailwind-theme.css";
+   Gives you bg-surface, text-ink, text-hold, border-line, font-serif, rounded-md, shadow-doc … all bound to Callback tokens. */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-sunk: var(--surface-sunk);
+  --color-surface-hover: var(--surface-hover);
+  --color-line: var(--line);
+  --color-microline: var(--microline);
+  --color-line-control: var(--line-control);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-action: var(--action);
+  --color-action-hover: var(--action-hover);
+  --color-on-action: var(--on-action);
+  --color-hold: var(--hold);
+  --color-hold-tint: var(--hold-tint);
+  --color-hold-solid: var(--hold-solid);
+  --color-on-hold: var(--on-hold);
+  --color-brass: var(--brass);
+  --color-brass-tint: var(--brass-tint);
+  --color-brass-solid: var(--brass-solid);
+  --color-signatory: var(--signatory);
+  --color-signatory-tint: var(--signatory-tint);
+  --color-graphite: var(--graphite);
+  --color-graphite-tint: var(--graphite-tint);
+  --color-paid: var(--paid);
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-round: var(--radius-round);
+  --shadow-doc: var(--shadow-doc);
+  --shadow-pop: var(--shadow-pop);
+}
