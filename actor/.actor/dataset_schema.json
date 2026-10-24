@@ -1,32 +1,136 @@
 {
   "actorSpecification": 1,
-  "fields": {},
+  "fields": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "description": "Watch mode pushes one item per registered look-alike; background and copycat push one item with findings.",
+    "properties": {
+      "domain": {
+        "type": "string",
+        "description": "The registered look-alike domain (watch)."
+      },
+      "imitates": {
+        "type": "string",
+        "description": "The real domain it imitates (watch)."
+      },
+      "technique": {
+        "type": "string",
+        "description": "How the look-alike was made, e.g. \"added hyphen\" (watch)."
+      },
+      "registeredDaysAgo": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "description": "Days since registration, null if RDAP has no date (watch)."
+      },
+      "receivesEmail": {
+        "type": "boolean",
+        "description": "Has MX records, so it can send and receive email (watch)."
+      },
+      "rdapUrl": {
+        "type": "string",
+        "description": "Registration record (watch)."
+      },
+      "findings": {
+        "type": "array",
+        "description": "Check results (background, copycat).",
+        "items": {
+          "type": "object",
+          "required": [
+            "label",
+            "state",
+            "evidence"
+          ],
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "state": {
+              "type": "string",
+              "enum": [
+                "pass",
+                "flag",
+                "info"
+              ]
+            },
+            "evidence": {
+              "type": "string"
+            },
+            "sourceUrl": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "suggestedPhone": {
+        "type": "string",
+        "description": "A phone number found on the supplier site (background). Confirm before trusting."
+      }
+    }
+  },
   "views": {
     "lookalikes": {
       "title": "Look-alike domains (watch)",
       "transformation": {
-        "fields": ["domain", "imitates", "technique", "registeredDaysAgo", "receivesEmail", "rdapUrl"]
+        "fields": [
+          "domain",
+          "imitates",
+          "technique",
+          "registeredDaysAgo",
+          "receivesEmail",
+          "rdapUrl"
+        ]
       },
       "display": {
         "component": "table",
         "properties": {
-          "domain": { "label": "Look-alike", "format": "text" },
-          "imitates": { "label": "Imitates", "format": "text" },
-          "technique": { "label": "How it was made", "format": "text" },
-          "registeredDaysAgo": { "label": "Registered (days ago)", "format": "number" },
-          "receivesEmail": { "label": "Set up for email", "format": "boolean" },
-          "rdapUrl": { "label": "Registration record", "format": "link" }
+          "domain": {
+            "label": "Look-alike",
+            "format": "text"
+          },
+          "imitates": {
+            "label": "Imitates",
+            "format": "text"
+          },
+          "technique": {
+            "label": "How it was made",
+            "format": "text"
+          },
+          "registeredDaysAgo": {
+            "label": "Registered (days ago)",
+            "format": "number"
+          },
+          "receivesEmail": {
+            "label": "Set up for email",
+            "format": "boolean"
+          },
+          "rdapUrl": {
+            "label": "Registration record",
+            "format": "link"
+          }
         }
       }
     },
     "checks": {
       "title": "Checks (background, copycat)",
-      "transformation": { "fields": ["findings", "suggestedPhone"] },
+      "transformation": {
+        "fields": [
+          "findings",
+          "suggestedPhone"
+        ]
+      },
       "display": {
         "component": "table",
         "properties": {
-          "findings": { "label": "Findings", "format": "array" },
-          "suggestedPhone": { "label": "Phone found on the site", "format": "text" }
+          "findings": {
+            "label": "Findings",
+            "format": "array"
+          },
+          "suggestedPhone": {
+            "label": "Phone found on the site",
+            "format": "text"
+          }
         }
       }
     }

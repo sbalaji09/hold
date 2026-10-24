@@ -1,0 +1,16 @@
+{
+  "actorOutputSchemaVersion": 1,
+  "title": "Supplier Verifier output",
+  "properties": {
+    "lookalikes": {
+      "type": "string",
+      "title": "Look-alike domains (watch mode)",
+      "template": "{{links.apiDefaultDatasetUrl}}/items?view=lookalikes"
+    },
+    "checks": {
+      "type": "string",
+      "title": "Check findings (background and copycat modes)",
+      "template": "{{links.apiDefaultDatasetUrl}}/items?view=checks"
+    }
+  }
+}
