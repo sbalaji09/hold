@@ -81,6 +81,14 @@ export async function getSupplierRecords(ctx: QueryCtx, supplier_id: string): Pr
     .collect();
   const planted = new Set(bills.filter((b) => b.planted).map((b) => b.key));
   const realBills = bills.filter((b) => !b.planted);
+  // ponytail: emails has no supplier index, so this scans ~150 rows. Add an index on fromDomain if it grows.
+  const allEmails = await ctx.db.query("emails").collect();
+  const subjectByKey = new Map(allEmails.map((e) => [e.key, e.subject]));
+  /** "Invoice #4471 — main-stage truss" -> " for main-stage truss". */
+  const scopeOf = (emailKey: string) => {
+    const scope = subjectByKey.get(emailKey)?.split(/\s[—–-]\s/)[1]?.trim();
+    return scope ? ` for ${scope}` : "";
+  };
   const out: SupplierRecord[] = [];
 
   for (const b of realBills) {
@@ -91,7 +99,8 @@ export async function getSupplierRecords(ctx: QueryCtx, supplier_id: string): Pr
       ref: `#${b.invoiceNo}`,
       date: isoDay(b.receivedAt),
       amount_cents: b.amountCents,
-      text: `${supplier.name} ${monthYear(b.receivedAt)} invoice #${b.invoiceNo}, received ${isoDay(b.receivedAt)}, due ${b.dueDate}. Total ${usd(b.amountCents)}. Status ${b.status}.`,
+      // Distinctive parts first (month, number, scope, total): embeddings weigh the opening most.
+      text: `${monthYear(b.receivedAt)} invoice #${b.invoiceNo}${scopeOf(b.emailKey)}. Total ${usd(b.amountCents)}. From ${supplier.name}, received ${isoDay(b.receivedAt)}, due ${b.dueDate}, status ${b.status}.`,
     });
     const payments = await ctx.db
       .query("payments")
@@ -110,8 +119,7 @@ export async function getSupplierRecords(ctx: QueryCtx, supplier_id: string): Pr
     }
   }
 
-  // ponytail: emails has no supplier index, so this scans ~150 rows. Add an index on fromDomain if it grows.
-  const emails = (await ctx.db.query("emails").collect()).filter(
+  const emails = allEmails.filter(
     (e) => e.direction === "in" && e.fromDomain === supplier.domain && !(e.billKey && planted.has(e.billKey)),
   );
   for (const e of emails) {
