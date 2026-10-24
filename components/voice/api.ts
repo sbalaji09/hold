@@ -55,3 +55,29 @@ export const useRequestTakeover: () => (callId: string) => Promise<unknown> = MO
       const takeover = useMutation(api.voice.ui.requestTakeover);
       return (callId) => takeover({ call_id: callId });
     };
+
+export type CallVerdict = "scam" | "not_scam";
+
+/** Playbook technique key to its name, so a flagged call can name the tactics it matched. */
+export const useTacticNames: () => Record<string, string> | undefined = MOCK
+  ? () => mock.MOCK_TACTIC_NAMES
+  : () => {
+      const data = useQuery(api.app.techniques.list, {});
+      return data && Object.fromEntries(data.techniques.map((t) => [t.key, t.name]));
+    };
+
+/** The supplier a caller claimed to be, by name; null when unknown or not claimed. */
+export const useSupplierName: (supplierId: string | undefined) => string | null | undefined = MOCK
+  ? (supplierId) => (supplierId ? "Stagecraft Rigging Co." : null)
+  : (supplierId) => {
+      const s = useQuery(api.app.queries.getSupplier, supplierId ? { key: supplierId } : "skip");
+      return supplierId ? (s === undefined ? undefined : (s?.name ?? null)) : null;
+    };
+
+/** Report a missed scam call, or clear a flagged one. `key` is null when hold is already learning from it. */
+export const useReportCall: () => (callId: string, verdict: CallVerdict, actor: "maya" | "dev") => Promise<{ key: string | null }> = MOCK
+  ? () => async () => ({ key: "impr_mock" })
+  : () => {
+      const report = useMutation(api.app.techniques.reportCall);
+      return (callId, verdict, actor) => report({ callId, verdict, actor });
+    };

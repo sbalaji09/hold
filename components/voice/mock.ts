@@ -235,6 +235,18 @@ export function useMockPhoneLine(scenario: Scenario): PhoneLine | undefined {
     asked_bank_change: t >= 6,
     transcript: inboundLines(t).map(({ at, ...line }) => ({ ...line, ts: at })),
     ...(ended ? { triggered_call_id: MOCK_CALL_ID, endedAt: iso(T0 + INBOUND_ENDS_AT * 1000) } : {}),
+    // The playbook verdict lands a few seconds after the call ends.
+    ...(t >= INBOUND_ENDS_AT + 4
+      ? {
+          fraud: {
+            state: "flag" as const,
+            evidence: "The caller asked to change where Fogline pays before Friday's run and pushed to skip the callback.",
+            quote: "Change Stagecraft's bank account before Friday",
+            techniqueKeys: ["tech_mock_bank_change"],
+            assessedAt: iso(T0 + (INBOUND_ENDS_AT + 4) * 1000),
+          },
+        }
+      : {}),
     receivedAt: iso(T0),
   };
   const older: InboundCallDoc = {
@@ -249,6 +261,7 @@ export function useMockPhoneLine(scenario: Scenario): PhoneLine | undefined {
       { speaker: "callback", text: "It did, NP-0611 for $25,000.00. It's waiting on Dev's approval because it's over our limit.", ts: 7 },
     ],
     receivedAt: iso(T0 - 26 * 3600_000),
+    fraud: { state: "pass", evidence: "Doesn't match any of the 6 phone tactics.", techniqueKeys: [], assessedAt: iso(T0 - 26 * 3600_000 + 20_000) },
   };
   return {
     number: "+14155550100",
@@ -256,6 +269,8 @@ export function useMockPhoneLine(scenario: Scenario): PhoneLine | undefined {
     past: ended ? [inbound, older] : [older],
   };
 }
+
+export const MOCK_TACTIC_NAMES: Record<string, string> = { tech_mock_bank_change: "Supplier asks to change bank details by phone" };
 
 let recordingUrl: string | null = null;
 

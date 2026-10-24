@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
-import { Line, StatusMark } from "@/components/callback";
+import { ConvexError } from "convex/values";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Button, CheckRow, Line, StatusMark } from "@/components/callback";
 import { CALLBACK_PROMISE } from "@/shared/contract";
-import { usePhoneLine, type InboundCallDoc } from "./api";
+import { PERSON_NAME } from "@/lib/playbook";
+import { usePhoneLine, useReportCall, useSupplierName, useTacticNames, type CallVerdict, type InboundCallDoc } from "./api";
 import { AGENT, formatElapsed, formatPhone, formatWhen, parseTime, type TranscriptRow } from "./format";
 import { liveCallPath, useNow } from "./LiveCall";
 import { Transcript } from "./Transcript";
@@ -17,8 +19,23 @@ function who(call: InboundCallDoc): string {
   return call.claimed_identity ? `Says ${call.claimed_identity}` : "Unknown caller";
 }
 
-/** The Phone line screen for `/phone`: Fogline's number, live incoming calls, past calls. */
-export function PhoneLineScreen() {
+type Actor = "maya" | "dev";
+
+/** How long after a call ends hold is still expected to be screening it. */
+const SCREENING_MS = 3 * 60_000;
+
+type Screen = "flag" | "pass" | "screening" | "silent" | "unscreened";
+
+/** Where a past call stands against the playbook. */
+function screenState(call: InboundCallDoc, now: number): Screen {
+  if (call.fraud) return call.fraud.state;
+  if (!call.transcript.some((t) => t.speaker === "caller")) return "silent";
+  const ended = parseTime(call.endedAt) ?? parseTime(call.receivedAt) ?? call._creationTime;
+  return now - ended < SCREENING_MS ? "screening" : "unscreened";
+}
+
+/** The Phone line screen for `/phone`: Fogline's number, live incoming calls, past calls. `callId` opens that call. */
+export function PhoneLineScreen({ actor = "maya", callId }: { actor?: Actor; callId?: string }) {
   const line = usePhoneLine();
 
   if (line === undefined) {
@@ -55,7 +72,7 @@ export function PhoneLineScreen() {
       ))}
 
       <div className="hv-phone">
-        <PastCalls calls={line.past} number={number} />
+        <PastCalls calls={line.past} number={number} actor={actor} callId={callId} />
         <section className="cb-doc hv-pad hv-rule">
           <div className="cb-caps">Rule</div>
           <p className="hv-statement">
@@ -86,10 +103,18 @@ function ActiveCall({ call }: { call: InboundCallDoc }) {
   );
 }
 
-function PastCalls({ calls, number }: { calls: InboundCallDoc[]; number: string | null }) {
-  const [openId, setOpenId] = useState<string | null>(null);
-  const now = Date.now();
-  const open = calls.find((c) => c._id === openId) ?? calls[0];
+function PastCalls({ calls, number, actor, callId }: { calls: InboundCallDoc[]; number: string | null; actor: Actor; callId?: string }) {
+  // The open call is tracked by call_id so links from the Activity log (/phone?call=in_...) land on it.
+  const [openId, setOpenId] = useState<string | null>(callId ?? null);
+  // Ticks so a just-ended call moves from "Screening" to its verdict (or to unscreened) without a reload.
+  const now = useNow(calls.some((c) => screenState(c, Date.now()) === "screening"));
+  const open = calls.find((c) => c.call_id === openId) ?? calls[0];
+  const detailRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (callId && calls.some((c) => c.call_id === callId)) detailRef.current?.scrollIntoView({ block: "start" });
+    // Only on arrival from a link, not on every live update.
+  }, [callId]);
 
   if (!open) {
     return (
@@ -115,7 +140,7 @@ function PastCalls({ calls, number }: { calls: InboundCallDoc[]; number: string 
             type="button"
             className={`hv-row${call._id === open._id ? " on" : ""}`}
             aria-pressed={call._id === open._id}
-            onClick={() => setOpenId(call._id)}
+            onClick={() => setOpenId(call.call_id)}
           >
             <div className="hv-row-text">
               <div className="hv-strong">{who(call)}</div>
@@ -123,12 +148,12 @@ function PastCalls({ calls, number }: { calls: InboundCallDoc[]; number: string 
                 {formatPhone(call.caller_number)} · {formatWhen(parseTime(call.receivedAt) ?? call._creationTime, now)}
               </div>
             </div>
-            {call.triggered_call_id ? <StatusMark status="held">Called back on file</StatusMark> : <StatusMark status="paid">Answered</StatusMark>}
+            <RowMark call={call} screen={screenState(call, now)} />
           </button>
         ))}
       </section>
 
-      <section className="cb-doc hv-detail" aria-label="Call transcript">
+      <section ref={detailRef} className="cb-doc hv-detail" aria-label="Call transcript">
         <div className="cb-doc-head">
           <span>{who(open)}</span>
           <small>{formatPhone(open.caller_number)}</small>
@@ -140,17 +165,168 @@ function PastCalls({ calls, number }: { calls: InboundCallDoc[]; number: string 
           </div>
           <div>
             <div className="cb-caps">Follow-up</div>
-            {open.triggered_call_id ? (
-              <p>
-                <Link href={liveCallPath(open.triggered_call_id)}>Open the check call</Link>
-              </p>
-            ) : (
-              <p className="hv-small">None needed.</p>
-            )}
+            {open.triggered_call_id ? <CheckCall call={open} /> : <p className="hv-small">None needed.</p>}
           </div>
         </div>
+        <Verdict key={`verdict-${open._id}`} call={open} screen={screenState(open, now)} actor={actor} />
         <Transcript key={open._id} rows={rows(open)} otherName="Caller" live={false} empty="No transcript was saved for this call." />
       </section>
+    </div>
+  );
+}
+
+function RowMark({ call, screen }: { call: InboundCallDoc; screen: Screen }) {
+  if (screen === "flag") return <StatusMark status="held">Flagged</StatusMark>;
+  if (screen === "screening") return <StatusMark status="checking">Screening</StatusMark>;
+  if (call.triggered_call_id) return <StatusMark status="held">Called back on file</StatusMark>;
+  return <StatusMark status="paid">Answered</StatusMark>;
+}
+
+/** The outgoing check call hold booked to the supplier's number on file. */
+function CheckCall({ call }: { call: InboundCallDoc }) {
+  const supplier = useSupplierName(call.claimed_supplier_id);
+  return (
+    <>
+      <p className="hv-followup">
+        {AGENT} is calling {supplier ?? "the supplier"} back on the number on file.
+      </p>
+      <p>
+        <Link href={liveCallPath(call.triggered_call_id!)}>Open the check call</Link>
+      </p>
+    </>
+  );
+}
+
+/** hold's playbook verdict on a past call, and the person's say on it. */
+function Verdict({ call, screen, actor }: { call: InboundCallDoc; screen: Screen; actor: Actor }) {
+  const tactics = useTacticNames();
+  const fraud = call.fraud;
+  let body: ReactNode;
+  if (screen === "screening") {
+    body = (
+      <p className="hv-statement hv-graphite" role="status">
+        <span className="cb-dots">Screening against the playbook</span>
+      </p>
+    );
+  } else if (fraud) {
+    const named = fraud.techniqueKeys.flatMap((k) => (tactics?.[k] ? [tactics[k]] : []));
+    body = (
+      <div role="list" className="hv-check">
+        <CheckRow
+          result={fraud.state === "flag" ? "fail" : "pass"}
+          title={fraud.state === "flag" ? (named.length ? `Flagged: ${named.join("; ")}` : "Flagged as a suspicious call") : "Screened against the playbook"}
+          evidence={fraud.evidence}
+          quote={fraud.quote}
+        />
+      </div>
+    );
+  } else {
+    body = (
+      <p className="hv-small">
+        {screen === "silent" ? "The caller didn't speak, so there was nothing to screen." : "This call wasn't screened against the playbook."}
+      </p>
+    );
+  }
+  return (
+    <div className="hv-pad hv-verdict" aria-label="Playbook check" role="group">
+      <div className="cb-caps">Playbook</div>
+      {body}
+      {screen === "screening" ? null : <Report call={call} flagged={screen === "flag"} actor={actor} />}
+    </div>
+  );
+}
+
+const REPORT: Record<CallVerdict, { button: string; confirm: string; explain: string; sending: string }> = {
+  scam: {
+    button: "Report scam call",
+    confirm: "Report it",
+    sending: "Reporting",
+    explain: `${AGENT} adds this call to the phone Practice set as a scam, works out what it missed, and replays the fix before it goes live.`,
+  },
+  not_scam: {
+    button: "Not a scam",
+    confirm: "Clear it",
+    sending: "Clearing",
+    explain: `${AGENT} adds this call to the phone Practice set as an ordinary call and learns not to flag calls like it. The check call still goes ahead.`,
+  },
+};
+
+function Report({ call, flagged, actor }: { call: InboundCallDoc; flagged: boolean; actor: Actor }) {
+  const report = useReportCall();
+  const verdict: CallVerdict = flagged ? "not_scam" : "scam";
+  const words = REPORT[verdict];
+  const [step, setStep] = useState<"idle" | "confirm" | "sending">("idle");
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState<string | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  if (done) {
+    return (
+      <p className="hv-small" role="status">
+        {done} <Link href="/practice#learned">See Practice</Link>
+      </p>
+    );
+  }
+
+  if (!call.transcript.some((t) => t.speaker === "caller")) {
+    return (
+      <div className="hv-report">
+        <Button size="sm" locked="The caller never spoke, so there is nothing for hold to learn from.">
+          {words.button}
+        </Button>
+      </div>
+    );
+  }
+
+  const cancel = () => {
+    setStep("idle");
+    requestAnimationFrame(() => triggerRef.current?.focus());
+  };
+
+  const confirm = async () => {
+    setStep("sending");
+    setError(null);
+    try {
+      const r = await report(call.call_id, verdict, actor);
+      setDone(
+        r.key
+          ? `${AGENT} is learning from this call. It's in the phone Practice set now.`
+          : `${AGENT} is already learning from this call. It's in the phone Practice set.`,
+      );
+    } catch (err) {
+      setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : "Couldn't send that just now. Try again.");
+      setStep("confirm");
+    }
+  };
+
+  if (step === "idle") {
+    return (
+      <div className="hv-report">
+        <Button ref={triggerRef} size="sm" onClick={() => setStep("confirm")}>
+          {words.button}
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="hv-report hv-confirm" role="group" aria-label={words.button} onKeyDown={(e) => e.key === "Escape" && cancel()}>
+      <p className="hv-small">
+        {words.explain} As <span className="hv-person">{PERSON_NAME[actor]}</span>.
+      </p>
+      {error && (
+        <p className="hv-error" role="alert">
+          {error}
+        </p>
+      )}
+      <div className="hv-confirm-buttons">
+        <Button size="sm" variant="primary" onClick={confirm} disabled={step === "sending"} autoFocus>
+          {step === "sending" ? `${words.sending}…` : words.confirm}
+        </Button>
+        <Button size="sm" onClick={cancel} disabled={step === "sending"}>
+          Cancel
+        </Button>
+      </div>
     </div>
   );
 }

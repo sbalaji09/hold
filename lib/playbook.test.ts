@@ -1,8 +1,8 @@
 // The plain words the Practice screen shows for a playbook change and where a technique came from.
 import { describe, expect, test } from "vitest";
-import { countWord, progressLine, techniqueSource, triggerBy, triggerTitle, type FraudTechnique, type Improvement } from "./playbook";
+import { channelLabel, countWord, progressLine, recordLink, techniqueSource, triggerBy, triggerTitle, type FraudTechnique, type Improvement } from "./playbook";
 
-const names = { bill_1: "INV-4502 · Stagecraft Rigging Co." };
+const names = { bill_1: "INV-4502 · Stagecraft Rigging Co.", in_CA1: "(628) 555-0199", pcall_1: "Bank fraud team asks for a code" };
 
 function impr(over: Partial<Improvement>): Improvement {
   return {
@@ -26,6 +26,18 @@ describe("playbook words", () => {
     expect(triggerTitle({ kind: "false_alarm", billKey: "gone", text: "", by: "callback" }, names)).toBe("False alarm on a bill");
   });
 
+  test("a change that came from a call", () => {
+    const reported = { kind: "missed_scam" as const, channel: "phone" as const, callId: "in_CA1", text: "Caller: hi", by: "maya" as const };
+    expect(triggerTitle(reported, names)).toBe("Scam call from (628) 555-0199");
+    expect(triggerTitle({ ...reported, kind: "false_alarm", callId: "in_gone" }, names)).toBe("Call wrongly flagged to the phone line");
+    const practice = { ...reported, kind: "false_alarm" as const, callId: "pcall_1", by: "callback" as const };
+    expect(triggerTitle(practice, names)).toBe("Practice call judged wrong: Bank fraud team asks for a code");
+    expect(triggerBy(practice)).toEqual({ person: null, text: "Found in a Practice run" });
+    expect(recordLink("pcall_1")).toEqual({ href: "#pcall_1", label: "The Practice call" });
+    expect(channelLabel(undefined)).toBe("Email");
+    expect(channelLabel("both")).toBe("Email and phone");
+  });
+
   test("progress only while hold is working, with the case count once known", () => {
     expect(progressLine(impr({ status: "promoted" }))).toBeNull();
     expect(progressLine(impr({ status: "replaying" }))).toBe("Learning… replaying past cases");
@@ -35,13 +47,21 @@ describe("playbook words", () => {
 
   test("a technique's source", () => {
     const t = { key: "t", sourceKind: "taught", improvementKey: "impr_1", status: "active" } as FraudTechnique;
-    expect(techniqueSource(t, [impr({ trigger: { kind: "taught", text: "", by: "dev" } })], names)).toEqual({ text: "Taught by", person: "Dev Okafor", billKey: null });
+    expect(techniqueSource(t, [impr({ trigger: { kind: "taught", text: "", by: "dev" } })], names)).toEqual({ text: "Taught by", person: "Dev Okafor", link: null });
     expect(techniqueSource({ ...t, sourceKind: "seed" }, [], names).text).toBe("Starting playbook");
     expect(techniqueSource({ ...t, sourceKind: "missed_scam", sourceRef: "bill_1" }, [], names)).toEqual({
       text: "Learned from a missed scam on INV-4502 · Stagecraft Rigging Co.",
       person: null,
-      billKey: "bill_1",
+      link: { href: "/bills/bill_1", label: "Open the bill" },
     });
+    expect(techniqueSource({ ...t, sourceKind: "missed_scam", sourceRef: "in_CA1" }, [], names)).toEqual({
+      text: "Learned from a scam call from (628) 555-0199",
+      person: null,
+      link: { href: "/phone?call=in_CA1", label: "Open the call" },
+    });
+    expect(techniqueSource({ ...t, sourceKind: "false_alarm", sourceRef: "pcall_1" }, [], names).text).toBe(
+      "Learned from the Practice call \u201cBank fraud team asks for a code\u201d",
+    );
     expect(countWord(0)).toBe("No");
     expect(countWord(14)).toBe("14");
   });

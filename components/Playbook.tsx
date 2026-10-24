@@ -8,11 +8,14 @@ import { makeFunctionReference } from "convex/server";
 import { api } from "@/convex/_generated/api";
 import { Button, Cite, StatusMark } from "@/components/callback";
 import { G } from "@/components/callback/glyphs";
+import { formatPhone } from "@/components/voice/format";
 import {
   IMPROVEMENT_MARK,
   PERSON_NAME,
+  channelLabel,
   countWord,
   progressLine,
+  recordLink,
   shortDate,
   techniqueSource,
   triggerBy,
@@ -31,16 +34,59 @@ export function errorText(err: unknown, fallback: string): string {
   return fallback;
 }
 
-/** Bill key to the name a person knows it by: the invoice for real bills, the kind for Practice scams. */
-function useBillNames(): Record<string, string> {
+/**
+ * Bill key, call id or Practice call key to the name a person knows it by: the invoice for real
+ * bills, the kind for Practice scams and calls, the caller's number for calls to the phone line.
+ */
+function useRecordNames(practiceCalls: Array<{ key: string; kind: string }>): Record<string, string> {
   const bills = useQuery(api.app.queries.listBills, {});
   const practice = useQuery(practiceListRef, {});
+  const line = useQuery(api.voice.ui.phoneLine, {});
   return React.useMemo(() => {
     const names: Record<string, string> = {};
     for (const p of practice ?? []) names[p.billKey] = `the Practice scam “${p.kind}”`;
     for (const b of bills ?? []) names[b.key] = `INV-${b.invoiceNo} · ${b.supplier.name}`;
+    for (const c of line?.past ?? []) names[c.call_id] = formatPhone(c.caller_number);
+    for (const c of practiceCalls) names[c.key] = c.kind;
     return names;
-  }, [bills, practice]);
+  }, [bills, practice, line, practiceCalls]);
+}
+
+/**
+ * A call transcript as the backend stores it for learning: "Caller: ..." and "hold: ..." lines.
+ * The caller's words are quoted (signatory serif); hold's are its own (mono). Long calls show
+ * their first `clamp` lines until opened.
+ */
+export function CallScript({ text, clamp }: { text: string; clamp?: number }): React.ReactElement {
+  const [all, setAll] = React.useState(false);
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((l) => {
+      const m = /^(Caller|hold):\s*(.*)$/.exec(l);
+      return m ? { who: m[1], said: m[2] } : { who: "", said: l };
+    });
+  const shown = clamp && !all ? lines.slice(0, clamp) : lines;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <dl className="m-0 flex flex-col gap-1.5">
+        {shown.map((l, i) => (
+          <div key={i} className="grid grid-cols-[52px_minmax(0,1fr)] gap-x-3">
+            <dt className="cb-caps pt-[3px]">{l.who}</dt>
+            <dd className={l.who === "hold" ? "m-0 font-mono text-[12.5px]/[20px] text-ink" : "m-0 font-serif text-[15px]/[21px] italic text-signatory"}>
+              {l.who === "Caller" ? <>&ldquo;{l.said}&rdquo;</> : l.said}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      {clamp && lines.length > clamp ? (
+        <button type="button" className="cb-ask self-start text-[12.5px]" aria-expanded={all} onClick={() => setAll((a) => !a)}>
+          {all ? "Show less" : `Show the whole call (${lines.length} lines)`}
+        </button>
+      ) : null}
+    </div>
+  );
 }
 
 function Mark({ status }: { status: Improvement["status"] }): React.ReactElement {
@@ -239,6 +285,7 @@ function ImprovementRow({ impr, actor, names }: { impr: Improvement; actor: Acto
   const by = triggerBy(impr.trigger);
   const p = impr.proposal;
   const progress = progressLine(impr);
+  const link = recordLink(impr.trigger.billKey ?? impr.trigger.callId);
   return (
     <article id={impr.key} className="scroll-mt-4 border-t border-line px-4 py-4 first:border-0" aria-label={triggerTitle(impr.trigger, names)}>
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
@@ -252,7 +299,7 @@ function ImprovementRow({ impr, actor, names }: { impr: Improvement; actor: Acto
               <span aria-hidden>&middot; </span>
               {shortDate(impr.createdAt)}
             </span>
-            {impr.trigger.billKey ? <Cite href={`/bills/${encodeURIComponent(impr.trigger.billKey)}`}>Open the bill</Cite> : null}
+            {link ? <Cite href={link.href}>{link.label}</Cite> : null}
           </p>
         </div>
         <Mark status={impr.status} />
@@ -260,6 +307,12 @@ function ImprovementRow({ impr, actor, names }: { impr: Improvement; actor: Acto
 
       {impr.trigger.kind === "taught" && impr.trigger.by !== "callback" ? (
         <p className="mt-2 line-clamp-3 font-serif text-[15px]/[22px] italic text-signatory">&ldquo;{impr.trigger.text}&rdquo;</p>
+      ) : null}
+
+      {impr.trigger.callId ? (
+        <div className="mt-3">
+          <CallScript text={impr.trigger.text} clamp={4} />
+        </div>
       ) : null}
 
       {progress ? (
@@ -270,7 +323,9 @@ function ImprovementRow({ impr, actor, names }: { impr: Improvement; actor: Acto
 
       {p ? (
         <div className="mt-3 rounded-sm bg-surface-sunk px-3 py-2.5">
-          <div className="cb-caps">{p.action === "refine" ? "Proposed refinement" : "Proposed technique"}</div>
+          <div className="cb-caps">
+            {p.action === "refine" ? "Proposed refinement" : "Proposed technique"} &middot; {channelLabel(p.channel)}
+          </div>
           <p className="mt-1 text-[14px] font-semibold text-ink">{p.name}</p>
           <p className="mt-1 text-[13px]/[20px] text-ink">{p.howItWorks}</p>
           <Signals signals={p.signals} />
@@ -323,7 +378,7 @@ function Revert({ t, actor }: { t: FraudTechnique; actor: Actor }): React.ReactE
   return (
     <div className="flex flex-col items-end gap-1.5" onKeyDown={(e) => e.key === "Escape" && setConfirming(false)}>
       <p className="max-w-[260px] text-right text-[12px]/[17px] text-ink-muted">
-        hold stops using it on new bills{t.supersedes ? " and goes back to the version it replaced" : ""}.
+        hold stops using it on new {t.channel === "phone" ? "calls" : t.channel === "both" ? "bills and calls" : "bills"}{t.supersedes ? " and goes back to the version it replaced" : ""}.
       </p>
       <div className="flex gap-2">
         <Button size="sm" onClick={() => setConfirming(false)} disabled={pending}>
@@ -358,6 +413,7 @@ function TechniqueRow({
     <article id={t.key} className="grid scroll-mt-4 grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-[minmax(0,1fr)_auto] border-t border-line px-4 py-3.5 first:border-0" aria-label={t.name}>
       <div className="min-w-0">
         <h3 className="pt-strong text-ink">{t.name}</h3>
+        <p className="cb-caps mt-0.5">{channelLabel(t.channel)}</p>
         <p className="mt-1 text-[13px]/[20px] text-ink">{t.howItWorks}</p>
         <Signals signals={t.signals} />
         <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-ink-muted">
@@ -368,7 +424,7 @@ function TechniqueRow({
             <span aria-hidden>&middot; </span>
             {shortDate(t.createdAt)}
           </span>
-          {src.billKey ? <Cite href={`/bills/${encodeURIComponent(src.billKey)}`}>Open the bill</Cite> : null}
+          {src.link ? <Cite href={src.link.href}>{src.link.label}</Cite> : null}
           {t.improvementKey ? <Cite href={`#${t.improvementKey}`}>The change</Cite> : null}
         </p>
       </div>
@@ -383,9 +439,28 @@ function TechniqueRow({
 
 // ---------- the section ----------
 
+type ChannelFilter = "all" | "email" | "phone";
+
+const FILTERS: Array<{ value: ChannelFilter; label: string }> = [
+  { value: "all", label: "All" },
+  { value: "email", label: "Email" },
+  { value: "phone", label: "Phone" },
+];
+
+/** A "both" technique belongs under Email and under Phone. */
+function onChannel(t: FraudTechnique, f: ChannelFilter): boolean {
+  if (f === "all" || t.channel === "both") return true;
+  return f === "phone" ? t.channel === "phone" : t.channel !== "phone";
+}
+
+function techniqueCount(n: number, what: string): string {
+  return `${n === 1 ? "one" : countWord(n).toLowerCase()} ${what}${n === 1 ? "" : "s"}`;
+}
+
 function Learned({ actor }: { actor: Actor }): React.ReactElement {
   const data = useQuery(api.app.techniques.list, {});
-  const names = useBillNames();
+  const names = useRecordNames(data?.practiceCalls ?? NO_CALLS);
+  const [filter, setFilter] = React.useState<ChannelFilter>("all");
 
   if (data === undefined) {
     return (
@@ -398,13 +473,16 @@ function Learned({ actor }: { actor: Actor }): React.ReactElement {
   const { techniques, improvements } = data;
   const active = techniques.filter((t) => t.status === "active");
   const retired = techniques.filter((t) => t.status === "retired");
+  const email = active.filter((t) => onChannel(t, "email")).length;
+  const phone = active.filter((t) => onChannel(t, "phone")).length;
   const learned = active.filter((t) => t.sourceKind !== "seed").length;
   const working = improvements.filter((i) => i.status === "proposing" || i.status === "replaying").length;
   const waiting = improvements.filter((i) => i.status === "needs_approval").length;
+  const shown = active.filter((t) => onChannel(t, filter));
 
   const sentence =
-    `hold checks every incoming bill against ${active.length === 1 ? "one technique" : `${countWord(active.length).toLowerCase()} techniques`}` +
-    (learned ? `, ${countWord(learned).toLowerCase()} of them learned here.` : ", all from the starting playbook.") +
+    `hold checks every incoming bill against ${techniqueCount(email, "email technique")} and every call to the phone line against ${techniqueCount(phone, "phone tactic")}` +
+    (learned ? `. ${countWord(learned)} of them ${learned === 1 ? "was" : "were"} learned here.` : ", all from the starting playbook.") +
     (working ? ` ${countWord(working)} ${working === 1 ? "change is" : "changes are"} replaying now.` : "") +
     (waiting ? ` ${countWord(waiting)} ${waiting === 1 ? "waits" : "wait"} for Dev.` : "");
 
@@ -421,7 +499,7 @@ function Learned({ actor }: { actor: Actor }): React.ReactElement {
         </div>
         {improvements.length === 0 ? (
           <p className="px-4 py-5 text-[13px] text-ink-muted">
-            Nothing yet. Run the Practice set above, report a scam hold missed from its bill page, or teach it a technique.
+            Nothing yet. Run the Practice set above, report a scam hold missed from its bill page or the Phone line, or teach it a technique.
           </p>
         ) : (
           <div>
@@ -440,11 +518,27 @@ function Learned({ actor }: { actor: Actor }): React.ReactElement {
         {active.length === 0 ? (
           <p className="px-4 py-5 text-[13px] text-ink-muted">The playbook is empty. Seed the workspace to load the starting playbook.</p>
         ) : (
-          <div>
-            {active.map((t) => (
-              <TechniqueRow key={t.key} t={t} actor={actor} improvements={improvements} names={names} />
-            ))}
-          </div>
+          <>
+            <div className="pt-filters border-b border-line px-4 py-3" role="group" aria-label="Show techniques for">
+              {FILTERS.map((f) => (
+                <button key={f.value} type="button" className={`pt-filter${filter === f.value ? " on" : ""}`} aria-pressed={filter === f.value} onClick={() => setFilter(f.value)}>
+                  {f.label}
+                  <span className="pt-count">{f.value === "all" ? active.length : f.value === "email" ? email : phone}</span>
+                </button>
+              ))}
+            </div>
+            {shown.length === 0 ? (
+              <p className="px-4 py-5 text-[13px] text-ink-muted">
+                No {filter === "phone" ? "phone tactics" : "email techniques"} yet. Teach hold one above, or seed the workspace.
+              </p>
+            ) : (
+              <div>
+                {shown.map((t) => (
+                  <TechniqueRow key={t.key} t={t} actor={actor} improvements={improvements} names={names} />
+                ))}
+              </div>
+            )}
+          </>
         )}
         {retired.length > 0 ? (
           <details className="border-t border-line">
@@ -462,6 +556,8 @@ function Learned({ actor }: { actor: Actor }): React.ReactElement {
     </>
   );
 }
+
+const NO_CALLS: Array<{ key: string; kind: string }> = [];
 
 class LoadBoundary extends React.Component<{ children: React.ReactNode }, { failed: boolean }> {
   state = { failed: false };
