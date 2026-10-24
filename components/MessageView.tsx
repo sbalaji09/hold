@@ -39,14 +39,14 @@ function useBillFor(emailKey: string, look: boolean) {
 }
 
 function View({ emailKey, actor }: { emailKey: string; actor: Actor }): React.ReactElement {
-  const data = useQuery(api.app.triage.messages, {});
+  const data = useQuery(api.app.triage.getMessage, { emailKey });
   const activity = useQuery(api.app.queries.listActivity, {});
   const resolve = useMutation(api.app.triage.resolveMessage);
   const correct = useMutation(api.app.triage.correctMessage);
   const [doneError, setDoneError] = React.useState<string | null>(null);
   const [marking, setMarking] = React.useState(false);
 
-  const m = data ? [...data.open, ...data.done, ...data.filed].find((e) => e.key === emailKey) : undefined;
+  const m = data ?? undefined;
   const t = m?.triage;
   // Not a message (any more): it may have become a bill.
   const bill = useBillFor(emailKey, data !== undefined && (!m || t?.correctedRoute === "bill"));
@@ -75,7 +75,7 @@ function View({ emailKey, actor }: { emailKey: string; actor: Actor }): React.Re
             </>
           ) : (
             <>
-              <p className="font-mono text-[13px]/[20px] text-ink">hold has no message here. It may be older than the last 30 done or filed.</p>
+              <p className="font-mono text-[13px]/[20px] text-ink">hold has no message with this link.</p>
               <div className="flex flex-wrap gap-2">
                 <Link href="/" className="cb-btn cb-btn-secondary">Back to the Inbox</Link>
                 <Link href="/?status=filed" className="cb-btn cb-btn-secondary">Done and filed</Link>
@@ -91,7 +91,8 @@ function View({ emailKey, actor }: { emailKey: string; actor: Actor }): React.Re
   const mark = MESSAGE_MARK[t.status];
   const entries = (activity ?? []).filter((e) => e.refKind === "email" && e.refKey === emailKey); // newest first
   const timeline = [...entries].reverse();
-  const correctedBy = entries.find((e) => e.actor !== "callback" && e.what.startsWith("said this email is"))?.actor;
+  // Stored since triage recorded it; the Activity log covers corrections made before that.
+  const correctedBy = t.correctedBy ?? entries.find((e) => e.actor !== "callback" && e.what.startsWith("said this email is"))?.actor;
   const corrector = correctedBy === "maya" || correctedBy === "dev" ? correctedBy : null;
   const toBill = t.correctedRoute === "bill";
   const paragraphs = m.body.split(/\n+/).filter((l) => l.trim().length > 0);

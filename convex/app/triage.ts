@@ -58,7 +58,10 @@ export const messages = query({
   args: {},
   handler: async (ctx) => {
     // ponytail: scans emails; add an index on triage.status if the inbox grows past a few thousand.
-    const sorted = (await ctx.db.query("emails").order("desc").collect()).filter((e) => e.triage && !e.billKey);
+    // Messages, plus bills a person said aren't bills (held, with the email moved to messages).
+    const sorted = (await ctx.db.query("emails").order("desc").collect()).filter(
+      (e) => e.triage && (!e.billKey || (e.triage.correctedRoute !== undefined && e.triage.correctedRoute !== "bill")),
+    );
     const suppliers = new Map((await ctx.db.query("suppliers").collect()).map((s) => [s.key, s.name]));
     const withSupplier = (e: Doc<"emails">) => ({ ...e, supplierName: suppliers.get(e.triage?.supplierKey ?? "") ?? e.fromDomain });
     return {
@@ -66,6 +69,25 @@ export const messages = query({
       done: sorted.filter((e) => e.triage!.status === "done").slice(0, 30).map(withSupplier),
       filed: sorted.filter((e) => e.triage!.status === "filed").slice(0, 30).map(withSupplier),
     };
+  },
+});
+
+/** One message, however old. Null when the key isn't a sorted email. */
+export const getMessage = query({
+  args: { emailKey: v.string() },
+  handler: async (ctx, { emailKey }) => {
+    const email = await ctx.db
+      .query("emails")
+      .withIndex("by_key", (q) => q.eq("key", emailKey))
+      .unique();
+    if (!email?.triage) return null;
+    const supplier = email.triage.supplierKey
+      ? await ctx.db
+          .query("suppliers")
+          .withIndex("by_key", (q) => q.eq("key", email.triage!.supplierKey!))
+          .unique()
+      : null;
+    return { ...email, supplierName: supplier?.name ?? email.fromDomain };
   },
 });
 
@@ -116,7 +138,7 @@ export const correctMessage = mutation({
     if (!email.triage || email.billKey) throw new ConvexError("That email isn't a message.");
     if (email.triage.route === right && !email.triage.correctedRoute) throw new ConvexError(`hold already sent it there (${ROUTE_WORDS[right]}).`);
     await ctx.db.patch(email._id, {
-      triage: { ...email.triage, correctedRoute: right, status: right === "file" ? "filed" : right === "to_maya" ? "open" : "done" },
+      triage: { ...email.triage, correctedRoute: right, correctedBy: p, status: right === "file" ? "filed" : right === "to_maya" ? "open" : "done" },
     });
     if (right === "bill") await ctx.scheduler.runAfter(0, internal.app.intake.fileAsBill, { emailKey });
     const opened = await learnRoute(ctx, p, email, right, email.triage.kindName);
@@ -146,6 +168,7 @@ export const notABill = mutation({
         why: "Maya said this email isn't a bill.",
         status: right === "file" ? "filed" : "open",
         correctedRoute: right,
+        correctedBy: p,
       },
     });
     const opened = await learnRoute(ctx, p, email, right, "Not a bill");

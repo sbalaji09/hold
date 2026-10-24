@@ -168,5 +168,11 @@ describe("Maya's corrections teach triage through the same loop as fraud", () =>
     expect((await bills(t))[0]!.status).toBe("Held");
     const [impr] = await t.run((ctx) => ctx.db.query("improvements").collect());
     expect(impr).toMatchObject({ job: "triage", trigger: { kind: "corrected", expected: "to_maya", by: "dev" } });
+    // The email now waits in Maya's messages, and remembers who corrected it.
+    const inbox = await t.query(api.app.triage.messages, {});
+    expect(inbox.open.map((m) => m.subject)).toEqual(["Invoice 4105"]);
+    expect(inbox.open[0]!.triage).toMatchObject({ correctedRoute: "to_maya", correctedBy: "dev" });
+    expect(await t.query(api.app.triage.getMessage, { emailKey: bill!.emailKey })).toMatchObject({ subject: "Invoice 4105", supplierName: "Stagecraft Rigging Co." });
+    expect(await t.query(api.app.triage.getMessage, { emailKey: "email_4101" })).toBeNull(); // a plain bill email isn't a message
   });
 });

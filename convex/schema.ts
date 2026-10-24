@@ -126,6 +126,7 @@ export default defineSchema({
         quote: v.optional(v.string()),
         status: v.union(v.literal("open"), v.literal("done"), v.literal("filed")),
         correctedRoute: v.optional(v.union(v.literal("bill"), v.literal("to_maya"), v.literal("file"))),
+        correctedBy: v.optional(v.union(v.literal("maya"), v.literal("dev"))),
       }),
     ),
   })
