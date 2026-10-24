@@ -64,6 +64,10 @@ export class FakeSearch implements SupplierSearch {
   async index(supplier_id: string, records: SupplierRecord[]): Promise<void> {
     this.indexed.push({ supplier_id, records });
   }
+  /** What "Moss" holds: the records it was built with. */
+  async list(): Promise<SupplierRecord[]> {
+    return this.records;
+  }
 }
 
 // Hero supplier from data/fogline.json.

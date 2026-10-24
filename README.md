@@ -192,6 +192,10 @@ hold speaks for whichever company the workspace runs (`lib/company.ts`): the dis
 
 Moss is hold's memory of every supplier: one shared index (`fogline-suppliers`) of each supplier's invoices, payments, past calls, onboarding facts and emails, every query filtered to one supplier. Bank account numbers are never indexed. The voice server loads the index into memory at startup, so searches run locally with no network round trip.
 
+hold is the agent that knows each supplier the way a long-serving bookkeeper does: what they bill, how they write, how they get paid, what they said on the last call. That knowledge spans the company's inbox, its bank and its phone line, and it lives in Moss.
+
+**Memory that stays current.** The voice server subscribes to each supplier's history in Convex (`voice/src/memory.ts`). When an email or bill lands, a payment goes out or a check call finishes, that supplier is re-indexed a couple of seconds later, so the next call, lookup or writing-style check already knows about it. On startup it compares every supplier in Convex with what Moss holds and catches up any that fell behind, including suppliers onboarded since the last start. Each update logs `moss memory updated` with the record count and time. The index reloads in place after a write; queries keep running from the old copy meanwhile (measured: 4–11 ms during a 1.4 s reload), so a live call never waits on it.
+
 **Live, on every answer.** When the supplier answers a check-call question, hold searches their history with their own words while it says "thanks" (`answerLookup` in `voice/src/call/outbound.ts`). The records the answer sounds like go to two places, and never into anything said on the call:
 - hold's mid-call check: an answer that doesn't fit the record asked about, but clearly describes another real one (a supplier mixing up July's invoice with June's), counts as unsure, so it goes to the approver instead of failing.
 - The approver's prompt on the Live call screen, as "Sounds like: invoice #4134, 2026-06-26: …", so they can decide in seconds while the supplier holds.

@@ -59,6 +59,7 @@ export class MemoryStore implements VoiceStore {
   private readonly queuedWatchers = new Set<(r: CallRequest[]) => void>();
   private readonly takeoverWatchers = new Map<string, Set<() => void>>();
   private readonly answerWatchers = new Set<{ call_id: string; ask_id: string; cb: (a: PersonAnswerEvent) => void }>();
+  private readonly historyWatchers = new Set<(supplier_id: string, records: SupplierRecord[]) => void>();
   private readonly timers = new Set<ReturnType<typeof setTimeout>>();
   private recordingSeq = 0;
 
@@ -143,6 +144,19 @@ export class MemoryStore implements VoiceStore {
     set.add(cb);
     if (this.requests.get(call_id)?.takeover_requested) cb();
     return () => set.delete(cb);
+  }
+
+  watchSupplierHistory(cb: (supplier_id: string, records: SupplierRecord[]) => void): () => void {
+    this.historyWatchers.add(cb);
+    for (const { supplier_id } of this.suppliers.values()) cb(supplier_id, this.records.filter((r) => r.supplier_id === supplier_id));
+    return () => this.historyWatchers.delete(cb);
+  }
+
+  /** Test helper: a new email, bill, payment or call lands in a supplier's history. */
+  addRecord(record: SupplierRecord): void {
+    this.records.push(record);
+    const theirs = this.records.filter((r) => r.supplier_id === record.supplier_id);
+    for (const cb of this.historyWatchers) cb(record.supplier_id, theirs);
   }
 
   watchPersonAnswer(call_id: string, ask_id: string, cb: (answer: PersonAnswerEvent) => void): () => void {

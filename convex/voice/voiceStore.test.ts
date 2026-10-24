@@ -66,6 +66,9 @@ function convexHarness(): Harness {
     watchTakeover: () => {
       throw new Error("not used");
     },
+    watchSupplierHistory: () => {
+      throw new Error("not used");
+    },
     claimRequest: (call_id) => t.mutation(fns.claimRequest, { secret: s, call_id }),
     getRequest: (call_id) => t.query(fns.getRequest, { secret: s, call_id }),
     setTwilioCallSid: (call_id, sid) => t.mutation(fns.setTwilioCallSid, { secret: s, call_id, sid }).then(() => undefined),

@@ -21,6 +21,8 @@ export interface SupplierSearch {
   ): Promise<SearchHit[]>;
   /** Replace this supplier's records in the index (other suppliers' records are untouched). */
   index(supplier_id: string, records: SupplierRecord[]): Promise<void>;
+  /** Every record in the index, to compare with Convex on startup. Optional: without it, the first snapshot is trusted. */
+  list?(): Promise<SupplierRecord[]>;
 }
 
 /** The one Moss index holding every supplier's history. */

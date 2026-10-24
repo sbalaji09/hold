@@ -10,6 +10,7 @@ import { AnthropicLLM, prepareOutboundCall, runInboundCall, runOutboundCall, Sim
 import { loadConfig, tuningFrom } from "./config.js";
 import { Dialer } from "./dialer.js";
 import { createVoiceServer } from "./server.js";
+import { keepMemoryCurrent } from "./memory.js";
 import { ConvexStore } from "./store/convexStore.js";
 
 const config = loadConfig();
@@ -95,7 +96,9 @@ async function start() {
     log.info("twilio number points here", { number: config.TWILIO_PHONE_NUMBER, voiceUrl, previous });
   }
   dialer.start();
+  stopMemory = keepMemoryCurrent(store, search);
 }
+let stopMemory = () => {};
 
 start().catch((err) => {
   // Without the tunnel or the webhook, every call would fail; say so and stop.
@@ -109,6 +112,7 @@ async function shutdown(signal: string) {
   shuttingDown = true;
   log.info("shutting down; letting live calls finish", { signal, calls: dialer.activeCalls });
   await dialer.stop();
+  stopMemory();
   server.close(); // stop accepting; open media sockets die with the process
   await tunnel?.close();
   await store.close();

@@ -1,7 +1,7 @@
 // VoiceStore over Convex (convex/voice/server.ts). Subscriptions use the websocket client;
 // every call passes VOICE_SERVER_SECRET, which Convex checks against its own env var.
 import { ConvexClient } from "convex/browser";
-import type { CallEvent, CallRequest, CallResult, InboundCallRecord, PersonAnswerEvent } from "../../../shared/contract.js";
+import type { CallEvent, CallRequest, CallResult, InboundCallRecord, PersonAnswerEvent, SupplierRecord } from "../../../shared/contract.js";
 import { api } from "../../../convex/_generated/api.js";
 import type { Id } from "../../../convex/_generated/dataModel.js";
 import type { VoiceStore } from "./types.js";
@@ -67,6 +67,31 @@ export class ConvexStore implements VoiceStore {
       },
       (err) => console.error(`[convexStore] personAnswer subscription failed for ${call_id}`, err),
     );
+  }
+
+  watchSupplierHistory(cb: (supplier_id: string, records: SupplierRecord[]) => void): () => void {
+    // ponytail: one subscription per supplier, each re-run on any email change; fine at ~25 payees.
+    const subs = new Map<string, () => void>();
+    const stopList = this.client.onUpdate(
+      fns.listSupplierProfiles,
+      { secret: this.secret },
+      (profiles) => {
+        for (const { supplier_id } of profiles) {
+          if (subs.has(supplier_id)) continue;
+          subs.set(
+            supplier_id,
+            this.client.onUpdate(fns.getSupplierRecords, { secret: this.secret, supplier_id }, (records) => cb(supplier_id, records), (err) =>
+              console.error(`[convexStore] history subscription failed for ${supplier_id}`, err),
+            ),
+          );
+        }
+      },
+      (err) => console.error("[convexStore] supplier list subscription failed", err),
+    );
+    return () => {
+      stopList();
+      for (const stop of subs.values()) stop();
+    };
   }
 
   async closeAsk(call_id: string, ask_id: string): Promise<PersonAnswerEvent | null> {

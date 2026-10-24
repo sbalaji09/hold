@@ -26,6 +26,8 @@ export interface VoiceStore {
   watchTakeover(call_id: string, cb: () => void): () => void;
   /** Fires once with the first person's reply to a mid-call question (ask_person event). */
   watchPersonAnswer(call_id: string, ask_id: string, cb: (answer: PersonAnswerEvent) => void): () => void;
+  /** Fires with every supplier's history, then again for each supplier whose history changes. */
+  watchSupplierHistory(cb: (supplier_id: string, records: SupplierRecord[]) => void): () => void;
   /** Stops waiting for a reply. Returns the reply if one already came, else records "no_reply". */
   closeAsk(call_id: string, ask_id: string): Promise<PersonAnswerEvent | null>;
   setTwilioCallSid(call_id: string, sid: string): Promise<void>;

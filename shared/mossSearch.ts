@@ -141,14 +141,20 @@ export class MossSearch implements SupplierSearch {
     return (await this.client.listIndexes()).some((i) => i.name === this.indexName);
   }
 
-  /** Serialises writes and reloads the in-memory copy afterwards if it was loaded. */
+  /** Every supplier record in the index, so the voice server can tell which suppliers fell behind Convex. */
+  async list(): Promise<SupplierRecord[]> {
+    if (!(await this.exists())) return [];
+    return (await this.client.getDocs(this.indexName)).flatMap((d) => fromMossDoc(d) ?? []);
+  }
+
+  /**
+   * Serialises writes and reloads the in-memory copy afterwards if it was loaded. The reload runs in
+   * place: Moss keeps answering queries from the old copy until it lands, so a live call never waits.
+   */
   private write(fn: () => Promise<void>): Promise<void> {
     const run = this.writes.then(async () => {
       await fn();
-      if (this.loading) {
-        this.loading = null;
-        await this.warm();
-      }
+      if (this.loading) await this.client.loadIndex(this.indexName);
     });
     this.writes = run.catch(() => undefined);
     return run;
