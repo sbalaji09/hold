@@ -19,7 +19,7 @@ function MessageRow({ m }: { m: Message }): React.ReactElement {
       <span className="cb-from">{m.supplierName}</span>
       <span className="cb-subj">
         <b>{m.subject}</b>
-        {" — Sorted as " + t.kindName + ". " + emailPreview(m.body)}
+        {" — " + emailPreview(m.body)}
       </span>
       <span className="cb-r cb-caps">Message</span>
       <span>
@@ -51,9 +51,6 @@ export default async function InboxPage({
             {view === "filed" ? "Supplier emails hold filed, and messages marked done · newest first" : "bills@fogline.fm · newest first"}
           </p>
         </div>
-        <div className="pt-actions">
-          <Link href="/practice" className="cb-btn cb-btn-secondary">Try a scam</Link>
-        </div>
       </header>
 
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
@@ -73,13 +70,6 @@ export default async function InboxPage({
             );
           })}
         </nav>
-        <Link
-          href="/?status=filed"
-          aria-current={view === "filed" ? "true" : undefined}
-          className="text-[12.5px] text-ink-muted underline decoration-line-control underline-offset-4 hover:text-ink hover:decoration-ink"
-        >
-          Done and filed <span className="font-mono text-[11px]">{settled}</span>
-        </Link>
       </div>
 
       <div className="pt-scroll"><div className="cb-ledger pt-ledger">
@@ -103,7 +93,7 @@ export default async function InboxPage({
                 href={`/bills/${row.bill.key}`}
                 from={row.bill.supplier.name}
                 subject={row.bill.email.subject}
-                preview={(routed.has(row.bill.key) ? `Routed to ${routed.get(row.bill.key) === "dev" ? "Dev" : "Maya"}. ` : "") + emailPreview(row.bill.email.body)}
+                preview={emailPreview(row.bill.email.body)}
                 cents={row.bill.amountCents}
                 status={STATUS_TO_MARK[row.bill.status]}
                 unread={UNSETTLED_STATUS[row.bill.status]}

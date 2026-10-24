@@ -1,7 +1,6 @@
 import type * as React from "react";
-import { Playbook } from "@/components/Playbook";
+
 import { listBills } from "@/lib/data";
-import { getPersona } from "@/lib/persona";
 
 /** Measured, not claimed: counts come from the workspace's own records. */
 async function measures() {
@@ -16,11 +15,10 @@ async function measures() {
 }
 
 export default async function PracticeLayout({ children }: { children: React.ReactNode }) {
-  const [m, persona] = await Promise.all([measures(), getPersona()]);
+  const m = await measures();
   return (
     <>
       {children}
-      <Playbook actor={persona} />
       {/* A div, so it shares the screen's centred column (shell.css .pt-main > div). */}
       <div className="px-6">
         <p className="pt-sub">

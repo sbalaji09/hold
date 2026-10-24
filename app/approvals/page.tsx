@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getPersona } from "@/lib/persona";
 import { listApprovals } from "@/lib/data";
 import { CHECK_RESULT, citeLabel } from "@/lib/bill";
@@ -39,7 +40,8 @@ export default async function ApprovalsPage() {
         <div className="flex flex-col gap-6">
           {approvals.map((approval) => {
             const bill = approval.bill;
-            const checks = [...bill.checks].sort((a, b) => CHECK_ORDER[a.state] - CHECK_ORDER[b.state]);
+            const checks = bill.checks.filter((c) => c.state === "flag");
+            const passed = bill.checks.length - checks.length;
             return (
               <article key={approval.key} className="cb-doc">
                 <div className="cb-doc-head">
@@ -48,11 +50,6 @@ export default async function ApprovalsPage() {
                   </span>
                   <small>{KIND_LABEL[approval.kind]}</small>
                 </div>
-                {approval.routedTo ? (
-                  <div className="border-b border-line px-4 py-2 font-mono text-[12px] text-ink-muted">
-                    Routed to {approval.routedTo === "dev" ? "Dev" : "Maya"}. {approval.reason}
-                  </div>
-                ) : null}
                 <div className="flex flex-col gap-6 p-4 md:flex-row">
                   <div className="flex min-w-0 flex-1 flex-col gap-4">
                     <div>
@@ -67,11 +64,12 @@ export default async function ApprovalsPage() {
                           result={CHECK_RESULT[check.state]}
                           title={check.label}
                           evidence={check.evidence}
-                          quote={check.quote}
+                          quote={i > 0 && checks[i - 1].quote === check.quote ? undefined : check.quote}
                           sources={[citeLabel(check.cite, bill)]}
                         />
                       ))}
                     </div>
+                    {passed > 0 ? <p className="border-t border-line pt-3 text-[13px] text-ink-muted">{passed} other {passed === 1 ? "check" : "checks"} passed. <Link href={`/bills/${bill.key}`} className="underline underline-offset-4">See all</Link></p> : null}
                   </div>
                   <div className="flex w-full flex-col gap-5 md:w-[300px]">
                     <div>

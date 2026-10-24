@@ -189,8 +189,7 @@ export default function PracticePage(): React.ReactElement {
         )}
         </div>
       </div>
-      <PracticeCalls calls={calls} />
-      <PracticeEmails emails={emails} />
+
     </div>
   );
 }

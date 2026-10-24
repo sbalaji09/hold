@@ -12,9 +12,7 @@ import {
   SignOff,
 } from "@/components/callback";
 import { BillActions } from "@/components/BillActions";
-import { AddToPractice } from "@/components/AddToPractice";
-import { ReportMissedScam } from "@/components/ReportMissedScam";
-import { NotABill } from "@/components/NotABill";
+
 import { getPersona } from "@/lib/persona";
 import { CopycatPanel } from "@/components/CopycatPanel";
 import { getBill, getSettings, listActivity, listChecksForBill } from "@/lib/data";
@@ -88,10 +86,7 @@ export default async function BillPage({
               ) : null}
             </div>
           </details>
-          <BillActions billKey={bill.key} amount={amount} pay={pay} hold={hold} call={call} />
-          <AddToPractice billKey={bill.key} />
-          {bill.status !== "Held" ? <ReportMissedScam billKey={bill.key} actor={persona} /> : null}
-          {bill.status !== "Paid" ? <NotABill billKey={bill.key} supplier={bill.supplier.name} actor={persona} /> : null}
+          {pay.allowed || hold.allowed || call.allowed ? <BillActions billKey={bill.key} amount={amount} pay={pay} hold={hold} call={call} /> : null}
         </div>
       </div>
 
