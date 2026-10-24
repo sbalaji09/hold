@@ -7,7 +7,7 @@ import { Button } from "@/components/callback";
 // convex/app/suppliers.ts is a sibling module the generated `api` object
 // doesn't know about yet (it isn't regenerated until `npx convex dev`
 // runs), so this is addressed by name rather than through `api.app...`.
-const addSupplierRef = makeFunctionReference<"mutation", { name: string; domain: string; phone: string }, { key: string }>(
+const addSupplierRef = makeFunctionReference<"mutation", { name: string; domain: string }, { key: string }>(
   "app/suppliers:add",
 );
 
@@ -15,7 +15,6 @@ export function AddSupplierForm(): React.ReactElement {
   const addSupplier = useMutation(addSupplierRef);
   const [name, setName] = React.useState("");
   const [domain, setDomain] = React.useState("");
-  const [phone, setPhone] = React.useState("");
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, setPending] = React.useState(false);
@@ -25,10 +24,9 @@ export function AddSupplierForm(): React.ReactElement {
     setError(null);
     setPending(true);
     try {
-      await addSupplier({ name, domain, phone });
+      await addSupplier({ name, domain });
       setName("");
       setDomain("");
-      setPhone("");
       setOpen(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't add that supplier.");
@@ -65,16 +63,9 @@ export function AddSupplierForm(): React.ReactElement {
           className="rounded-sm border border-line bg-surface px-2 py-1.5 font-mono text-[13px] text-ink"
         />
       </label>
-      <label className="flex flex-col gap-1 text-[13px] text-ink-muted">
-        Trusted phone
-        <input
-          required
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="+14155550100"
-          className="rounded-sm border border-line bg-surface px-2 py-1.5 font-mono text-[13px] text-ink"
-        />
-      </label>
+      <p className="text-[13px] text-ink-muted">
+        The trusted phone number came from the background check and a human confirmation, run after the supplier was added.
+      </p>
       {error ? <p className="text-[13px] text-hold-solid">{error}</p> : null}
       <div className="flex gap-2">
         <Button variant="primary" size="sm" type="submit" disabled={pending}>

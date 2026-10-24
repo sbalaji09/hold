@@ -6,8 +6,9 @@
 // TODO(auth): these are public until the app adds team login; then guard them with ctx.auth.
 import { ConvexError, v } from "convex/values";
 import type { Doc } from "../_generated/dataModel.js";
-import { mutation, type MutationCtx } from "../_generated/server.js";
+import { internalMutation, mutation, type MutationCtx } from "../_generated/server.js";
 import type { Actor } from "../../lib/policy.js";
+import type { Bill } from "../../lib/types.js";
 import { canApprove, canCall, canHold, canPay, canRelease } from "../../lib/policy.js";
 import { hydrateBill } from "./queries.js";
 import { routeEscalation } from "./checks.js";
@@ -75,30 +76,101 @@ export const holdBill = mutation({
     const bill = await hydrateBill(ctx, row);
     const result = canHold(bill);
     if (!result.allowed) return refuse(ctx, "maya", "hold", result.reason!, billKey);
-    const why = reason ?? bill.checks.filter((c) => c.state === "flag").map((c) => c.evidence).join(" ") ?? "A check on this bill didn't pass.";
-    const route = routeEscalation(bill.checks, bill.amountCents, { callOutcome: bill.call?.outcome === "handed_off" ? "handed_off" : null });
-    const kind = bill.checks.find((c) => c.id === "bank-account" && c.state === "flag") ? "bank_change" : "held_payment";
-    await ctx.db.patch(row._id, { status: "Held" });
-    const existingApproval = await ctx.db
-      .query("approvals")
-      .withIndex("by_bill", (q) => q.eq("billKey", billKey))
-      .filter((q) => q.eq(q.field("status"), "pending"))
-      .first();
-    if (!existingApproval) {
-      await ctx.db.insert("approvals", {
-        key: `appr_${crypto.randomUUID()}`,
-        billKey,
-        kind,
-        status: "pending",
-        recommendation: `Hold this payment. ${why}`,
-        routedTo: route.routedTo,
-        reason: route.reason,
-        thread: [],
-      });
-    }
-    await logActivity(ctx, "callback", "held this bill", why || "A check on this bill didn't pass.", "bill", billKey);
+    await holdRow(ctx, row, bill, reason);
   },
 });
+
+/** Shared by holdBill and applyCallOutcome's not_confirmed branch: moves the bill to Held and
+ * opens (or reuses) the pending approval Dev needs to release it. Never checks policy itself —
+ * callers that need canHold's refusal path call it first. */
+async function holdRow(ctx: MutationCtx, row: Doc<"bills">, bill: Bill, reason?: string): Promise<void> {
+  const billKey = bill.key;
+  const why = reason ?? bill.checks.filter((c) => c.state === "flag").map((c) => c.evidence).join(" ") ?? "A check on this bill didn't pass.";
+  const route = routeEscalation(bill.checks, bill.amountCents, { callOutcome: bill.call?.outcome === "handed_off" ? "handed_off" : null });
+  const kind = bill.checks.find((c) => c.id === "bank-account" && c.state === "flag") ? "bank_change" : "held_payment";
+  await ctx.db.patch(row._id, { status: "Held" });
+  const existingApproval = await ctx.db
+    .query("approvals")
+    .withIndex("by_bill", (q) => q.eq("billKey", billKey))
+    .filter((q) => q.eq(q.field("status"), "pending"))
+    .first();
+  if (!existingApproval) {
+    await ctx.db.insert("approvals", {
+      key: `appr_${crypto.randomUUID()}`,
+      billKey,
+      kind,
+      status: "pending",
+      recommendation: `Hold this payment. ${why}`,
+      routedTo: route.routedTo,
+      reason: route.reason,
+      thread: [],
+    });
+  }
+  await logActivity(ctx, "callback", "held this bill", why || "A check on this bill didn't pass.", "bill", billKey);
+}
+
+/**
+ * Moves a bill off a finished check call (plan-agent.md step 4): not_confirmed holds it (reusing
+ * holdRow), handed_off and confirmed both route a pending approval to a person — confirmed still
+ * needs Dev's sign-off before Callback pays, it never releases money on its own. A plain async fn
+ * (not a registered mutation): writeResult calls it directly so the write stays in the same
+ * transaction as the call result. Idempotent and only acts while the bill is still
+ * Calling/Checking, so a result delivered twice or after a human already acted is a no-op.
+ */
+export async function applyCallOutcome(
+  ctx: MutationCtx,
+  billKey: string,
+  outcome: "confirmed" | "not_confirmed" | "handed_off",
+): Promise<void> {
+  const row = await ctx.db
+    .query("bills")
+    .withIndex("by_key", (q) => q.eq("key", billKey))
+    .unique();
+  if (!row || (row.status !== "Calling" && row.status !== "Checking")) return;
+  const existingApproval = await ctx.db
+    .query("approvals")
+    .withIndex("by_bill", (q) => q.eq("billKey", billKey))
+    .filter((q) => q.eq(q.field("status"), "pending"))
+    .first();
+  if (existingApproval) return;
+
+  const bill = await hydrateBill(ctx, row);
+  if (outcome === "not_confirmed") {
+    await holdRow(ctx, row, bill);
+    return;
+  }
+  if (outcome === "handed_off") {
+    const route = routeEscalation(bill.checks, bill.amountCents, { callOutcome: "handed_off" });
+    await ctx.db.patch(row._id, { status: "Needs you" });
+    await ctx.db.insert("approvals", {
+      key: `appr_${crypto.randomUUID()}`,
+      billKey,
+      kind: "held_payment",
+      status: "pending",
+      recommendation: "The check call got no answer and the retry didn't connect either. Maya needs to follow up.",
+      routedTo: route.routedTo,
+      reason: route.reason,
+      thread: [],
+    });
+    await logActivity(ctx, "callback", "couldn't reach the supplier by phone", route.reason, "bill", billKey);
+    return;
+  }
+  // confirmed: still needs Dev's sign-off before Callback pays it — a confirmed call never
+  // releases money on its own.
+  const route = routeEscalation(bill.checks, bill.amountCents);
+  await ctx.db.patch(row._id, { status: "Needs you" });
+  await ctx.db.insert("approvals", {
+    key: `appr_${crypto.randomUUID()}`,
+    billKey,
+    kind: "big_payment",
+    status: "pending",
+    recommendation: "The supplier confirmed this bill on the call. Dev still needs to sign off before Callback pays it.",
+    routedTo: route.routedTo,
+    reason: route.reason,
+    thread: [],
+  });
+  await logActivity(ctx, "callback", "confirmed this bill by call", "The supplier confirmed it; Dev still needs to approve payment.", "bill", billKey);
+}
 
 /**
  * Writes a call request to the supplier's number on file (never the email), per the interface
@@ -117,6 +189,20 @@ export const requestCall = mutation({
       .withIndex("by_key", (q) => q.eq("key", bill.supplierKey))
       .unique();
     if (!supplier) throw new ConvexError(`Unknown supplier ${bill.supplierKey}`);
+    if (!supplier.trustedPhone) {
+      return refuse(ctx, "maya", "call supplier", "No number on file yet. Run the background check and confirm a number first.", billKey);
+    }
+
+    // A call is already in flight for this bill: don't queue a second one, just hand back the
+    // one already running (no-op, no extra activity row).
+    const existingCalls = await ctx.db
+      .query("callRequests")
+      .withIndex("by_bill", (q) => q.eq("bill_id", bill.key))
+      .collect();
+    const activeCall = existingCalls.find((c) => c.status === "queued" || c.status === "dialing" || c.status === "in_progress");
+    if (activeCall) {
+      return activeCall.call_id;
+    }
 
     const reason = bill.checks.filter((c) => c.state === "flag").map((c) => c.label);
     const call_id = `call_${crypto.randomUUID()}`;
@@ -219,32 +305,80 @@ export const decideApproval = mutation({
 });
 
 /**
+ * Atomically claims a bill for payment before the Increase action sends a transfer: verifies the
+ * bill is Scheduled with no payment already pending or sent, and inserts a 'pending' payments row
+ * in the same transaction. A concurrent second run of the same bill is refused here, not after
+ * the transfer has already gone out.
+ */
+export const claimPayment = internalMutation({
+  args: { billKey: v.string(), bankAccountKey: v.string(), amountCents: v.number() },
+  handler: async (ctx, { billKey, bankAccountKey, amountCents }) => {
+    const row = await requireBillRow(ctx, billKey);
+    if (row.status !== "Scheduled") {
+      return refuse(ctx, "callback", "claim payment", `Bill ${billKey} isn't scheduled to pay (status: ${row.status}).`, billKey);
+    }
+    const existing = await ctx.db
+      .query("payments")
+      .withIndex("by_bill", (q) => q.eq("billKey", billKey))
+      .collect();
+    if (existing.some((p) => p.status === "pending" || p.status === "sent")) {
+      return refuse(ctx, "callback", "claim payment", `A payment for ${billKey} is already pending or sent.`, billKey);
+    }
+    const paymentKey = `pay_${crypto.randomUUID()}`;
+    await ctx.db.insert("payments", {
+      key: paymentKey,
+      billKey,
+      amountCents,
+      bankAccountKey,
+      status: "pending",
+      paidAt: "",
+    });
+    return { paymentKey };
+  },
+});
+
+/** Marks a claimed payment row 'failed' after a transfer attempt errors, leaving the bill
+ * Scheduled so a retry can claim again. */
+export const failPayment = internalMutation({
+  args: { paymentKey: v.string() },
+  handler: async (ctx, { paymentKey }) => {
+    const row = await ctx.db
+      .query("payments")
+      .withIndex("by_key", (q) => q.eq("key", paymentKey))
+      .unique();
+    if (!row) throw new ConvexError(`Unknown payment ${paymentKey}`);
+    await ctx.db.patch(row._id, { status: "failed" });
+  },
+});
+
+/**
  * Writes the payment record once the Increase sandbox transfer has gone through (called by the
  * Increase action, not from the UI directly). The bill must already be Scheduled: payBill or an
- * approved decideApproval is what gets it there.
+ * approved decideApproval is what gets it there. Finalises the 'pending' row claimPayment already
+ * inserted, instead of inserting a second one.
  */
 export const recordPayment = mutation({
   args: {
     billKey: v.string(),
+    paymentKey: v.string(),
     bankAccountKey: v.string(),
     amountCents: v.number(),
     transferId: v.optional(v.string()),
   },
-  handler: async (ctx, { billKey, bankAccountKey, amountCents, transferId }) => {
+  handler: async (ctx, { billKey, paymentKey, bankAccountKey, amountCents, transferId }) => {
     const row = await requireBillRow(ctx, billKey);
     if (row.status !== "Scheduled") {
       throw new ConvexError(`Bill ${billKey} isn't scheduled to pay (status: ${row.status}).`);
     }
+    const paymentRow = await ctx.db
+      .query("payments")
+      .withIndex("by_key", (q) => q.eq("key", paymentKey))
+      .unique();
+    if (!paymentRow || paymentRow.status !== "pending") {
+      throw new ConvexError(`Payment ${paymentKey} isn't a pending claim for ${billKey}.`);
+    }
     const paidAt = new Date().toISOString();
-    await ctx.db.insert("payments", {
-      key: `pay_${crypto.randomUUID()}`,
-      billKey,
-      amountCents,
-      bankAccountKey,
-      status: "sent",
-      transferId,
-      paidAt,
-    });
+    await ctx.db.patch(paymentRow._id, { status: "sent", transferId, paidAt, amountCents, bankAccountKey });
     await ctx.db.patch(row._id, { status: "Paid" });
     const bank = await ctx.db
       .query("bankAccounts")

@@ -16,14 +16,12 @@ export const add = mutation({
   args: {
     name: v.string(),
     domain: v.string(),
-    phone: v.string(),
   },
-  handler: async (ctx, { name, domain, phone }) => {
+  handler: async (ctx, { name, domain }) => {
     const trimmedName = name.trim();
     const trimmedDomain = domain.trim();
-    const trimmedPhone = phone.trim();
-    if (!trimmedName || !trimmedDomain || !trimmedPhone) {
-      throw new Error("Name, domain and phone are all required to add a supplier.");
+    if (!trimmedName || !trimmedDomain) {
+      throw new Error("Name and domain are both required to add a supplier.");
     }
     const key = "sup_" + slugify(trimmedName);
     const now = new Date().toISOString();
@@ -34,9 +32,9 @@ export const add = mutation({
       domain: trimmedDomain,
       contactName: "",
       contactEmail: "",
-      trustedPhone: trimmedPhone,
-      // No background check has run yet, so there's nothing to date the
-      // trusted number to. phoneLastCheckedAt stays "" until one runs.
+      // No background check has run yet: the trusted number comes from that check and a human
+      // confirming it, not from this form.
+      trustedPhone: "",
       phoneLastCheckedAt: "",
       // New until its first confirmed call (plan-agent.md addendum §3); markTrusted flips this.
       status: "new",

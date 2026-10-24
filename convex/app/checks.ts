@@ -27,12 +27,6 @@ export interface LearnedRuleInput {
   sourceKey: string;
 }
 
-/** True when a saved rule names this exact bank + last4, e.g. "verified account Chase ··2210". */
-function ruleVerifiesAccount(ruleText: string, bank: string, last4: string): boolean {
-  const text = ruleText.toLowerCase();
-  return text.includes(bank.toLowerCase()) && text.includes(last4);
-}
-
 /** Cite's kind union is fixed to email/bill/supplier/call/payment, so a rule saved from a bill
  * cites that bill; anything else falls back to the supplier record. */
 function ruleCite(rule: LearnedRuleInput, supplierKey: string): Cite {
@@ -116,23 +110,15 @@ export function runChecks(input: RunChecksInput): Check[] {
         cite: { kind: "supplier", ref: supplier.key },
       };
     } else {
-      const verifyingRule = (learnedRules ?? []).find((r) => ruleVerifiesAccount(r.text, currentBankAccount.bank, currentBankAccount.last4));
-      bankCheck = verifyingRule
-        ? {
-            id: "bank-account",
-            label: "New bank account",
-            state: "pass",
-            evidence: `A learned rule verifies ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4} for ${supplier.name}.`,
-            quote: verifyingRule.text,
-            cite: ruleCite(verifyingRule, supplier.key),
-          }
-        : {
-            id: "bank-account",
-            label: "New bank account",
-            state: "flag",
-            evidence: `This bill uses ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4}, which Fogline has not paid ${supplier.name} before.`,
-            cite: emailCite,
-          };
+      // A learned rule can inform, but it can never flip this to a pass by itself — only an
+      // actually call+dev-verified account (handled above) does that, regardless of rule text.
+      bankCheck = {
+        id: "bank-account",
+        label: "New bank account",
+        state: "flag",
+        evidence: `This bill uses ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4}, which Fogline has not paid ${supplier.name} before.`,
+        cite: emailCite,
+      };
     }
   } else if (priorPaidCount === 0) {
     bankCheck = {

@@ -125,7 +125,7 @@ test("safe bill over $10k asks dev instead of paying", () => {
   expect(decide(checks, 1100000)).toBe("ask_dev");
 });
 
-test("a learned rule naming the exact bank + last4 turns a repeat new-account flag into a pass", () => {
+test("a learned rule naming the exact bank + last4 can never turn an unverified new-account flag into a pass", () => {
   const base = {
     email: { body: "Please find attached invoice #6 in the amount of $900.00. Pay to the account on file.", fromAddress: "a@perimeterprostaffing.com", fromDomain: "perimeterprostaffing.com" },
     supplier: { key: "sup_perimeter_pro", name: "Perimeter Pro Staffing", domain: "perimeterprostaffing.com" },
@@ -141,8 +141,8 @@ test("a learned rule naming the exact bank + last4 turns a repeat new-account fl
     ...base,
     learnedRules: [{ text: "Dev verified account US Bank \u00b7\u00b75509 for Perimeter Pro Staffing.", sourceKind: "bill", sourceKey: "bill_5" }],
   });
-  expect(withRule.find((c) => c.id === "bank-account")!.state).toBe("pass");
-  expect(decide(withRule, 90000)).toBe("pay");
+  expect(withRule.find((c) => c.id === "bank-account")!.state).toBe("flag");
+  expect(decide(withRule, 90000)).toBe("call");
 });
 
 test("'Learned rule applies' info check cites the rule that was saved", () => {

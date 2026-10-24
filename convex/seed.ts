@@ -1,5 +1,13 @@
 import { internalMutation } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
+import { runChecks, routeEscalation, type CheckBankAccount } from "./app/checks";
+import { TEN_THOUSAND_CENTS } from "../lib/policy";
+import type { Check } from "../lib/types";
+
+function fmtMoney(cents: number): string {
+  return "$" + (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 // Usage: `npm run seed` (reads data/fogline.json and runs this via
 // `convex run seed:seed`). Internal-only: it clears every table and
@@ -87,6 +95,9 @@ export const seed = internalMutation({
         billKey: v.string(),
         amountCents: v.number(),
         bankAccountKey: v.string(),
+        // Historical fixture payments use "Paid"/"Scheduled" (data/fogline.json predates the
+        // pending/sent/failed claim-flow states mutations.ts's claimPayment/recordPayment now
+        // use); seeding below maps anything else to "sent" rather than widening the live schema.
         status: v.string(),
         transferId: v.optional(v.string()),
         paidAt: v.string(),
@@ -140,10 +151,12 @@ export const seed = internalMutation({
 
     for (const s of args.suppliers) await ctx.db.insert("suppliers", s);
     for (const b of args.bankAccounts) await ctx.db.insert("bankAccounts", b);
-    for (const b of args.bills) await ctx.db.insert("bills", b);
+    const billIdByKey = new Map<string, Id<"bills">>();
+    for (const b of args.bills) billIdByKey.set(b.key, await ctx.db.insert("bills", b));
     for (const e of args.emails) await ctx.db.insert("emails", e);
     for (const p of args.payments) {
-      await ctx.db.insert("payments", p);
+      const status = p.status === "pending" || p.status === "sent" || p.status === "failed" ? p.status : "sent";
+      await ctx.db.insert("payments", { ...p, status });
       await ctx.db.insert("activity", {
         key: `act_pay_${p.key}`,
         actor: "callback",
@@ -192,6 +205,74 @@ export const seed = internalMutation({
         summary: c.summary,
         recording_url: "",
         startedAt: c.startedAt,
+      });
+    }
+
+    // Derives each bill's `checks` (same pure rules lib/data.ts's buildChecks uses for the JSON
+    // fallback) and opens a pending approval for every Held/Needs-you bill and every unpaid bill
+    // over $10,000, matching what listApprovals shows in JSON mode.
+    const suppliersByKey = new Map(args.suppliers.map((s) => [s.key, s]));
+    const bankAccountsByKey = new Map(args.bankAccounts.map((b) => [b.key, b]));
+    const emailsByKey = new Map(args.emails.map((e) => [e.key, e]));
+    const callByBillKey = new Map<string, (typeof args.calls)[number]>();
+    for (const c of args.calls) if (c.billKey) callByBillKey.set(c.billKey, c);
+
+    const checksByBillKey = new Map<string, Check[]>();
+    for (const b of args.bills) {
+      const supplier = suppliersByKey.get(b.supplierKey);
+      const bankAccount = bankAccountsByKey.get(b.bankAccountKey);
+      const email = emailsByKey.get(b.emailKey);
+      if (!supplier || !bankAccount || !email) continue;
+      const call = callByBillKey.get(b.key) ?? null;
+      const pastPaid = args.bills.filter((x) => x.supplierKey === b.supplierKey && x.key !== b.key && x.status === "Paid");
+      const pastPaidBankAccounts: CheckBankAccount[] = pastPaid.map((x) => {
+        const a = bankAccountsByKey.get(x.bankAccountKey);
+        return { bank: a?.bank ?? "unknown", last4: a?.last4 ?? "0000" };
+      });
+      const checks = runChecks({
+        email: { body: email.body, fromAddress: email.fromAddress, fromDomain: email.fromDomain },
+        supplier: { key: supplier.key, name: supplier.name, domain: supplier.domain },
+        currentBankAccount: {
+          bank: bankAccount.bank,
+          last4: bankAccount.last4,
+          verifiedBy: bankAccount.verifiedBy,
+          confirmedByCall: bankAccount.verifiedBy === "call+dev" && call?.outcome === "confirmed",
+        },
+        pastPaidBankAccounts,
+        pastPaidAmounts: pastPaid.map((x) => x.amountCents),
+        amountCents: b.amountCents,
+      });
+      checksByBillKey.set(b.key, checks);
+      const id = billIdByKey.get(b.key);
+      if (id) await ctx.db.patch(id, { checks });
+    }
+
+    for (const b of args.bills) {
+      const approvable = b.status === "Held" || b.status === "Needs you" || (b.amountCents > TEN_THOUSAND_CENTS && b.status !== "Paid");
+      if (!approvable) continue;
+      const checks = checksByBillKey.get(b.key) ?? [];
+      const call = callByBillKey.get(b.key) ?? null;
+      const flagged = checks.filter((c) => c.state === "flag");
+      const bankAccount = bankAccountsByKey.get(b.bankAccountKey);
+      const recommendation =
+        flagged.length > 0
+          ? `Hold this payment. ${flagged.map((c) => c.evidence).join(" ")}`
+          : `Pay ${fmtMoney(b.amountCents)} to ${bankAccount?.bank ?? "the account on file"} \u00b7\u00b7${bankAccount?.last4 ?? ""}. All checks passed; this is over Callback's $10,000 limit, so Dev needs to approve it.`;
+      const kind = checks.find((c) => c.id === "bank-account" && c.state === "flag")
+        ? "bank_change"
+        : b.status === "Held"
+          ? "held_payment"
+          : "big_payment";
+      const route = routeEscalation(checks, b.amountCents, { callOutcome: call?.outcome === "handed_off" ? "handed_off" : null });
+      await ctx.db.insert("approvals", {
+        key: `appr_${b.key}`,
+        billKey: b.key,
+        kind,
+        status: "pending",
+        recommendation,
+        routedTo: route.routedTo,
+        reason: route.reason,
+        thread: [],
       });
     }
   },

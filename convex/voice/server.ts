@@ -14,6 +14,7 @@ import type { Doc } from "../_generated/dataModel.js";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server.js";
 import schema from "../schema.js";
 import * as records from "./records.js";
+import { applyCallOutcome } from "../app/mutations.js";
 import { followUpRequest, formatRetryAt, isClosed, noAnswerHandoff, retryDelayMs, UNKNOWN_CALLER } from "./rules.js";
 
 // ---------- auth ----------
@@ -133,6 +134,12 @@ export async function writeResult(ctx: MutationCtx, result: CallResult): Promise
       .withIndex("by_key", (q) => q.eq("key", req.supplier_id))
       .unique();
     if (sup?.status === "new") await ctx.db.patch(sup._id, { status: "trusted" });
+  }
+  // A finished live call moves the bill off Calling/Checking: not_confirmed holds it, handed_off
+  // and confirmed both route a pending approval to a person (plan-agent.md step 4). Practice's
+  // simulated calls never touch real bills.
+  if (req.mode !== "simulated" && req.bill_id) {
+    await applyCallOutcome(ctx, req.bill_id, result.outcome);
   }
 }
 

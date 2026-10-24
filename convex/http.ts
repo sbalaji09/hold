@@ -29,12 +29,19 @@ http.route({
     const subject = typeof body.subject === "string" ? body.subject : "";
     const text = typeof body.text === "string" ? body.text : "";
     if (!from || !text) return new Response("Missing from/text", { status: 400 });
+    // Common inbound-email providers (SendGrid Inbound Parse, Postmark, etc.) use one of these
+    // field names for the provider's own message id; thread it through so a resend of the same
+    // webhook (ingestEmail's dedupe, convex/app/intake.ts) returns the existing bill, never a
+    // second one.
+    const messageIdRaw = body.messageId ?? body.message_id ?? body["Message-Id"];
+    const messageId = typeof messageIdRaw === "string" && messageIdRaw ? messageIdRaw : undefined;
 
     const result = await ctx.runAction(api.app.intake.ingestEmail, {
       from,
       subject,
       body: text,
       receivedAt: new Date().toISOString(),
+      messageId,
     });
     return Response.json(result);
   }),

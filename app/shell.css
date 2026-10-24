@@ -87,7 +87,6 @@ h1, h2, h3, p { margin: 0; }
 .pt-msg-person { background: var(--surface); }
 .pt-compose { padding: var(--space-4); display: flex; flex-direction: column; gap: 8px; }
 .pt-compose textarea, .pt-input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--line-control); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); font: 400 14px/20px var(--font-sans); resize: vertical; }
-.pt-compose textarea:focus, .pt-input:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
 .pt-compose textarea:disabled { background: var(--surface-sunk); color: var(--ink-faint); }
 .pt-decide { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--line); }
 .pt-danger { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: var(--space-3); padding: var(--space-3); background: var(--hold-tint); border-radius: var(--radius-sm); }
@@ -137,3 +136,5 @@ h1, h2, h3, p { margin: 0; }
 
 .cb-btn-primary .cb-amount, .cb-btn-primary .cb-amount * { color: inherit; }
 .cb-caps.bg-ink { color: var(--on-action); }
+
+input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }

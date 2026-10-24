@@ -326,6 +326,7 @@ export const insertGenerated = internalMutation({
         status: "Checking",
         emailKey,
         planted: true,
+        practice: true,
       });
       await ctx.db.insert("practiceScams", {
         key: scamKey,

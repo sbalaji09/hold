@@ -43,7 +43,7 @@ export function CheckRow(p: CheckRowProps): React.ReactElement {
             {"\u201d"}
           </div>
         ) : null}
-        {r !== "pass" && p.sources && p.sources.length ? (
+        {p.sources && p.sources.length ? (
           <div className="cb-check-src">
             {p.sources.map((s, i) => (
               <Cite key={i}>{s}</Cite>

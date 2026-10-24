@@ -132,8 +132,35 @@ const activity = (actor: "callback", what: string, why: string, refKind: string,
   at: new Date().toISOString(),
 });
 
+export const findDuplicateEmail = internalQuery({
+  args: { messageId: v.optional(v.string()), fromAddress: v.string(), subject: v.string(), body: v.string() },
+  handler: async (ctx, args): Promise<{ billKey: string; supplierKey: string; status: string } | null> => {
+    let existing: Doc<"emails"> | null = null;
+    if (args.messageId) {
+      existing = await ctx.db
+        .query("emails")
+        .withIndex("by_message_id", (q) => q.eq("messageId", args.messageId))
+        .unique();
+    }
+    if (!existing) {
+      const candidates = await ctx.db
+        .query("emails")
+        .withIndex("by_sender_subject", (q) => q.eq("fromAddress", args.fromAddress).eq("subject", args.subject))
+        .collect();
+      existing = candidates.find((e) => e.body === args.body) ?? null;
+    }
+    if (!existing || !existing.billKey) return null;
+    const bill = await ctx.db
+      .query("bills")
+      .withIndex("by_key", (q) => q.eq("key", existing!.billKey!))
+      .unique();
+    if (!bill) return null;
+    return { billKey: bill.key, supplierKey: bill.supplierKey, status: bill.status };
+  },
+});
+
 export const recordUnknownSender = internalMutation({
-  args: { from: v.string(), fromDomain: v.string(), subject: v.string(), body: v.string(), receivedAt: v.string() },
+  args: { from: v.string(), fromDomain: v.string(), subject: v.string(), body: v.string(), receivedAt: v.string(), messageId: v.optional(v.string()) },
   handler: async (ctx, args): Promise<{ billKey: string; supplierKey: string; status: "Needs you" }> => {
     const billKey = freshKey("bill_in");
     const emailKey = freshKey("email_in");
@@ -150,6 +177,7 @@ export const recordUnknownSender = internalMutation({
       body: args.body,
       receivedAt: args.receivedAt,
       direction: "in",
+      messageId: args.messageId,
     });
     await ctx.db.insert("bills", {
       key: billKey,
@@ -189,6 +217,7 @@ export const finalizeIntake = internalMutation({
     invoiceNo: v.string(),
     checks: v.array(checkValidator),
     decision: v.union(v.literal("pay"), v.literal("ask_dev"), v.literal("call")),
+    messageId: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<{ billKey: string; supplierKey: string; status: Doc<"bills">["status"] }> => {
     const billKey = freshKey("bill_in");
@@ -204,6 +233,7 @@ export const finalizeIntake = internalMutation({
       body: args.body,
       receivedAt: args.receivedAt,
       direction: "in",
+      messageId: args.messageId,
     });
     await ctx.db.insert("bills", {
       key: billKey,
@@ -280,9 +310,19 @@ export const finalizeIntake = internalMutation({
 // ---------- entry point ----------
 
 export const ingestEmail = action({
-  args: { from: v.string(), subject: v.string(), body: v.string(), receivedAt: v.string() },
+  args: { from: v.string(), subject: v.string(), body: v.string(), receivedAt: v.string(), messageId: v.optional(v.string()) },
   handler: async (ctx, args): Promise<{ billKey: string; supplierKey: string; status: string }> => {
     const fromDomain = parseSenderDomain(args.from);
+    const fromAddress = parseSenderAddress(args.from);
+
+    const duplicate = await ctx.runQuery(internal.app.intake.findDuplicateEmail, {
+      messageId: args.messageId,
+      fromAddress,
+      subject: args.subject,
+      body: args.body,
+    });
+    if (duplicate) return duplicate;
+
     const context: IntakeContext | null = await ctx.runQuery(internal.app.intake.gatherIntakeContext, {
       fromDomain,
       subject: args.subject,
@@ -296,6 +336,7 @@ export const ingestEmail = action({
         subject: args.subject,
         body: args.body,
         receivedAt: args.receivedAt,
+        messageId: args.messageId,
       });
     }
 
@@ -315,7 +356,6 @@ export const ingestEmail = action({
 
     const amountCents = parseAmountCents(args.body) ?? 0;
     const invoiceNo = parseInvoiceNo(args.body) ?? "unknown";
-    const fromAddress = parseSenderAddress(args.from);
 
     const checks = runChecks({
       email: { body: args.body, fromAddress, fromDomain },
@@ -348,6 +388,7 @@ export const ingestEmail = action({
       invoiceNo,
       checks,
       decision,
+      messageId: args.messageId,
     });
   },
 });

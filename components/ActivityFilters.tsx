@@ -37,7 +37,7 @@ export function ActivityFilters(): React.ReactElement {
         onChange={(e) => update({ q: e.target.value })}
         placeholder="Search the log"
         aria-label="Search the log"
-        className="flex-1 rounded-sm border border-line bg-surface px-3 py-1.5 text-[13px] text-ink placeholder:text-ink-faint focus:outline-2 focus:outline-ink"
+        className="flex-1 rounded-sm border border-line bg-surface px-3 py-1.5 text-[13px] text-ink placeholder:text-ink-faint"
       />
       <div className="flex gap-1">
         <button

@@ -78,6 +78,10 @@ export default defineSchema({
     status: billStatus,
     emailKey: v.string(),
     planted: v.boolean(),
+    // Practice-generated bills (Practice screen's "Generate set") live in the same table so
+    // Practice can link to them, but never count toward the real Inbox/Approvals/Payments/
+    // Suppliers views (see convex/app/queries.ts). Absent/false = a real bill.
+    practice: v.optional(v.boolean()),
     checks: v.optional(
       v.array(
         v.object({
@@ -107,16 +111,21 @@ export default defineSchema({
     body: v.string(),
     receivedAt: v.string(),
     direction: v.union(v.literal("in"), v.literal("out")),
+    // The webhook payload's provider message id, when it has one. Used to dedupe a resent
+    // inbound-email webhook (convex/app/intake.ts) without creating a second bill.
+    messageId: v.optional(v.string()),
   })
     .index("by_key", ["key"])
-    .index("by_bill", ["billKey"]),
+    .index("by_bill", ["billKey"])
+    .index("by_message_id", ["messageId"])
+    .index("by_sender_subject", ["fromAddress", "subject"]),
 
   payments: defineTable({
     key: v.string(),
     billKey: v.string(),
     amountCents: v.number(),
     bankAccountKey: v.string(),
-    status: v.string(),
+    status: v.union(v.literal("pending"), v.literal("sent"), v.literal("failed")),
     transferId: v.optional(v.string()),
     paidAt: v.string(),
   })

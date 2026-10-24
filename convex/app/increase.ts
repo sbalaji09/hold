@@ -6,7 +6,7 @@
 // Env read lazily; a missing key fails loudly instead of faking a transfer.
 import { ConvexError, v } from "convex/values";
 import { api, internal } from "../_generated/api.js";
-import { action, internalQuery } from "../_generated/server.js";
+import { action, internalAction, internalQuery } from "../_generated/server.js";
 
 const SANDBOX_BASE = "https://sandbox.increase.com";
 
@@ -22,7 +22,7 @@ async function increaseFetch(path: string, apiKey: string, body: unknown): Promi
   return response.json();
 }
 
-export const sendTransfer = action({
+export const sendTransfer = internalAction({
   args: {
     routingNumber: v.string(),
     accountNumber: v.string(),
@@ -104,13 +104,23 @@ export const runPayments = action({
   handler: async (ctx, { billKeys }): Promise<Array<{ billKey: string; transferId?: string; error?: string }>> => {
     const results: Array<{ billKey: string; transferId?: string; error?: string }> = [];
     for (const billKey of billKeys) {
+      let paymentKey: string | undefined;
       try {
         const details = await ctx.runQuery(internal.app.increase.payoutDetails, { billKey });
         if (details.status !== "Scheduled") {
           const paid = await ctx.runMutation(api.app.mutations.payBill, { billKey });
           if (paid && typeof paid === "object" && "refused" in paid) throw new Error(paid.refused);
         }
-        const { transferId } = await ctx.runAction(api.app.increase.sendTransfer, {
+        // Claim the bill before sending the transfer, in the same transaction as the Scheduled
+        // check, so a concurrent second run of this bill is refused instead of double-paying.
+        const claimed = await ctx.runMutation(internal.app.mutations.claimPayment, {
+          billKey,
+          bankAccountKey: details.bankAccountKey,
+          amountCents: details.amountCents,
+        });
+        if ("refused" in claimed) throw new Error(claimed.refused);
+        paymentKey = claimed.paymentKey;
+        const { transferId } = await ctx.runAction(internal.app.increase.sendTransfer, {
           routingNumber: details.routingNumber,
           accountNumber: details.accountNumber,
           accountHolder: details.accountHolder,
@@ -119,12 +129,14 @@ export const runPayments = action({
         });
         await ctx.runMutation(api.app.mutations.recordPayment, {
           billKey,
+          paymentKey,
           bankAccountKey: details.bankAccountKey,
           amountCents: details.amountCents,
           transferId,
         });
         results.push({ billKey, transferId });
       } catch (err) {
+        if (paymentKey) await ctx.runMutation(internal.app.mutations.failPayment, { paymentKey });
         const message = err instanceof ConvexError && typeof err.data === "string" ? err.data : err instanceof Error ? err.message : "Payment failed.";
         results.push({ billKey, error: message });
       }

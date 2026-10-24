@@ -4,6 +4,7 @@
 import { convexTest } from "convex-test";
 import { describe, expect, test } from "vitest";
 import { api } from "../_generated/api.js";
+import { applyCallOutcome } from "./mutations.js";
 import schema from "../schema.js";
 import { modules } from "../test.setup.js";
 
@@ -251,5 +252,123 @@ describe("requestCall", () => {
     expect(requests[0]!.to_number).not.toBe("+19995550000");
     expect(requests[0]!.number_source).toBe("on_file");
     expect(requests[0]!.status).toBe("queued");
+  });
+
+  test("a call already queued for this bill is a no-op: returns the existing call_id, doesn't insert another or log activity", async () => {
+    const { t, fns, seed, activity } = harness();
+    await seed({ checks: [BANK_FLAG], status: "Calling" });
+    await t.run((ctx) =>
+      ctx.db.insert("callRequests", {
+        call_id: "call_existing",
+        bill_id: "bill_4471",
+        supplier_id: "sup_stage",
+        to_number: SUPPLIER.trustedPhone,
+        number_source: "on_file",
+        reason: ["Maya asked to confirm this bill"],
+        status: "dialing",
+        attempt: 0,
+        mode: "live",
+      }),
+    );
+    const before = (await activity()).length;
+    const call_id = await t.mutation(fns.mutations.requestCall, { billKey: "bill_4471" });
+    expect(call_id).toBe("call_existing");
+    const requests = await t.run((ctx) => ctx.db.query("callRequests").collect());
+    expect(requests).toHaveLength(1);
+    expect((await activity()).length).toBe(before);
+  });
+
+  test("refuses to call a supplier with no trusted phone on file", async () => {
+    const { t, fns, seed } = harness();
+    await seed({ checks: [BANK_FLAG] });
+    await t.run(async (ctx) => {
+      const row = await ctx.db
+        .query("suppliers")
+        .withIndex("by_key", (q) => q.eq("key", "sup_stage"))
+        .unique();
+      await ctx.db.patch(row!._id, { trustedPhone: "" });
+    });
+    const result = await t.mutation(fns.mutations.requestCall, { billKey: "bill_4471" });
+    expect(result).toEqual({ refused: "No number on file yet. Run the background check and confirm a number first." });
+    const requests = await t.run((ctx) => ctx.db.query("callRequests").collect());
+    expect(requests).toHaveLength(0);
+  });
+});
+
+describe("claimPayment", () => {
+  test("two sequential claims on the same bill: the second is refused", async () => {
+    const { t, fns, seed } = harness();
+    await seed({ status: "Scheduled" });
+    const first = await t.mutation(fns.mutations.claimPayment, { billKey: "bill_4471", bankAccountKey: "bank_stage", amountCents: 500_000 });
+    expect(first).toHaveProperty("paymentKey");
+    const second = await t.mutation(fns.mutations.claimPayment, { billKey: "bill_4471", bankAccountKey: "bank_stage", amountCents: 500_000 });
+    expect(second).toEqual({ refused: "A payment for bill_4471 is already pending or sent." });
+    const payments = await t.run((ctx) => ctx.db.query("payments").collect());
+    expect(payments).toHaveLength(1);
+    expect(payments[0]!.status).toBe("pending");
+  });
+
+  test("after failPayment marks the claim failed, a retry can claim again", async () => {
+    const { t, fns, seed } = harness();
+    await seed({ status: "Scheduled" });
+    const first = await t.mutation(fns.mutations.claimPayment, { billKey: "bill_4471", bankAccountKey: "bank_stage", amountCents: 500_000 });
+    if (!("paymentKey" in first)) throw new Error("expected a claim");
+    await t.mutation(fns.mutations.failPayment, { paymentKey: first.paymentKey });
+    const retry = await t.mutation(fns.mutations.claimPayment, { billKey: "bill_4471", bankAccountKey: "bank_stage", amountCents: 500_000 });
+    expect(retry).toHaveProperty("paymentKey");
+    const bill = await t.run((ctx) => ctx.db.query("bills").collect()).then((rows) => rows[0]!);
+    expect(bill.status).toBe("Scheduled");
+  });
+});
+
+describe("applyCallOutcome", () => {
+  test("not_confirmed holds the bill and opens a pending approval", async () => {
+    const { t, seed, billRow } = harness();
+    await seed({ status: "Calling", checks: [BANK_FLAG] });
+    await t.run((ctx) => applyCallOutcome(ctx, "bill_4471", "not_confirmed"));
+    expect((await billRow()).status).toBe("Held");
+    const approvals = await t.run((ctx) => ctx.db.query("approvals").collect());
+    expect(approvals).toHaveLength(1);
+    expect(approvals[0]!.status).toBe("pending");
+  });
+
+  test("handed_off routes the bill to Maya, not Dev", async () => {
+    const { t, seed, billRow } = harness();
+    await seed({ status: "Calling" });
+    await t.run((ctx) => applyCallOutcome(ctx, "bill_4471", "handed_off"));
+    expect((await billRow()).status).toBe("Needs you");
+    const approvals = await t.run((ctx) => ctx.db.query("approvals").collect());
+    expect(approvals).toHaveLength(1);
+    expect(approvals[0]!.routedTo).toBe("maya");
+  });
+
+  test("confirmed still needs Dev's sign-off — never releases money on its own", async () => {
+    const { t, seed, billRow } = harness();
+    await seed({ status: "Checking" });
+    await t.run((ctx) => applyCallOutcome(ctx, "bill_4471", "confirmed"));
+    const bill = await billRow();
+    expect(bill.status).toBe("Needs you");
+    expect(bill.status).not.toBe("Scheduled");
+    const approvals = await t.run((ctx) => ctx.db.query("approvals").collect());
+    expect(approvals).toHaveLength(1);
+    expect(approvals[0]!.kind).toBe("big_payment");
+  });
+
+  test("idempotent: a second outcome for the same bill is a no-op once an approval is pending", async () => {
+    const { t, seed, billRow } = harness();
+    await seed({ status: "Calling", checks: [BANK_FLAG] });
+    await t.run((ctx) => applyCallOutcome(ctx, "bill_4471", "not_confirmed"));
+    await t.run((ctx) => applyCallOutcome(ctx, "bill_4471", "confirmed"));
+    expect((await billRow()).status).toBe("Held");
+    const approvals = await t.run((ctx) => ctx.db.query("approvals").collect());
+    expect(approvals).toHaveLength(1);
+  });
+
+  test("a bill that's already Paid is left alone", async () => {
+    const { t, seed, billRow } = harness();
+    await seed({ status: "Paid" });
+    await t.run((ctx) => applyCallOutcome(ctx, "bill_4471", "not_confirmed"));
+    expect((await billRow()).status).toBe("Paid");
+    expect(await t.run((ctx) => ctx.db.query("approvals").collect())).toHaveLength(0);
   });
 });

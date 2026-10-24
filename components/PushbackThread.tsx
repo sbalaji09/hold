@@ -165,9 +165,15 @@ export function PushbackThread({ approval, actor }: { approval: Approval; actor:
       ) : null}
 
       {decision === null && lastFromCallback && safeAlternative ? (
-        <Button variant="primary" size="sm" disabled={pending !== null} onClick={() => decide("approve-safe", safeAlternative.bankAccountKey)}>
-          {`Approve \u00b7 pay ${acct.bank} \u00b7\u00b7${acct.last4} instead`}
-        </Button>
+        actor === "dev" ? (
+          <Button variant="primary" size="sm" disabled={pending !== null} onClick={() => decide("approve-safe", safeAlternative.bankAccountKey)}>
+            {`Approve \u00b7 pay ${acct.bank} \u00b7\u00b7${acct.last4} instead`}
+          </Button>
+        ) : (
+          <Button variant="primary" size="sm" locked="Dev has to approve this">
+            {`Approve \u00b7 pay ${acct.bank} \u00b7\u00b7${acct.last4} instead`}
+          </Button>
+        )
       ) : null}
 
       {decision === null ? (
@@ -187,12 +193,25 @@ export function PushbackThread({ approval, actor }: { approval: Approval; actor:
             <Button variant="secondary" size="sm" type="submit" disabled={pending !== null}>
               {pending === "reply" ? "Sending…" : "Send"}
             </Button>
-            <Button variant="primary" size="sm" disabled={pending !== null} onClick={() => decide("approve")}>
-              Approve
-            </Button>
-            <Button variant="secondary" size="sm" disabled={pending !== null} onClick={() => decide("reject")}>
-              Reject
-            </Button>
+            {actor === "dev" ? (
+              <>
+                <Button variant="primary" size="sm" disabled={pending !== null} onClick={() => decide("approve")}>
+                  Approve
+                </Button>
+                <Button variant="secondary" size="sm" disabled={pending !== null} onClick={() => decide("reject")}>
+                  Reject
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="primary" size="sm" locked="Dev has to approve this">
+                  Approve
+                </Button>
+                <Button variant="secondary" size="sm" locked="Dev has to approve this">
+                  Reject
+                </Button>
+              </>
+            )}
           </div>
         </form>
       ) : null}

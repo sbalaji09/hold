@@ -1,5 +1,25 @@
 # hold
 
+## Setup
+
+```sh
+pnpm install
+cp .env.example .env   # then fill in; .env is git-ignored, never commit keys
+npx convex dev          # terminal 1: Convex functions, codegen, and `npx convex env set` target
+pnpm dev                 # terminal 2: the Next.js app
+```
+
+Env vars: see `.env.example` for the full list and which ones are Convex-side (`npx convex env set NAME value`) vs local (`.env`).
+
+Run tests with `pnpm vitest run`.
+
+Before pushing anything under `convex/`, it must pass the stricter check used at deploy time:
+
+```sh
+npx tsc -p convex/tsconfig.json --noEmit
+```
+
+
 <!-- BEGIN voice section: owned by the voice half (voice/, Twilio, Cartesia). Edit inside with care. -->
 ## Voice (Cartesia)
 

@@ -108,6 +108,41 @@ async function toCall(ctx: QueryCtx, billKey: string, supplierKey: string): Prom
   };
 }
 
+const UNKNOWN_SENDER_PREFIX = "unknown:";
+
+// recordUnknownSender (convex/app/intake.ts) points a bill at a sentinel supplierKey/empty
+// bankAccountKey instead of real rows. These placeholders let listBills/listApprovals/the bill
+// page render that bill instead of throwing; a genuine dangling reference anywhere else still
+// throws below.
+function placeholderSupplier(supplierKey: string, fromAddress: string): Supplier {
+  return {
+    key: supplierKey,
+    name: "Unknown sender",
+    category: "other",
+    domain: supplierKey.slice(UNKNOWN_SENDER_PREFIX.length),
+    contactName: fromAddress,
+    contactEmail: fromAddress,
+    trustedPhone: "",
+    phoneLastCheckedAt: "",
+    status: "new",
+  };
+}
+
+// ponytail: BankAccount's verifiedBy union has no "unverified" literal; "onboarding" is its
+// lowest-trust value. Upgrade if an actual unverified state is ever needed elsewhere.
+function placeholderBankAccount(supplierKey: string): BankAccount {
+  return {
+    key: "",
+    supplierKey,
+    bank: "Not on file",
+    last4: "----",
+    routingLast4: "----",
+    status: "retired",
+    verifiedBy: "onboarding",
+    addedAt: "",
+  };
+}
+
 async function requireSupplier(ctx: QueryCtx, key: string): Promise<Doc<"suppliers">> {
   const row = await ctx.db
     .query("suppliers")
@@ -118,12 +153,15 @@ async function requireSupplier(ctx: QueryCtx, key: string): Promise<Doc<"supplie
 }
 
 export async function hydrateBill(ctx: QueryCtx, bill: Doc<"bills">): Promise<Bill> {
+  const isUnknownSender = bill.supplierKey.startsWith(UNKNOWN_SENDER_PREFIX) && bill.bankAccountKey === "";
   const [supplierRow, bankAccountRow, emailRow, paymentRow, call] = await Promise.all([
-    requireSupplier(ctx, bill.supplierKey),
-    ctx.db
-      .query("bankAccounts")
-      .withIndex("by_key", (q) => q.eq("key", bill.bankAccountKey))
-      .unique(),
+    isUnknownSender ? Promise.resolve(null) : requireSupplier(ctx, bill.supplierKey),
+    isUnknownSender
+      ? Promise.resolve(null)
+      : ctx.db
+          .query("bankAccounts")
+          .withIndex("by_key", (q) => q.eq("key", bill.bankAccountKey))
+          .unique(),
     ctx.db
       .query("emails")
       .withIndex("by_key", (q) => q.eq("key", bill.emailKey))
@@ -134,7 +172,7 @@ export async function hydrateBill(ctx: QueryCtx, bill: Doc<"bills">): Promise<Bi
       .first(),
     toCall(ctx, bill.key, bill.supplierKey),
   ]);
-  if (!bankAccountRow) throw new Error(`Bill ${bill.key} references an unknown bank account ${bill.bankAccountKey}`);
+  if (!isUnknownSender && !bankAccountRow) throw new Error(`Bill ${bill.key} references an unknown bank account ${bill.bankAccountKey}`);
   if (!emailRow) throw new Error(`Bill ${bill.key} references an unknown email ${bill.emailKey}`);
   return {
     key: bill.key,
@@ -148,8 +186,8 @@ export async function hydrateBill(ctx: QueryCtx, bill: Doc<"bills">): Promise<Bi
     status: bill.status,
     emailKey: bill.emailKey,
     planted: bill.planted,
-    supplier: toSupplier(supplierRow),
-    bankAccount: toBankAccount(bankAccountRow),
+    supplier: supplierRow ? toSupplier(supplierRow) : placeholderSupplier(bill.supplierKey, emailRow.fromAddress),
+    bankAccount: bankAccountRow ? toBankAccount(bankAccountRow) : placeholderBankAccount(bill.supplierKey),
     email: toEmail(emailRow),
     payment: paymentRow ? toPayment(paymentRow) : null,
     call,
@@ -168,7 +206,7 @@ export const listBills = query({
           .withIndex("by_status", (q) => q.eq("status", status as DataBillStatus))
           .collect()
       : await ctx.db.query("bills").collect();
-    const bills = await Promise.all(rows.map((row) => hydrateBill(ctx, row)));
+    const bills = await Promise.all(rows.filter((r) => !r.practice).map((row) => hydrateBill(ctx, row)));
     return bills.sort((a, b) => (a.receivedAt < b.receivedAt ? 1 : -1));
   },
 });
@@ -191,28 +229,31 @@ export const listApprovals = query({
       .query("approvals")
       .withIndex("by_status", (q) => q.eq("status", "pending"))
       .collect();
-    const approvals = await Promise.all(
-      rows.map(async (row) => {
-        const billRow = await ctx.db
-          .query("bills")
-          .withIndex("by_key", (q) => q.eq("key", row.billKey))
-          .unique();
-        if (!billRow) throw new Error(`Approval ${row.key} references an unknown bill ${row.billKey}`);
-        const bill = await hydrateBill(ctx, billRow);
-        const approval: Approval = {
-          key: row.key,
-          billKey: row.billKey,
-          bill,
-          kind: row.kind,
-          status: "pending",
-          recommendation: row.recommendation,
-          routedTo: row.routedTo,
-          reason: row.reason,
-          thread: row.thread,
-        };
-        return approval;
-      }),
-    );
+    const approvals = (
+      await Promise.all(
+        rows.map(async (row) => {
+          const billRow = await ctx.db
+            .query("bills")
+            .withIndex("by_key", (q) => q.eq("key", row.billKey))
+            .unique();
+          if (!billRow) throw new Error(`Approval ${row.key} references an unknown bill ${row.billKey}`);
+          if (billRow.practice) return null;
+          const bill = await hydrateBill(ctx, billRow);
+          const approval: Approval = {
+            key: row.key,
+            billKey: row.billKey,
+            bill,
+            kind: row.kind,
+            status: "pending",
+            recommendation: row.recommendation,
+            routedTo: row.routedTo,
+            reason: row.reason,
+            thread: row.thread,
+          };
+          return approval;
+        }),
+      )
+    ).filter((a): a is Approval => a !== null);
     return approvals.sort((a, b) => (a.bill.receivedAt < b.bill.receivedAt ? 1 : -1));
   },
 });
@@ -221,17 +262,20 @@ export const listPayments = query({
   args: {},
   handler: async (ctx): Promise<Array<Payment & { bill: Bill }>> => {
     const rows = await ctx.db.query("payments").collect();
-    const out = await Promise.all(
-      rows.map(async (row) => {
-        const billRow = await ctx.db
-          .query("bills")
-          .withIndex("by_key", (q) => q.eq("key", row.billKey))
-          .unique();
-        if (!billRow) throw new Error(`Payment ${row.key} references an unknown bill ${row.billKey}`);
-        const bill = await hydrateBill(ctx, billRow);
-        return { ...toPayment(row), bill };
-      }),
-    );
+    const out = (
+      await Promise.all(
+        rows.map(async (row) => {
+          const billRow = await ctx.db
+            .query("bills")
+            .withIndex("by_key", (q) => q.eq("key", row.billKey))
+            .unique();
+          if (!billRow) throw new Error(`Payment ${row.key} references an unknown bill ${row.billKey}`);
+          if (billRow.practice) return null;
+          const bill = await hydrateBill(ctx, billRow);
+          return { ...toPayment(row), bill };
+        }),
+      )
+    ).filter((p): p is Payment & { bill: Bill } => p !== null);
     return out.sort((a, b) => (a.paidAt < b.paidAt ? 1 : -1));
   },
 });
@@ -305,6 +349,7 @@ export const listSupplierSummaries = query({
     const [suppliers, bills] = await Promise.all([ctx.db.query("suppliers").collect(), ctx.db.query("bills").collect()]);
     const openBySupplier = new Map<string, number>();
     for (const b of bills) {
+      if (b.practice) continue;
       if (b.status === "Paid" || b.status === "Scheduled") continue;
       openBySupplier.set(b.supplierKey, (openBySupplier.get(b.supplierKey) ?? 0) + 1);
     }
