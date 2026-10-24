@@ -4,10 +4,14 @@
 import { v } from "convex/values";
 import type { Doc } from "../_generated/dataModel.js";
 import { mutation, query } from "../_generated/server.js";
+import { getSupplierContact } from "./records.js";
 import { TAKEOVER_BEFORE_CONNECT_SUMMARY } from "./rules.js";
 import { findRequest, findResult, writeResult } from "./server.js";
 
-/** Everything the Live call screen shows for one call. Events are in creation order. */
+/**
+ * Everything the Live call screen shows for one call. Events are in creation order.
+ * `supplier` gives display names (title, speaker label); null if the request or supplier is unknown.
+ */
 export const liveCall = query({
   args: { call_id: v.string() },
   handler: async (ctx, { call_id }) => {
@@ -19,7 +23,8 @@ export const liveCall = query({
         .collect(),
       findResult(ctx, call_id),
     ]);
-    return { request, events, result };
+    const supplier = request ? await getSupplierContact(ctx, request.supplier_id) : null;
+    return { request, events, result, supplier };
   },
 });
 

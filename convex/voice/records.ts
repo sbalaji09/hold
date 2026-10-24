@@ -13,9 +13,19 @@ import { internalQuery, type QueryCtx } from "../_generated/server.js";
 const usd = (cents: number) =>
   `$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-/** "2026-09-03T16:00:00.000Z" -> "3 Sep" (UTC, so it never shifts a day). */
-const shortDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+/** "2026-09-03T16:00:00.000Z" -> "3 Sep" (fixed names and UTC, so it never depends on ICU or shifts a day). */
+const shortDate = (iso: string) => {
+  const d = new Date(iso);
+  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]!.slice(0, 3)}`;
+};
+
+/** "2026-09-01T..." -> "September 2026": spelled out so "your September invoice" finds it in Moss. */
+const monthYear = (iso: string) => {
+  const d = new Date(iso);
+  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+};
 
 const isoDay = (iso: string) => iso.slice(0, 10);
 
@@ -39,6 +49,15 @@ async function supplierByKey(ctx: QueryCtx, key: string) {
     .query("suppliers")
     .withIndex("by_key", (q) => q.eq("key", key))
     .unique();
+}
+
+/** Display names for the Live call screen. */
+export async function getSupplierContact(
+  ctx: QueryCtx,
+  supplier_id: string,
+): Promise<{ name: string; contactName: string } | null> {
+  const s = await supplierByKey(ctx, supplier_id);
+  return s ? { name: s.name, contactName: s.contactName } : null;
 }
 
 export async function getSupplierProfile(ctx: QueryCtx, supplier_id: string): Promise<SupplierProfile | null> {
@@ -72,7 +91,7 @@ export async function getSupplierRecords(ctx: QueryCtx, supplier_id: string): Pr
       ref: `#${b.invoiceNo}`,
       date: isoDay(b.receivedAt),
       amount_cents: b.amountCents,
-      text: `${supplier.name} invoice #${b.invoiceNo}, received ${isoDay(b.receivedAt)}, due ${b.dueDate}. Total ${usd(b.amountCents)}. Status ${b.status}.`,
+      text: `${supplier.name} ${monthYear(b.receivedAt)} invoice #${b.invoiceNo}, received ${isoDay(b.receivedAt)}, due ${b.dueDate}. Total ${usd(b.amountCents)}. Status ${b.status}.`,
     });
     const payments = await ctx.db
       .query("payments")

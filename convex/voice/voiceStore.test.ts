@@ -350,7 +350,11 @@ describe("convex-only", () => {
         event: { call_id: "call_1", type: "segment", speaker: "callback", text, ts: 0 },
       });
     }
+    expect((await t.query(api.voice.ui.liveCall, { call_id: "call_1" })).supplier).toBeNull(); // no suppliers row yet
+    await t.run((ctx) => ctx.db.insert("suppliers", STAGE_ROW));
     const live = await t.query(api.voice.ui.liveCall, { call_id: "call_1" });
+    expect(live.supplier).toEqual({ name: "Stagecraft Rigging Co.", contactName: "Rosa Quintero" });
+    expect((await t.query(api.voice.ui.liveCall, { call_id: "nope" })).supplier).toBeNull();
     expect(live.events.map((e) => (e.type === "segment" ? e.text : null))).toEqual(["one", "two", "three"]);
     expect(live.result).toBeNull();
 
@@ -389,6 +393,8 @@ describe("convex-only", () => {
     const recs = await t.query(api.voice.server.getSupplierRecords, { secret: SECRET, supplier_id: "sup_stage" });
     expect(recs.filter((r) => r.kind === "email")).toHaveLength(14);
     expect(recs.find((r) => r.ref === "#4471")).toMatchObject({ kind: "invoice", amount_cents: 1840000 });
+    expect(recs.find((r) => r.ref === "#4471")?.text).toContain("September 2026 invoice #4471");
+    expect(recs.find((r) => r.id === "call_4471_verify")).toMatchObject({ ref: "Call 3 Sep" });
     expect(recs.find((r) => r.id === "call_4471_verify")?.text).toContain("4471");
     expect(recs.some((r) => r.kind === "payment" && r.text.includes("#4471"))).toBe(true);
     // No bank account digits ever reach Moss text.
