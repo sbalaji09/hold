@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { editDistance, extractPhones, similarity } from "./background.js";
+import { backgroundLocal, copycatLocal, editDistance, extractPhones, similarity } from "./background.js";
 
 test("editDistance counts the minimum single-character edits", () => {
   expect(editDistance("stagecraft", "stagecraft")).toBe(0);
@@ -25,4 +25,14 @@ test("extractPhones finds US-style numbers in free text and dedupes", () => {
 
 test("extractPhones returns nothing when there's no number in the text", () => {
   expect(extractPhones("Reach out any time, we're around.")).toEqual([]);
+});
+
+test("backgroundLocal flags an invalid domain without fetching", async () => {
+  const { findings } = await backgroundLocal("not a domain");
+  expect(findings).toEqual([{ label: "Site reachable", state: "flag", evidence: `"not a domain" isn't a valid domain to check.` }]);
+});
+
+test("copycatLocal flags an invalid domain without fetching", async () => {
+  const { findings } = await copycatLocal("http://evil.example/../", "stagecraftrigging.com");
+  expect(findings[0]?.state).toBe("flag");
 });

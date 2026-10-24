@@ -320,7 +320,7 @@ export const failPayment = internalMutation({
  * approved decideApproval is what gets it there. Finalises the 'pending' row claimPayment already
  * inserted, instead of inserting a second one.
  */
-export const recordPayment = mutation({
+export const recordPayment = internalMutation({
   args: {
     billKey: v.string(),
     paymentKey: v.string(),

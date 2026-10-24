@@ -341,6 +341,7 @@ export const ingestEmail = action({
     }
 
     let styleMatch: { matches: boolean; reasons: string[] } | undefined;
+    let styleMatchError: string | undefined;
     try {
       const result = await ctx.runAction(api.voice.styleMatch.styleMatch, {
         supplier_id: context.supplier.key,
@@ -348,10 +349,12 @@ export const ingestEmail = action({
       });
       styleMatch = { matches: result.matches, reasons: result.reasons };
     } catch (err) {
-      // ponytail: styleMatch needs ANTHROPIC_API_KEY (and optionally Moss) configured; if it's
-      // missing or the call fails, skip that one check rather than blocking intake on it — the
-      // other four checks still run and still decide. Upgrade to a retry/alert if this fires in prod.
+      // styleMatch needs ANTHROPIC_API_KEY (and optionally Moss) configured; if it's missing or
+      // the call fails, skip that one check rather than blocking intake on it — the other four
+      // checks still run and still decide. The bill still surfaces this as an info check so it's
+      // never silently omitted from what a bookkeeper sees.
       console.warn(`styleMatch failed for ${context.supplier.key}:`, err);
+      styleMatchError = err instanceof Error ? err.message : String(err);
     }
 
     const amountCents = parseAmountCents(args.body) ?? 0;
@@ -367,6 +370,15 @@ export const ingestEmail = action({
       styleMatch,
       learnedRules: context.learnedRules,
     });
+    if (styleMatchError) {
+      checks.push({
+        id: "writing-style",
+        label: "Writing style",
+        state: "info",
+        evidence: `Writing style wasn't checked: ${styleMatchError}`,
+        cite: { kind: "email", ref: fromAddress },
+      });
+    }
     let decision: Decision = decide(checks, amountCents);
     // New-supplier addendum (plan-agent.md addendum §3): a bank change or a bill of $5,000+ from
     // a supplier Callback hasn't confirmed by call yet always gets a call, even if every check

@@ -90,11 +90,18 @@ Return:
 - similarities: the same, for concrete similarities.
 Give 2 to 4 points in total.`;
 
+/** Both the past emails and the email under test are untrusted free text; neutralize any
+ * "</new_email>" they contain (case-insensitively) before interpolating so a crafted email can't
+ * close the tag early and inject fake instructions after it. */
+function escapeClosingTag(text: string): string {
+  return text.replace(/<\/new_email>/gi, "&lt;/new_email&gt;");
+}
+
 export function buildPrompt(emails: SupplierRecord[], email_text: string): string {
   const past = emails
-    .map((e, i) => `<past_email n="${i + 1}" date="${e.date}">\n${e.text}\n</past_email>`)
+    .map((e, i) => `<past_email n="${i + 1}" date="${e.date}">\n${escapeClosingTag(e.text)}\n</past_email>`)
     .join("\n");
-  return `${past}\n\n<new_email>\n${email_text}\n</new_email>`;
+  return `${past}\n\n<new_email>\n${escapeClosingTag(email_text)}\n</new_email>`;
 }
 
 export const styleMatch = action({

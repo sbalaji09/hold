@@ -127,7 +127,7 @@ export const runPayments = action({
           amountCents: details.amountCents,
           description: details.description,
         });
-        await ctx.runMutation(api.app.mutations.recordPayment, {
+        await ctx.runMutation(internal.app.mutations.recordPayment, {
           billKey,
           paymentKey,
           bankAccountKey: details.bankAccountKey,

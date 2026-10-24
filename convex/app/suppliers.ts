@@ -2,7 +2,23 @@
 // (Maya, from the Suppliers list). Background check is Apify's job, a later
 // phase — a brand-new supplier simply starts with no background check run.
 import { ConvexError, v } from "convex/values";
-import { mutation } from "../_generated/server.js";
+import { internalMutation, mutation } from "../_generated/server.js";
+
+const MAX_NAME_LENGTH = 200;
+// Bare hostname only: no scheme, userinfo, path, query or port, and no IPv4/IPv6 literal or
+// localhost — a supplier's domain is used to build fetch URLs (background.ts) and should never
+// let a crafted value redirect that fetch somewhere else on the network.
+const HOSTNAME_RE = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i;
+const IPV4_RE = /^\d{1,3}(\.\d{1,3}){3}$/;
+
+/** True for a plain hostname like "stagecraftrigging.com" — not a URL, an IP literal or localhost. */
+export function isValidDomain(domain: string): boolean {
+  const d = domain.trim().toLowerCase();
+  if (!HOSTNAME_RE.test(d)) return false;
+  if (d === "localhost" || d.endsWith(".localhost")) return false;
+  if (IPV4_RE.test(d)) return false;
+  return true;
+}
 
 function slugify(name: string): string {
   const base = name
@@ -19,9 +35,15 @@ export const add = mutation({
   },
   handler: async (ctx, { name, domain }) => {
     const trimmedName = name.trim();
-    const trimmedDomain = domain.trim();
+    const trimmedDomain = domain.trim().toLowerCase();
     if (!trimmedName || !trimmedDomain) {
-      throw new Error("Name and domain are both required to add a supplier.");
+      throw new ConvexError("Name and domain are both required to add a supplier.");
+    }
+    if (trimmedName.length > MAX_NAME_LENGTH) {
+      throw new ConvexError(`Name can't be longer than ${MAX_NAME_LENGTH} characters.`);
+    }
+    if (!isValidDomain(trimmedDomain)) {
+      throw new ConvexError(`"${domain}" isn't a plain domain (e.g. "example.com"), not a URL, IP address or localhost.`);
     }
     const key = "sup_" + slugify(trimmedName);
     const now = new Date().toISOString();
@@ -59,7 +81,7 @@ export const add = mutation({
  * is outside this file's scope — call this mutation from there with the supplier of the bill the
  * confirmed call belonged to.
  */
-export const markTrusted = mutation({
+export const markTrusted = internalMutation({
   args: { supplierKey: v.string() },
   handler: async (ctx, { supplierKey }) => {
     const row = await ctx.db

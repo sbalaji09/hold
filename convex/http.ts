@@ -8,13 +8,23 @@ import { httpAction } from "./_generated/server.js";
 
 const http = httpRouter();
 
+/** Constant-time string compare: unequal length rejects immediately (length itself isn't secret,
+ * so this doesn't need to be time-safe), equal length always walks every character so an attacker
+ * timing the response can't learn the secret one byte at a time. */
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 http.route({
   path: "/inbound-email",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     const secret = process.env.INBOUND_EMAIL_SECRET;
     if (!secret) throw new Error("INBOUND_EMAIL_SECRET is not set");
-    if (request.headers.get("x-hold-secret") !== secret) {
+    if (!timingSafeEqual(request.headers.get("x-hold-secret") ?? "", secret)) {
       return new Response("Unauthorized", { status: 401 });
     }
 

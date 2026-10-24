@@ -50,7 +50,13 @@ let cache: RawFogline | null = null;
 async function load(): Promise<RawFogline> {
   if (cache) return cache;
   const file = await readFile(path.join(process.cwd(), "data", "fogline.json"), "utf-8");
-  cache = JSON.parse(file) as RawFogline;
+  const raw = JSON.parse(file) as RawFogline;
+  // Convex mode's toBankAccount (convex/app/queries.ts) never selects routingNumber/accountNumber
+  // onto the client-facing BankAccount shape; strip them here too so the JSON fallback matches.
+  // generate.ts and convex/app/increase.ts (the real Increase payout) read the full fogline.json /
+  // bankAccounts table directly, not through this fallback, so they still see the full numbers.
+  raw.bankAccounts = raw.bankAccounts.map(({ routingNumber: _routingNumber, accountNumber: _accountNumber, ...rest }) => rest);
+  cache = raw;
   return cache;
 }
 

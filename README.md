@@ -9,7 +9,7 @@ npx convex dev          # terminal 1: Convex functions, codegen, and `npx convex
 pnpm dev                 # terminal 2: the Next.js app
 ```
 
-Env vars: see `.env.example` for the full list and which ones are Convex-side (`npx convex env set NAME value`) vs local (`.env`).
+Env vars: see `.env.example` for the full list and which ones are Convex-side (`npx convex env set NAME value`) vs local (`.env`) — that now includes `APIFY_ACTOR_ID` (Convex-side) and `NEXT_PUBLIC_CONVEX_URL` (local, same value as `CONVEX_URL`).
 
 Run tests with `pnpm vitest run`.
 

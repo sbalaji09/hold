@@ -12,9 +12,10 @@
 // writes suppliers.trustedPhone itself — only "Use as trusted number", a locked action a human
 // confirms, does that (see lib/policy.ts's "Nobody but a person moves trust" rule).
 import { v } from "convex/values";
-import { api } from "../_generated/api.js";
-import { action, mutation, query } from "../_generated/server.js";
+import { api, internal } from "../_generated/api.js";
+import { action, internalMutation, mutation, query } from "../_generated/server.js";
 import type { BackgroundCheck } from "../../lib/types.js";
+import { isValidDomain } from "./suppliers.js";
 
 export type Finding = { label: string; state: "pass" | "flag" | "info"; evidence: string; sourceUrl?: string };
 
@@ -107,6 +108,9 @@ export async function domainAgeDays(domain: string): Promise<number | null> {
 // ---------- local heuristics (no APIFY_TOKEN) ----------
 
 export async function backgroundLocal(domain: string, businessName?: string): Promise<{ findings: Finding[]; suggestedPhone?: string }> {
+  if (!isValidDomain(domain)) {
+    return { findings: [{ label: "Site reachable", state: "flag", evidence: `"${domain}" isn't a valid domain to check.` }] };
+  }
   const findings: Finding[] = [];
   let suggestedPhone: string | undefined;
 
@@ -169,6 +173,9 @@ export async function backgroundLocal(domain: string, businessName?: string): Pr
 }
 
 export async function copycatLocal(domain: string, knownDomain: string): Promise<{ findings: Finding[] }> {
+  if (!isValidDomain(domain) || !isValidDomain(knownDomain)) {
+    return { findings: [{ label: "Domain edit distance", state: "flag", evidence: `"${domain}" isn't a valid domain to compare.` }] };
+  }
   const findings: Finding[] = [];
   const domainSim = similarity(domain, knownDomain);
   findings.push({
@@ -231,7 +238,7 @@ async function runApifyActor(
 
 // ---------- mutations (write the row + activity) ----------
 
-export const recordCheck = mutation({
+export const recordCheck = internalMutation({
   args: {
     kind: v.union(v.literal("background"), v.literal("copycat")),
     supplierKey: v.optional(v.string()),
@@ -288,7 +295,7 @@ export const runBackgroundCheck = action({
       via = "local heuristics (APIFY_TOKEN isn't set)";
     }
     const findings = [...result.findings, { label: "Check method", state: "info" as const, evidence: `Ran via ${via}.` }];
-    const { key } = await ctx.runMutation(api.app.background.recordCheck, {
+    const { key } = await ctx.runMutation(internal.app.background.recordCheck, {
       kind: "background",
       supplierKey,
       domain: supplier.domain,
@@ -322,7 +329,7 @@ export const runCopycatCheck = action({
       via = "local heuristics (APIFY_TOKEN isn't set)";
     }
     const findings = [...result.findings, { label: "Check method", state: "info" as const, evidence: `Ran via ${via}.` }];
-    const { key } = await ctx.runMutation(api.app.background.recordCheck, {
+    const { key } = await ctx.runMutation(internal.app.background.recordCheck, {
       kind: "copycat",
       billKey,
       domain,

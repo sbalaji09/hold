@@ -31,6 +31,9 @@ export function canMoveMoney(watchOnly: boolean): PolicyResult {
 /** Callback can pay under $10k safe bills only. */
 export function canPay(bill: Bill, watchOnly = false): PolicyResult {
   if (bill.status === "Paid") return denied("Already paid. There's nothing left to send.");
+  if (bill.status !== "Checking" && bill.status !== "Scheduled") {
+    return denied(`This bill is ${bill.status.toLowerCase()}, not ready to pay.`);
+  }
   const moneyCheck = canMoveMoney(watchOnly);
   if (!moneyCheck.allowed) return moneyCheck;
   const flagged = bill.checks.find((c) => c.state === "flag");
