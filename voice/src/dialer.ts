@@ -186,7 +186,7 @@ export class Dialer {
     try {
       const prepared = await c.prepared;
       const transport = await this.d.simulated(c.request, prepared);
-      await this.d.run({ store: c.store, transport, request: c.request, prepared, llm: this.d.llm });
+      await this.d.run({ store: c.store, transport, request: c.request, prepared, llm: this.d.llm, search: this.d.search });
     } catch (err) {
       log.error("dialer: simulated call failed", { callId: c.request.call_id, err: String(err) });
       await this.handOff(c, "Callback could not run the practice call.");
@@ -222,7 +222,7 @@ export class Dialer {
         await this.handOff(c, "Maya took over as the call connected.");
         return;
       }
-      await this.d.run({ store: c.store, transport, request: c.request, prepared, llm: this.d.llm });
+      await this.d.run({ store: c.store, transport, request: c.request, prepared, llm: this.d.llm, search: this.d.search });
     } catch (err) {
       log.error("dialer: call failed", { callId, err: String(err) });
     } finally {

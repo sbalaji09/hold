@@ -412,7 +412,7 @@ describe("checking with a person mid-call", () => {
     };
   }
 
-  function setupAsk(script: string[], opts: { quick?: () => unknown; judge?: unknown; mode?: "live" | "simulated" } = {}) {
+  function setupAsk(script: string[], opts: { quick?: () => unknown; judge?: unknown; mode?: "live" | "simulated"; search?: FakeSearch } = {}) {
     const store = new MemoryStore({ suppliers: [STAGE], records: STAGE_RECORDS });
     const request = stageRequest(opts.mode ? { mode: opts.mode } : {});
     store.addRequest(request);
@@ -423,7 +423,7 @@ describe("checking with a person mid-call", () => {
         "You judge": (opts.judge ?? judgeSays(false, false)) as never,
       },
     });
-    const run = (personTimeoutMs = 1_000) => runOutboundCall({ store, transport, request, prepared: PREPARED, llm, personTimeoutMs });
+    const run = (personTimeoutMs = 1_000) => runOutboundCall({ store, transport, request, prepared: PREPARED, llm, personTimeoutMs, search: opts.search });
     return { store, llm, run };
   }
 
@@ -467,6 +467,22 @@ describe("checking with a person mid-call", () => {
     expect(result.evidence).toHaveLength(2);
     expect(result.evidence[0]).toMatchObject({ ask: FOLLOW_UP, answer: "The main-stage truss build.", decided_by: "maya", matches: true });
     expect(result.outcome).toBe("confirmed");
+  });
+
+  it("Moss looks the answer up live: other records it sounds like reach the check and Maya, never the call", async () => {
+    const { store, llm, run } = setupAsk([VAGUE, DENIAL_LINE], { search: new FakeSearch(STAGE_RECORDS) });
+    mayaReplies(store, [{ verdict: "matches" }]);
+    await run();
+
+    const quick = llm.jsonCalls.find((c) => c.system.includes("You check one answer"))!;
+    const prompt = quick.messages[0]!.content;
+    expect(prompt).toContain("<other_records>");
+    expect(prompt).toContain("payment transfer_10129"); // a different real record
+    expect(prompt).not.toContain("invoice #4471,"); // not the record that was asked about
+    expect(prompt).not.toContain("Email 1 Sep"); // nor emails: a scammer with the mailbox has read them
+    expect(asks(store)[0]!.closest).toBe("payment transfer_10129, 2026-06-10: Payment for invoice #4132, transfer_10129.");
+    expectNothingReadBack(store);
+    for (const line of segments(store.eventsFor("call_123"), "callback")) expect(line).not.toContain("transfer_10129");
   });
 
   it("a clear answer, the bank question and simulated calls never wait on a person", async () => {

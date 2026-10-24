@@ -186,4 +186,22 @@ hold speaks for whichever company the workspace runs (`lib/company.ts`): the dis
 - Only English and Spanish have hand-written call lines. Another language code still sets Cartesia's language and Claude's, but the fixed lines (disclosure, goodbyes) fall back to English.
 - The incoming line always answers in English: the caller is unknown until they speak.
 - Calling hours assume every zone opens on the hour; a half-hour zone opens up to 30 minutes late.
+
+### Moss
+
+Moss is hold's memory of every supplier: one shared index (`fogline-suppliers`) of each supplier's invoices, payments, past calls, onboarding facts and emails, every query filtered to one supplier. Bank account numbers are never indexed. The voice server loads the index into memory at startup, so searches run locally with no network round trip.
+
+**Live, on every answer.** When the supplier answers a check-call question, hold searches their history with their own words while it says "thanks" (`answerLookup` in `voice/src/call/outbound.ts`). The records the answer sounds like go to two places, and never into anything said on the call:
+- hold's mid-call check: an answer that doesn't fit the record asked about, but clearly describes another real one (a supplier mixing up July's invoice with June's), counts as unsure, so it goes to Maya instead of failing.
+- Maya's prompt on the Live call screen, as "Sounds like: invoice #4134, 2026-06-26: …", so she can decide in seconds while the supplier holds.
+
+Emails are left out of this search: a scammer with mailbox access has read them.
+
+**Before the call.** While the phone rings, Moss finds the invoices, payments and calls the questions are built from.
+
+**Writing style.** The bill check compares a new email with the supplier's past emails pulled from the same index.
+
+**Measured** against the Fogline index on a laptop: a lookup takes 3.2 ms median, 7 ms at the 90th percentile (30 queries of caller-style speech). It runs during the acknowledgement, so it adds nothing to the turn gap. Each lookup logs a `moss lookup` JSON line with `mossMs`.
+
+Limits: Moss always returns its top matches, even for an evasive answer, so the check is told to treat evasive answers as no match. Spoken numbers ("forty four seventy one") rank less well than digits.
 <!-- END voice section -->

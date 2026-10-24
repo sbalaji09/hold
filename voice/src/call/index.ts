@@ -21,6 +21,8 @@ export interface OutboundCallDeps {
   /** Questions prepared by prepareOutboundCall() while the phone was ringing (Moss pre-warm). */
   prepared: PreparedCall;
   llm: LLM;
+  /** Moss: each answer is searched against the supplier's history as it is given. Absent = no lookups. */
+  search?: SupplierSearch;
   /** How long hold waits for a person mid-call before judging on its own. Default OUTBOUND_LIMITS.personTimeoutMs. */
   personTimeoutMs?: number;
 }

@@ -76,6 +76,8 @@ export interface AskPersonEvent {
   expected: string; // what the records say; shown to the team, never spoken
   source: Source;
   follow_up_allowed: boolean;
+  /** The record in the supplier's history the answer sounds most like (Moss, live), if another one. */
+  closest?: string;
 }
 
 /**

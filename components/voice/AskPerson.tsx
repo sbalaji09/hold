@@ -68,6 +68,14 @@ export function AskPerson({ ask, callId, actor }: { ask: AskEvent; callId: strin
           <dd>
             <span className="hv-record">{ask.expected}</span> <span className="cb-cite">{citeLabel(ask.source)}</span>
           </dd>
+          {ask.closest ? (
+            <>
+              <dt className="cb-caps">Sounds like</dt>
+              <dd>
+                <span className="hv-record">{ask.closest}</span>
+              </dd>
+            </>
+          ) : null}
         </dl>
 
         {step === "follow_up" || (step === "sending" && followUp) ? (

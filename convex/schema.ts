@@ -248,6 +248,7 @@ export default defineSchema({
         expected: v.string(),
         source: callEventSource,
         follow_up_allowed: v.boolean(),
+        closest: v.optional(v.string()),
       }),
       v.object({
         call_id: v.string(),
