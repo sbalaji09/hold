@@ -9,6 +9,8 @@ import { api, internal } from "../_generated/api.js";
 import type { Doc } from "../_generated/dataModel.js";
 import { action, internalMutation, internalQuery, type QueryCtx } from "../_generated/server.js";
 import { checkValidator, decide, routeEscalation, runChecks, type CheckBankAccount, type Decision, type LearnedRuleInput } from "./checks.js";
+import { techniqueCheck } from "../../lib/fraudTechniques.js";
+import { anthropic, assessEmail } from "./techniques.js";
 
 // ---------- parsing (pure, unit-tested in intake.test.ts) ----------
 
@@ -340,24 +342,44 @@ export const ingestEmail = action({
       });
     }
 
+    const amountCents = parseAmountCents(args.body) ?? 0;
+
+    // The two Claude checks run side by side, so neither adds to the other's wait.
+    const playbook = await ctx.runQuery(internal.app.techniques.activePlaybook, {});
+    const [style, technique] = await Promise.allSettled([
+      ctx.runAction(api.voice.styleMatch.styleMatch, { supplier_id: context.supplier.key, email_text: args.body }),
+      assessEmail(
+        anthropic(),
+        {
+          fromAddress,
+          subject: args.subject,
+          body: args.body,
+          supplierName: context.supplier.name,
+          supplierDomain: context.supplier.domain,
+          amountCents,
+        },
+        playbook,
+      ),
+    ]);
+    // Either can fail (no ANTHROPIC_API_KEY, Moss down). Skip that one check rather than blocking
+    // intake; the bill still shows it as an info check so it's never silently omitted.
     let styleMatch: { matches: boolean; reasons: string[] } | undefined;
     let styleMatchError: string | undefined;
-    try {
-      const result = await ctx.runAction(api.voice.styleMatch.styleMatch, {
-        supplier_id: context.supplier.key,
-        email_text: args.body,
-      });
-      styleMatch = { matches: result.matches, reasons: result.reasons };
-    } catch (err) {
-      // styleMatch needs ANTHROPIC_API_KEY (and optionally Moss) configured; if it's missing or
-      // the call fails, skip that one check rather than blocking intake on it — the other four
-      // checks still run and still decide. The bill still surfaces this as an info check so it's
-      // never silently omitted from what a bookkeeper sees.
-      console.warn(`styleMatch failed for ${context.supplier.key}:`, err);
-      styleMatchError = err instanceof Error ? err.message : String(err);
+    if (style.status === "fulfilled") styleMatch = { matches: style.value.matches, reasons: style.value.reasons };
+    else {
+      console.warn(`styleMatch failed for ${context.supplier.key}:`, style.reason);
+      styleMatchError = style.reason instanceof Error ? style.reason.message : String(style.reason);
     }
-
-    const amountCents = parseAmountCents(args.body) ?? 0;
+    const fraudTechnique =
+      technique.status === "fulfilled"
+        ? techniqueCheck(technique.value, playbook, fromAddress)
+        : {
+            id: "fraud-technique",
+            label: "Fraud technique",
+            state: "info" as const,
+            evidence: `Fraud techniques weren't checked: ${technique.reason instanceof Error ? technique.reason.message : String(technique.reason)}`,
+            cite: { kind: "email" as const, ref: fromAddress },
+          };
     const invoiceNo = parseInvoiceNo(args.body) ?? "unknown";
 
     const checks = runChecks({
@@ -369,6 +391,7 @@ export const ingestEmail = action({
       amountCents,
       styleMatch,
       learnedRules: context.learnedRules,
+      fraudTechnique,
     });
     if (styleMatchError) {
       checks.push({

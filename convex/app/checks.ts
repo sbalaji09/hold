@@ -76,10 +76,13 @@ export interface RunChecksInput {
    * account was already verified by a confirmed call plus Dev (verifiedBy call+dev); the rule alone
    * never passes it. Any rule for the supplier also surfaces as its own info check. Omit for suppliers with no saved rules. */
   learnedRules?: LearnedRuleInput[];
+  /** hold's playbook check (lib/fraudTechniques.ts techniqueCheck), built by the caller from
+   * Claude's assessment of this email. Skipped when not supplied. */
+  fraudTechnique?: Check;
 }
 
 export function runChecks(input: RunChecksInput): Check[] {
-  const { email, supplier, currentBankAccount, pastPaidBankAccounts, pastPaidAmounts, amountCents, styleMatch, learnedRules } = input;
+  const { email, supplier, currentBankAccount, pastPaidBankAccounts, pastPaidAmounts, amountCents, styleMatch, learnedRules, fraudTechnique } = input;
   const emailCite = { kind: "email" as const, ref: email.fromAddress };
   const priorPaidCount = pastPaidAmounts.length;
   const priorPaidSameAccount = pastPaidBankAccounts.filter(
@@ -241,6 +244,9 @@ export function runChecks(input: RunChecksInput): Check[] {
       cite: emailCite,
     });
   }
+
+  // 6. Fraud techniques: known ones from the playbook, and ones hold hasn't seen before.
+  if (fraudTechnique) checks.push(fraudTechnique);
 
   return checks;
 }

@@ -352,4 +352,78 @@ export default defineSchema({
     key: v.string(),
     watchOnly: v.boolean(),
   }).index("by_key", ["key"]),
+
+  // hold's fraud playbook: the techniques it checks every incoming bill against. Rows are never
+  // edited in place: a refinement is a new row that supersedes the old one, so any change can
+  // be reverted. See convex/app/techniques.ts.
+  fraudTechniques: defineTable({
+    key: v.string(),
+    name: v.string(),
+    howItWorks: v.string(),
+    signals: v.array(v.string()),
+    example: v.string(),
+    status: v.union(v.literal("active"), v.literal("retired")),
+    // Where hold learned it: the seed playbook, a missed scam, a false alarm, or a person teaching it.
+    sourceKind: v.union(v.literal("seed"), v.literal("missed_scam"), v.literal("false_alarm"), v.literal("taught")),
+    sourceRef: v.optional(v.string()),
+    supersedes: v.optional(v.string()),
+    improvementKey: v.optional(v.string()),
+    createdAt: v.string(),
+  })
+    .index("by_key", ["key"])
+    .index("by_status", ["status"]),
+
+  // Self-improvement log (Hone's loop): what triggered a change, the change hold proposed, how it
+  // replayed against past cases, and whether it was promoted. See convex/app/improve.ts.
+  improvements: defineTable({
+    key: v.string(),
+    trigger: v.object({
+      kind: v.union(v.literal("missed_scam"), v.literal("false_alarm"), v.literal("taught")),
+      billKey: v.optional(v.string()),
+      text: v.string(), // the scam email, or what the person described
+      by: v.union(v.literal("callback"), v.literal("maya"), v.literal("dev")),
+    }),
+    status: v.union(
+      v.literal("proposing"),
+      v.literal("replaying"),
+      v.literal("promoted"),
+      v.literal("needs_approval"),
+      v.literal("rejected"),
+      v.literal("declined"),
+      v.literal("reverted"),
+    ),
+    proposal: v.optional(
+      v.object({
+        action: v.union(v.literal("add"), v.literal("refine")),
+        targetKey: v.optional(v.string()),
+        name: v.string(),
+        howItWorks: v.string(),
+        signals: v.array(v.string()),
+        example: v.string(),
+        rationale: v.string(),
+      }),
+    ),
+    replay: v.optional(
+      v.object({
+        attempts: v.number(),
+        fixed: v.boolean(),
+        regressions: v.number(),
+        cases: v.array(
+          v.object({
+            label: v.string(),
+            billKey: v.optional(v.string()),
+            expected: v.union(v.literal("flag"), v.literal("pass")),
+            before: v.union(v.literal("flag"), v.literal("pass")),
+            after: v.union(v.literal("flag"), v.literal("pass")),
+          }),
+        ),
+      }),
+    ),
+    summary: v.optional(v.string()), // plain words for the Practice screen and the Activity log
+    techniqueKey: v.optional(v.string()), // the playbook row it created, once promoted
+    decidedBy: v.optional(v.union(v.literal("callback"), v.literal("maya"), v.literal("dev"))),
+    createdAt: v.string(),
+  })
+    .index("by_key", ["key"])
+    .index("by_bill", ["trigger.billKey"]),
 });

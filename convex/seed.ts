@@ -2,6 +2,7 @@ import { internalMutation } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { runChecks, routeEscalation, type CheckBankAccount } from "./app/checks";
+import { insertSeedPlaybook } from "./app/techniques";
 import { TEN_THOUSAND_CENTS } from "../lib/policy";
 import type { Check } from "../lib/types";
 
@@ -143,6 +144,8 @@ export const seed = internalMutation({
       "approvals",
       "activity",
       "practiceScams",
+      "fraudTechniques",
+      "improvements",
     ] as const;
     for (const table of tables) {
       const existing = await ctx.db.query(table).collect();
@@ -168,6 +171,7 @@ export const seed = internalMutation({
       });
     }
     for (const c of args.plantedScams) await ctx.db.insert("practiceScams", c);
+    await insertSeedPlaybook(ctx);
 
     // ponytail: fogline.json stores one flat historical "calls" record per
     // past call; the live schema splits that into callRequests/Events/

@@ -5,6 +5,7 @@ import { v } from "convex/values";
 import { internalMutation } from "../_generated/server.js";
 import { decideCallOutcome, sentence } from "../../lib/callOutcome.js";
 import { hydrateBill } from "./queries.js";
+import { openImprovement } from "./techniques.js";
 
 export const applyCallResult = internalMutation({
   args: { call_id: v.string() },
@@ -46,7 +47,8 @@ export const applyCallResult = internalMutation({
       return;
     }
 
-    const decision = decideCallOutcome(await hydrateBill(ctx, row), result.outcome, result.summary);
+    const bill = await hydrateBill(ctx, row);
+    const decision = decideCallOutcome(bill, result.outcome, result.summary);
     await ctx.db.patch(row._id, { status: decision.status });
     if (decision.approval) {
       const pending = await ctx.db
@@ -61,5 +63,10 @@ export const applyCallResult = internalMutation({
       }
     }
     await log(decision.activity.what, decision.activity.why);
+
+    // The real supplier confirmed a bill hold's playbook flagged: a false alarm to learn from.
+    if (result.outcome === "confirmed" && bill.checks.some((c) => c.id === "fraud-technique" && c.state === "flag")) {
+      await openImprovement(ctx, { kind: "false_alarm", billKey: row.key, text: bill.email.body, by: "callback" });
+    }
   },
 });

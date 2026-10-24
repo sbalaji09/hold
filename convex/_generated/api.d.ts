@@ -11,6 +11,7 @@
 import type * as app_background from "../app/background.js";
 import type * as app_callOutcome from "../app/callOutcome.js";
 import type * as app_checks from "../app/checks.js";
+import type * as app_improve from "../app/improve.js";
 import type * as app_increase from "../app/increase.js";
 import type * as app_intake from "../app/intake.js";
 import type * as app_mutations from "../app/mutations.js";
@@ -19,6 +20,7 @@ import type * as app_pushback from "../app/pushback.js";
 import type * as app_queries from "../app/queries.js";
 import type * as app_rules from "../app/rules.js";
 import type * as app_suppliers from "../app/suppliers.js";
+import type * as app_techniques from "../app/techniques.js";
 import type * as http from "../http.js";
 import type * as seed from "../seed.js";
 import type * as voice_dev from "../voice/dev.js";
@@ -38,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   "app/background": typeof app_background;
   "app/callOutcome": typeof app_callOutcome;
   "app/checks": typeof app_checks;
+  "app/improve": typeof app_improve;
   "app/increase": typeof app_increase;
   "app/intake": typeof app_intake;
   "app/mutations": typeof app_mutations;
@@ -46,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   "app/queries": typeof app_queries;
   "app/rules": typeof app_rules;
   "app/suppliers": typeof app_suppliers;
+  "app/techniques": typeof app_techniques;
   http: typeof http;
   seed: typeof seed;
   "voice/dev": typeof voice_dev;

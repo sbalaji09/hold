@@ -15,6 +15,9 @@ import { action, internalMutation, internalQuery, mutation, query, type Mutation
 //               pastPaidAmounts, amountCents, styleMatch? }) -> Check[]
 //   decide(checks, amountCents) -> "pay" | "ask_dev" | "call"
 import { decide, runChecks } from "./checks.js";
+import { internal } from "../_generated/api.js";
+import { techniqueCheck } from "../../lib/fraudTechniques.js";
+import { anthropic, assessEmail } from "./techniques.js";
 
 const MODEL = "claude-sonnet-5-5";
 
@@ -32,7 +35,7 @@ export function descriptionFromBody(body: string): string {
  * copy: this never writes bills/payments/callRequests). Shared by the list
  * screen (to show which check fires right now), the full-set run, and
  * "Add to practice set" (to snapshot which checks should fire). */
-async function gatherRow(
+export async function gatherRow(
   ctx: QueryCtx | MutationCtx,
   billKey: string,
 ): Promise<Omit<PracticeRunRow, "scamKey"> | null> {
@@ -131,26 +134,29 @@ export const list = query({
 
 // ---------- add to practice set (any bill, e.g. one Callback missed) ----------
 
+/** Adds a bill to the regression suite. Shared by "Add to practice set" and "Report missed scam". */
+export async function addBillToPracticeSet(ctx: MutationCtx, billKey: string, kind = "from bill"): Promise<{ key: string }> {
+  const bill = await ctx.db
+    .query("bills")
+    .withIndex("by_key", (q) => q.eq("key", billKey))
+    .unique();
+  if (!bill) throw new Error(`addToPracticeSet: no bill ${billKey}`);
+  const row = await gatherRow(ctx, billKey);
+  if (!row) throw new Error(`addToPracticeSet: bill ${billKey} is missing its email, supplier, or bank account`);
+  const scamKey = `scam_frombill_${bill.key}_${Date.now()}`;
+  await ctx.db.insert("practiceScams", {
+    key: scamKey,
+    billKey,
+    kind,
+    description: descriptionFromBody(row.email.body),
+    checksThatShouldFire: firedChecks(row),
+  });
+  return { key: scamKey };
+}
+
 export const addToPracticeSet = mutation({
   args: { billKey: v.string() },
-  handler: async (ctx, { billKey }) => {
-    const bill = await ctx.db
-      .query("bills")
-      .withIndex("by_key", (q) => q.eq("key", billKey))
-      .unique();
-    if (!bill) throw new Error(`addToPracticeSet: no bill ${billKey}`);
-    const row = await gatherRow(ctx, billKey);
-    if (!row) throw new Error(`addToPracticeSet: bill ${billKey} is missing its email, supplier, or bank account`);
-    const scamKey = `scam_frombill_${bill.key}_${Date.now()}`;
-    await ctx.db.insert("practiceScams", {
-      key: scamKey,
-      billKey,
-      kind: "from bill",
-      description: descriptionFromBody(row.email.body),
-      checksThatShouldFire: firedChecks(row),
-    });
-    return { key: scamKey };
-  },
+  handler: async (ctx, { billKey }) => addBillToPracticeSet(ctx, billKey),
 });
 
 // ---------- run set ----------
@@ -160,6 +166,7 @@ export const addToPracticeSet = mutation({
  * already a copy: this never writes bills/payments/callRequests). */
 export interface PracticeRunRow {
   scamKey: string;
+  billKey?: string;
   email: { fromAddress: string; fromDomain: string; body: string };
   supplier: { key: string; name: string; domain: string };
   currentBankAccount: { bank: string; last4: string; verifiedBy: "onboarding" | "call+dev"; confirmedByCall: boolean };
@@ -176,7 +183,7 @@ export const gatherForRun = internalQuery({
     for (const scam of scams) {
       const row = await gatherRow(ctx, scam.billKey);
       if (!row) continue;
-      out.push({ scamKey: scam.key, ...row });
+      out.push({ scamKey: scam.key, billKey: scam.billKey, ...row });
     }
     return out;
   },
@@ -203,25 +210,41 @@ const gatherForRunRef = makeFunctionReference<"query", Record<string, never>, Pr
 const recordRunRef = makeFunctionReference<"mutation", { results: Array<{ key: string; caught: boolean }> }, null>("app/practice:recordRun");
 
 /** Runs every planted + judge-written scam through the real decision
- * logic, against a read-only snapshot. "Caught" = Callback doesn't just
- * pay it outright. Records caught/missed, writes nothing else. */
+ * logic, including hold's fraud playbook, against a read-only snapshot.
+ * "Caught" = Callback doesn't just pay it outright. Records caught/missed;
+ * every miss becomes something hold learns from (convex/app/improve.ts). */
 export const runSet = action({
   args: {},
   handler: async (ctx): Promise<{ ran: number; caught: number; missed: number }> => {
     const rows = await ctx.runQuery(gatherForRunRef, {});
-    const results = rows.map((row) => {
-      const checks = runChecks({
-        email: row.email,
-        supplier: row.supplier,
-        currentBankAccount: row.currentBankAccount,
-        pastPaidBankAccounts: row.pastPaidBankAccounts,
-        pastPaidAmounts: row.pastPaidAmounts,
-        amountCents: row.amountCents,
-      });
-      const decision = decide(checks, row.amountCents);
-      return { key: row.scamKey, caught: decision !== "pay" };
-    });
-    await ctx.runMutation(recordRunRef, { results });
+    const playbook = await ctx.runQuery(internal.app.techniques.activePlaybook, {});
+    const results = await Promise.all(
+      rows.map(async (row) => {
+        // Without Claude (no ANTHROPIC_API_KEY) the playbook check is skipped, same as at intake.
+        const fraudTechnique = await assessEmail(
+          anthropic(),
+          { fromAddress: row.email.fromAddress, subject: "", body: row.email.body, supplierName: row.supplier.name, supplierDomain: row.supplier.domain, amountCents: row.amountCents },
+          playbook,
+        ).then(
+          (a) => techniqueCheck(a, playbook, row.email.fromAddress),
+          () => undefined,
+        );
+        const checks = runChecks({
+          email: row.email,
+          supplier: row.supplier,
+          currentBankAccount: row.currentBankAccount,
+          pastPaidBankAccounts: row.pastPaidBankAccounts,
+          pastPaidAmounts: row.pastPaidAmounts,
+          amountCents: row.amountCents,
+          fraudTechnique,
+        });
+        const decision = decide(checks, row.amountCents);
+        return { key: row.scamKey, billKey: row.billKey, caught: decision !== "pay" };
+      }),
+    );
+    await ctx.runMutation(recordRunRef, { results: results.map(({ key, caught }) => ({ key, caught })) });
+    const missedBills = results.flatMap((r) => (!r.caught && r.billKey ? [r.billKey] : []));
+    if (missedBills.length) await ctx.runMutation(internal.app.techniques.learnFromMisses, { billKeys: missedBills });
     const caught = results.filter((r) => r.caught).length;
     return { ran: results.length, caught, missed: results.length - caught };
   },
