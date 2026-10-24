@@ -1,8 +1,7 @@
 import * as React from "react";
-import Link from "next/link";
-import { ChevronsUpDown } from "lucide-react";
 import { Guilloche } from "@/components/callback";
 import { NavLinks, type NavItem } from "@/components/NavLinks";
+import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import { countPlaybookApprovals, getCompany, listApprovals, listBills, listMessages } from "@/lib/data";
 import { capital } from "@/lib/company";
 import { UNSETTLED_STATUS } from "@/lib/inbox";
@@ -35,14 +34,7 @@ export async function Sidebar(): Promise<React.ReactElement> {
           <Guilloche size={24} lobes={9} strands={6} className="pt-brand-seal" />
           <span className="pt-word">hold</span>
         </div>
-        {/* The company hold works for, and the switch to another template. */}
-        <Link href="/workspace" className="pt-workspace" title="Switch company">
-          <span className="pt-workspace-text">
-            <b>{co.name}</b>
-            <span>{co.dept}</span>
-          </span>
-          <ChevronsUpDown size={14} strokeWidth={1.5} aria-hidden />
-        </Link>
+        <WorkspaceSwitcher current={co.key} actor={persona} />
       </div>
       {/* renderedAt marks each server render, so the client can tell a background refresh landed. */}
       <NavLinks items={items} renderedAt={Date.now()} />
