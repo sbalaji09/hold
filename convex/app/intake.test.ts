@@ -6,6 +6,7 @@ import { describe, expect, test } from "vitest";
 import { api } from "../_generated/api.js";
 import schema from "../schema.js";
 import { modules } from "../test.setup.js";
+import { parseInvoiceNo } from "./intake.js";
 
 const SUPPLIER = {
   key: "sup_stage",
@@ -119,5 +120,25 @@ describe("unknown sender bills", () => {
 
     const approvals = await t.query(api.app.queries.listApprovals, {});
     expect(approvals.some((a) => a.billKey === billKey)).toBe(true);
+  });
+});
+
+describe("parseInvoiceNo", () => {
+  test("reads numeric, lettered and hyphenated invoice numbers", () => {
+    expect(
+      [
+        "attached is invoice #L-104 for the rig",
+        "Invoice PK-2207, $3,150.00",
+        "invoice #4471 attached",
+        "Invoice No. 2026-031 for catering",
+        "please pay invoice 4502",
+        "Re: invoice INV-0042",
+        "Invoice number 88 is overdue",
+      ].map(parseInvoiceNo),
+    ).toEqual(["L-104", "PK-2207", "4471", "2026-031", "4502", "0042", "88"]);
+  });
+
+  test("words after 'invoice' are never the number", () => {
+    expect(parseInvoiceNo("Your invoice for the rig is attached.")).toBeNull();
   });
 });

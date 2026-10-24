@@ -20,7 +20,11 @@ import { routeEmail } from "../../lib/triage.js";
 
 const EMAIL_RE = /<?([\w.+-]+@([\w-]+(?:\.[\w-]+)+))>?/;
 const AMOUNT_RE = /\$\s?([\d,]+(?:\.\d{2})?)/g;
-const INVOICE_RE = /invoice\s*#?\s*(\d{3,8})|#(\d{3,8})/i;
+// "invoice #4471", "Invoice PK-2207", "Invoice No. 2026-031", "#L-104". The number must hold a digit,
+// so "invoice for" or "invoice attached" never reads as one. A leading "INV-" is dropped because the
+// app already shows invoices as INV-<number>.
+const INVOICE_TOKEN = String.raw`(?:inv-?)?((?=[a-z0-9-]*\d)[a-z0-9]+(?:-[a-z0-9]+)*)`;
+const INVOICE_RE = new RegExp(String.raw`invoice\s*(?:no\.?|number)?\s*#?\s*${INVOICE_TOKEN}|#\s*${INVOICE_TOKEN}`, "i");
 const BANK_DETAIL_RE = /([A-Z][A-Za-z& ]{2,30}?),?\s+account\s+(?:ending|number ending|#)\s*(\d{3,6})/;
 // plan-agent.md addendum §3: a bank change or a $5,000+ bill from a `new` supplier always calls.
 const NEW_SUPPLIER_CALL_THRESHOLD_CENTS = 500_000;
@@ -43,7 +47,7 @@ export function parseAmountCents(body: string): number | null {
 
 export function parseInvoiceNo(body: string): string | null {
   const match = INVOICE_RE.exec(body);
-  return match?.[1] ?? match?.[2] ?? null;
+  return (match?.[1] ?? match?.[2])?.toUpperCase() ?? null;
 }
 
 /** Bank name + last4 the email asks to pay, for evidence and the activity log only. Never stored
