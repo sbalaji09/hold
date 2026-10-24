@@ -22,7 +22,7 @@ export default async function ActivityPage({
 }): Promise<React.ReactElement> {
   const { q, actor } = await searchParams;
   const [all, co] = await Promise.all([listActivityWithLinks(), getCompany()]);
-  const ACTOR_NAME: Record<ActivityActor, string> = { callback: "Callback", maya: co.maya.name, dev: co.dev.name };
+  const ACTOR_NAME: Record<ActivityActor, string> = { callback: "hold", maya: co.maya.name, dev: co.dev.name };
   const query = (q ?? "").trim().toLowerCase();
   const actorFilter = actor as ActivityActor | undefined;
 
@@ -38,7 +38,7 @@ export default async function ActivityPage({
       <div className="flex flex-col gap-1">
         <h1 className="font-serif text-2xl text-ink">Activity log</h1>
         <p className="text-[13px] text-ink-muted">
-          Every action by Callback, {co.maya.name} and {co.dev.name}: who, when, what, why.
+          Every action by hold, {co.maya.name} and {co.dev.name}: who, when, what, why.
         </p>
       </div>
 

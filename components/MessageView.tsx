@@ -41,7 +41,7 @@ function useBillFor(emailKey: string, look: boolean) {
 
 function View({ emailKey, actor }: { emailKey: string; actor: Actor }): React.ReactElement {
   const co = useCompany();
-  const ACTOR_NAME = { callback: "Callback", maya: co.maya.full, dev: co.dev.full } as const;
+  const ACTOR_NAME = { callback: "hold", maya: co.maya.full, dev: co.dev.full } as const;
   const data = useQuery(api.app.triage.getMessage, { emailKey });
   const activity = useQuery(api.app.queries.listActivity, {});
   const resolve = useMutation(api.app.triage.resolveMessage);

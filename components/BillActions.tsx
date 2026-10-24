@@ -39,7 +39,7 @@ export function BillActions({ billKey, amount, pay, hold, call }: BillActionsPro
       if (res && typeof res === "object" && "refused" in res) setError(res.refused);
       router.refresh();
     } catch (err) {
-      setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : err instanceof Error ? err.message : "Callback couldn't do that just now.");
+      setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : err instanceof Error ? err.message : "hold couldn't do that just now.");
     } finally {
       setPending(null);
     }

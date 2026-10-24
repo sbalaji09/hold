@@ -1058,6 +1058,7 @@ const out = {
   payments,
   calls,
   plantedScams,
+  hero: "sup_stage", // the supplier whose number on file DEMO_PAYEE_PHONE replaces at seed
 };
 
 const outPath = join(import.meta.dirname, "fogline.json");

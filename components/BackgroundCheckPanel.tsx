@@ -49,7 +49,7 @@ export function BackgroundCheckPanel({ supplierKey, lastCheck, autoRunning, onUs
         suggestedPhone: result.suggestedPhone,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Callback couldn't run that check just now.");
+      setError(err instanceof Error ? err.message : "hold couldn't run that check just now.");
     } finally {
       setRunning(false);
     }

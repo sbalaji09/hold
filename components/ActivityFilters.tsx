@@ -9,7 +9,7 @@ import { useCompany } from "@/lib/useCompany";
 export function ActivityFilters(): React.ReactElement {
   const co = useCompany();
   const ACTORS: Array<{ value: ActivityActor; label: string }> = [
-    { value: "callback", label: "Callback" },
+    { value: "callback", label: "hold" },
     { value: "maya", label: co.maya.name },
     { value: "dev", label: co.dev.name },
   ];

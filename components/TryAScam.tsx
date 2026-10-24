@@ -22,8 +22,8 @@ const inv = () => String(5000 + Math.floor(Math.random() * 4000));
 // Presets per company template. Each lands through the real intake with a fresh number.
 const PRESETS: Record<CompanyKey, Array<{ label: string; from: string; subject: string; body: () => string }>> = {
   fogline: [
-    { label: "Normal bill", from: "rosa@stagecraftrigging.com", subject: "Invoice", body: () => `Hi,\n\nInvoice #${inv()} attached, rigging, $1,850.00. Let us know if you need anything else.\n\nBest,\nRosa\nStagecraft Rigging Co.` },
-    { label: "Bank change", from: "diego@cascadetalentgroup.com", subject: "Urgent: invoice", body: () => `Hi,\n\nOur artist's manager needs this paid before tomorrow's set or they're pulling out — invoice #${inv()}, artist deposit, $5,400.00. Please use our new account, we moved banks last week: First Republic, acct ending 7743.\n\nBest,\nDiego Fuentes\nCascade Talent Group` },
+    { label: "Normal bill", from: "rosa@stagecraftrigging.com", subject: "Invoice", body: () => `Hi team,\n\nInvoice #${inv()} attached, rigging, $1,850.00. Let us know if you need anything else.\n\nThanks,\nRosa Quintero\nAccounts, Stagecraft Rigging Co.` },
+    { label: "Bank change", from: "rosa@stagecraftrigging.com", subject: "Updated bank details", body: () => `Hi,\n\nInvoice #${inv()} attached, rigging, $5,400.00. We moved banks last week, please pay our new account: First Republic, acct ending 7743. Need this paid today.\n\nRosa` },
   ],
   bayline: [
     { label: "Normal payoff", from: "payoffs@pacifichomeloans.com", subject: "Payoff statement", body: () => `Bayline Title,\n\nPayoff statement for escrow 26-${inv()}. Total payoff $312,480.55, good through November 6. Wire to the account on file with your office.\n\nPayoff department\nPacific Home Loans` },

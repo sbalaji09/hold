@@ -36,7 +36,7 @@ export function CopycatPanel({ billKey, domain, knownDomain, lastCheck }: Copyca
       const result = await run({ billKey });
       setCheck({ key: result.key, kind: "copycat", billKey, domain, ranAt: new Date().toISOString(), findings: result.findings });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Callback couldn't run that check just now.");
+      setError(err instanceof Error ? err.message : "hold couldn't run that check just now.");
     } finally {
       setRunning(false);
     }

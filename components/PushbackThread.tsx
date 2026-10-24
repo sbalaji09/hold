@@ -78,7 +78,7 @@ export function PushbackThread({ approval, actor }: { approval: Approval; actor:
       setSafeAlternative(result.safeAlternative);
       setDraft("");
     } catch (err) {
-      setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : err instanceof Error ? err.message : "Callback couldn't reply just now.");
+      setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : err instanceof Error ? err.message : "hold couldn't reply just now.");
     } finally {
       setPending(null);
     }
@@ -108,7 +108,7 @@ export function PushbackThread({ approval, actor }: { approval: Approval; actor:
       setRuleText(defaultRuleText(approval, next, co));
       router.refresh();
     } catch (err) {
-      setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : err instanceof Error ? err.message : "Callback couldn't record that decision.");
+      setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : err instanceof Error ? err.message : "hold couldn't record that decision.");
     } finally {
       setPending(null);
     }

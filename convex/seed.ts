@@ -178,18 +178,10 @@ export async function runSeed(ctx: MutationCtx, args: SeedArgs): Promise<void> {
   const billIdByKey = new Map<string, Id<"bills">>();
   for (const b of bills) billIdByKey.set(b.key, await ctx.db.insert("bills", b.planted ? { ...b, practice: true } : b));
   for (const e of args.emails) if (!e.billKey || kept.has(e.billKey)) await ctx.db.insert("emails", e);
-  for (const p of args.payments) {
+  // History isn't hold's own work, so it adds nothing to the activity log; that starts empty and fills as hold acts.
+  for (const p of args.payments.filter((p) => kept.has(p.billKey))) {
     const status = p.status === "pending" || p.status === "sent" || p.status === "failed" ? p.status : "sent";
     await ctx.db.insert("payments", { ...p, status });
-    await ctx.db.insert("activity", {
-      key: `act_pay_${p.key}`,
-      actor: "callback",
-      what: `Paid ${p.key}`,
-      why: `Payment ${p.status.toLowerCase()} for bill ${p.billKey}`,
-      refKind: "payment",
-      refKey: p.key,
-      at: p.paidAt,
-    });
   }
   for (const c of args.plantedScams) await ctx.db.insert("practiceScams", c);
   await insertSeedPlaybook(ctx);
