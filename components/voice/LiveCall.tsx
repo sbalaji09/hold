@@ -135,6 +135,7 @@ function LiveCallView({ call, request, actor, sourceHref }: { call: LiveCall; re
           {ask && <AskPerson key={ask.ask_id} ask={ask} callId={request.call_id} actor={actor} />}
           <Transcript
             large
+            done={!view.active}
             rows={rows}
             otherName={otherName}
             live={live}

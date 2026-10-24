@@ -171,6 +171,14 @@
   mask-image: linear-gradient(to bottom, transparent 0, #000 var(--space-6));
 }
 
+/* A finished call: the whole transcript at normal size, nothing to scroll. */
+.hv-transcript-done {
+  max-height: none;
+  overflow: visible;
+  mask-image: none;
+  padding-left: var(--space-5);
+}
+
 /* The venue is loud: the Live call transcript is set large, in the system's own type roles. */
 .hv-transcript-large {
   height: clamp(320px, 56vh, 680px);

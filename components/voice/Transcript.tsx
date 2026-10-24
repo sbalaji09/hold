@@ -18,10 +18,12 @@ export interface TranscriptProps {
   empty: string;
   /** Large type for the Live call screen (the venue is loud). */
   large?: boolean;
+  /** The call is over: show every line at the system's normal size, with no scroll box. Defaults to on. */
+  done?: boolean;
 }
 
 /** A call transcript in a document. Sticks to the latest line unless the reader has scrolled up. */
-export function Transcript({ rows, otherName, live, sourceHref, empty, large }: TranscriptProps) {
+export function Transcript({ rows, otherName, live, sourceHref, empty, large, done }: TranscriptProps) {
   const { record } = useCompany();
   const box = useRef<HTMLDivElement>(null);
   const atBottom = useRef(true);
@@ -36,7 +38,7 @@ export function Transcript({ rows, otherName, live, sourceHref, empty, large }: 
     <div className="cb-doc hv-transcript-card">
       <div
         ref={box}
-        className={`hv-transcript${large ? " hv-transcript-large" : ""}`}
+        className={`hv-transcript${done ? " hv-transcript-done" : large ? " hv-transcript-large" : ""}`}
         role="log"
         aria-live="polite"
         aria-label="Transcript"
@@ -54,7 +56,7 @@ export function Transcript({ rows, otherName, live, sourceHref, empty, large }: 
               key={row.key}
               speaker={row.speaker}
               name={row.speaker === "callback" ? AGENT : otherName}
-              time={formatElapsed(row.ts * 1000)}
+              time={row.ts === 0 && i > 0 ? "" : formatElapsed(row.ts * 1000)}
               cite={row.source ? citeLabel(row.source, record) : undefined}
               citeHref={row.source ? sourceHref?.(row.source) : undefined}
               speaking={live && i === rows.length - 1}
