@@ -32,6 +32,7 @@ export function canMoveMoney(watchOnly: boolean): PolicyResult {
 export function canPay(bill: Bill, watchOnly = false): PolicyResult {
   if (bill.status === "Paid") return denied("Already paid. There's nothing left to send.");
   if (bill.status !== "Checking" && bill.status !== "Scheduled") {
+    if (bill.status === "Needs you") return denied("This bill needs you to review it first, not ready to pay.");
     return denied(`This bill is ${bill.status.toLowerCase()}, not ready to pay.`);
   }
   const moneyCheck = canMoveMoney(watchOnly);

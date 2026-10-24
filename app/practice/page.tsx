@@ -69,7 +69,7 @@ export default function PracticePage(): React.ReactElement {
 
   return (
     <div className="flex flex-col gap-4 p-6">
-      <div className="flex items-end justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="cb-display text-ink">Practice</h1>
           <p className="font-mono text-[12px] text-ink-muted">
@@ -78,7 +78,7 @@ export default function PracticePage(): React.ReactElement {
               : `${caught} caught \u00b7 ${missed} missed \u00b7 ${notRun} not run \u00b7 ${scams.length} scams`}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button onClick={onGenerate} disabled={generating}>
             {generating ? "Writing\u2026" : "Generate new set"}
           </Button>
@@ -91,8 +91,9 @@ export default function PracticePage(): React.ReactElement {
 
       {error ? <p className="text-[13px] text-hold-solid">{error}</p> : null}
 
-      <div className="cb-ledger">
-        <div className="grid grid-cols-[1fr_1fr_1.4fr_140px_120px] items-center gap-3 border-b-[1.5px] border-ink px-4 py-2 font-sans text-[10.5px] font-semibold uppercase tracking-[.09em] text-ink-muted">
+      <div className="cb-ledger pt-scroll">
+        <div className="min-w-[760px]">
+        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.4fr)_140px_120px] items-center gap-3 border-b-[1.5px] border-ink px-4 py-2 font-sans text-[10.5px] font-semibold uppercase tracking-[.09em] text-ink-muted">
           <span>Kind</span>
           <span>From</span>
           <span>Checks</span>
@@ -110,7 +111,7 @@ export default function PracticePage(): React.ReactElement {
               <Link
                 key={s.key}
                 href={`/bills/${s.billKey}`}
-                className="grid grid-cols-[1fr_1fr_1.4fr_140px_120px] items-center gap-3 border-t border-line px-4 py-2.5 text-ink no-underline hover:bg-surface-hover"
+                className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.4fr)_140px_120px] items-center gap-3 border-t border-line px-4 py-2.5 text-ink no-underline hover:bg-surface-hover"
               >
                 <span className="truncate text-[13px]">{s.kind}</span>
                 <span className="truncate font-mono text-[12px] text-ink-muted">{s.from}</span>
@@ -130,6 +131,7 @@ export default function PracticePage(): React.ReactElement {
             );
           })
         )}
+        </div>
       </div>
     </div>
   );

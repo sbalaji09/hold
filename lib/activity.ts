@@ -14,6 +14,8 @@ export async function listActivityWithLinks(): Promise<ActivityEntryWithHref[]> 
   const billKeyByBankAccount: Record<string, string> = {};
   for (const b of bills) billKeyByBankAccount[b.bankAccount.key] = b.key;
   return entries.map((entry) => {
+    // Playbook rows live on the Practice screen, each anchored by its key.
+    if (entry.refKind === "technique" || entry.refKind === "improvement") return { ...entry, href: `/practice#${entry.refKey}` };
     const billKey = entry.refKind === "bill" ? entry.refKey : billKeyByBankAccount[entry.refKey];
     return { ...entry, href: billKey ? `/bills/${billKey}` : "/" };
   });

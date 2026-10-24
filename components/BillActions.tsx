@@ -45,7 +45,7 @@ export function BillActions({ billKey, amount, pay, hold, call }: BillActionsPro
 
   return (
     <div className="flex flex-col items-end gap-2">
-      <div className="flex items-start gap-2.5">
+      <div className="flex flex-wrap items-start gap-2.5">
         {call.allowed ? (
           <Button variant="secondary" icon="phone" disabled={pending !== null} onClick={() => run("call")}>
             {pending === "call" ? "Calling…" : "Call supplier"}

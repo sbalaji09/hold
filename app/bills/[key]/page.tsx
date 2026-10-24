@@ -13,6 +13,8 @@ import {
 } from "@/components/callback";
 import { BillActions } from "@/components/BillActions";
 import { AddToPractice } from "@/components/AddToPractice";
+import { ReportMissedScam } from "@/components/ReportMissedScam";
+import { getPersona } from "@/lib/persona";
 import { CopycatPanel } from "@/components/CopycatPanel";
 import { getBill, getSettings, listActivity, listChecksForBill } from "@/lib/data";
 import { canCall, canHold, canPay } from "@/lib/policy";
@@ -41,7 +43,7 @@ export default async function BillPage({
   if (!bill) notFound();
 
   const copycatChecks = bill.email.fromDomain !== bill.supplier.domain ? await listChecksForBill(key) : [];
-  const settings = await getSettings();
+  const [settings, persona] = await Promise.all([getSettings(), getPersona()]);
 
   const activity = await listActivity();
   const timeline = activity
@@ -62,15 +64,15 @@ export default async function BillPage({
   const amount = "$" + (bill.amountCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
-    <div className="grid gap-5" style={{ gridTemplateColumns: "1fr var(--evidence-width)" }}>
-      <div className="col-span-2 flex items-end justify-between gap-4">
-        <div>
+    <div className="grid grid-cols-1 gap-5 min-[1101px]:grid-cols-[minmax(0,1fr)_var(--evidence-width)]">
+      <div className="col-span-full flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-[min(100%,360px)] flex-1 basis-0">
           <div className="font-sans text-[10.5px] font-semibold uppercase tracking-[.09em] text-ink-muted">
             <Link href="/">Inbox</Link> / {bill.supplier.name} / INV-{bill.invoiceNo}
           </div>
           <h1 className="font-serif text-[24px]/[30px] text-ink">{bill.email.subject}</h1>
         </div>
-        <div className="flex items-start gap-2.5">
+        <div className="ml-auto flex flex-wrap items-start gap-2.5">
           <details className="relative">
             <summary className="cb-ask cursor-pointer list-none">Why?</summary>
             <div className="absolute right-0 top-full z-10 mt-2 w-80 rounded-md bg-surface p-4 shadow-pop">
@@ -87,10 +89,11 @@ export default async function BillPage({
           </details>
           <BillActions billKey={bill.key} amount={amount} pay={pay} hold={hold} call={call} />
           <AddToPractice billKey={bill.key} />
+          {bill.status !== "Held" ? <ReportMissedScam billKey={bill.key} actor={persona} /> : null}
         </div>
       </div>
 
-      <article className="cb-doc relative self-start p-5">
+      <article className="cb-doc relative min-w-0 self-start p-5">
         <div className="grid grid-cols-[64px_1fr] gap-y-0.5 border-b border-dashed border-line pb-3 font-mono text-[12px]/[18px] text-ink-muted">
           <span>From</span>
           <b className="font-normal text-ink">
@@ -133,7 +136,7 @@ export default async function BillPage({
         ) : null}
       </article>
 
-      <aside className="flex flex-col gap-4">
+      <aside className="flex min-w-0 flex-col gap-4">
         <section className="cb-doc">
           <div className="cb-doc-head">
             Callback&rsquo;s checks

@@ -78,6 +78,10 @@ describe("canPay", () => {
     });
   }
 
+  test("words a Needs you refusal as a sentence, not \"is needs you\"", () => {
+    expect(canPay(bill("Needs you")).reason).toBe("This bill needs you to review it first, not ready to pay.");
+  });
+
   test("refuses an already-Paid bill with its own reason", () => {
     const result = canPay(bill("Paid"));
     expect(result.allowed).toBe(false);
