@@ -1,6 +1,7 @@
 // Bill-page-only helpers: the plain-words "why", cite labels and the call
 // Line mapping. Pure functions over an already-hydrated Bill — no data access.
 
+import { sentence } from "./callOutcome";
 import type { Bill, Call, Check, Cite, CheckState } from "./types";
 import type { CheckRowProps, LineProps } from "@/components/callback";
 
@@ -47,7 +48,18 @@ export function whyText(bill: Bill): string {
   }
   if (bill.status === "Needs you") {
     const amount = "$" + (bill.amountCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (bill.call?.outcome === "handed_off") {
+      return `Callback couldn't finish the check call with ${bill.supplier.name}. ${sentence(bill.call.summary)} Nothing was paid, so it's yours to decide.`;
+    }
+    if (bill.call?.outcome === "confirmed") {
+      return flagged.some((c) => c.id === "bank-account")
+        ? `${bill.supplier.contactName} confirmed the bank change on a call to the number on file. Dev has to approve the new account before it's paid.`
+        : `${bill.supplier.contactName} confirmed this bill on a call, but ${amount} is over the $10,000 limit, so Dev has to approve it.`;
+    }
     return `Every check passed, but ${amount} is over the $10,000 limit, so Dev has to approve it.`;
+  }
+  if (bill.status === "Scheduled" && bill.call?.outcome === "confirmed") {
+    return `${bill.supplier.contactName} confirmed this bill on a call to the number on file, so it's paid on the next run.`;
   }
   if (bill.status === "Calling" || bill.status === "Checking") {
     return flagged.length > 0

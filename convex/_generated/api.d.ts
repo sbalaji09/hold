@@ -9,6 +9,7 @@
  */
 
 import type * as app_background from "../app/background.js";
+import type * as app_callOutcome from "../app/callOutcome.js";
 import type * as app_checks from "../app/checks.js";
 import type * as app_increase from "../app/increase.js";
 import type * as app_intake from "../app/intake.js";
@@ -35,6 +36,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   "app/background": typeof app_background;
+  "app/callOutcome": typeof app_callOutcome;
   "app/checks": typeof app_checks;
   "app/increase": typeof app_increase;
   "app/intake": typeof app_intake;
@@ -42,8 +44,8 @@ declare const fullApi: ApiFromModules<{
   "app/practice": typeof app_practice;
   "app/pushback": typeof app_pushback;
   "app/queries": typeof app_queries;
-  "app/suppliers": typeof app_suppliers;
   "app/rules": typeof app_rules;
+  "app/suppliers": typeof app_suppliers;
   http: typeof http;
   seed: typeof seed;
   "voice/dev": typeof voice_dev;

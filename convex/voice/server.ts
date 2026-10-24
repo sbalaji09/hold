@@ -123,6 +123,9 @@ export async function writeResult(ctx: MutationCtx, result: CallResult): Promise
     retry_at_ms: undefined,
   });
   await ctx.db.insert("callEvents", { call_id: result.call_id, type: "status", value: "ended" });
+  // The app moves the bill (Held / Needs you / Scheduled). Scheduled, not called inline, so an app
+  // error can never roll back the call result.
+  await ctx.scheduler.runAfter(0, internal.app.callOutcome.applyCallResult, { call_id: result.call_id });
   // Addendum: a New supplier becomes Trusted after its first confirmed live call.
   if (result.outcome === "confirmed" && req.mode !== "simulated") {
     const sup = await ctx.db
