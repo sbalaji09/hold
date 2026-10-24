@@ -91,6 +91,20 @@ export async function getSupplierRecords(ctx: QueryCtx, supplier_id: string): Pr
   };
   const out: SupplierRecord[] = [];
 
+  // Fogline's own facts about a new supplier: the only thing a check call can verify them with,
+  // since everything else on file came from emails they wrote themselves.
+  const note = supplier.onboarding?.note;
+  if (note) {
+    out.push({
+      id: `${supplier_id}:onboarding`,
+      supplier_id,
+      kind: "onboarding",
+      ref: "Onboarding note",
+      date: isoDay(supplier.onboarding?.confirmedAt ?? new Date().toISOString()),
+      text: `Fogline hired ${supplier.name} for ${note.hiredFor}. Agreed: ${note.agreed}.${note.dates ? ` Dates: ${note.dates}.` : ""}${note.foglineContact ? ` Arranged by ${note.foglineContact} at Fogline.` : ""}`,
+    });
+  }
+
   for (const b of realBills) {
     out.push({
       id: b.key,

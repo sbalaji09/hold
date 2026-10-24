@@ -56,6 +56,7 @@ const QUESTION_SYSTEM = `You write verification questions for an automated phone
 Rules:
 - Use only the records provided. Each question comes from exactly one record; return its record_id.
 - Prefer specific facts the supplier can look up: an invoice total, what a past invoice or order was for, a payment amount, what a past call was about.
+- An onboarding record is what Fogline hired a new supplier for and what was agreed. Ask about those facts (the job, the agreed price or terms, the dates, who at Fogline arranged it) without saying them.
 - The question must never contain or hint at the answer. Name the record by month and invoice number so they can find it, but never say the amount, item or detail you are asking for. Good: "Can you confirm the total on your September invoice, number 4471?" Bad: "Was your September invoice for $4,200?"
 - Never mention, read out or ask for bank details, account numbers, routing numbers, passwords or codes.
 - Each question is one short, polite spoken sentence. Write invoice numbers as "number 4471", never "#4471".
@@ -87,7 +88,7 @@ export async function prepareOutboundCall(deps: PrepareOutboundDeps): Promise<Pr
 }
 
 /** How many records of each kind Claude gets to pick questions from, newest first. */
-export const CANDIDATES_PER_KIND = { invoice: 6, payment: 3, call: 3 } as const;
+export const CANDIDATES_PER_KIND = { invoice: 6, payment: 3, call: 3, onboarding: 1 } as const;
 /** Moss over-fetch per kind. Its embeddings rank months and invoice numbers poorly, so its top hit is not trusted. */
 const MOSS_TOP_K = 20;
 
@@ -110,18 +111,29 @@ async function gatherCandidates({ request, store, search }: PrepareOutboundDeps)
     ])
   ).flat();
 
-  let records = hits.map((h) => h.record);
-  if (records.length === 0) records = await store.getSupplierRecords(sid).catch(() => []);
-  return pickCandidates(records, sid, request.bill_id);
+  // Moss finds history; Convex has everything up to this second, including a new supplier's
+  // onboarding note and bills Moss hasn't indexed yet. Use both, and catch Moss up in the background.
+  const fresh = await store.getSupplierRecords(sid).catch(() => [] as SupplierRecord[]);
+  const indexed = new Set(hits.map((h) => h.record.id));
+  if (fresh.some((r) => r.kind !== "email" && !indexed.has(r.id))) {
+    search.index(sid, fresh).catch((err) => console.error(`[call ${request.call_id}] Moss reindex failed:`, err));
+  }
+  return pickCandidates([...hits.map((h) => h.record), ...fresh], sid, request.bill_id);
 }
 
-/** Newest records per kind, deduped, excluding emails and the bill under review. Pure, for tests. */
+/**
+ * Newest records per kind, deduped, excluding emails and the bill under review. A supplier Fogline
+ * has never paid is verified only with Fogline's onboarding note: its invoices came from emails it
+ * wrote, so an impostor knows them too. Pure, for tests.
+ */
 export function pickCandidates(records: SupplierRecord[], supplier_id: string, bill_id: string): SupplierRecord[] {
   const seen = new Set<string>();
   const usable = records
     .filter((r) => r.supplier_id === supplier_id && r.kind !== "email" && r.id !== bill_id)
     .filter((r) => !seen.has(r.id) && (seen.add(r.id), true))
     .sort((a, b) => b.date.localeCompare(a.date));
+  const onboarding = usable.filter((r) => r.kind === "onboarding");
+  if (onboarding.length > 0 && !usable.some((r) => r.kind === "payment")) return onboarding;
   return (Object.keys(CANDIDATES_PER_KIND) as (keyof typeof CANDIDATES_PER_KIND)[])
     .flatMap((kind) => usable.filter((r) => r.kind === kind).slice(0, CANDIDATES_PER_KIND[kind]))
     .sort((a, b) => b.date.localeCompare(a.date));
@@ -175,6 +187,8 @@ export function templateQuestions(candidates: SupplierRecord[], limit: number): 
       out.push(q(`Can you tell me what your ${month} invoice, ${spokenRef(r.ref)}, was for?`, r.text.slice(0, 300), r));
     } else if (r.kind === "call") {
       out.push(q(`We spoke on the phone in ${month}. Can you remind me what that call was about?`, r.text.slice(0, 300), r));
+    } else if (r.kind === "onboarding") {
+      out.push(q("Can you tell me what Fogline hired you for, and what was agreed?", r.text.slice(0, 300), r));
     }
   }
   return out;

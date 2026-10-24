@@ -6,7 +6,7 @@ import { MossClient, type DocumentInfo, type MetadataFilter } from "@inferedge/m
 import type { SourceKind, SupplierRecord } from "./contract.js";
 import { mossDocId, SUPPLIER_INDEX, type SearchHit, type SupplierSearch } from "./search.js";
 
-const KINDS: readonly SourceKind[] = ["invoice", "email", "call", "payment"];
+const KINDS: readonly SourceKind[] = ["invoice", "email", "call", "payment", "onboarding"];
 
 /** Metadata stored on each Moss document so a hit maps back to a SupplierRecord. Moss metadata values are strings. */
 export function toMossDoc(r: SupplierRecord): DocumentInfo {

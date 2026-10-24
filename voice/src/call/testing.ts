@@ -60,7 +60,10 @@ export class FakeSearch implements SupplierSearch {
       .slice(0, opts?.topK ?? 10)
       .map((record, i) => ({ record, score: 1 - i / 100 }));
   }
-  async index(): Promise<void> {}
+  readonly indexed: { supplier_id: string; records: SupplierRecord[] }[] = [];
+  async index(supplier_id: string, records: SupplierRecord[]): Promise<void> {
+    this.indexed.push({ supplier_id, records });
+  }
 }
 
 // Hero supplier from data/fogline.json.

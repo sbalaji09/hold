@@ -47,6 +47,42 @@ function expectNothingReadBack(store: MemoryStore) {
   }
 }
 
+describe("new suppliers", () => {
+  const LUMEN = "sup_lumen";
+  const note: SupplierRecord = {
+    id: "sup_lumen:onboarding",
+    supplier_id: LUMEN,
+    kind: "onboarding",
+    ref: "Onboarding note",
+    date: "2026-10-24",
+    text: "Fogline hired Lumen Stage Lighting for the main-stage lighting rig. Agreed: quote of $2,400 for three days.",
+  };
+  const firstBill: SupplierRecord = { id: "bill_l104", supplier_id: LUMEN, kind: "invoice", ref: "#L-104", date: "2026-10-24", amount_cents: 240_000, text: "Invoice #L-104 from Lumen." };
+  const otherBill: SupplierRecord = { ...firstBill, id: "bill_l105", ref: "#L-105" };
+
+  it("a supplier Fogline has never paid is asked only about Fogline's own onboarding facts", () => {
+    // Its invoices came from emails it wrote, so an impostor would know them.
+    expect(pickCandidates([note, firstBill, otherBill], LUMEN, "bill_l104").map((r) => r.id)).toEqual(["sup_lumen:onboarding"]);
+  });
+
+  it("once Fogline has paid them, their history counts too, with the note alongside", () => {
+    const paid: SupplierRecord = { id: "pay_1", supplier_id: LUMEN, kind: "payment", ref: "Payment 1 Nov", date: "2026-11-01", amount_cents: 240_000, text: "Paid." };
+    expect(pickCandidates([note, otherBill, paid], LUMEN, "bill_l104").map((r) => r.id).sort()).toEqual(["bill_l105", "pay_1", "sup_lumen:onboarding"]);
+  });
+
+  it("uses records Moss hasn't indexed yet, and catches Moss up", async () => {
+    const lumenRequest = { ...stageRequest(), supplier_id: LUMEN, bill_id: "bill_l104", reason: ["New supplier: first bill"] };
+    const store = new MemoryStore({ suppliers: [{ supplier_id: LUMEN, name: "Lumen Stage Lighting", phone_on_file: "+14155550188", aliases: [] }], records: [note, firstBill] });
+    const search = new FakeSearch([]); // Moss knows nothing about them yet
+    const llm = new FakeLLM({ json: { "verification questions": new Error("down") } });
+    const prepared = await prepareOutboundCall({ request: lumenRequest, store, search, llm });
+    expect(prepared.questions).toEqual([
+      { ask: "Can you tell me what Fogline hired you for, and what was agreed?", expected: note.text, source: { kind: "onboarding", ref: "Onboarding note", record_id: "sup_lumen:onboarding" }, kind: "history" },
+    ]);
+    expect(search.indexed.map((i) => i.supplier_id)).toEqual([LUMEN]);
+  });
+});
+
 describe("prepareOutboundCall", () => {
   const request = stageRequest();
 

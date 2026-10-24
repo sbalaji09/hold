@@ -33,7 +33,8 @@ export interface CallRequest {
   attempt: number; // dial attempts made so far
 }
 
-export type SourceKind = "invoice" | "email" | "call" | "payment";
+/** "onboarding" = Fogline's own facts about a new supplier (what it hired them for, what was agreed). */
+export type SourceKind = "invoice" | "email" | "call" | "payment" | "onboarding";
 
 export interface Source {
   kind: SourceKind;
