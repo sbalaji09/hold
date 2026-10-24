@@ -125,10 +125,25 @@ describe("unknown sender bills", () => {
   test("an email from a domain the nightly watch found is flagged with when hold first saw it", async () => {
     const { t } = harness();
     await t.run((ctx) => ctx.db.insert("suppliers", SUPPLIER));
-    await t.mutation(internal.app.watch.saveHits, {
-      hits: [{ domain: "stagecraftrigging-billing.com", imitates: "stagecraftrigging.com", technique: "added word", registeredDaysAgo: 4 }],
-      runUrl: "https://console.apify.com/actors/x/runs/y",
-    });
+    // A finished Apify run whose dataset item has the actor's exact shape, extra fields included.
+    const item = {
+      domain: "stagecraftrigging-billing.com",
+      technique: "added word",
+      imitates: "stagecraftrigging.com",
+      registeredDaysAgo: 4,
+      receivesEmail: true,
+      rdapUrl: "https://rdap.org/domain/stagecraftrigging-billing.com",
+    };
+    vi.stubEnv("APIFY_TOKEN", "test");
+    vi.stubGlobal("fetch", async (url: string) =>
+      Response.json(String(url).includes("/datasets/") ? [item] : { data: { status: "SUCCEEDED", defaultDatasetId: "ds", actId: "act" } }),
+    );
+    try {
+      await t.action(internal.app.watch.finishWatch, { runId: "run", attempt: 1 });
+    } finally {
+      vi.unstubAllGlobals();
+      vi.unstubAllEnvs();
+    }
     const { billKey } = await t.action(api.app.intake.ingestEmail, {
       from: "Rosa <rosa@stagecraftrigging-billing.com>",
       subject: "New bank details",
@@ -139,7 +154,7 @@ describe("unknown sender bills", () => {
     const domain = bill?.checks?.find((c) => c.id === "domain");
     expect(domain?.state).toBe("flag");
     expect(domain?.evidence).toContain("nightly look-alike watch");
-    expect(domain?.evidence).toContain("registered 4 days ago");
+    expect(domain?.evidence).toContain("registered 4 days ago and set up to send email.");
   });
 
   test("a look-alike sender's bill gets a copycat check without anyone clicking", async () => {

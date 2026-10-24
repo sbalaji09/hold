@@ -5,7 +5,7 @@
 // ("findings" + optional "suggestedPhone") so convex/app/background.ts can drop the dataset item
 // straight into a backgroundChecks row.
 import { Actor, log } from "apify";
-import { isRegistered, permutations, pool } from "./lookalikes.js";
+import { dnsRecords, isRegistered, permutations, pool } from "./lookalikes.js";
 
 interface Input {
   mode: "background" | "copycat" | "watch";
@@ -20,6 +20,8 @@ interface WatchHit {
   imitates: string;
   technique: string;
   registeredDaysAgo: number | null;
+  /** Has MX records: set up to send and receive email, the way a scammer's copy would be. */
+  receivesEmail: boolean;
   rdapUrl: string;
 }
 
@@ -138,6 +140,23 @@ async function mapsListingFinding(businessName: string, domain: string): Promise
   }
 }
 
+/** SPF and an enforced DMARC policy make it hard for anyone else to send email as this domain.
+ * Without them a scammer doesn't even need a look-alike, so it's worth knowing (info, not a flag). */
+async function emailSecurityFinding(domain: string): Promise<Finding> {
+  const [txt, dmarcTxt] = await Promise.all([dnsRecords(domain, "TXT"), dnsRecords(`_dmarc.${domain}`, "TXT")]);
+  if (txt === null || dmarcTxt === null) return { label: "Email security", state: "info", evidence: `DNS didn't answer for ${domain}.` };
+  const spf = txt.some((r) => r.toLowerCase().startsWith("v=spf1"));
+  const dmarc = dmarcTxt.find((r) => r.toLowerCase().startsWith("v=dmarc1"));
+  const policy = dmarc?.match(/;\s*p=(\w+)/i)?.[1]?.toLowerCase();
+  const enforced = policy === "quarantine" || policy === "reject";
+  const parts = [spf ? "publishes SPF" : "has no SPF record", dmarc ? `DMARC policy is "${policy ?? "unset"}"` : "has no DMARC record"];
+  return {
+    label: "Email security",
+    state: spf && enforced ? "pass" : "info",
+    evidence: `${domain} ${parts.join(" and ")}.${spf && enforced ? "" : " Email claiming to be from this domain is easier to fake."}`,
+  };
+}
+
 // ---------- modes ----------
 
 async function runBackground(domain: string, businessName?: string): Promise<{ findings: Finding[]; suggestedPhone?: string }> {
@@ -194,6 +213,7 @@ async function runBackground(domain: string, businessName?: string): Promise<{ f
         }
       : { label: "Domain age", state: "info", evidence: "RDAP had no registration record for this domain.", sourceUrl: `https://rdap.org/domain/${domain}` },
   );
+  findings.push(await emailSecurityFinding(domain));
 
   if (businessName) {
     const maps = await mapsListingFinding(businessName, domain);
@@ -256,7 +276,10 @@ async function runWatch(domains: string[]): Promise<WatchHit[]> {
   const registered = await pool(candidates, 25, async (c) => ((await isRegistered(c.domain)) ? c : null));
   const live = registered.filter((c): c is NonNullable<typeof c> => c !== null);
   log.info(`${live.length} are registered.`);
-  return pool(live, 5, async (c) => ({ ...c, registeredDaysAgo: await domainAgeDays(c.domain), rdapUrl: `https://rdap.org/domain/${c.domain}` }));
+  return pool(live, 5, async (c) => {
+    const [registeredDaysAgo, mx] = await Promise.all([domainAgeDays(c.domain), dnsRecords(c.domain, "MX")]);
+    return { ...c, registeredDaysAgo, receivesEmail: (mx?.length ?? 0) > 0, rdapUrl: `https://rdap.org/domain/${c.domain}` };
+  });
 }
 
 // ---------- entry point ----------

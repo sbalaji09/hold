@@ -32,20 +32,29 @@ export function permutations(domain: string): Array<{ domain: string; technique:
   return [...out].map(([d, technique]) => ({ domain: d, technique }));
 }
 
-/** True if the domain has name servers, i.e. someone registered it. Null if DNS didn't answer. */
-export async function isRegistered(domain: string): Promise<boolean | null> {
+/** DNS records of one type via Cloudflare DNS-over-HTTPS: [] if the name doesn't exist or has
+ * none, null if DNS didn't answer. */
+export async function dnsRecords(name: string, type: "NS" | "MX" | "TXT"): Promise<string[] | null> {
   try {
-    const res = await fetch(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(domain)}&type=NS`, {
+    const res = await fetch(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(name)}&type=${type}`, {
       headers: { accept: "application/dns-json" },
       signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return null;
-    const body = (await res.json()) as { Status: number; Answer?: unknown[] };
-    if (body.Status === 3) return false; // NXDOMAIN
-    return body.Status === 0 ? (body.Answer?.length ?? 0) > 0 : null;
+    const body = (await res.json()) as { Status: number; Answer?: Array<{ type: number; data: string }> };
+    if (body.Status === 3) return []; // NXDOMAIN
+    if (body.Status !== 0) return null;
+    const code = { NS: 2, MX: 15, TXT: 16 }[type];
+    return (body.Answer ?? []).filter((a) => a.type === code).map((a) => a.data.replace(/^"|"$/g, "").replace(/" "/g, ""));
   } catch {
     return null;
   }
+}
+
+/** True if the domain has name servers, i.e. someone registered it. Null if DNS didn't answer. */
+export async function isRegistered(domain: string): Promise<boolean | null> {
+  const ns = await dnsRecords(domain, "NS");
+  return ns === null ? null : ns.length > 0;
 }
 
 /** Maps `items` through `fn`, at most `limit` at a time, keeping order. */

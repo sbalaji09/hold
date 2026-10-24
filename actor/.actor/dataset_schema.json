@@ -1,0 +1,34 @@
+{
+  "actorSpecification": 1,
+  "fields": {},
+  "views": {
+    "lookalikes": {
+      "title": "Look-alike domains (watch)",
+      "transformation": {
+        "fields": ["domain", "imitates", "technique", "registeredDaysAgo", "receivesEmail", "rdapUrl"]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "domain": { "label": "Look-alike", "format": "text" },
+          "imitates": { "label": "Imitates", "format": "text" },
+          "technique": { "label": "How it was made", "format": "text" },
+          "registeredDaysAgo": { "label": "Registered (days ago)", "format": "number" },
+          "receivesEmail": { "label": "Set up for email", "format": "boolean" },
+          "rdapUrl": { "label": "Registration record", "format": "link" }
+        }
+      }
+    },
+    "checks": {
+      "title": "Checks (background, copycat)",
+      "transformation": { "fields": ["findings", "suggestedPhone"] },
+      "display": {
+        "component": "table",
+        "properties": {
+          "findings": { "label": "Findings", "format": "array" },
+          "suggestedPhone": { "label": "Phone found on the site", "format": "text" }
+        }
+      }
+    }
+  }
+}

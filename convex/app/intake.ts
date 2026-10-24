@@ -494,7 +494,8 @@ async function fromUnknownDomain(ctx: ActionCtx, args: IngestArgs, fromAddress: 
   if (imitates) {
     const evidence = watched
       ? `hold's nightly look-alike watch has tracked ${fromDomain} since ${watched.firstSeenAt.slice(0, 10)}: a look-alike of ${imitates.name}'s ${imitates.domain} (${watched.technique})` +
-        (watched.registeredDaysAgo !== undefined ? `, registered ${watched.registeredDaysAgo} day${watched.registeredDaysAgo === 1 ? "" : "s"} ago.` : ".")
+        (watched.registeredDaysAgo !== undefined ? `, registered ${watched.registeredDaysAgo} day${watched.registeredDaysAgo === 1 ? "" : "s"} ago` : "") +
+        (watched.receivesEmail ? " and set up to send email." : ".")
       : `${fromDomain} looks like ${imitates.name}'s ${imitates.domain} but isn't it: someone imitating a supplier, not a new one.`;
     const flagged = await unknown([{ id: "domain", label: "Look-alike domain", state: "flag", evidence, quote: fromAddress, cite }]);
     await ctx.scheduler.runAfter(0, internal.app.background.copycatOnBill, { billKey: flagged.billKey, domain: fromDomain, knownDomain: imitates.domain, fromAddress });

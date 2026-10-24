@@ -12,7 +12,19 @@ import { internalAction, internalMutation, internalQuery, query } from "../_gene
 const APIFY_BASE = "https://api.apify.com/v2";
 const actorId = () => process.env.APIFY_ACTOR_ID ?? "hold-supplier-verifier";
 
-type Hit = { domain: string; imitates: string; technique: string; registeredDaysAgo: number | null };
+/** A dataset item from the actor's watch mode (it also carries fields hold doesn't keep). */
+type Hit = { domain: string; imitates: string; technique: string; registeredDaysAgo: number | null; receivesEmail?: boolean };
+
+/** Only the fields saveHits accepts; Convex rejects anything extra. */
+export function toHitArgs(h: Hit) {
+  return {
+    domain: h.domain,
+    imitates: h.imitates,
+    technique: h.technique,
+    registeredDaysAgo: h.registeredDaysAgo ?? undefined,
+    receivesEmail: h.receivesEmail ?? undefined,
+  };
+}
 
 export const startWatch = internalAction({
   args: {},
@@ -54,7 +66,7 @@ export const finishWatch = internalAction({
     const items = await fetch(`${APIFY_BASE}/datasets/${run.defaultDatasetId}/items?clean=true&token=${encodeURIComponent(token)}`);
     if (!items.ok) throw new Error(`Apify watch dataset read failed (${items.status})`);
     await ctx.runMutation(internal.app.watch.saveHits, {
-      hits: ((await items.json()) as Hit[]).map((h) => ({ ...h, registeredDaysAgo: h.registeredDaysAgo ?? undefined })),
+      hits: ((await items.json()) as Hit[]).map(toHitArgs),
       runUrl: `https://console.apify.com/actors/${run.actId}/runs/${runId}`,
     });
   },
@@ -62,7 +74,15 @@ export const finishWatch = internalAction({
 
 export const saveHits = internalMutation({
   args: {
-    hits: v.array(v.object({ domain: v.string(), imitates: v.string(), technique: v.string(), registeredDaysAgo: v.optional(v.number()) })),
+    hits: v.array(
+      v.object({
+        domain: v.string(),
+        imitates: v.string(),
+        technique: v.string(),
+        registeredDaysAgo: v.optional(v.number()),
+        receivesEmail: v.optional(v.boolean()),
+      }),
+    ),
     runUrl: v.string(),
   },
   handler: async (ctx, { hits, runUrl }): Promise<{ added: number }> => {
@@ -72,7 +92,15 @@ export const saveHits = internalMutation({
     for (const h of hits) {
       const supplier = suppliers.find((s) => s.domain.toLowerCase() === h.imitates);
       if (!supplier) continue;
-      const fields = { supplierKey: supplier.key, imitates: h.imitates, technique: h.technique, registeredDaysAgo: h.registeredDaysAgo, lastSeenAt: now, runUrl };
+      const fields = {
+        supplierKey: supplier.key,
+        imitates: h.imitates,
+        technique: h.technique,
+        registeredDaysAgo: h.registeredDaysAgo,
+        receivesEmail: h.receivesEmail,
+        lastSeenAt: now,
+        runUrl,
+      };
       const existing = await ctx.db.query("watchedDomains").withIndex("by_domain", (q) => q.eq("domain", h.domain)).unique();
       if (existing) await ctx.db.patch(existing._id, fields);
       else {

@@ -1,91 +1,97 @@
-# hold-supplier-verifier
+# Supplier Verifier: look-alike domains and payee checks
 
-Apify actor backing hold's supplier background checks and copycat-domain checks
-(see `convex/app/background.ts`).
+Stop paying scammers who pretend to be your suppliers.
+
+The most expensive email scam in business is simple: someone registers `acme-billing.com`, emails your
+finance team as Acme, and says "we changed banks, pay us here now." This actor gives you three checks
+against it:
+
+- **Watch**: give it your suppliers' real domains. It generates about 80 look-alikes of each one
+  (typos, swapped letters, hyphens, `l`→`1`, `.co` instead of `.com`, added words like `-billing`) and
+  returns every one that someone has registered: how old it is, and whether it's set up to send email.
+  Run it on a schedule and you know about `acme-billing.com` before the first email from it arrives.
+- **Copycat**: an email came from a domain that isn't the supplier's. Compare the two: how close the
+  names are, how new the sender's domain is, and whether its website copies the real one's title or text.
+- **Background**: vet a new supplier before you pay them. Does the site load, what phone number does its
+  contact page list (to call back on, never the one in the email), how old is the domain, does its name
+  match, does it publish SPF and DMARC, and (optionally) is there a Google Maps listing.
+
+Built for hold, an accounts-payable agent that calls suppliers back before it
+pays a changed bank account. It runs Watch nightly and Copycat on every suspicious bill.
 
 ## Input
 
 ```json
-{
-  "mode": "background",
-  "domain": "stagecraftrigging.com",
-  "businessName": "Stagecraft Rigging Co."
-}
+{ "mode": "watch", "domains": ["stagecraftrigging.com", "soundwaveaudio.com"] }
 ```
 
-or
+```json
+{ "mode": "copycat", "domain": "stagecraft-rigging.com", "knownDomain": "stagecraftrigging.com" }
+```
+
+```json
+{ "mode": "background", "domain": "stagecraftrigging.com", "businessName": "Stagecraft Rigging Co." }
+```
+
+| Field | Mode | What it is |
+|---|---|---|
+| `mode` | all | `watch`, `copycat` or `background` |
+| `domains` | watch | Your suppliers' real domains |
+| `domain` | copycat, background | The sender's domain (copycat) or the supplier's domain (background). No `https://`. |
+| `knownDomain` | copycat | The supplier's real domain to compare against |
+| `businessName` | background | The supplier's name on file. Compared with the site's title, and used for the Maps lookup. |
+
+## Output
+
+**Watch** returns one item per registered look-alike (the "Look-alike domains" view):
 
 ```json
 {
-  "mode": "copycat",
-  "domain": "stagecraft-rigging.com",
-  "knownDomain": "stagecraftrigging.com"
+  "domain": "soundwave-audio.com",
+  "imitates": "soundwaveaudio.com",
+  "technique": "added hyphen",
+  "registeredDaysAgo": 719,
+  "receivesEmail": true,
+  "rdapUrl": "https://rdap.org/domain/soundwave-audio.com"
 }
 ```
 
-| field | required | used by |
-|---|---|---|
-| `mode` | yes | both — `"background"` or `"copycat"` |
-| `domain` | yes | both — the domain to check, or the unfamiliar sender domain in copycat mode |
-| `businessName` | no | background — compared against the site's `<title>`; also used to look up a Google Maps listing if `APIFY_TOKEN` is set |
-| `knownDomain` | copycat only | compared against `domain` (edit distance, title and homepage text similarity) |
+A look-alike that's days old and set up for email is the one to block.
 
-## Output (one dataset item)
+**Copycat** and **Background** return one item with a list of findings, each `pass`, `flag` or `info`
+with the evidence behind it:
 
-```ts
+```json
 {
-  findings: Array<{ label: string; state: "pass" | "flag" | "info"; evidence: string; sourceUrl?: string }>;
-  suggestedPhone?: string; // background mode only, a number found on the site — never auto-trusted
+  "findings": [
+    { "label": "Domain edit distance", "state": "flag", "evidence": "\"stagecraft-rigging.com\" is 95% similar to the known domain \"stagecraftrigging.com\" by edit distance." },
+    { "label": "Sender domain age", "state": "flag", "evidence": "stagecraft-rigging.com was registered only 4 days ago.", "sourceUrl": "https://rdap.org/domain/stagecraft-rigging.com" }
+  ],
+  "suggestedPhone": "(415) 555-0100"
 }
 ```
 
-This matches `BackgroundCheck["findings"]`/`suggestedPhone"` in `lib/types.ts`, so the caller can
-drop the item straight into a `backgroundChecks` row.
+`suggestedPhone` (background only) is a number found on the supplier's own site. Have a person confirm it
+before you trust it.
 
-## What it checks
+## How it works and what it costs
 
-- **background**: fetches the homepage, follows a "contact" link if found, pulls phone numbers
-  by regex, looks up the domain's registration age via RDAP (`https://rdap.org/domain/<domain>`),
-  and — only if the run has `APIFY_TOKEN` set — calls Apify's `compass/google-maps-extractor`
-  actor to look for a matching business listing.
-- **copycat**: fetches both `domain` and `knownDomain`'s homepages and flags a likely lookalike
-  when the domain's edit-distance similarity, page title or homepage text are suspiciously close
-  while the domains themselves differ.
+Plain HTTP only, no browser: DNS lookups through Cloudflare's DNS-over-HTTPS, registration dates from
+RDAP, and the site's own pages. A watch over 25 domains (about 1,900 look-alikes) finishes in seconds on
+the smallest memory setting, so it costs a fraction of a cent. The Google Maps lookup in background mode
+calls `compass/google-maps-extractor`, which bills per place; it only runs when you give a `businessName`.
 
-- **watch**: `{ "mode": "watch", "domains": ["stagecraftrigging.com", ...] }`. Generates about 80
-  look-alikes per domain (`src/lookalikes.ts`: missing, doubled and swapped letters, hyphens,
-  look-alike letters like `l`→`1`, other endings, added words like `-billing`), keeps the ones with
-  name servers (Cloudflare DNS-over-HTTPS) and looks up each one's age. One dataset item per hit:
-  `{ domain, imitates, technique, registeredDaysAgo, rdapUrl }`. hold runs it nightly
-  (`convex/app/watch.ts`); 25 domains take a few seconds.
+## Limits
 
-No HTML-parsing dependency: plain `fetch` plus regexes (see `src/main.ts`).
+- Watch only finds look-alikes it can think of. A scammer using an unrelated domain is caught by
+  Copycat or by calling the supplier back, not by Watch.
+- Some country-code domains (`.co`, `.us`) don't publish RDAP dates, so their age comes back `null`.
+- Phone extraction reads US-style numbers.
 
-## Running it
-
-Locally, without Docker:
+## Running it yourself
 
 ```sh
-cd actor
 npm install
-APIFY_TOKEN=... npm start   # reads input from .actor/input.json via apify-cli, or set INPUT below
+apify run -p   # input from storage/key_value_stores/default/INPUT.json
+apify push     # deploy to your Apify account
 ```
-
-Or with the Apify CLI (`npm i -g apify-cli`):
-
-```sh
-cd actor
-apify run                   # runs locally, input from storage/key_value_stores/default/INPUT.json
-```
-
-## Deploying
-
-```sh
-cd actor
-apify login                 # once, with your Apify account token
-apify push                  # builds the Dockerfile and pushes a new actor version
-```
-
-After the first push, note the actor's id (or rename it to `hold-supplier-verifier`) and set
-`APIFY_ACTOR_ID` (if different from the default) and `APIFY_TOKEN` in hold's Convex deployment so
-`convex/app/background.ts` calls it instead of running its local RDAP + fetch fallback.

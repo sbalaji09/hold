@@ -426,6 +426,7 @@ export default defineSchema({
     imitates: v.string(),
     technique: v.string(),
     registeredDaysAgo: v.optional(v.number()),
+    receivesEmail: v.optional(v.boolean()),
     firstSeenAt: v.string(),
     lastSeenAt: v.string(),
     runUrl: v.string(),

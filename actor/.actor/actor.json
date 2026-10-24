@@ -1,9 +1,12 @@
 {
   "actorSpecification": 1,
   "name": "hold-supplier-verifier",
-  "version": "0.1",
-  "title": "hold supplier verifier",
-  "description": "Checks a supplier's background (site, contact page, phone numbers, domain age) or flags a lookalike domain against a supplier's known one.",
+  "version": "0.2",
+  "title": "Supplier Verifier: look-alike domains and payee checks",
+  "description": "Stops fake-supplier payment fraud: finds registered look-alikes of your suppliers' domains (and whether they can send email), checks a sender against the real supplier site, and vets a new supplier's site, phone, domain age and email security.",
   "input": "../input_schema.json",
-  "dockerfile": "../Dockerfile"
+  "dockerfile": "../Dockerfile",
+  "storages": {
+    "dataset": "./dataset_schema.json"
+  }
 }
