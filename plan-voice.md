@@ -236,3 +236,58 @@ The test for every screen: if a real bookkeeper sat down at it Monday morning, c
 **Simulated:** Fogline and its people, six months of past bills and emails (generated, with a list of every planted scam), the supplier who answers the call (a teammate), the money.
 
 **Not building:** landing page, charts or an analytics dashboard, Visa payments, a mobile app, a QuickBooks connection, general bookkeeping checks like double bills, the reverse scam, or Creao, CRS or SpaceXAI integrations.
+
+---
+
+## Addendum: Hyphenate feedback (shared, identical in both plans; change only together)
+
+Added after talking to Hyphenate. Everything above still stands; this only adds. The brief wins in any conflict.
+
+### What Hyphenate told us
+- Adapt to new fraud techniques, not only the ones we planted.
+- The agentic loop should work for more than fraud.
+- Focus on real-world application; the music festival is interesting, so keep Fogline realistic.
+- Self-improvement and a human in the loop.
+- Adapt to new suppliers.
+- A view of all suppliers involved with the company.
+
+### Their four judging questions, and our answer
+| Question | Our answer |
+|---|---|
+| **Real.** Real-enough data with the mess left in, and an answer key | Fogline's bills carry normal mess (odd formats, a missing field, a legit bank change that must NOT be held). The planted-scam list is the answer key. |
+| **Hireable.** One role, drafts it, asks the right person, every action traces to a record | One role: bills payment and supplier records. It escalates to a named person (Maya or Dev) and every claim carries a `Cite`. |
+| **New.** Something new | A check call to the number on file, built from the supplier's own history, instead of another invoice bot. |
+| **Wow.** One moment | The phone rings on the table and the payment is held. |
+
+### The loop (Hyphenate's pattern, applied to hold)
+**Learns** from six months of history, **Runs** on its own, **Escalates** to a named person with a stated reason and holds only that item, then **Improves**: the human's answer is saved as a policy and never asked again.
+
+hold's version: it learns each supplier's normal (banks, amounts, writing, who answers), runs routine bills on its own, escalates a risky bill to Maya or Dev with the reason in words, and saves the outcome as a **learned rule** on that supplier, cited the next time it applies.
+
+The loop is the platform; payment scams are its first role. Pitch line only: "the same loop (learn, run, escalate, improve) fits other finance roles." We do **not** build other roles, bookkeeping checks or the reverse scam.
+
+### Additive features
+1. **Learned rules (self-improvement).** When Maya or Dev resolves an escalation, hold may save a rule on that supplier (e.g. "Stagecraft: bank changes need a passed call plus Dev; verified account Chase ··2210"). Rules show on the supplier page and are cited on later bills. A bill that matches a saved rule is not escalated again for that reason. Rules never relax the hard limits: no self-approval, no bank change alone, no releasing a held payment alone.
+2. **New fraud techniques.** The Practice set is a regression suite. A scam hold missed, or one a person reports, is added to the set. "Generate new set" asks Claude for fresh variants (new pretexts, new phone tactics). Shown as caught or missed per scam, never as a score.
+3. **New suppliers.** A new supplier starts as `New`: background check first (Apify), trusted number from it, and its first bank change or large bill always gets a call. It becomes `Trusted` after its first confirmed call. With little history, check-call questions come from what Fogline itself holds (orders, contract terms, invoice records), never from the email.
+4. **Escalation reason, no score.** Every `Needs you` or approval shows who it is routed to and why in words ("sources disagree", "no precedent for this supplier"). No percentage confidence or risk score is shown (design rule: show the words, not a score).
+5. **Suppliers overview.** The Suppliers list shows every supplier with status (New, Trusted, Under review), trusted number last checked, open items, and a link to each. Counts are clickable to the records.
+
+### Contract addition (optional field, existing consumers unaffected)
+Call result and `handed_off` may carry `escalation: { to: "maya" | "dev", reason: "..." }`. Absent means the app derives it.
+
+### Demo addition (only if a judge has more time; main 2-minute run unchanged)
+Resolve an escalation, then show the learned rule on the supplier page and send the same case again: it no longer asks. Real-world line for the Q&A: "Fogline is the test bed; the same finance team shape exists at any business paying many vendors."
+
+---
+
+## Addendum: Voice person (Hyphenate feedback)
+
+Additive to the scope above. Main-path items stay first.
+
+1. **Call result carries `escalation`.** When a call ends `handed_off` or `not_confirmed`, set `escalation: { to, reason }` per the shared contract addition (no answer after retry or dropped call goes to Maya with the reason; a failed check goes to Dev). Plain words, no score.
+2. **New-supplier questions.** If a supplier has little Moss history, build the 1-3 questions from what Fogline itself holds (a purchase order, contract term, event date, last paid invoice), and from background-check facts, never from the email. Each question keeps its `source`. Mark the call `first_contact: true` so the app can move a supplier from `New` to `Trusted` on a confirmed call.
+3. **A legit bank change must be passable.** If the supplier confirms they did change banks and the answers match the records, return `confirmed` with the evidence so the app can route it to Dev's sign-off. Never read bank details aloud and never accept them by voice; the number change still needs Dev's OK in the app.
+4. **New phone tactics.** Add to the incoming-line pressure set and to Practice's simulated caller: fake urgency, claimed authority ("this is Dev"), callback-number swap ("call me on this other number instead"), prompt injection, and an account-read-back request. Each must end with "we'll call you back on the number we have". Add each new tactic as a test.
+5. **Learn from takeovers.** When Maya takes over a call, save her outcome note on the call so it can be offered as a learned rule by the app.
+6. **Not doing:** a voice-confidence percentage, other call roles, or the cloned-voice check in the main demo.

@@ -245,3 +245,59 @@ The test for every screen: if a real bookkeeper sat down at it Monday morning, c
 **Simulated:** Fogline and its people, six months of past bills and emails (generated, with a list of every planted scam), the supplier who answers the call (a teammate), the money.
 
 **Not building:** landing page, charts or an analytics dashboard, Visa payments, a mobile app, a QuickBooks connection, general bookkeeping checks like double bills, the reverse scam, or Creao, CRS or SpaceXAI integrations.
+
+---
+
+## Addendum: Hyphenate feedback (shared, identical in both plans; change only together)
+
+Added after talking to Hyphenate. Everything above still stands; this only adds. The brief wins in any conflict.
+
+### What Hyphenate told us
+- Adapt to new fraud techniques, not only the ones we planted.
+- The agentic loop should work for more than fraud.
+- Focus on real-world application; the music festival is interesting, so keep Fogline realistic.
+- Self-improvement and a human in the loop.
+- Adapt to new suppliers.
+- A view of all suppliers involved with the company.
+
+### Their four judging questions, and our answer
+| Question | Our answer |
+|---|---|
+| **Real.** Real-enough data with the mess left in, and an answer key | Fogline's bills carry normal mess (odd formats, a missing field, a legit bank change that must NOT be held). The planted-scam list is the answer key. |
+| **Hireable.** One role, drafts it, asks the right person, every action traces to a record | One role: bills payment and supplier records. It escalates to a named person (Maya or Dev) and every claim carries a `Cite`. |
+| **New.** Something new | A check call to the number on file, built from the supplier's own history, instead of another invoice bot. |
+| **Wow.** One moment | The phone rings on the table and the payment is held. |
+
+### The loop (Hyphenate's pattern, applied to hold)
+**Learns** from six months of history, **Runs** on its own, **Escalates** to a named person with a stated reason and holds only that item, then **Improves**: the human's answer is saved as a policy and never asked again.
+
+hold's version: it learns each supplier's normal (banks, amounts, writing, who answers), runs routine bills on its own, escalates a risky bill to Maya or Dev with the reason in words, and saves the outcome as a **learned rule** on that supplier, cited the next time it applies.
+
+The loop is the platform; payment scams are its first role. Pitch line only: "the same loop (learn, run, escalate, improve) fits other finance roles." We do **not** build other roles, bookkeeping checks or the reverse scam.
+
+### Additive features
+1. **Learned rules (self-improvement).** When Maya or Dev resolves an escalation, hold may save a rule on that supplier (e.g. "Stagecraft: bank changes need a passed call plus Dev; verified account Chase ··2210"). Rules show on the supplier page and are cited on later bills. A bill that matches a saved rule is not escalated again for that reason. Rules never relax the hard limits: no self-approval, no bank change alone, no releasing a held payment alone.
+2. **New fraud techniques.** The Practice set is a regression suite. A scam hold missed, or one a person reports, is added to the set. "Generate new set" asks Claude for fresh variants (new pretexts, new phone tactics). Shown as caught or missed per scam, never as a score.
+3. **New suppliers.** A new supplier starts as `New`: background check first (Apify), trusted number from it, and its first bank change or large bill always gets a call. It becomes `Trusted` after its first confirmed call. With little history, check-call questions come from what Fogline itself holds (orders, contract terms, invoice records), never from the email.
+4. **Escalation reason, no score.** Every `Needs you` or approval shows who it is routed to and why in words ("sources disagree", "no precedent for this supplier"). No percentage confidence or risk score is shown (design rule: show the words, not a score).
+5. **Suppliers overview.** The Suppliers list shows every supplier with status (New, Trusted, Under review), trusted number last checked, open items, and a link to each. Counts are clickable to the records.
+
+### Contract addition (optional field, existing consumers unaffected)
+Call result and `handed_off` may carry `escalation: { to: "maya" | "dev", reason: "..." }`. Absent means the app derives it.
+
+### Demo addition (only if a judge has more time; main 2-minute run unchanged)
+Resolve an escalation, then show the learned rule on the supplier page and send the same case again: it no longer asks. Real-world line for the Q&A: "Fogline is the test bed; the same finance team shape exists at any business paying many vendors."
+
+---
+
+## Addendum: App person (Hyphenate feedback)
+
+Additive to the scope above. Priority tags follow the brief: do **Must** items first, these are **Next** unless noted.
+
+1. **Learned rules** (Next, but cheap). New Convex table `learnedRules` (supplier_id, text, created_by, source bill/approval, created_at). On Dev's approve/reject or Maya's resolve, offer "Save as a rule for this supplier". Rules appear on the supplier page and as a `Cite` on later bills. Checks consult rules to skip a repeat escalation. Server-side limits stay unchanged and can never be relaxed by a rule.
+2. **Escalation reason and routing.** Store `routedTo` (maya|dev) and a plain-words `reason` on Needs you / approvals. Show in the bill page, Approvals and Inbox row. No score.
+3. **Suppliers overview.** Extend the Suppliers list: status New/Trusted/Under review, last checked, open items (clickable). `New` until the first confirmed call; first bank change or large bill from a `New` supplier always writes a `call_request`.
+4. **Practice as regression suite.** "Add to practice set" on any missed or reported bill; "Generate new set" prompts Claude for new pretexts. Per-scam caught/missed only, no score.
+5. **Data realism (answer key).** Add normal mess to Fogline data and keep `data/planted-scams.md` as the answer key: a few odd invoice formats, one missing field, and at least one legit bank change that must not be held.
+6. **Pitch.** Keep the main run unchanged. Add the optional learned-rule moment to the "more time" list.
+7. **Not doing:** other finance roles, a confidence percentage, or a general bookkeeping agent.

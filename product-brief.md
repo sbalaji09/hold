@@ -166,3 +166,18 @@ One person owns the voice side, the other owns the app and data. They meet at th
 ### Not building
 
 A landing page, charts or an analytics dashboard, Visa payments, a mobile app, a QuickBooks connection, general bookkeeping checks like double bills, or the reverse scam (fake orders placed in Fogline's name). No Creao, CRS or SpaceXAI integrations either. Callback does one job: stopping payment scams.
+
+
+## Hyphenate feedback and judging lens (added Oct 2026)
+
+Feedback from Hyphenate: adapt to new fraud techniques, make the agent loop work beyond fraud, keep the real-world use clear (the music festival is interesting), show self-improvement and a human in the loop, adapt to new suppliers, and give a view of all suppliers. Added without changing anything above.
+
+**Their four questions.** *Real:* real-enough data with the mess left in, and an answer key (our planted-scam list). *Hireable:* one role, asks the right person, every action traces to a record. *New:* something new (the check call). *Wow:* one moment (the phone rings, the payment is held).
+
+**The loop.** Learns from history, runs on its own, escalates to a named person with the reason in words (holding only that item), improves by saving the answer as a rule so it is never asked again. The loop is the platform and payment scams are its first role. We pitch this in one line and do not build other roles.
+
+**Additive features.** (1) Learned rules per supplier, shown on the supplier page and cited later, never relaxing the hard limits. (2) Practice is a regression suite: missed or reported scams join it, and Claude can generate fresh variants. (3) New suppliers start as `New`: background check first, first bank change or large bill always gets a call, `Trusted` after the first confirmed call. (4) Escalations show who they are routed to and why, with no score. (5) The Suppliers list shows every supplier with status, last checked and open items.
+
+**Demo.** Main 2-minute run unchanged. If a judge has more time: resolve an escalation, show the learned rule, send the same case again, and it no longer asks.
+
+**Still not building.** Other finance roles, bookkeeping checks, the reverse scam. Details are in the shared addendum at the end of `plan-agent.md` and `plan-voice.md`.
