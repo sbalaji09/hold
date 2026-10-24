@@ -1,6 +1,6 @@
 // Writing-style check (contract #4): does this email read like the supplier's past emails?
 //
-// Past emails come from the supplier's Moss index (the same one the call uses). This runs in
+// Past emails come from the shared Moss index (the same one the call uses), filtered to this supplier. This runs in
 // Convex's default runtime, where the Moss JS SDK cannot load (it statically imports
 // @huggingface/transformers + onnxruntime for local embeddings), so it calls Moss's documented
 // REST `getDocs` action instead. No embedding is needed: we want the most recent emails, not a
@@ -10,7 +10,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { v } from "convex/values";
 import { z } from "zod";
 import type { StyleMatchResult, SupplierRecord } from "../../shared/contract.js";
-import { indexNameFor } from "../../shared/search.js";
+import { SUPPLIER_INDEX } from "../../shared/search.js";
 import { internal } from "../_generated/api.js";
 import { action } from "../_generated/server.js";
 
@@ -24,7 +24,7 @@ const MossDoc = z.object({
   metadata: z.record(z.string(), z.string()).optional(),
 });
 
-async function emailsFromMoss(supplier_id: string): Promise<SupplierRecord[] | null> {
+export async function emailsFromMoss(supplier_id: string): Promise<SupplierRecord[] | null> {
   const projectId = process.env.MOSS_PROJECT_ID;
   const projectKey = process.env.MOSS_PROJECT_KEY;
   if (!projectId || !projectKey) return null;
@@ -32,12 +32,14 @@ async function emailsFromMoss(supplier_id: string): Promise<SupplierRecord[] | n
     const res = await fetch(MOSS_MANAGE_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-service-version": "v1", "x-project-key": projectKey },
-      body: JSON.stringify({ action: "getDocs", projectId, indexName: indexNameFor(supplier_id) }),
+      // ponytail: getDocs has no metadata filter, so this pulls the whole shared index (~500 small
+      // docs) and filters here. Pass docIds from Convex if the index grows large.
+      body: JSON.stringify({ action: "getDocs", projectId, indexName: SUPPLIER_INDEX }),
     });
     if (!res.ok) throw new Error(`Moss getDocs ${res.status}: ${await res.text()}`);
     const docs = z.array(MossDoc).parse(await res.json());
     return docs
-      .filter((d) => d.metadata?.kind === "email")
+      .filter((d) => d.metadata?.supplier_id === supplier_id && d.metadata?.kind === "email")
       .map((d) => ({
         id: d.metadata?.id ?? d.id,
         supplier_id,
