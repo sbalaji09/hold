@@ -450,6 +450,24 @@ export async function listChecksForSupplier(key: string): Promise<BackgroundChec
   return [];
 }
 
+/** Registered look-alikes of the supplier's domain, from the nightly Apify watch. */
+export async function listWatchedForSupplier(key: string): Promise<WatchedDomain[]> {
+  if (CONVEX_URL) {
+    return fetchQuery(api.app.watch.listForSupplier, { supplierKey: key }, convexOpts());
+  }
+  return [];
+}
+
+export type WatchedDomain = {
+  domain: string;
+  imitates: string;
+  technique: string;
+  registeredDaysAgo?: number;
+  receivesEmail?: boolean;
+  firstSeenAt: string;
+  runUrl: string;
+};
+
 export async function listChecksForBill(key: string): Promise<BackgroundCheck[]> {
   if (CONVEX_URL) {
     return fetchQuery(api.app.background.listChecksForBill, { billKey: key }, convexOpts());

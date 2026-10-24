@@ -13,6 +13,16 @@ Env vars: see `.env.example` for the full list and which ones are Convex-side (`
 
 Run tests with `pnpm vitest run`.
 
+### Apify
+
+hold's own actor, [`celebratory_trefoil/hold-supplier-verifier`](https://console.apify.com/actors/ghhS5OMt08eiVJkXb) (source in `actor/`, deploy with `cd actor && apify push -b latest`), does three jobs:
+
+- **Copycat check** on every bill from a domain that isn't the supplier's, or from a look-alike sender (`convex/app/background.ts`, scheduled by intake). It lands on the bill as one more check.
+- **Background check** on a new supplier (site, contact phone, domain age, SPF/DMARC, Maps listing).
+- **Look-alike watch**, nightly at 10:00 UTC and from **Scan now** on a supplier page (`convex/app/watch.ts`). It finds registered look-alikes of every supplier domain; an email from one is flagged on arrival.
+
+Set `APIFY_TOKEN` and `APIFY_ACTOR_ID=celebratory_trefoil~hold-supplier-verifier` on the Convex deployment. Without the token, the copycat and background checks fall back to local heuristics and the watch doesn't run. To run the watch by hand: `npx convex run app/watch:startWatch`.
+
 ### Company templates
 
 hold runs for one company per deployment (`lib/company.ts`). `pnpm seed` loads Fogline (festival bills), `pnpm seed:bayline` loads Bayline Title & Escrow (closing wires) and `pnpm seed:harbor` loads Harbor Health (clinic payroll). With `ALLOW_TEMPLATE_SWITCH=true` set in the Convex env, the Workspace screen (click the company name in the sidebar) switches between them in the app. Regenerate the two newer datasets with `npx tsx data/generateWorkspaces.ts`.

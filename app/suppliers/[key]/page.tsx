@@ -6,7 +6,8 @@ import { BackgroundCheckPanel } from "@/components/BackgroundCheckPanel";
 import { ConfirmSupplier, OnboardingRecord } from "@/components/ConfirmSupplier";
 import { capital, languageName } from "@/lib/company";
 import { LearnedRules } from "@/components/LearnedRules";
-import { getCompany, getSupplier, listBankAccountsForSupplier, listBillsForSupplier, listCallsForSupplier, listChecksForSupplier } from "@/lib/data";
+import { getCompany, getSupplier, listBankAccountsForSupplier, listBillsForSupplier, listCallsForSupplier, listChecksForSupplier, listWatchedForSupplier } from "@/lib/data";
+import { LookalikeWatch } from "@/components/LookalikeWatch";
 import { STATUS_TO_MARK, shortDate } from "@/lib/inbox";
 
 function formatPhone(e164: string): string {
@@ -32,11 +33,12 @@ export default async function SupplierPage({
   const supplier = await getSupplier(key);
   if (!supplier) notFound();
 
-  const [bankAccounts, bills, calls, checks] = await Promise.all([
+  const [bankAccounts, bills, calls, checks, watched] = await Promise.all([
     listBankAccountsForSupplier(key),
     listBillsForSupplier(key),
     listCallsForSupplier(key),
     listChecksForSupplier(key),
+    listWatchedForSupplier(key),
   ]);
   const co = await getCompany();
   const isNew = supplier.status === "new";
@@ -72,6 +74,8 @@ export default async function SupplierPage({
         <BackgroundCheckPanel supplierKey={key} lastCheck={checks[0] ?? null} />
       </div>
       )}
+
+      <LookalikeWatch domain={supplier.domain} watched={watched} />
 
       {isNew ? null : <OnboardingRecord supplier={supplier} />}
 

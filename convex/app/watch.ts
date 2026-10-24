@@ -3,11 +3,11 @@
 // from one is flagged on arrival with "hold has watched this domain since ...", often days before
 // the scam is sent. Apify only: with no APIFY_TOKEN the watch doesn't run.
 //
-// The run takes longer than a sync call should wait, so startWatch starts it and finishWatch
-// checks back every minute until it's done.
+// startWatch waits up to a minute for the run; if it's still going, finishWatch checks back every
+// minute until it's done.
 import { v } from "convex/values";
 import { internal } from "../_generated/api.js";
-import { internalAction, internalMutation, internalQuery, query } from "../_generated/server.js";
+import { action, internalAction, internalMutation, internalQuery, query } from "../_generated/server.js";
 
 const APIFY_BASE = "https://api.apify.com/v2";
 const actorId = () => process.env.APIFY_ACTOR_ID ?? "hold-supplier-verifier";
@@ -37,16 +37,23 @@ export const startWatch = internalAction({
     const suppliers = await ctx.runQuery(internal.app.onboarding.knownSuppliers, {});
     const domains = [...new Set(suppliers.map((s) => s.domain.toLowerCase()).filter(Boolean))];
     if (domains.length === 0) return null;
-    const res = await fetch(`${APIFY_BASE}/acts/${encodeURIComponent(actorId())}/runs?token=${encodeURIComponent(token)}`, {
+    // A watch usually finishes in seconds, so wait up to a minute for it; finishWatch checks back if not.
+    const res = await fetch(`${APIFY_BASE}/acts/${encodeURIComponent(actorId())}/runs?waitForFinish=60&token=${encodeURIComponent(token)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ mode: "watch", domains }),
     });
     if (!res.ok) throw new Error(`Apify watch run didn't start (${res.status}): ${await res.text()}`);
     const runId = ((await res.json()) as { data: { id: string } }).data.id;
-    await ctx.scheduler.runAfter(60_000, internal.app.watch.finishWatch, { runId, attempt: 1 });
+    await ctx.runAction(internal.app.watch.finishWatch, { runId, attempt: 1 });
     return { runId };
   },
+});
+
+/** "Scan now" on a supplier page: the nightly watch, run on demand. */
+export const scanNow = action({
+  args: {},
+  handler: async (ctx): Promise<{ ran: boolean }> => ({ ran: (await ctx.runAction(internal.app.watch.startWatch, {})) !== null }),
 });
 
 export const finishWatch = internalAction({
