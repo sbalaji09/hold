@@ -322,6 +322,10 @@ export default defineSchema({
     recommendation: v.string(),
     routedTo: v.optional(v.union(v.literal("maya"), v.literal("dev"))),
     reason: v.optional(v.string()),
+    // Follow-ups (convex/app/followUp.ts): when hold texted the approver that the bill is nearly
+    // due, and when it noted the due date passed undecided. Each happens once per approval.
+    remindedAt: v.optional(v.string()),
+    overdueAt: v.optional(v.string()),
     thread: v.array(
       v.object({
         from: v.string(),

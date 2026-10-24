@@ -251,6 +251,11 @@ export const decideApproval = mutation({
     } else {
       await ctx.db.patch(approvalRow._id, { status: "rejected" });
       await logActivity(ctx, actor, "rejected this bill", "Rejected; payment withheld.", "bill", billKey);
+      // Carry out the answer: a rejected bill must never go out in a payment run.
+      if (row.status !== "Paid" && row.status !== "Held") {
+        await ctx.db.patch(row._id, { status: "Held" });
+        await logActivity(ctx, "callback", "held this bill after it was rejected", `${co.dev.name} said no, so it stays out of every payment run.`, "bill", billKey);
+      }
     }
   },
 });
