@@ -66,7 +66,10 @@ A free ngrok URL changes on every restart: update `.env` and the Twilio number w
 
 #### 4. Configure the Twilio number
 
-In the Twilio Console, open Phone Numbers, Manage, Active numbers, and click Fogline's number.
+Point Fogline's number at the voice server by running `npx tsx --env-file=.env scripts/twilioWebhook.ts`.
+Re-run it whenever `PUBLIC_BASE_URL` changes (a free ngrok URL changes on every restart).
+
+To do the same by hand, open Phone Numbers, Manage, Active numbers in the Twilio Console and click Fogline's number.
 Under Voice Configuration:
 
 - Configure with: Webhook.
