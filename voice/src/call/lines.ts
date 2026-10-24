@@ -12,6 +12,8 @@ export interface Lines {
   later: string;
   wrongPerson: string;
   closing: string;
+  /** Closing when an answer waits for the team's review: they may call back. */
+  closingReview: string;
   timeUp: string;
   sorryRepeat: (question: string) => string;
   skip: string;
@@ -54,6 +56,7 @@ function english(co: Company): Lines {
     later: `No problem, sorry to catch you at a bad time. Someone from ${team} will follow up. Goodbye.`,
     wrongPerson: "Sorry about that, I must have the wrong person. Thanks for your time. Goodbye.",
     closing: "Thanks, that's everything I needed. Have a good day. Goodbye.",
+    closingReview: `Thanks, that's everything for now. Someone from ${team} may call you back with one more question. Goodbye.`,
     timeUp: `I'm sorry, I need to wrap up here. Someone from ${team} will follow up. Goodbye.`,
     sorryRepeat: (q) => `Sorry, I didn't catch that. ${q}`,
     skip: "That's okay, let's move on.",
@@ -88,6 +91,7 @@ function spanish(co: Company): Lines {
     later: `No hay problema, disculpe la molestia. Alguien ${team} le dará seguimiento. Adiós.`,
     wrongPerson: "Disculpe, debo tener a la persona equivocada. Gracias por su tiempo. Adiós.",
     closing: "Gracias, es todo lo que necesitaba. Que tenga un buen día. Adiós.",
+    closingReview: `Gracias, es todo por ahora. Es posible que alguien ${team} le llame con una pregunta más. Adiós.`,
     timeUp: `Lo siento, tengo que terminar aquí. Alguien ${team} le dará seguimiento. Adiós.`,
     sorryRepeat: (q) => `Perdón, no le escuché bien. ${q}`,
     skip: "No se preocupe, sigamos.",

@@ -20,9 +20,13 @@ export function openAsk(events: CallEventDoc[]): AskEvent | null {
   return asks[asks.length - 1] ?? null;
 }
 
-export function AskPerson({ ask, callId }: { ask: AskEvent; callId: string }) {
+/**
+ * `review`: the call is over and nobody answered in time (or the approver was away), so the answer
+ * waits here and on Today. No countdown; a question makes hold call back on the number on file.
+ */
+export function AskPerson({ ask, callId, review = false }: { ask: AskEvent; callId: string; review?: boolean }) {
   const answer = useAnswerAsk();
-  const now = useNow(true);
+  const now = useNow(!review);
   const [step, setStep] = useState<"idle" | "follow_up" | "sending">("idle");
   const [followUp, setFollowUp] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -45,16 +49,20 @@ export function AskPerson({ ask, callId }: { ask: AskEvent; callId: string }) {
   };
 
   return (
-    <section className="cb-doc hv-ask" aria-labelledby="hv-ask-title" role="alertdialog">
+    <section className="cb-doc hv-ask" aria-labelledby="hv-ask-title" role={review ? "region" : "alertdialog"}>
       <div className="cb-doc-head">
-        <span id="hv-ask-title">{AGENT} is checking with you</span>
-        <small role="timer" aria-live="off">
-          {left > 0 ? `${left}s` : "Deciding"}
-        </small>
+        <span id="hv-ask-title">{review ? "Check this answer" : `${AGENT} is checking with you`}</span>
+        {review ? null : (
+          <small role="timer" aria-live="off">
+            {left > 0 ? `${left}s` : "Deciding"}
+          </small>
+        )}
       </div>
       <div className="hv-pad hv-ask-body">
         <p className="hv-statement">
-          The supplier is on hold. {AGENT} couldn&apos;t tell whether this answer matches the records.
+          {review
+            ? `${AGENT} couldn't tell whether this answer matches the records, and nobody was free to check it during the call.`
+            : `The supplier is on hold. ${AGENT} couldn't tell whether this answer matches the records.`}
         </p>
         <dl className="hv-ask-facts">
           <dt className="cb-caps">Asked</dt>
@@ -85,7 +93,7 @@ export function AskPerson({ ask, callId }: { ask: AskEvent; callId: string }) {
             onKeyDown={(e) => e.key === "Escape" && setStep("idle")}
           >
             <label className="cb-caps" htmlFor="hv-ask-input">
-              Question for {AGENT} to ask
+              {review ? `Question for ${AGENT} to ask when it calls back` : `Question for ${AGENT} to ask`}
             </label>
             <input
               id="hv-ask-input"
@@ -98,7 +106,7 @@ export function AskPerson({ ask, callId }: { ask: AskEvent; callId: string }) {
             />
             <div className="hv-confirm-buttons">
               <Button type="submit" variant="primary" size="sm" disabled={step === "sending" || !followUp.trim()}>
-                {step === "sending" ? "Sending" : "Ask it"}
+                {step === "sending" ? "Sending" : review ? "Call back and ask" : "Ask it"}
               </Button>
               <Button type="button" size="sm" onClick={() => setStep("idle")} disabled={step === "sending"}>
                 Cancel
@@ -115,7 +123,7 @@ export function AskPerson({ ask, callId }: { ask: AskEvent; callId: string }) {
             </Button>
             {ask.follow_up_allowed ? (
               <Button onClick={() => setStep("follow_up")} disabled={step === "sending"}>
-                Ask a follow-up
+                {review ? "Call back with a question" : "Ask a follow-up"}
               </Button>
             ) : (
               <Button locked={`${AGENT} already asked one follow-up. Say whether this answer matches.`}>Ask a follow-up</Button>
@@ -128,7 +136,11 @@ export function AskPerson({ ask, callId }: { ask: AskEvent; callId: string }) {
             {error}
           </p>
         ) : null}
-        <p className="hv-small">No answer in 20 seconds and {AGENT} counts it as not matching.</p>
+        <p className="hv-small">
+          {review
+            ? `Matches or Doesn't match decides the bill. A question makes ${AGENT} call back on the number on file and bring the answer here.`
+            : `No answer in 20 seconds and it waits for your review after the call.`}
+        </p>
       </div>
     </section>
   );

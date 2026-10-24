@@ -28,8 +28,10 @@ export interface VoiceStore {
   watchPersonAnswer(call_id: string, ask_id: string, cb: (answer: PersonAnswerEvent) => void): () => void;
   /** Fires with every supplier's history, then again for each supplier whose history changes. */
   watchSupplierHistory(cb: (supplier_id: string, records: SupplierRecord[]) => void): () => void;
-  /** Stops waiting for a reply. Returns the reply if one already came, else records "no_reply". */
+  /** Stops waiting for a reply. Returns the reply if one already came, else records "deferred" (reviewed after the call). */
   closeAsk(call_id: string, ask_id: string): Promise<PersonAnswerEvent | null>;
+  /** The approver set themselves away: hold doesn't ask them mid-call, answers wait for review. */
+  isCheckerAway(): Promise<boolean>;
   setTwilioCallSid(call_id: string, sid: string): Promise<void>;
   markInProgress(call_id: string): Promise<void>;
 

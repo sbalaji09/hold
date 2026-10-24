@@ -31,6 +31,19 @@ export interface CallRequest {
   status: CallRequestStatus;
   mode?: CallMode; // default "live"
   attempt: number; // dial attempts made so far
+  /** A call back to ask one question the approver wrote while reviewing an answer. */
+  follow_up?: FollowUp;
+}
+
+/**
+ * The approver reviewed an answer after the call and wants one more question asked. The call
+ * asks only `ask`; its answer goes back to the approver. `carried` is what the first call already
+ * checked, so the call back's result covers the whole check.
+ */
+export interface FollowUp {
+  ask: string;
+  source: Source;
+  carried: Evidence[];
 }
 
 /** "onboarding" = Fogline's own facts about a new supplier (what it hired them for, what was agreed). */
@@ -81,16 +94,30 @@ export interface AskPersonEvent {
 }
 
 /**
- * The reply to an AskPersonEvent. First one wins. "no_reply" is written by voice when no one
- * answered in time; hold then judges the answer strictly on its own.
+ * The reply to an AskPersonEvent. During the call the first one wins. "deferred" is written by voice
+ * when no one answered in time (or the approver is away): the answer waits for the approver's review
+ * after the call, and a later "matches", "no_match" or "follow_up" decides it. "no_reply" is the
+ * older form of the same, before reviews existed.
  */
 export interface PersonAnswerEvent {
   call_id: string;
   type: "person_answer";
   ask_id: string;
-  verdict: "matches" | "no_match" | "follow_up" | "no_reply";
+  verdict: "matches" | "no_match" | "follow_up" | "deferred" | "no_reply";
   follow_up?: string;
   by?: Person;
+}
+
+/**
+ * Mid-call questions that wait for the approver's review: voice deferred them (nobody answered in
+ * time, or the approver was away) and no one has decided them since.
+ */
+export function waitingForReview<E extends { type: string }>(events: E[]): Extract<E, { type: "ask_person" }>[] {
+  // Structural, so stored rows (Convex docs) work as well as contract events.
+  type Ev = { type: string; ask_id?: string; verdict?: string };
+  const replies = new Map<string, string[]>();
+  for (const e of events as Ev[]) if (e.type === "person_answer") replies.set(e.ask_id!, [...(replies.get(e.ask_id!) ?? []), e.verdict!]);
+  return events.filter((e) => e.type === "ask_person" && replies.get((e as Ev).ask_id!)?.join() === "deferred") as Extract<E, { type: "ask_person" }>[];
 }
 
 /** Bank, account or credential words: hold never says these on a check call, whoever wrote the line. */
@@ -98,15 +125,20 @@ export function mentionsBankDetails(text: string): boolean {
   return /\b(?:bank|account|routing|iban|swift|sort code|password|pin|passcode|banco|bancaria|cuenta|contraseña|clave)\b/i.test(text);
 }
 
-export type CallOutcome = "confirmed" | "not_confirmed" | "handed_off";
+/** "needs_review": everything else checked out, and an answer waits for the approver's review. */
+export type CallOutcome = "confirmed" | "not_confirmed" | "handed_off" | "needs_review";
 
 export interface Evidence {
   ask: string;
   source?: Source;
   answer: string;
   matches: boolean;
-  /** Set when a person judged this answer during the call instead of hold. */
+  /** Set when a person judged this answer (during the call, or reviewing it after) instead of hold. */
   decided_by?: Person;
+  /** The ask_person event this answer went to, if hold asked a person about it. */
+  ask_id?: string;
+  /** Nobody judged it yet: waits for the approver's review. `matches` is false until then. */
+  pending_review?: boolean;
 }
 
 export interface Clip {

@@ -30,6 +30,7 @@ import {
   type CallView,
 } from "./format";
 import { Transcript, type SourceHref } from "./Transcript";
+import { waitingForReview } from "@/shared/contract";
 import { AskPerson, openAsk } from "./AskPerson";
 import { useCompany } from "@/lib/useCompany";
 import "./voice.css";
@@ -140,6 +141,8 @@ function LiveCallView({
     e.type === "question" ? [e.source] : []
   );
   const ask = view.active ? openAsk(call.events) : null;
+  // After the call: an answer nobody judged in time waits for the approver here and on Today.
+  const review = call.result?.outcome === "needs_review" ? waitingForReview(call.events)[0] ?? null : null;
 
   return (
     <main className="hv-page">
@@ -184,6 +187,14 @@ function LiveCallView({
               key={ask.ask_id}
               ask={ask}
               callId={request.call_id}
+            />
+          )}
+          {review && (
+            <AskPerson
+              key={review.ask_id}
+              ask={review}
+              callId={request.call_id}
+              review
             />
           )}
           <Transcript
@@ -348,7 +359,7 @@ function Result({ result }: { result: CallResultDoc }) {
         )}
       </div>
       <div className="hv-pad">
-        {result.outcome === "handed_off" ? (
+        {result.outcome === "handed_off" || result.outcome === "needs_review" ? (
           <StatusMark status="needs-you" />
         ) : (
           <Endorsement
@@ -368,11 +379,13 @@ function Result({ result }: { result: CallResultDoc }) {
             <CheckRow
               key={i}
               n={i + 1}
-              result={item.matches ? "pass" : "fail"}
+              result={item.pending_review ? "warn" : item.matches ? "pass" : "fail"}
               title={item.ask}
               evidence={
                 <>
-                  {item.matches ? (
+                  {item.pending_review ? (
+                    "Waiting for your review."
+                  ) : item.matches ? (
                     <span className="hv-quote">“{item.answer}”</span>
                   ) : (
                     "Doesn't match the records."
@@ -400,7 +413,7 @@ function DecidedBy({ matches }: { matches: boolean }) {
   return (
     <span className="hv-small">
       {" "}
-      Judged {matches ? "a match" : "not a match"} by you during the call.
+      Judged {matches ? "a match" : "not a match"} by you.
     </span>
   );
 }

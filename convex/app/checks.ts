@@ -278,7 +278,7 @@ export type EscalationRouting = { routedTo: "dev"; reason: string };
 export function routeEscalation(
   checks: Check[],
   amountCents: number,
-  options: { callOutcome?: "confirmed" | "not_confirmed" | "handed_off" | null; company?: Company } = {},
+  options: { callOutcome?: "confirmed" | "not_confirmed" | "handed_off" | "needs_review" | null; company?: Company } = {},
 ): EscalationRouting {
   const co = options.company ?? companyFor(undefined);
   if (options.callOutcome === "handed_off") {

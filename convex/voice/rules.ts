@@ -1,6 +1,7 @@
 // Pure call-lifecycle rules shared by the Convex functions and the in-memory VoiceStore fake,
 // so both behave the same. No Convex imports here.
 import type { CallRequest, CallResult, InboundCallRecord, SupplierProfile } from "../../shared/contract.js";
+import { capital, type Company } from "../../lib/company.js";
 
 export const DEFAULT_RETRY_DELAY_MS = 120_000;
 export const HANDOFF_NO_ANSWER_SUMMARY = "No answer after 2 attempts";
@@ -30,6 +31,25 @@ export function noAnswerHandoff(call_id: string): CallResult {
 /** Terminal request statuses: nothing moves a request out of these. */
 export function isClosed(status: CallRequest["status"]): boolean {
   return status === "done" || status === "handed_off";
+}
+
+/**
+ * The call's result once the approver judged an answer that waited for review: the answer is theirs,
+ * and the call is decided once nothing waits any more.
+ */
+export function reviewedResult(result: CallResult, ask_id: string, matches: boolean, co: Company): Pick<CallResult, "outcome" | "evidence" | "summary"> {
+  const evidence = result.evidence.map((e) => {
+    if (e.ask_id !== ask_id || !e.pending_review) return e;
+    const { pending_review: _, ...rest } = e;
+    return { ...rest, matches, decided_by: "dev" as const };
+  });
+  if (evidence.some((e) => e.pending_review)) return { outcome: "needs_review", evidence, summary: result.summary };
+  const ask = result.evidence.find((e) => e.ask_id === ask_id)?.ask ?? "";
+  if (evidence.every((e) => e.matches)) {
+    return { outcome: "confirmed", evidence, summary: `${capital(co.payee).one} answered every question in line with our records. You confirmed the answer to "${ask}".` };
+  }
+  const misses = evidence.filter((e) => !e.matches).map((e) => `"${e.ask}"`);
+  return { outcome: "not_confirmed", evidence, summary: `Answers didn't match our records for ${misses.join(" and ")}.` };
 }
 
 export function followUpCallId(inbound_call_id: string): string {

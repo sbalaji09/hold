@@ -378,5 +378,11 @@ export async function getWatchOnlySetting(ctx: QueryCtx): Promise<boolean> {
 
 export const getSettings = query({
   args: {},
-  handler: async (ctx): Promise<Settings> => ({ watchOnly: await getWatchOnlySetting(ctx) }),
+  handler: async (ctx): Promise<Settings> => {
+    const row = await ctx.db
+      .query("settings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .unique();
+    return { watchOnly: await getWatchOnlySetting(ctx), away: row?.away === true };
+  },
 });

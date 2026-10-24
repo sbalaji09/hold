@@ -5,10 +5,11 @@
 import * as React from "react";
 import Link from "next/link";
 import { Amount, LogEntry, StatusMark } from "@/components/callback";
+import { AwayToggle } from "@/components/AwayToggle";
 import { LiveNow } from "@/components/LiveNow";
 import { listActivityWithLinks } from "@/lib/activity";
 import { capital } from "@/lib/company";
-import { getCompany, getSettings, listApprovals, listBills, listMessages, listPayments, listPlaybookApprovals, listSuppliers } from "@/lib/data";
+import { getCompany, getSettings, listAnswerReviews, listApprovals, listBills, listMessages, listPayments, listPlaybookApprovals, listSuppliers } from "@/lib/data";
 import { STATUS_TO_MARK, shortDate } from "@/lib/inbox";
 import { WATCH_ONLY_REASON } from "@/lib/policy";
 import type { ApprovalKind, Bill } from "@/lib/types";
@@ -63,7 +64,7 @@ function billTitle(b: Bill): string {
 }
 
 export default async function TodayPage(): Promise<React.ReactElement> {
-  const [co, bills, approvals, messages, payments, suppliers, changes, settings, activity] = await Promise.all([
+  const [co, bills, approvals, messages, payments, suppliers, changes, settings, activity, reviews] = await Promise.all([
     getCompany(),
     listBills(),
     listApprovals(),
@@ -73,6 +74,7 @@ export default async function TodayPage(): Promise<React.ReactElement> {
     listPlaybookApprovals(),
     getSettings(),
     listActivityWithLinks(),
+    listAnswerReviews(),
   ]);
 
   // ---- waiting on you ----
@@ -81,9 +83,19 @@ export default async function TodayPage(): Promise<React.ReactElement> {
   const myChanges = changes;
   const myMessages = messages.open;
 
-  const waiting = mine.length + toConfirm.length + myChanges.length + myMessages.length;
-  const waitingKeys = new Set(mine.map((a) => a.billKey));
+  const waiting = mine.length + toConfirm.length + myChanges.length + myMessages.length + reviews.length;
+  const waitingKeys = new Set([...mine.map((a) => a.billKey), ...reviews.map((r) => r.bill_id)]);
   const waitingRows: React.ReactElement[] = [
+    // hold couldn't judge an answer on a check call and nobody was free during it.
+    ...reviews.map((r) => (
+      <Row
+        key={`${r.call_id}:${r.ask_id}`}
+        href={`/calls/${encodeURIComponent(r.call_id)}`}
+        title={`Check an answer: ${r.supplier}`}
+        line={<>&ldquo;{r.answer}&rdquo; to &ldquo;{r.ask}&rdquo;</>}
+        right={<StatusMark status="needs-you" />}
+      />
+    )),
     ...mine.map((a) => (
       <Row
         key={a.key}
@@ -138,6 +150,7 @@ export default async function TodayPage(): Promise<React.ReactElement> {
           <h1 className="cb-display">Today</h1>
           <p className="pt-sub">{waiting === 0 ? "Nothing is waiting on you." : `${waiting} waiting on your approval.`}</p>
         </div>
+        <AwayToggle away={settings.away === true} />
       </header>
 
       <div className="pt-dash-grid">

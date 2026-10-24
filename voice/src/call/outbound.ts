@@ -87,6 +87,13 @@ export async function prepareOutboundCall(deps: PrepareOutboundDeps): Promise<Pr
   ]);
   const language = profile?.language ?? "en";
   const L = linesFor(company, language);
+  const supplierName = profile?.name ?? "your company";
+
+  // A call back for the approver's own question: ask that and nothing else.
+  if (request.follow_up) {
+    const { ask, source } = request.follow_up;
+    return { supplierName, questions: [{ ask, expected: FOLLOW_UP_EXPECTED, source, kind: "follow_up" }], company, language };
+  }
 
   const candidates = await gatherCandidates(deps);
   const wantBank = mentionsBankChange(request.reason);
@@ -98,8 +105,11 @@ export async function prepareOutboundCall(deps: PrepareOutboundDeps): Promise<Pr
   const questions = history.slice(0, historyLimit);
   if (wantBank) questions.push(bankQuestion(candidates, request.bill_id, L));
   if (questions.length === 0) questions.push(noHistoryQuestion(request.bill_id, L));
-  return { supplierName: profile?.name ?? "your company", questions, company, language };
+  return { supplierName, questions, company, language };
 }
+
+/** A question the approver wrote has nothing on file to compare against; they judge the answer. */
+export const FOLLOW_UP_EXPECTED = "The team wrote this question and judges the answer.";
 
 /** How many records of each kind Claude gets to pick questions from, newest first. */
 export const CANDIDATES_PER_KIND = { invoice: 6, payment: 3, call: 3, onboarding: 1 } as const;
@@ -277,6 +287,10 @@ interface Answer {
   utterance: Utterance;
   /** A person judged this answer during the call; it overrides hold's own judgment. */
   decidedBy?: { by: Person; matches: boolean };
+  /** The ask_person event this answer went to, if hold asked a person. */
+  ask_id?: string;
+  /** Nobody judged it during the call: it waits for the approver's review. */
+  deferred?: boolean;
   /** Other records in the supplier's history the answer sounds like, found by Moss as it was given. */
   related?: SupplierRecord[];
 }
@@ -286,6 +300,8 @@ interface PersonAsker {
   store: OutboundCallDeps["store"];
   timeoutMs: number;
   asked: number;
+  /** The approver set themselves away: don't put the supplier on hold, leave it for review. */
+  away: boolean;
 }
 
 /** Why the conversation stopped before every question was asked, if it did. */
@@ -310,15 +326,22 @@ export async function runOutboundCall(deps: OutboundCallDeps): Promise<CallResul
   });
 
   const convo: Conversation = { asked: 0, answers: [], stop: null, completed: false };
-  const asker: PersonAsker | null =
-    request.mode === "simulated" ? null : { store, timeoutMs: deps.personTimeoutMs ?? OUTBOUND_LIMITS.personTimeoutMs, asked: 0 };
   let result: CallResult;
   try {
+    const asker: PersonAsker | null =
+      request.mode === "simulated"
+        ? null
+        : {
+            store,
+            timeoutMs: deps.personTimeoutMs ?? OUTBOUND_LIMITS.personTimeoutMs,
+            asked: 0,
+            away: await store.isCheckerAway().catch(() => false),
+          };
     await store.markInProgress(request.call_id);
     await converse(session, prepared, llm, convo, asker, L, answerLookup(deps.search, request.call_id, request.supplier_id));
     if (!session.over) await session.hangup();
     await session.recordUnheard();
-    result = await decide(request.call_id, prepared, convo, session, llm);
+    result = await decide(request.call_id, prepared, convo, session, llm, request.follow_up?.carried ?? []);
   } catch (err) {
     console.error(`[call ${request.call_id}] check call failed:`, err);
     await session.hangup();
@@ -376,7 +399,8 @@ async function converse(
       const answer = convo.answers[convo.answers.length - 1]!;
       // No ack after the last answer: the closing line says thanks, and two in a row sound broken.
       const last = i === prepared.questions.length - 1;
-      const check = lookUp(answer).then(() => (asker ? isUnsure(llm, answer, session.call_id) : false));
+      // The approver's own question is theirs to judge; anything else goes to a person only when unsure.
+      const check = lookUp(answer).then(() => (asker ? question.kind === "follow_up" || isUnsure(llm, answer, session.call_id) : false));
       const [unsure] = await Promise.all([check, last ? null : session.say(L.acks[i % L.acks.length]!)]);
       if (unsure && asker && !session.over) outcome = await checkWithPerson(session, asker, answer, llm, allowedNumbers, convo, prepared, L, lookUp);
     }
@@ -388,7 +412,7 @@ async function converse(
   }
   // Every question got its turn; a hangup during the goodbye doesn't undo that.
   convo.completed = true;
-  await session.say(L.closing);
+  await session.say(convo.answers.some((a) => a.deferred) ? L.closingReview : L.closing);
 }
 
 /**
@@ -603,12 +627,20 @@ async function checkWithPerson(
       answer: answer.text,
       expected: q.expected,
       source: q.source,
-      follow_up_allowed: round === 0,
+      follow_up_allowed: round === 0 && q.kind !== "follow_up",
       ...(answer.related?.[0] ? { closest: describeRecord(answer.related[0]) } : {}),
     });
+    answer.ask_id = ask_id;
+    if (asker.away) {
+      // Nobody to ask: no hold music for the supplier, the answer waits for review.
+      await asker.store.closeAsk(session.call_id, ask_id).catch((err) => console.error(`[call ${session.call_id}] closeAsk failed:`, err));
+      answer.deferred = true;
+      return "answered";
+    }
     if (!(await session.say(L.hold))) return "ended";
     const reply = await waitForPerson(session, asker, ask_id);
     if (session.over) return "ended";
+    if (!reply) answer.deferred = true; // no one in time: reviewed after the call
     // Whatever they said while on hold ("sure", "hello?") is not an answer to what comes next.
     session.ignoreHeardBefore(session.transport.elapsed());
     if (reply && (reply.verdict === "matches" || reply.verdict === "no_match")) {
@@ -725,18 +757,30 @@ function escapeTags(text: string): string {
   return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-async function decide(call_id: string, prepared: PreparedCall, convo: Conversation, session: CallSession, llm: LLM): Promise<CallResult> {
+async function decide(
+  call_id: string,
+  prepared: PreparedCall,
+  convo: Conversation,
+  session: CallSession,
+  llm: LLM,
+  carried: Evidence[],
+): Promise<CallResult> {
   const total = prepared.questions.length;
   const co = prepared.company ?? FOGLINE;
   const Payee = capital(co.payee).one;
-  const verdicts = await judge(llm, convo.answers, call_id, co);
-  const evidence: Evidence[] = convo.answers.map((a, i) => ({
+  // An answer waiting for review is never a match yet, whatever Claude makes of it.
+  const verdicts = (await judge(llm, convo.answers, call_id, co)).map((m, i) => m && !convo.answers[i]!.deferred);
+  const heard: Evidence[] = convo.answers.map((a, i) => ({
     ask: a.question.ask,
     source: a.question.source,
     answer: a.text,
     matches: verdicts[i] === true,
     ...(a.decidedBy ? { decided_by: a.decidedBy.by } : {}),
+    ...(a.ask_id ? { ask_id: a.ask_id } : {}),
+    ...(a.deferred && !a.decidedBy ? { pending_review: true } : {}),
   }));
+  // A call back for the approver's question also carries what the first call already checked.
+  const evidence = [...carried, ...heard];
 
   // The decisive sentence: a bank denial anywhere they spoke, else the first failed answer, else the last answer.
   const denial = session.turns.find((t) => t.speaker === "supplier" && isBankDenial(t.text));
@@ -785,12 +829,17 @@ async function decide(call_id: string, prepared: PreparedCall, convo: Conversati
     return { ...base, outcome: "handed_off", summary: "The person on the line didn't answer any of the questions." };
   }
 
+  const pending = evidence.filter((e) => e.pending_review);
+  if (pending.length > 0 && convo.answers.length === total && evidence.every((e) => e.matches || e.pending_review)) {
+    const others = evidence.length > pending.length ? `${Payee} answered every other question in line with our records. ` : "";
+    return { ...base, outcome: "needs_review", summary: `${others}Waiting on your review of the answer to ${pending.map((e) => `"${e.ask}"`).join(" and ")}.` };
+  }
   const allMatched = convo.answers.length === total && evidence.every((e) => e.matches);
   if (allMatched) {
     const bank = prepared.questions.some((q) => q.kind === "bank_change") ? " and confirmed the bank change" : "";
     return { ...base, outcome: "confirmed", summary: `${Payee} answered every question in line with our records${bank}.` };
   }
-  const misses = evidence.filter((e) => !e.matches).map((e) => `"${e.ask}"`);
+  const misses = evidence.filter((e) => !e.matches && !e.pending_review).map((e) => `"${e.ask}"`);
   const unanswered = total - convo.answers.length;
   const parts = [
     misses.length ? `Answers didn't match our records for ${misses.join(" and ")}.` : "",

@@ -466,6 +466,13 @@ export async function listRules(supplierKey: string): Promise<LearnedRule[]> {
   return [];
 }
 
+/** Answers from check calls that wait for the approver's review (convex/voice/ui.ts answerReviews).
+ * The JSON fixture has no live calls, so the fallback is empty. */
+export async function listAnswerReviews(): Promise<FunctionReturnType<typeof api.voice.ui.answerReviews>> {
+  if (CONVEX_URL) return fetchQuery(api.voice.ui.answerReviews, {}, convexOpts());
+  return [];
+}
+
 /** The global Watch only setting (Payments page toggle). The JSON fixture has no settings
  * table, so the fallback always reports it off and read-only. */
 export const getSettings = perRender(async function getSettings(): Promise<Settings> {

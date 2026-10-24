@@ -25,6 +25,18 @@ const callEventSource = v.object({
   record_id: v.optional(v.string()),
 });
 
+// One answer checked on a call (shared/contract.ts Evidence).
+const callEvidence = v.object({
+  ask: v.string(),
+  source: v.optional(callEventSource),
+  answer: v.string(),
+  matches: v.boolean(),
+  decided_by: v.optional(v.literal("dev")),
+  // The ask_person event it went to, and whether it still waits for the approver's review.
+  ask_id: v.optional(v.string()),
+  pending_review: v.optional(v.boolean()),
+});
+
 export default defineSchema({
   suppliers: defineTable({
     key: v.string(),
@@ -199,6 +211,8 @@ export default defineSchema({
     takeover_requested: v.optional(v.boolean()),
     // The recording can arrive before the result row exists; it waits here.
     recording_storage_id: v.optional(v.id("_storage")),
+    // A call back to ask the approver's own question after reviewing an answer (contract FollowUp).
+    follow_up: v.optional(v.object({ ask: v.string(), source: callEventSource, carried: v.array(callEvidence) })),
   })
     .index("by_key", ["call_id"])
     .index("by_bill", ["bill_id"])
@@ -254,7 +268,8 @@ export default defineSchema({
         call_id: v.string(),
         type: v.literal("person_answer"),
         ask_id: v.string(),
-        verdict: v.union(v.literal("matches"), v.literal("no_match"), v.literal("follow_up"), v.literal("no_reply")),
+        // "deferred": nobody answered during the call; the approver reviews it after.
+        verdict: v.union(v.literal("matches"), v.literal("no_match"), v.literal("follow_up"), v.literal("deferred"), v.literal("no_reply")),
         follow_up: v.optional(v.string()),
         by: v.optional(v.literal("dev")),
       }),
@@ -267,16 +282,10 @@ export default defineSchema({
       v.literal("confirmed"),
       v.literal("not_confirmed"),
       v.literal("handed_off"),
+      // Everything else checked out; an answer waits for the approver's review.
+      v.literal("needs_review"),
     ),
-    evidence: v.array(
-      v.object({
-        ask: v.string(),
-        source: v.optional(callEventSource),
-        answer: v.string(),
-        matches: v.boolean(),
-        decided_by: v.optional(v.literal("dev")),
-      }),
-    ),
+    evidence: v.array(callEvidence),
     summary: v.string(),
     recording_url: v.string(), // "" until the recording lands
     recording_storage_id: v.optional(v.id("_storage")),
@@ -439,6 +448,8 @@ export default defineSchema({
   settings: defineTable({
     key: v.string(),
     watchOnly: v.boolean(),
+    // The approver is out: hold doesn't put suppliers on hold to ask them; answers wait for review.
+    away: v.optional(v.boolean()),
     // Which company this deployment works for (lib/company.ts). Absent = Fogline.
     company: v.optional(v.string()),
   }).index("by_key", ["key"]),

@@ -5,7 +5,7 @@
 import { companyFor, wholeDollars, type Company } from "./company";
 import type { ApprovalKind, Bill, DataBillStatus } from "./types";
 
-export type CallOutcome = "confirmed" | "not_confirmed" | "handed_off";
+export type CallOutcome = "confirmed" | "not_confirmed" | "handed_off" | "needs_review";
 
 export interface CallOutcomeDecision {
   status: Extract<DataBillStatus, "Held" | "Needs you" | "Scheduled">;
@@ -47,6 +47,14 @@ export function decideCallOutcome(
         recommendation: `Hold this payment. ${summary}`,
       },
       activity: { what: `held this ${b} after the check call`, why: summary },
+    };
+  }
+
+  // The review box on Today is the action: no approval until the approver has judged the answer.
+  if (outcome === "needs_review") {
+    return {
+      status: "Needs you",
+      activity: { what: `is waiting on your review of an answer from the check call`, why: summary },
     };
   }
 

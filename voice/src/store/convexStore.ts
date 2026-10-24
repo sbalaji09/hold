@@ -98,6 +98,10 @@ export class ConvexStore implements VoiceStore {
     return this.client.mutation(fns.closeAsk, { secret: this.secret, call_id, ask_id });
   }
 
+  isCheckerAway(): Promise<boolean> {
+    return this.client.query(fns.checkerAway, { secret: this.secret });
+  }
+
   async setTwilioCallSid(call_id: string, sid: string): Promise<void> {
     await this.client.mutation(fns.setTwilioCallSid, { secret: this.secret, call_id, sid });
   }

@@ -115,6 +115,7 @@ export function callView(call: LiveCall): CallView {
   if (result) {
     if (result.outcome === "confirmed") return { line: "confirmed", active: false };
     if (result.outcome === "not_confirmed") return { line: "not-confirmed", active: false };
+    if (result.outcome === "needs_review") return { line: "no-answer", label: "Needs your review", note: "An answer is waiting for you to check. Nothing is paid until you do.", active: false };
     return handoff();
   }
   if (!request) return { line: "dropped", label: "Not found", active: false };

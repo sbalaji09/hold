@@ -34,6 +34,8 @@ export interface MemoryStoreOptions {
   records?: SupplierRecord[];
   phonePlaybook?: PhoneTactic[];
   company?: Company;
+  /** The approver is away (settings): no mid-call asks. */
+  away?: boolean;
 }
 
 interface RequestRow extends CallRequest {
@@ -53,6 +55,7 @@ export class MemoryStore implements VoiceStore {
   readonly records: SupplierRecord[] = [];
   private readonly phonePlaybook: PhoneTactic[];
   private readonly company: Company;
+  away: boolean;
 
   private readonly retryDelayMs: number;
   private readonly now: () => number;
@@ -70,6 +73,7 @@ export class MemoryStore implements VoiceStore {
     this.records.push(...(opts.records ?? []));
     this.phonePlaybook = opts.phonePlaybook ?? [];
     this.company = opts.company ?? companyFor(undefined);
+    this.away = opts.away ?? false;
   }
 
   // ---- Test / app-side helpers (not part of VoiceStore) ----
@@ -173,8 +177,12 @@ export class MemoryStore implements VoiceStore {
   async closeAsk(call_id: string, ask_id: string): Promise<PersonAnswerEvent | null> {
     const existing = this.personAnswer(call_id, ask_id);
     if (existing) return existing;
-    this.events.push({ call_id, type: "person_answer", ask_id, verdict: "no_reply" });
+    this.events.push({ call_id, type: "person_answer", ask_id, verdict: "deferred" });
     return null;
+  }
+
+  async isCheckerAway(): Promise<boolean> {
+    return this.away;
   }
 
   async setTwilioCallSid(call_id: string, sid: string): Promise<void> {

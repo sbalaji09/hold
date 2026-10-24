@@ -79,3 +79,59 @@ describe("answerAsk", () => {
     await expect(over.answer({ verdict: "matches" })).rejects.toThrow("already moved on");
   });
 });
+
+describe("reviewing an answer after the call", () => {
+  const BANK = { ask: "Did you recently change your bank account?", answer: "Yes, last week.", matches: true };
+
+  /** A finished call that left ASK's answer for review; the bank question matched. */
+  async function setupReview() {
+    const s = await setup("done");
+    await s.t.run(async (ctx) => {
+      await ctx.db.insert("callEvents", { call_id: "call_1", type: "person_answer", ask_id: ASK.ask_id, verdict: "deferred" });
+      await ctx.db.insert("callResults", {
+        call_id: "call_1",
+        outcome: "needs_review",
+        evidence: [{ ask: ASK.ask, source: ASK.source, answer: ASK.answer, matches: false, ask_id: ASK.ask_id, pending_review: true }, BANK],
+        summary: "Waiting on your review.",
+        recording_url: "",
+      });
+    });
+    const result = () => s.t.run(async (ctx) => (await ctx.db.query("callResults").collect())[0]!);
+    const requests = () => s.t.run((ctx) => ctx.db.query("callRequests").collect());
+    return { ...s, result, requests };
+  }
+
+  test("shows on Today until decided; Matches confirms the call when nothing else waits", async () => {
+    const { t, answer, result } = await setupReview();
+    expect(await t.query(api.voice.ui.answerReviews, {})).toMatchObject([{ call_id: "call_1", ask_id: ASK.ask_id, answer: ASK.answer, bill_id: "bill_4471" }]);
+
+    await answer({ verdict: "matches" });
+    const r = await result();
+    expect(r.outcome).toBe("confirmed");
+    expect(r.evidence[0]).toMatchObject({ matches: true, decided_by: "dev" });
+    expect(r.evidence[0]!.pending_review).toBeUndefined();
+    expect(await t.query(api.voice.ui.answerReviews, {})).toEqual([]);
+    await expect(answer({ verdict: "no_match" })).rejects.toThrow("already moved on");
+  });
+
+  test("Doesn't match makes the call not confirmed", async () => {
+    const { answer, result } = await setupReview();
+    await answer({ verdict: "no_match" });
+    expect((await result()).outcome).toBe("not_confirmed");
+  });
+
+  test("a question queues a call back to the same trusted number that asks only it", async () => {
+    const { t, answer, result, requests } = await setupReview();
+    await answer({ verdict: "follow_up", follow_up: "What was that invoice for?" });
+    const back = (await requests()).find((r) => r.call_id !== "call_1")!;
+    expect(back).toMatchObject({
+      bill_id: "bill_4471",
+      to_number: "+14155550100",
+      number_source: "on_file",
+      status: "queued",
+      follow_up: { ask: "What was that invoice for?", source: ASK.source, carried: [BANK] },
+    });
+    expect((await result()).outcome).toBe("needs_review"); // the call back decides it now
+    expect(await t.query(api.voice.ui.answerReviews, {})).toEqual([]);
+  });
+});

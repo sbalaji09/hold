@@ -275,6 +275,32 @@ export const setWatchOnly = mutation({
 });
 
 /**
+ * The approver says they're out (Today's header). While away, hold never puts a supplier on hold to
+ * ask them mid-call: unsure answers wait on Today for review instead. Logged to activity either way.
+ */
+export const setAway = mutation({
+  args: { away: v.boolean(), actor: v.literal("dev") },
+  handler: async (ctx, { away, actor }) => {
+    const row = await ctx.db
+      .query("settings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .unique();
+    if (row) await ctx.db.patch(row._id, { away });
+    else await ctx.db.insert("settings", { key: "global", watchOnly: false, away });
+    await logActivity(
+      ctx,
+      actor,
+      away ? "set yourself away" : "set yourself available",
+      away
+        ? "hold won't ask you during calls. Answers it can't judge wait on Today for your review."
+        : "hold asks you during calls again when it can't judge an answer.",
+      "settings",
+      "global",
+    );
+  },
+});
+
+/**
  * Atomically claims a bill for payment before the Increase action sends a transfer: verifies the
  * bill is Scheduled with no payment already pending or sent, and inserts a 'pending' payments row
  * in the same transaction. A concurrent second run of the same bill is refused here, not after

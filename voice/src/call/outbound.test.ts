@@ -449,8 +449,8 @@ describe("checking with a person mid-call", () => {
     };
   }
 
-  function setupAsk(script: string[], opts: { quick?: () => unknown; judge?: unknown; mode?: "live" | "simulated"; search?: FakeSearch } = {}) {
-    const store = new MemoryStore({ suppliers: [STAGE], records: STAGE_RECORDS });
+  function setupAsk(script: string[], opts: { quick?: () => unknown; judge?: unknown; mode?: "live" | "simulated"; search?: FakeSearch; away?: boolean } = {}) {
+    const store = new MemoryStore({ suppliers: [STAGE], records: STAGE_RECORDS, away: opts.away });
     const request = stageRequest(opts.mode ? { mode: opts.mode } : {});
     store.addRequest(request);
     const transport = new SimulatedTransport({ request, script });
@@ -480,14 +480,54 @@ describe("checking with a person mid-call", () => {
     expectNothingReadBack(store);
   });
 
-  it("with no reply in time, the question is closed and hold judges strictly on its own", async () => {
+  it("with no reply in time, the answer waits for review; a denial still decides the call", async () => {
     const { store, run } = setupAsk([VAGUE, DENIAL_LINE]);
     const result = await run(20);
-    expect(store.eventsFor("call_123").filter((e) => e.type === "person_answer")).toMatchObject([{ verdict: "no_reply" }]);
-    expect(result.evidence[0]).toMatchObject({ matches: false });
+    expect(store.eventsFor("call_123").filter((e) => e.type === "person_answer")).toMatchObject([{ verdict: "deferred" }]);
+    expect(result.evidence[0]).toMatchObject({ matches: false, pending_review: true, ask_id: asks(store)[0]!.ask_id });
     expect(result.evidence[0]!.decided_by).toBeUndefined();
-    // A late click can't count once hold moved on.
+    expect(result.outcome).toBe("not_confirmed"); // "we never changed our bank" needs no review
+    // A late click can't count during the call once hold moved on.
     expect(store.answerAsk({ call_id: "call_123", ask_id: asks(store)[0]!.ask_id, verdict: "matches", by: "dev" })).toBe(false);
+  });
+
+  it("with no reply in time and everything else in order, the call waits on the approver's review", async () => {
+    const { store, run } = setupAsk([VAGUE, "Yes, we switched banks last week."], { judge: judgeSays(true, true) });
+    const result = await run(20);
+    expect(result.outcome).toBe("needs_review");
+    expect(result.summary).toBe(`Supplier answered every other question in line with our records. Waiting on your review of the answer to "${INVOICE_Q.ask}".`);
+    expect(result.evidence.map((e) => [e.matches, e.pending_review ?? false])).toEqual([[false, true], [true, false]]);
+    const said = segments(store.eventsFor("call_123"), "callback");
+    expect(said.at(-1)).toMatch(/may call you back with one more question/);
+  });
+
+  it("when the approver is away, hold never puts the supplier on hold: the answer goes straight to review", async () => {
+    const { store, run } = setupAsk([VAGUE, "Yes, we switched banks last week."], { judge: judgeSays(true, true), away: true });
+    const result = await run(60_000); // would hang the test if hold waited
+    const said = segments(store.eventsFor("call_123"), "callback");
+    expect(said).not.toContain("One moment, I'm just checking that with the team.");
+    expect(asks(store)).toHaveLength(1); // still shown to the team
+    expect(store.eventsFor("call_123").filter((e) => e.type === "person_answer")).toMatchObject([{ verdict: "deferred" }]);
+    expect(result.outcome).toBe("needs_review");
+  });
+
+  it("a call back for the approver's question asks only that, lets them judge it, and carries the first call's checks", async () => {
+    const ASK = "What was that invoice for?";
+    const carried = [{ ask: BANK_CHANGE_QUESTION, answer: "Yes, we switched banks last week.", matches: true }];
+    const store = new MemoryStore({ suppliers: [STAGE], records: STAGE_RECORDS });
+    const request = stageRequest({ follow_up: { ask: ASK, source: INVOICE_Q.source, carried } });
+    store.addRequest(request);
+    const llm = new FakeLLM({ json: { "You judge": judgeSays(false) as never } });
+    const prepared = await prepareOutboundCall({ request, store, search: new FakeSearch(STAGE_RECORDS), llm });
+    expect(prepared.questions).toMatchObject([{ ask: ASK, kind: "follow_up", source: INVOICE_Q.source }]);
+    expect(llm.jsonCalls.some((c) => c.system.includes("verification questions"))).toBe(false); // no Claude question building
+
+    approverReplies(store, [{ verdict: "matches" }]);
+    const transport = new SimulatedTransport({ request, script: ["The main-stage truss build."] });
+    const result = await runOutboundCall({ store, transport, request, prepared, llm, personTimeoutMs: 1_000 });
+    expect(asks(store)).toMatchObject([{ ask: ASK, follow_up_allowed: false }]);
+    expect(result.evidence).toMatchObject([carried[0], { ask: ASK, answer: "The main-stage truss build.", matches: true, decided_by: "dev" }]);
+    expect(result.outcome).toBe("confirmed");
   });
 
   it("the approver's follow-up is asked on the call and its answer comes back once", async () => {

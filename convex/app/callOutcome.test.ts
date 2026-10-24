@@ -214,3 +214,42 @@ describe("a check call's result moves its bill", () => {
     expect(await h.activity()).toHaveLength(1);
   });
 });
+
+describe("an answer left for review", () => {
+  const ASK = { ask: "Can you confirm the total on your September invoice, number 4471?", answer: "About eighteen thousand, I think." };
+  const REVIEW = {
+    outcome: "needs_review" as const,
+    evidence: [
+      { ...ASK, source: { kind: "invoice" as const, ref: "#4471" }, matches: false, ask_id: "call_1:ask:1", pending_review: true },
+      { ask: "Did you recently change your bank account?", answer: "Yes, last week.", matches: true },
+    ],
+    summary: "Waiting on your review.",
+  };
+
+  async function reviewed(verdict: "matches" | "no_match") {
+    const h = harness();
+    await h.seed();
+    await h.t.run(async (ctx) => {
+      await ctx.db.insert("callEvents", { call_id: "call_1", type: "ask_person", ask_id: "call_1:ask:1", ...ASK, expected: "$18,400.00", source: { kind: "invoice", ref: "#4471" }, follow_up_allowed: true });
+      await ctx.db.insert("callEvents", { call_id: "call_1", type: "person_answer", ask_id: "call_1:ask:1", verdict: "deferred" });
+    });
+    await h.finish("call_1", REVIEW);
+    expect((await h.bill())!.status).toBe("Needs you");
+    expect(await h.approvals()).toEqual([]); // the review box is the action, not an approval
+    await h.t.mutation(api.voice.ui.answerAsk, { call_id: "call_1", ask_id: "call_1:ask:1", verdict, actor: "dev" });
+    await h.t.finishAllScheduledFunctions(vi.runAllTimers);
+    return h;
+  }
+
+  test("Matches moves the bill on as a confirmed call (a bank change still needs approval)", async () => {
+    const h = await reviewed("matches");
+    expect(await h.approvals()).toMatchObject([{ kind: "bank_change", status: "pending" }]);
+    expect((await h.bill())!.status).toBe("Needs you");
+  });
+
+  test("Doesn't match holds the bill", async () => {
+    const h = await reviewed("no_match");
+    expect((await h.bill())!.status).toBe("Held");
+    expect(await h.approvals()).toMatchObject([{ status: "pending" }]);
+  });
+});

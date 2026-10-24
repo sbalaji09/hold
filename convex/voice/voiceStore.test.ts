@@ -80,6 +80,7 @@ function convexHarness(): Harness {
       throw new Error("not used in these scenarios");
     },
     closeAsk: (call_id, ask_id) => t.mutation(fns.closeAsk, { secret: s, call_id, ask_id }),
+    isCheckerAway: () => t.query(fns.checkerAway, { secret: s }),
     attachRecording: async (call_id, audio, contentType) => {
       const storage_id = await t.run((ctx) => ctx.storage.store(new Blob([new Uint8Array(audio)], { type: contentType })));
       await t.mutation(fns.attachRecording, { secret: s, call_id, storage_id });

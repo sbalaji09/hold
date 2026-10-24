@@ -81,7 +81,7 @@ export interface Call {
   startedAt: string;
   summary: string;
   transcript: CallTurn[];
-  outcome: "confirmed" | "not_confirmed" | "handed_off";
+  outcome: "confirmed" | "not_confirmed" | "handed_off" | "needs_review";
 }
 
 /** A reference to the record a claim came from, e.g. an email or a past bill. */
@@ -176,4 +176,6 @@ export interface BackgroundCheck {
 
 export interface Settings {
   watchOnly: boolean;
+  /** The approver is out: hold doesn't ask them mid-call; unsure answers wait for review. */
+  away?: boolean;
 }

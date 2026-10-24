@@ -15,6 +15,7 @@ export const CALL_LINE_STATE: Record<Call["outcome"], LineProps["state"]> = {
   confirmed: "confirmed",
   not_confirmed: "not-confirmed",
   handed_off: "no-answer",
+  needs_review: "no-answer",
 };
 
 export function citeLabel(cite: Cite, bill: Bill): string {
@@ -48,6 +49,9 @@ export function whyText(bill: Bill): string {
   }
   if (bill.status === "Needs you") {
     const amount = "$" + (bill.amountCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (bill.call?.outcome === "needs_review") {
+      return `${sentence(bill.call.summary)} Nothing is paid until you decide whether the answer matches.`;
+    }
     if (bill.call?.outcome === "handed_off") {
       return `Callback couldn't finish the check call with ${bill.supplier.name}. ${sentence(bill.call.summary)} Nothing was paid, so it's yours to decide.`;
     }

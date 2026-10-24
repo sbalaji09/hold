@@ -7,6 +7,7 @@ import {
   MAX_ATTEMPTS,
   type CallRequest,
   type CallResult,
+  type Evidence,
   type PersonAnswerEvent,
   type SourceKind,
 } from "../../shared/contract.js";
@@ -64,20 +65,29 @@ export function toCallRequest(d: RequestRow): CallRequest {
     attempt: d.attempt ?? 0,
   };
   if (d.mode) r.mode = d.mode;
+  if (d.follow_up) r.follow_up = { ...d.follow_up, source: toSource(d.follow_up.source), carried: d.follow_up.carried.map(toEvidence) };
   return r;
+}
+
+const toSource = (s: Doc<"callResults">["evidence"][number]["source"] & {}) => ({ ...s, kind: s.kind as SourceKind });
+
+function toEvidence(e: Doc<"callResults">["evidence"][number]): Evidence {
+  return {
+    ask: e.ask,
+    answer: e.answer,
+    matches: e.matches,
+    ...(e.source ? { source: toSource(e.source) } : {}),
+    ...(e.decided_by ? { decided_by: e.decided_by } : {}),
+    ...(e.ask_id ? { ask_id: e.ask_id } : {}),
+    ...(e.pending_review ? { pending_review: true } : {}),
+  };
 }
 
 export function toCallResult(d: Doc<"callResults">): CallResult {
   const r: CallResult = {
     call_id: d.call_id,
     outcome: d.outcome,
-    evidence: d.evidence.map((e) => ({
-      ask: e.ask,
-      answer: e.answer,
-      matches: e.matches,
-      ...(e.source ? { source: { ...e.source, kind: e.source.kind as SourceKind } } : {}),
-      ...(e.decided_by ? { decided_by: e.decided_by } : {}),
-    })),
+    evidence: d.evidence.map(toEvidence),
     summary: d.summary,
   };
   if (d.recording_url) r.recording_url = d.recording_url;
@@ -141,14 +151,17 @@ export async function writeResult(ctx: MutationCtx, result: CallResult): Promise
   // The app moves the bill (Held / Needs you / Scheduled). Scheduled, not called inline, so an app
   // error can never roll back the call result.
   await ctx.scheduler.runAfter(0, internal.app.callOutcome.applyCallResult, { call_id: result.call_id });
-  // Addendum: a New supplier becomes Trusted after its first confirmed live call.
-  if (result.outcome === "confirmed" && req.mode !== "simulated") {
-    const sup = await ctx.db
-      .query("suppliers")
-      .withIndex("by_key", (q) => q.eq("key", req.supplier_id))
-      .unique();
-    if (sup?.status === "new") await ctx.db.patch(sup._id, { status: "trusted" });
-  }
+  if (result.outcome === "confirmed") await trustIfConfirmedLive(ctx, req);
+}
+
+/** Addendum: a New supplier becomes Trusted after its first confirmed live call. */
+export async function trustIfConfirmedLive(ctx: MutationCtx, req: RequestRow): Promise<void> {
+  if (req.mode === "simulated") return;
+  const sup = await ctx.db
+    .query("suppliers")
+    .withIndex("by_key", (q) => q.eq("key", req.supplier_id))
+    .unique();
+  if (sup?.status === "new") await ctx.db.patch(sup._id, { status: "trusted" });
 }
 
 // ---------- validators (from the schema, so they cannot drift) ----------
@@ -291,8 +304,8 @@ export const personAnswer = query({
 });
 
 /**
- * No one answered in time: closes the question so a late click can't count. Returns the answer if
- * one arrived first, so voice never ignores a person who did reply.
+ * No one answered in time: closes the question for the call, so it waits for the approver's review
+ * after it instead. Returns the answer if one arrived first, so voice never ignores a person who did reply.
  */
 export const closeAsk = mutation({
   args: { secret, call_id: v.string(), ask_id: v.string() },
@@ -300,8 +313,21 @@ export const closeAsk = mutation({
     assertVoiceSecret(args.secret);
     const existing = await findPersonAnswer(ctx, args.call_id, args.ask_id);
     if (existing) return existing;
-    await ctx.db.insert("callEvents", { call_id: args.call_id, type: "person_answer", ask_id: args.ask_id, verdict: "no_reply" });
+    await ctx.db.insert("callEvents", { call_id: args.call_id, type: "person_answer", ask_id: args.ask_id, verdict: "deferred" });
     return null;
+  },
+});
+
+/** The approver set themselves away (settings): hold leaves unsure answers for review instead of asking. */
+export const checkerAway = query({
+  args: { secret },
+  handler: async (ctx, args) => {
+    assertVoiceSecret(args.secret);
+    const row = await ctx.db
+      .query("settings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .unique();
+    return row?.away === true;
   },
 });
 

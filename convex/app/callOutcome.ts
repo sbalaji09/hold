@@ -10,8 +10,10 @@ import { addBillToPracticeSet } from "./practice.js";
 import { openImprovement } from "./techniques.js";
 
 export const applyCallResult = internalMutation({
-  args: { call_id: v.string() },
-  handler: async (ctx, { call_id }) => {
+  // reviewed: the approver just judged an answer this call left for review, so its bill is waiting on
+  // "Needs you", not "Calling".
+  args: { call_id: v.string(), reviewed: v.optional(v.boolean()) },
+  handler: async (ctx, { call_id, reviewed }) => {
     const request = await ctx.db
       .query("callRequests")
       .withIndex("by_key", (q) => q.eq("call_id", call_id))
@@ -40,7 +42,7 @@ export const applyCallResult = internalMutation({
       ctx.db.insert("activity", { key: `act_${crypto.randomUUID()}`, actor: "callback", what, why, refKind: "bill", refKey: row.key, at: now });
 
     // A person already moved the bill (held, paid, called again): record the call, decide nothing.
-    if (latest.call_id !== call_id || row.status !== "Calling") {
+    if (latest.call_id !== call_id || (row.status !== "Calling" && !(reviewed && row.status === "Needs you"))) {
       const why =
         latest.call_id !== call_id
           ? "A newer check call on this bill decides it, so this one didn't change its status."

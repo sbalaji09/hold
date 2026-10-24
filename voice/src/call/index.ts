@@ -39,8 +39,11 @@ export interface PreparedQuestion {
   ask: string;
   expected: string; // what the records say, for the judge; never spoken
   source: Source;
-  /** "bank_change" marks the fixed "Did you recently change your bank account?" question. */
-  kind?: "history" | "bank_change";
+  /**
+   * "bank_change" marks the fixed "Did you recently change your bank account?" question.
+   * "follow_up" is a question the approver wrote: only a person judges its answer.
+   */
+  kind?: "history" | "bank_change" | "follow_up";
 }
 
 export interface PreparedCall {
