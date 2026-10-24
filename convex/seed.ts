@@ -165,10 +165,10 @@ export async function runSeed(ctx: MutationCtx, args: SeedArgs): Promise<void> {
     for (const row of existing) await ctx.db.delete(row._id);
   }
 
-  // A real phone a teammate holds stands in for the demo payee's number on file (setup, not a call).
+  // A real phone a teammate holds stands in for every supplier's number on file, so any call rings it (setup, not a call).
   const demoPhone = process.env.DEMO_PAYEE_PHONE;
   for (const s of args.suppliers) {
-    await ctx.db.insert("suppliers", s.key === args.hero && demoPhone ? { ...s, trustedPhone: demoPhone } : s);
+    await ctx.db.insert("suppliers", demoPhone ? { ...s, trustedPhone: demoPhone } : s);
   }
   for (const b of args.bankAccounts) await ctx.db.insert("bankAccounts", b);
   // Only settled history is loaded. Unpaid bills from the fixture would show checks and approvals

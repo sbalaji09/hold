@@ -66,14 +66,13 @@ describe.each(["bayline", "harbor"])("%s template", (name) => {
     }
   });
 
-  test("the demo payee rings DEMO_PAYEE_PHONE, everyone else keeps their number", async () => {
+  test("every supplier rings DEMO_PAYEE_PHONE", async () => {
     process.env.DEMO_PAYEE_PHONE = "+14155550199";
     try {
       const t = convexTest(schema, modules);
       await t.mutation(internal.seed.seed, data);
       const rows = await t.run((ctx) => ctx.db.query("suppliers").collect());
-      expect(rows.find((s) => s.key === data.hero)?.trustedPhone).toBe("+14155550199");
-      expect(rows.filter((s) => s.trustedPhone === "+14155550199")).toHaveLength(1);
+      expect(rows.every((s) => s.trustedPhone === "+14155550199")).toBe(true);
     } finally {
       delete process.env.DEMO_PAYEE_PHONE;
     }
