@@ -28,6 +28,11 @@ const schema = z.object({
     .transform((u) => u.replace(/\/+$/, "")),
   PORT: num(8080),
   MAYA_PHONE_NUMBER: optionalE164,
+  /** Local dev: the voice server opens its own ngrok tunnel on this permanent (free) domain. */
+  NGROK_DOMAIN: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),
+  NGROK_AUTHTOKEN: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),
+  /** On startup, point Fogline's Twilio number at this server. Only one server should do this. */
+  TWILIO_POINT_WEBHOOK: bool(false),
 
   // Cartesia
   CARTESIA_VERSION: z.string().default("2026-08-14"),
@@ -65,6 +70,8 @@ const schema = z.object({
 export type Config = z.infer<typeof schema>;
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
+  // With an ngrok domain the public URL is known up front; PUBLIC_BASE_URL can be left unset.
+  if (!env.PUBLIC_BASE_URL && env.NGROK_DOMAIN) env = { ...env, PUBLIC_BASE_URL: `https://${env.NGROK_DOMAIN}` };
   const parsed = schema.safeParse(env);
   if (parsed.success) return parsed.data;
   const lines = parsed.error.issues.map((i) => {

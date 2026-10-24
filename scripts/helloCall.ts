@@ -2,11 +2,12 @@
 // Dials one number, speaks the disclosure with Sonic, listens with ink-whisper, repeats back what
 // it heard (talk over it to try barge-in), then hangs up. Uses the real server, transport and TwiML.
 //
-//   ngrok http 8080            # PUBLIC_BASE_URL in .env = the https forwarding URL
 //   npx tsx --env-file=.env scripts/helloCall.ts +14155550123
 //
-// Needs TWILIO_*, CARTESIA_API_KEY, CARTESIA_VOICE_ID, PUBLIC_BASE_URL. Nothing touches Convex.
+// Needs TWILIO_*, CARTESIA_API_KEY, CARTESIA_VOICE_ID, and NGROK_DOMAIN (it opens the tunnel itself)
+// or PUBLIC_BASE_URL. Stop the voice server first: they share the port and the domain. Nothing touches Convex.
 import { randomBytes } from "node:crypto";
+import ngrok from "@ngrok/ngrok";
 import { DISCLOSURE } from "../shared/contract.js";
 import { cartesiaSttFactory } from "../voice/src/audio/cartesiaStt.js";
 import { cartesiaTtsFactory } from "../voice/src/audio/cartesiaTts.js";
@@ -94,6 +95,7 @@ const server = createVoiceServer({
 });
 
 server.listen(config.PORT, async () => {
+  if (config.NGROK_DOMAIN) await ngrok.forward({ addr: config.PORT, domain: config.NGROK_DOMAIN, authtoken: config.NGROK_AUTHTOKEN });
   const base = config.PUBLIC_BASE_URL;
   const { sid } = await twilio.dial({
     to,

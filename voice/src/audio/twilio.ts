@@ -78,6 +78,26 @@ export function twilioApi(accountSid: string, authToken: string): TwilioApi {
   };
 }
 
+/**
+ * Sends Fogline's number's incoming calls to this voice server. Clearing voiceApplicationSid
+ * matters: an attached TwiML app would silently override voiceUrl. Returns the previous URL.
+ */
+export async function pointNumberAt(
+  accountSid: string,
+  authToken: string,
+  phoneNumber: string,
+  publicBaseUrl: string,
+): Promise<{ voiceUrl: string; previous: string | null }> {
+  const client = twilio(accountSid, authToken);
+  const [number] = await client.incomingPhoneNumbers.list({ phoneNumber, limit: 1 });
+  if (!number) throw new Error(`${phoneNumber} is not a number on this Twilio account`);
+  const voiceUrl = `${publicBaseUrl.replace(/\/+$/, "")}/twilio/inbound`;
+  if (number.voiceUrl !== voiceUrl || number.voiceMethod !== "POST" || number.voiceApplicationSid) {
+    await client.incomingPhoneNumbers(number.sid).update({ voiceUrl, voiceMethod: "POST", voiceApplicationSid: "" });
+  }
+  return { voiceUrl, previous: number.voiceUrl || null };
+}
+
 // ---------------------------------------------------------------- TwiML
 
 const xml = (s: string) =>

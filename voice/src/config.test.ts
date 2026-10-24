@@ -23,6 +23,13 @@ describe("loadConfig", () => {
     );
   });
 
+  it("derives PUBLIC_BASE_URL from NGROK_DOMAIN, so the ngrok URL is set in one place", () => {
+    const { PUBLIC_BASE_URL: _omit, ...rest } = env;
+    const c = loadConfig({ ...rest, NGROK_DOMAIN: "hold-dev.ngrok-free.app" });
+    expect(c.PUBLIC_BASE_URL).toBe("https://hold-dev.ngrok-free.app");
+    expect(c.TWILIO_POINT_WEBHOOK).toBe(false);
+  });
+
   it("names each missing variable", () => {
     const { CONVEX_URL: _omit, ...rest } = env;
     expect(() => loadConfig(rest)).toThrow(/CONVEX_URL: missing/);

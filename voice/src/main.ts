@@ -4,7 +4,8 @@ import { MossSearch } from "../../shared/mossSearch.js";
 import { cartesiaSttFactory } from "./audio/cartesiaStt.js";
 import { cartesiaTtsFactory } from "./audio/cartesiaTts.js";
 import { log } from "./audio/log.js";
-import { twilioApi } from "./audio/twilio.js";
+import ngrok from "@ngrok/ngrok";
+import { pointNumberAt, twilioApi } from "./audio/twilio.js";
 import { AnthropicLLM, prepareOutboundCall, runInboundCall, runOutboundCall, SimulatedTransport } from "./call/index.js";
 import { loadConfig, tuningFrom } from "./config.js";
 import { Dialer } from "./dialer.js";
@@ -71,9 +72,32 @@ const server = createVoiceServer({
   tuning: tuningFrom(config),
 });
 
-server.listen(config.PORT, () => {
+let tunnel: ngrok.Listener | null = null;
+
+/** Listen, open the tunnel (local dev), point Twilio at us, and only then start dialing. */
+async function start() {
+  await new Promise<void>((resolve) => server.listen(config.PORT, resolve));
   log.info("voice server listening", { port: config.PORT, publicBaseUrl: config.PUBLIC_BASE_URL });
+  if (config.NGROK_DOMAIN) {
+    tunnel = await ngrok.forward({ addr: config.PORT, domain: config.NGROK_DOMAIN, authtoken: config.NGROK_AUTHTOKEN });
+    log.info("ngrok tunnel open", { url: tunnel.url() });
+  }
+  if (config.TWILIO_POINT_WEBHOOK) {
+    const { voiceUrl, previous } = await pointNumberAt(
+      config.TWILIO_ACCOUNT_SID,
+      config.TWILIO_AUTH_TOKEN,
+      config.TWILIO_PHONE_NUMBER,
+      config.PUBLIC_BASE_URL,
+    );
+    log.info("twilio number points here", { number: config.TWILIO_PHONE_NUMBER, voiceUrl, previous });
+  }
   dialer.start();
+}
+
+start().catch((err) => {
+  // Without the tunnel or the webhook, every call would fail; say so and stop.
+  log.error("voice server failed to start", { error: String(err) });
+  process.exit(1);
 });
 
 let shuttingDown = false;
@@ -83,6 +107,7 @@ async function shutdown(signal: string) {
   log.info("shutting down; letting live calls finish", { signal, calls: dialer.activeCalls });
   await dialer.stop();
   server.close(); // stop accepting; open media sockets die with the process
+  await tunnel?.close();
   await store.close();
   process.exit(0);
 }

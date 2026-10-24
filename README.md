@@ -32,7 +32,7 @@ It talks to Twilio (telephony), Cartesia (speech in and out), Claude (what to sa
 #### 1. Install
 
 ```sh
-npm install
+pnpm install
 cp .env.example .env   # then fill it in; .env is git-ignored, never commit keys
 ```
 
@@ -51,7 +51,9 @@ The server validates these at startup and lists anything missing or malformed.
 | `MOSS_PROJECT_ID`, `MOSS_PROJECT_KEY` | Moss project for the per-supplier history indexes. |
 | `CONVEX_URL` | Your Convex deployment URL (`npx convex dev` prints it). |
 | `VOICE_SERVER_SECRET` | A long random string shared with Convex. Also run `npx convex env set VOICE_SERVER_SECRET <same value>`. It also signs the per-call media tokens. |
-| `PUBLIC_BASE_URL` | The public `https://` URL Twilio uses to reach this server (your ngrok URL in dev, no trailing slash). |
+| `NGROK_DOMAIN`, `NGROK_AUTHTOKEN` | Local dev. Your free permanent ngrok domain (ngrok dashboard, Domains) and authtoken. The voice server opens the tunnel itself, so you never run `ngrok`. |
+| `TWILIO_POINT_WEBHOOK` | `true` to point Fogline's number at this server on startup. Whichever server starts last owns the number. |
+| `PUBLIC_BASE_URL` | The public `https://` URL Twilio uses to reach this server. Leave it unset in dev: it comes from `NGROK_DOMAIN`. On Fly.io the deploy script sets it. |
 | `PORT` | Local port, default `8080`. |
 | `MAYA_PHONE_NUMBER` | Optional. "End call and take over" transfers the live call to this number. Without it, takeover just ends the AI call. |
 
@@ -75,41 +77,44 @@ Optional tuning knobs, all with defaults that suit a phone on speaker in a loud 
 | `TWILIO_AMD` | `true` | Answering machine detection. Voicemail counts as no answer. Set `false` if a real person on a noisy speakerphone gets taken for a machine. |
 | `TWILIO_RING_TIMEOUT_S` | `25` | Ring time before Twilio reports no answer. |
 
-#### 3. Expose the server with ngrok
+#### 3. Run everything
 
 ```sh
-ngrok http 8080
+pnpm dev:all
 ```
 
-Copy the `https://....ngrok-free.app` forwarding URL into `PUBLIC_BASE_URL`.
-Webhook signatures are checked against this URL, so it must match exactly what Twilio calls.
-A free ngrok URL changes on every restart: update `.env` and the Twilio number webhook each time, or use a reserved ngrok domain.
+This starts Convex, the app and the voice server together, with labelled output.
+The voice server opens its ngrok tunnel on `NGROK_DOMAIN` and, with `TWILIO_POINT_WEBHOOK=true`, points Fogline's number at itself.
+Check `https://<NGROK_DOMAIN>/healthz` returns `{"ok":true,...}`.
+Saving voice code or `.env` restarts the voice server, so don't edit them during a call.
 
-#### 4. Configure the Twilio number
-
-Point Fogline's number at the voice server by running `npx tsx --env-file=.env scripts/twilioWebhook.ts`.
-Re-run it whenever `PUBLIC_BASE_URL` changes (a free ngrok URL changes on every restart).
-
-To do the same by hand, open Phone Numbers, Manage, Active numbers in the Twilio Console and click Fogline's number.
-Under Voice Configuration:
-
-- Configure with: Webhook.
-- A call comes in: Webhook, `https://<your-ngrok>/twilio/inbound`, HTTP POST.
-- Leave "Primary handler fails" and "Call status changes" empty.
-
-Save.
+To point the number by hand instead, run `npx tsx --env-file=.env scripts/twilioWebhook.ts`.
+In the Twilio Console the same setting is Phone Numbers, Active numbers, Fogline's number, Voice Configuration: "A call comes in", Webhook, `https://<server>/twilio/inbound`, HTTP POST.
 Outgoing calls need no console setup: the server passes its own TwiML URL, status callback and recording callback on every call.
 Make sure the account is upgraded and that Voice Geographic Permissions allow the countries you will call.
 
-#### 5. Run
+#### 4. Hosting the voice server (demo day)
+
+For rehearsals and the demo, run the voice server on Fly.io so the phone line doesn't depend on a laptop, its Wi-Fi or a stray save.
+One-time setup:
 
 ```sh
-npm run convex:dev             # terminal 1: Convex functions and codegen
-npm run voice:dev              # terminal 2: voice server (reads .env, restarts on save)
-npm run dev                    # terminal 3: the app
+brew install flyctl
+fly auth login
+fly apps create <name>   # then set app = "<name>" in fly.toml
 ```
 
-Check `https://<your-ngrok>/healthz` returns `{"ok":true,...}`.
+Deploy (and redeploy after voice changes):
+
+```sh
+scripts/deployVoice.sh
+```
+
+It sends `.env` to Fly as secrets (without the local-only ngrok settings), bakes in Moss's model and deploys one machine at `https://<name>.fly.dev`.
+On boot that machine points Fogline's number at itself.
+Keep exactly one voice server answering the number: when the Fly machine is live, run the app with `pnpm dev` and `pnpm convex:dev`, not `pnpm dev:all`.
+To hand the number back to Fly after local work, run `fly machine restart -a <name>`.
+Watch it with `fly logs -a <name>`.
 
 **Hello world call.**
 Before wiring the whole loop, prove the phone and Cartesia work:
@@ -120,7 +125,7 @@ npx tsx --env-file=.env scripts/helloCall.ts +1YOURCELL
 
 It dials your phone, speaks the disclosure with Sonic, listens with ink-whisper and repeats back what you said.
 Talk over it to try barge-in.
-It needs only the Twilio and Cartesia variables plus `PUBLIC_BASE_URL`, and the dev voice server must not be running on the same port.
+It needs only the Twilio and Cartesia variables plus `PUBLIC_BASE_URL` (or `NGROK_DOMAIN`), and the dev voice server must not be running.
 
 **Tests** run without any keys or network:
 
