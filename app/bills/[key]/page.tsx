@@ -10,6 +10,7 @@ import {
   Line,
   LogEntry,
   SignOff,
+  StatusMark,
 } from "@/components/callback";
 import { BillActions } from "@/components/BillActions";
 
@@ -52,12 +53,15 @@ export default async function BillPage({
     .sort((a, b) => (a.at < b.at ? -1 : 1));
 
   const bankFlagged = bill.checks.find((c) => c.id === "bank-account")?.state === "flag";
+  // A new supplier's bill waits for a person to confirm who they are before hold calls anyone.
+  const awaitingConfirm = bill.supplier.status === "new" && !bill.supplier.onboarding?.confirmedAt && !bill.supplier.key.startsWith("unknown:");
+  const noAccount = bill.bankAccount.key === "";
   const failCount = bill.checks.filter((c) => c.state === "flag").length;
   const pay = canPay(bill, settings.watchOnly);
   const hold = canHold(bill);
   const call = canCall(bill);
 
-  const needsSignOff = bill.status === "Held" || bill.status === "Needs you";
+  const needsSignOff = (bill.status === "Held" || bill.status === "Needs you") && !awaitingConfirm;
   const route = needsSignOff
     ? routeEscalation(bill.checks, bill.amountCents, { callOutcome: bill.call?.outcome === "handed_off" ? "handed_off" : null })
     : null;
@@ -69,7 +73,8 @@ export default async function BillPage({
       <div className="col-span-full flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-[min(100%,360px)] flex-1 basis-0">
           <div className="font-sans text-[10.5px] font-semibold uppercase tracking-[.09em] text-ink-muted">
-            <Link href="/">Inbox</Link> / {bill.supplier.name} / INV-{bill.invoiceNo}
+            <Link href="/">Inbox</Link> / {bill.supplier.name}
+            {bill.invoiceNo !== "unknown" ? ` / INV-${bill.invoiceNo}` : ""}
           </div>
           <h1 className="font-serif text-[24px]/[30px] text-ink">{bill.email.subject}</h1>
         </div>
@@ -94,6 +99,23 @@ export default async function BillPage({
         </div>
       </div>
 
+      {awaitingConfirm ? (
+        <section className="cb-doc col-span-full flex flex-wrap items-center justify-between gap-x-5 gap-y-3 p-4" aria-labelledby="new-supplier-head">
+          <div className="flex min-w-0 flex-1 basis-[320px] flex-col items-start gap-1.5">
+            <StatusMark status="needs-you">New supplier</StatusMark>
+            <h2 id="new-supplier-head" className="m-0 text-[15px]/[22px] font-semibold text-ink">
+              New supplier: confirm who they are
+            </h2>
+            <p className="m-0 font-mono text-[12.5px]/[19px] text-ink-muted">
+              Fogline has never paid {bill.supplier.name}. Confirm a trusted number and what Fogline hired them for; then hold calls them about this bill. Dev approves the first payment.
+            </p>
+          </div>
+          <Link href={`/suppliers/${bill.supplier.key}`} className="cb-btn cb-btn-primary no-underline">
+            Confirm {bill.supplier.name}
+          </Link>
+        </section>
+      ) : null}
+
       <article className="cb-doc relative min-w-0 self-start p-5">
         <div className="grid grid-cols-[64px_1fr] gap-y-0.5 border-b border-dashed border-line pb-3 font-mono text-[12px]/[18px] text-ink-muted">
           <span>From</span>
@@ -115,12 +137,18 @@ export default async function BillPage({
         <div className="flex flex-col gap-2.5 border-t border-dashed border-line pt-4">
           <div className="cb-caps">Pay to</div>
           <Amount cents={bill.amountCents} size="lg" />
-          <AccountLine
-            bank={bill.bankAccount.bank}
-            last4={bill.bankAccount.last4}
-            state={bankFlagged ? "new" : "verified"}
-            note={bill.bankAccount.verifiedBy === "call+dev" ? "Verified by call, Dev approved" : "Verified at onboarding"}
-          />
+          {noAccount ? (
+            <p className="m-0 font-mono text-[13px]/[20px] text-ink">
+              No bank account on file. Fogline pays only an account it has verified with {bill.supplier.name}.
+            </p>
+          ) : (
+            <AccountLine
+              bank={bill.bankAccount.bank}
+              last4={bill.bankAccount.last4}
+              state={bankFlagged ? "new" : "verified"}
+              note={bill.bankAccount.verifiedBy === "call+dev" ? "Verified by call, Dev approved" : "Verified at onboarding"}
+            />
+          )}
         </div>
         {bill.status === "Held" ? (
           <div className="absolute bottom-5 right-5">
@@ -168,7 +196,7 @@ export default async function BillPage({
             number={formatPhone(bill.supplier.trustedPhone)}
             note={bill.call.transcript.find((t) => t.speaker === "supplier")?.text}
           />
-        ) : failCount > 0 ? (
+        ) : failCount > 0 && !awaitingConfirm ? (
           <div className="cb-doc p-4 font-sans text-[13px]/[20px] text-ink-muted">
             Callback hasn&rsquo;t called {bill.supplier.name} yet.
           </div>

@@ -1,8 +1,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Amount, AccountLine, Cite } from "@/components/callback";
+import { Amount, AccountLine, Cite, StatusMark } from "@/components/callback";
 import { BackgroundCheckPanel } from "@/components/BackgroundCheckPanel";
+import { ConfirmSupplier, OnboardingRecord } from "@/components/ConfirmSupplier";
+import { getPersona } from "@/lib/persona";
 import { LearnedRules } from "@/components/LearnedRules";
 import { getSupplier, listBankAccountsForSupplier, listBillsForSupplier, listCallsForSupplier, listChecksForSupplier } from "@/lib/data";
 import { STATUS_TO_MARK, shortDate } from "@/lib/inbox";
@@ -13,9 +15,12 @@ function formatPhone(e164: string): string {
   return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
 }
 
+const STATUS_LABEL = { new: "New", trusted: "Trusted", under_review: "Under review" } as const;
+
 function formatDate(iso: string): string {
   if (!iso) return "Never checked";
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  // A bare "2026-10-24" parses as UTC midnight; read it in UTC so it isn't shown as the day before.
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: iso.length === 10 ? "UTC" : undefined });
 }
 
 export default async function SupplierPage({
@@ -27,20 +32,28 @@ export default async function SupplierPage({
   const supplier = await getSupplier(key);
   if (!supplier) notFound();
 
-  const [bankAccounts, bills, calls, checks] = await Promise.all([
+  const [bankAccounts, bills, calls, checks, persona] = await Promise.all([
     listBankAccountsForSupplier(key),
     listBillsForSupplier(key),
     listCallsForSupplier(key),
     listChecksForSupplier(key),
+    getPersona(),
   ]);
+  const isNew = supplier.status === "new";
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6">
       <div>
-        <h1 className="cb-display text-ink">{supplier.name}</h1>
-        <p className="mt-1 font-mono text-[12px] text-ink-muted">{supplier.domain}</p>
+        <div className="font-sans text-[10.5px] font-semibold uppercase tracking-[.09em] text-ink-muted">
+          <Link href="/suppliers">Suppliers</Link> / {STATUS_LABEL[supplier.status ?? "trusted"]}
+        </div>
+        <h1 className="cb-display break-words text-ink">{supplier.name}</h1>
+        <p className="mt-1 break-all font-mono text-[12px] text-ink-muted">{supplier.domain}</p>
       </div>
 
+      {isNew ? (
+        <ConfirmSupplier supplier={supplier} bills={bills} lastCheck={checks[0] ?? null} actor={persona} />
+      ) : (
       <div className="grid gap-5 md:grid-cols-2">
         <article className="cb-doc p-4">
           <div className="cb-caps mb-2">Trusted phone</div>
@@ -50,6 +63,9 @@ export default async function SupplierPage({
 
         <BackgroundCheckPanel supplierKey={key} lastCheck={checks[0] ?? null} />
       </div>
+      )}
+
+      {isNew ? null : <OnboardingRecord supplier={supplier} />}
 
       <section className="cb-doc">
         <div className="cb-doc-head">
@@ -89,8 +105,8 @@ export default async function SupplierPage({
                 href={`/bills/${bill.key}`}
                 className="flex items-center justify-between gap-3 border-t border-line px-4 py-2.5 text-ink no-underline first:border-0 hover:bg-surface-hover"
               >
-                <span className="min-w-0 flex-1 truncate text-[13px]">Invoice {bill.invoiceNo}</span>
-                <span className="font-mono text-[11px] uppercase tracking-wide text-ink-muted">{STATUS_TO_MARK[bill.status]}</span>
+                <span className="min-w-0 flex-1 truncate text-[13px]">{bill.invoiceNo === "unknown" ? "Bill with no invoice number" : `Invoice ${bill.invoiceNo}`}</span>
+                <StatusMark status={STATUS_TO_MARK[bill.status]} />
                 <Amount cents={bill.amountCents} />
               </Link>
             ))

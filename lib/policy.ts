@@ -55,6 +55,7 @@ export function canHold(bill: Bill): PolicyResult {
 /** Callback can call the supplier's on-file number for anything still open. */
 export function canCall(bill: Bill): PolicyResult {
   if (bill.status === "Paid") return denied("Already paid. No reason to call.");
+  if (!bill.supplier.trustedPhone) return denied("No number on file yet. Run the background check and confirm a number first.");
   return allowed();
 }
 

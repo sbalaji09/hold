@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { AccountLine, Amount, Cite } from "@/components/callback";
+import { AccountLine, Amount, Cite, StatusMark } from "@/components/callback";
 import { formatPhone } from "@/components/voice/format";
 import { shortDate } from "@/lib/inbox";
 import { CATEGORY_LABEL, RING, type GraphNode, type SupplierFacts, type SupplierGraph as Graph } from "@/lib/supplierGraph";
@@ -25,9 +25,11 @@ function clampView(v: View): View {
   return { x: clamp(v.x), y: clamp(v.y), w: v.w };
 }
 
-/** Serial red where money stopped or someone pretended to be a supplier, graphite while new. */
+/** Serial red where money stopped or someone pretended to be a supplier, signatory while a person
+ * has to confirm a new one, graphite while new. */
 function supplierTone(f: SupplierFacts): string {
   if (f.held > 0 || f.lookalikes.length > 0 || f.sharesAccountWith.length > 0) return "var(--hold)";
+  if (f.supplier.status === "new" && !f.supplier.onboarding?.confirmedAt) return "var(--signatory)";
   if (f.supplier.status === "new") return "var(--graphite)";
   return "var(--ink)";
 }
@@ -217,7 +219,7 @@ export function SupplierGraph({ graph }: { graph: Graph }): React.ReactElement {
       </div>
 
       <p className="pt-graph-key font-mono text-[11.5px] text-ink-muted">
-        Lines run Fogline → category → supplier. Red links: a look-alike sender domain, or one bank account asked for by two suppliers.
+        Lines run Fogline → category → supplier. Red links: a look-alike sender domain, or one bank account asked for by two suppliers. Blue: a new supplier waiting for a person to confirm who they are.
         Scroll to zoom, drag to move.
       </p>
 
@@ -249,11 +251,17 @@ function SupplierCard({ f, names }: { f: SupplierFacts; names: Map<string, Graph
     const n = names.get(key);
     return n?.kind === "supplier" ? n.facts.supplier.name : key;
   };
+  const needsConfirming = s.status === "new" && !s.onboarding?.confirmedAt;
   return (
     <>
       <div className="cb-caps">
         {CATEGORY_LABEL[s.category]} · {STATUS_LABEL[s.status ?? "trusted"]}
       </div>
+      {needsConfirming && (
+        <div>
+          <StatusMark status="needs-you">Needs confirming</StatusMark>
+        </div>
+      )}
       <h2 className="cb-subject text-ink">{s.name}</h2>
       <p className="font-mono text-[12px] text-ink-muted">{s.domain}</p>
 
@@ -301,7 +309,7 @@ function SupplierCard({ f, names }: { f: SupplierFacts; names: Map<string, Graph
 
       <Cite href={`/suppliers/${s.key}`}>Supplier record</Cite>
       <Link href={`/suppliers/${s.key}`} className="cb-btn cb-btn-primary cb-btn-sm no-underline">
-        Open supplier page
+        {needsConfirming ? "Confirm who they are" : "Open supplier page"}
       </Link>
     </>
   );

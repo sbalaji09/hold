@@ -2,7 +2,7 @@
 // from touching anything outside Checking/Scheduled (lib/payments.ts's runEligibility relies on
 // this same function, not a second copy of the rule).
 import { describe, expect, test } from "vitest";
-import { canPay } from "./policy";
+import { canCall, canPay } from "./policy";
 import type { Bill, DataBillStatus } from "./types";
 
 const SUPPLIER = {
@@ -86,5 +86,14 @@ describe("canPay", () => {
     const result = canPay(bill("Paid"));
     expect(result.allowed).toBe(false);
     expect(result.reason).toBe("Already paid. There's nothing left to send.");
+  });
+});
+
+describe("canCall", () => {
+  test("a supplier with no trusted number can't be called until someone confirms one", () => {
+    const res = canCall(bill("Needs you", { supplier: { ...SUPPLIER, trustedPhone: "", status: "new" } }));
+    expect(res.allowed).toBe(false);
+    expect(res.reason).toMatch(/No number on file/);
+    expect(canCall(bill("Needs you")).allowed).toBe(true);
   });
 });

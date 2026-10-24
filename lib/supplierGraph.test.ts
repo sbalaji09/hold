@@ -42,4 +42,15 @@ describe("supplier graph", () => {
     expect(truss?.kind === "supplier" && truss.facts.sharesAccountWith).toEqual([{ supplierKey: "tacos", account: "Mercury ··8817" }]);
     expect(truss?.kind === "supplier" && truss.facts.held).toBe(1);
   });
+
+  test("bills with no account on file (new suppliers) don't link suppliers or list an account", () => {
+    const a = sup("a", "other", "a.com");
+    const b = sup("b", "other", "b.com");
+    const none = (s: Supplier) => ({ ...bill(s, s.domain, "Not on file", "----", "Needs you"), bankAccount: { key: "", bank: "Not on file", last4: "----", addedAt: "" } }) as Bill;
+    const g2 = buildSupplierGraph([a, b], [none(a), none(b)]);
+    expect(g2.edges.filter((e) => e.kind === "shared_account")).toEqual([]);
+    const node = g2.nodes.find((n) => n.id === "a");
+    expect(node?.kind === "supplier" && node.facts.accounts).toEqual([]);
+    expect(node?.kind === "supplier" && node.facts.bills).toBe(1);
+  });
 });

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Button, CheckRow } from "@/components/callback";
+import { Button, CheckRow, Cite } from "@/components/callback";
 import type { BackgroundCheck } from "@/lib/types";
 
 const RESULT: Record<"pass" | "flag" | "info", "pass" | "fail" | "warn"> = { pass: "pass", flag: "fail", info: "warn" };
@@ -11,12 +11,20 @@ const RESULT: Record<"pass" | "flag" | "info", "pass" | "fail" | "warn"> = { pas
 interface BackgroundCheckPanelProps {
   supplierKey: string;
   lastCheck: BackgroundCheck | null;
+  /** hold started this check on its own (a new supplier's first bill) and it hasn't landed yet. */
+  autoRunning?: boolean;
+  /** New-supplier confirmation: "Use as trusted number" fills the confirm form instead of being locked. */
+  onUseNumber?: (phone: string) => void;
 }
 
-export function BackgroundCheckPanel({ supplierKey, lastCheck }: BackgroundCheckPanelProps): React.ReactElement {
+export function BackgroundCheckPanel({ supplierKey, lastCheck, autoRunning, onUseNumber }: BackgroundCheckPanelProps): React.ReactElement {
   const convexConfigured = Boolean(process.env.NEXT_PUBLIC_CONVEX_URL);
   const run = useAction(api.app.background.runBackgroundCheck);
-  const [check, setCheck] = React.useState<BackgroundCheck | null>(lastCheck);
+  const [ran, setRan] = React.useState<BackgroundCheck | null>(null);
+  // The page re-renders with newer rows as they land; show whichever check is newest.
+  const check = ran && (!lastCheck || ran.ranAt > lastCheck.ranAt) ? ran : lastCheck;
+  // Where the suggested number was found, so a person can look before trusting it.
+  const phoneSource = check?.findings.find((f) => f.label === "Phone number found" && f.state !== "flag")?.sourceUrl;
   const [running, setRunning] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -29,7 +37,7 @@ export function BackgroundCheckPanel({ supplierKey, lastCheck }: BackgroundCheck
     setRunning(true);
     try {
       const result = await run({ supplierKey });
-      setCheck({
+      setRan({
         key: result.key,
         kind: "background",
         supplierKey,
@@ -58,19 +66,34 @@ export function BackgroundCheckPanel({ supplierKey, lastCheck }: BackgroundCheck
             <CheckRow key={i} n={i + 1} result={RESULT[f.state]} title={f.label} evidence={f.evidence} sources={f.sourceUrl ? [f.sourceUrl] : undefined} />
           ))}
         </div>
+      ) : autoRunning || running ? (
+        <p className="font-mono text-[13px] text-ink-muted" role="status">
+          Checking… hold is looking up their site, phone number and domain age. Results land here on their own.
+        </p>
       ) : (
         <p className="text-[13px] text-ink-muted">No background check run.</p>
       )}
 
       {check?.suggestedPhone ? (
-        <div className="mt-3 flex items-center justify-between gap-3 border-t border-dashed border-line pt-3">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-dashed border-line pt-3">
           <div>
             <div className="cb-caps">Suggested number</div>
             <p className="font-mono text-[14px] text-ink">{check.suggestedPhone}</p>
+            {phoneSource ? (
+              <div className="mt-1">
+                <Cite href={phoneSource}>{phoneSource.replace(/^https?:\/\//, "")}</Cite>
+              </div>
+            ) : null}
           </div>
-          <Button size="sm" locked="Dev confirms numbers">
-            Use as trusted number
-          </Button>
+          {onUseNumber ? (
+            <Button size="sm" onClick={() => onUseNumber(check.suggestedPhone!)}>
+              Use as trusted number
+            </Button>
+          ) : (
+            <Button size="sm" locked="Dev confirms numbers">
+              Use as trusted number
+            </Button>
+          )}
         </div>
       ) : null}
 

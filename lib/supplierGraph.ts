@@ -67,9 +67,11 @@ export function buildSupplierGraph(suppliers: Array<Supplier & { openItems: numb
     if (b.status === "Paid") f.paidCents += b.amountCents;
     if (b.status === "Held") f.held++;
     if (!f.lastBillAt || b.receivedAt > f.lastBillAt) f.lastBillAt = b.receivedAt;
-    if (!f.accounts.some((a) => a.key === b.bankAccount.key)) f.accounts.push(b.bankAccount);
     const domain = b.email.fromDomain.toLowerCase();
     if (domain && domain !== f.supplier.domain.toLowerCase() && !f.lookalikes.includes(domain)) f.lookalikes.push(domain);
+    // A new supplier's first bill has no account yet (key ""): nothing to show or link.
+    if (!b.bankAccount.key) continue;
+    if (!f.accounts.some((a) => a.key === b.bankAccount.key)) f.accounts.push(b.bankAccount);
     const name = accountName(b.bankAccount);
     askedBy.set(name, (askedBy.get(name) ?? new Set()).add(b.supplier.key));
   }

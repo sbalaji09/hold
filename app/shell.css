@@ -132,6 +132,7 @@ h1, h2, h3, p { margin: 0; }
   .cb-courtesy { font-size: 20px; }
   .pt-transcript { padding-right: var(--space-3); }
   .cb-script { grid-template-columns: 64px minmax(0, 1fr); column-gap: var(--space-3); }
+  .cb-cite { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 }
 
 .cb-btn-primary .cb-amount, .cb-btn-primary .cb-amount * { color: inherit; }
@@ -141,8 +142,8 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
 
 /* Suppliers graph (components/SupplierGraph.tsx) */
 .pt-graph { position: relative; padding: var(--space-4); }
-.pt-graph svg { display: block; width: 100%; max-height: 78vh; overflow: hidden; cursor: grab; touch-action: none; user-select: none; }
-.pt-graph svg:active { cursor: grabbing; }
+.pt-graph > svg { display: block; width: 100%; max-height: 78vh; overflow: hidden; cursor: grab; touch-action: none; user-select: none; }
+.pt-graph > svg:active { cursor: grabbing; }
 .pt-graph-zoom { position: absolute; left: var(--space-4); top: var(--space-4); z-index: 4; display: flex; align-items: center; gap: var(--space-2); }
 .pt-graph-node { cursor: pointer; outline: none; }
 .pt-graph-node:hover circle, .pt-graph-node:hover rect { stroke-width: 3; }
