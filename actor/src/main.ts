@@ -1,15 +1,26 @@
-// hold-supplier-verifier: checks a supplier's domain (mode "background"), or compares an
-// unfamiliar sender domain against a supplier's known one (mode "copycat"). Plain fetch + regex
+// hold-supplier-verifier: checks a supplier's domain (mode "background"), compares an
+// unfamiliar sender domain against a supplier's known one (mode "copycat"), or finds registered
+// look-alikes of a list of real domains (mode "watch", one dataset item per hit). Plain fetch + regex
 // parsing only, no HTML-parsing dependency. Output shape matches lib/types.ts's BackgroundCheck
 // ("findings" + optional "suggestedPhone") so convex/app/background.ts can drop the dataset item
 // straight into a backgroundChecks row.
 import { Actor, log } from "apify";
+import { isRegistered, permutations, pool } from "./lookalikes.js";
 
 interface Input {
-  mode: "background" | "copycat";
-  domain: string;
+  mode: "background" | "copycat" | "watch";
+  domain?: string;
   businessName?: string;
   knownDomain?: string;
+  domains?: string[];
+}
+
+interface WatchHit {
+  domain: string;
+  imitates: string;
+  technique: string;
+  registeredDaysAgo: number | null;
+  rdapUrl: string;
 }
 
 interface Finding {
@@ -238,22 +249,35 @@ async function runCopycat(domain: string, knownDomain: string): Promise<{ findin
   return { findings };
 }
 
+/** One dataset item per look-alike that someone has registered, out of every one we could think of. */
+async function runWatch(domains: string[]): Promise<WatchHit[]> {
+  const candidates = domains.flatMap((imitates) => permutations(imitates).map((p) => ({ ...p, imitates: imitates.toLowerCase() })));
+  log.info(`Checking ${candidates.length} look-alikes of ${domains.length} domains.`);
+  const registered = await pool(candidates, 25, async (c) => ((await isRegistered(c.domain)) ? c : null));
+  const live = registered.filter((c): c is NonNullable<typeof c> => c !== null);
+  log.info(`${live.length} are registered.`);
+  return pool(live, 5, async (c) => ({ ...c, registeredDaysAgo: await domainAgeDays(c.domain), rdapUrl: `https://rdap.org/domain/${c.domain}` }));
+}
+
 // ---------- entry point ----------
 
 await Actor.init();
 
 const input = (await Actor.getInput<Input>()) ?? ({} as Input);
-if (!input.mode || !input.domain) {
-  throw new Error('Input needs at least "mode" ("background" or "copycat") and "domain".');
+if (input.mode === "watch") {
+  if (!input.domains?.length) throw new Error('Watch mode needs "domains", the real domains to watch for look-alikes.');
+  await Actor.pushData(await runWatch(input.domains));
+} else {
+  if (!input.mode || !input.domain) {
+    throw new Error('Input needs "mode" ("background", "copycat" or "watch") and "domain" (or "domains" for watch).');
+  }
+  const output =
+    input.mode === "background"
+      ? await runBackground(input.domain, input.businessName)
+      : await (async () => {
+          if (!input.knownDomain) throw new Error('Copycat mode needs "knownDomain" to compare against.');
+          return runCopycat(input.domain!, input.knownDomain);
+        })();
+  await Actor.pushData(output);
 }
-
-const output =
-  input.mode === "background"
-    ? await runBackground(input.domain, input.businessName)
-    : await (async () => {
-        if (!input.knownDomain) throw new Error('Copycat mode needs "knownDomain" to compare against.');
-        return runCopycat(input.domain, input.knownDomain);
-      })();
-
-await Actor.pushData(output);
 await Actor.exit();

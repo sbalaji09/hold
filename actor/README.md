@@ -52,6 +52,13 @@ drop the item straight into a `backgroundChecks` row.
   when the domain's edit-distance similarity, page title or homepage text are suspiciously close
   while the domains themselves differ.
 
+- **watch**: `{ "mode": "watch", "domains": ["stagecraftrigging.com", ...] }`. Generates about 80
+  look-alikes per domain (`src/lookalikes.ts`: missing, doubled and swapped letters, hyphens,
+  look-alike letters like `l`→`1`, other endings, added words like `-billing`), keeps the ones with
+  name servers (Cloudflare DNS-over-HTTPS) and looks up each one's age. One dataset item per hit:
+  `{ domain, imitates, technique, registeredDaysAgo, rdapUrl }`. hold runs it nightly
+  (`convex/app/watch.ts`); 25 domains take a few seconds.
+
 No HTML-parsing dependency: plain `fetch` plus regexes (see `src/main.ts`).
 
 ## Running it

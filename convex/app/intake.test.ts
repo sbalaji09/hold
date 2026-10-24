@@ -3,7 +3,7 @@
 // listBills/listApprovals) because it has no real supplier/bank account row.
 import { convexTest } from "convex-test";
 import { describe, expect, test, vi } from "vitest";
-import { api } from "../_generated/api.js";
+import { api, internal } from "../_generated/api.js";
 import schema from "../schema.js";
 import { modules } from "../test.setup.js";
 import { parseInvoiceNo } from "./intake.js";
@@ -120,6 +120,26 @@ describe("unknown sender bills", () => {
 
     const approvals = await t.query(api.app.queries.listApprovals, {});
     expect(approvals.some((a) => a.billKey === billKey)).toBe(true);
+  });
+
+  test("an email from a domain the nightly watch found is flagged with when hold first saw it", async () => {
+    const { t } = harness();
+    await t.run((ctx) => ctx.db.insert("suppliers", SUPPLIER));
+    await t.mutation(internal.app.watch.saveHits, {
+      hits: [{ domain: "stagecraftrigging-billing.com", imitates: "stagecraftrigging.com", technique: "added word", registeredDaysAgo: 4 }],
+      runUrl: "https://console.apify.com/actors/x/runs/y",
+    });
+    const { billKey } = await t.action(api.app.intake.ingestEmail, {
+      from: "Rosa <rosa@stagecraftrigging-billing.com>",
+      subject: "New bank details",
+      body: "Please pay invoice #4471 for $9,000.00 to our new account.",
+      receivedAt: "2026-09-03T00:00:00.000Z",
+    });
+    const bill = await t.run((ctx) => ctx.db.query("bills").withIndex("by_key", (q) => q.eq("key", billKey)).unique());
+    const domain = bill?.checks?.find((c) => c.id === "domain");
+    expect(domain?.state).toBe("flag");
+    expect(domain?.evidence).toContain("nightly look-alike watch");
+    expect(domain?.evidence).toContain("registered 4 days ago");
   });
 
   test("a look-alike sender's bill gets a copycat check without anyone clicking", async () => {

@@ -1,22 +1,32 @@
 {
   "title": "hold supplier verifier input",
-  "description": "Run a background check on one domain, or compare an unfamiliar sender domain against a supplier's known domain.",
+  "description": "Run a background check on one domain, compare an unfamiliar sender domain against a supplier's known domain, or watch a list of real domains for registered look-alikes.",
   "type": "object",
   "schemaVersion": 1,
   "properties": {
     "mode": {
       "title": "Mode",
       "type": "string",
-      "description": "'background' checks one domain on its own. 'copycat' compares domain against knownDomain.",
+      "description": "'background' checks one domain on its own. 'copycat' compares domain against knownDomain. 'watch' finds registered look-alikes of every domain in domains.",
       "editor": "select",
-      "enum": ["background", "copycat"],
-      "enumTitles": ["Background check", "Copycat check"]
+      "enum": [
+        "background",
+        "copycat",
+        "watch"
+      ],
+      "enumTitles": [
+        "Background check",
+        "Copycat check",
+        "Look-alike watch"
+      ],
+      "default": "watch"
     },
     "domain": {
       "title": "Domain",
       "type": "string",
       "editor": "textfield",
-      "description": "Domain to check (background mode), or the unfamiliar sender domain (copycat mode). No scheme, e.g. \"example.com\"."
+      "description": "Domain to check (background), or the unfamiliar sender domain (copycat). No scheme, e.g. \"example.com\".",
+      "nullable": true
     },
     "businessName": {
       "title": "Business name",
@@ -31,7 +41,19 @@
       "editor": "textfield",
       "description": "The supplier's domain on file, to compare domain against (copycat mode only).",
       "nullable": true
+    },
+    "domains": {
+      "title": "Domains to watch",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Real domains (watch mode only). Each gets about 80 look-alikes generated (typos, hyphens, look-alike letters, other endings, added words like -billing), and every one someone has registered comes back with its age.",
+      "prefill": [
+        "stagecraftrigging.com"
+      ],
+      "nullable": true
     }
   },
-  "required": ["mode", "domain"]
+  "required": [
+    "mode"
+  ]
 }

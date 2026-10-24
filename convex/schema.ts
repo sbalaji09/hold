@@ -419,6 +419,20 @@ export default defineSchema({
     .index("by_supplier", ["supplierKey"])
     .index("by_bill", ["billKey"]),
 
+  // Registered look-alikes of supplier domains, found by the nightly Apify watch (convex/app/watch.ts).
+  watchedDomains: defineTable({
+    domain: v.string(),
+    supplierKey: v.string(),
+    imitates: v.string(),
+    technique: v.string(),
+    registeredDaysAgo: v.optional(v.number()),
+    firstSeenAt: v.string(),
+    lastSeenAt: v.string(),
+    runUrl: v.string(),
+  })
+    .index("by_domain", ["domain"])
+    .index("by_supplier", ["supplierKey"]),
+
   // Global toggles (currently just Watch only). Single row keyed "global"; the JSON
   // fallback (lib/data.ts) has no table to read, so it always reports this off.
   settings: defineTable({

@@ -486,18 +486,17 @@ async function fromUnknownDomain(ctx: ActionCtx, args: IngestArgs, fromAddress: 
     });
   const cite = { kind: "email" as const, ref: fromAddress };
 
-  const imitates = lookalikeOf(fromDomain, await ctx.runQuery(internal.app.onboarding.knownSuppliers, {}));
+  // The nightly Apify watch may already know this domain; otherwise compare names by edit distance.
+  const watched = fromDomain ? await ctx.runQuery(internal.app.watch.watchedDomain, { domain: fromDomain }) : null;
+  const imitates = watched
+    ? { name: watched.supplierName, domain: watched.imitates }
+    : lookalikeOf(fromDomain, await ctx.runQuery(internal.app.onboarding.knownSuppliers, {}));
   if (imitates) {
-    const flagged = await unknown([
-      {
-        id: "domain",
-        label: "Look-alike domain",
-        state: "flag",
-        evidence: `${fromDomain} looks like ${imitates.name}'s ${imitates.domain} but isn't it: someone imitating a supplier, not a new one.`,
-        quote: fromAddress,
-        cite,
-      },
-    ]);
+    const evidence = watched
+      ? `hold's nightly look-alike watch has tracked ${fromDomain} since ${watched.firstSeenAt.slice(0, 10)}: a look-alike of ${imitates.name}'s ${imitates.domain} (${watched.technique})` +
+        (watched.registeredDaysAgo !== undefined ? `, registered ${watched.registeredDaysAgo} day${watched.registeredDaysAgo === 1 ? "" : "s"} ago.` : ".")
+      : `${fromDomain} looks like ${imitates.name}'s ${imitates.domain} but isn't it: someone imitating a supplier, not a new one.`;
+    const flagged = await unknown([{ id: "domain", label: "Look-alike domain", state: "flag", evidence, quote: fromAddress, cite }]);
     await ctx.scheduler.runAfter(0, internal.app.background.copycatOnBill, { billKey: flagged.billKey, domain: fromDomain, knownDomain: imitates.domain, fromAddress });
     return flagged;
   }
