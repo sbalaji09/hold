@@ -53,7 +53,7 @@ export default async function InboxPage({
             {view === "filed" ? `${capital(co.payee).one} emails hold filed, and messages marked done · newest first` : `${co.inbox} · newest first`}
           </p>
         </div>
-        {co.key === "fogline" ? <TryAScam /> : null}
+        <TryAScam />
       </header>
 
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
