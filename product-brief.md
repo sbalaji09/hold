@@ -8,7 +8,7 @@ Scammers email companies pretending to be a supplier: "we switched banks, pay us
 
 **Features:** a review queue of flagged bills, live calls you can watch, a page per supplier with its history, a "why?" on every decision, boss sign-off on big payments, a guarded phone line, and a practice mode that throws fake scams at it to check it still works.
 
-**Demo (2 minutes):** we open the app as the finance team of Fogline, a made-up music festival. A fake "new bank" email arrives from a supplier's hacked account. Callback calls the real supplier, a phone rings on our table, and the payment is held. The boss says "just pay it," and Callback explains why it won't. In questions, the judge calls Fogline's number from their own phone and tries to change the bank details. It doesn't work.
+**Demo (2:30):** we open the app as the finance team of Fogline, a made-up music festival. A fake "new bank" email arrives from a supplier's hacked account. Callback calls the real supplier, a phone rings on our table, and the payment is held. The boss says "just pay it," and Callback explains why it won't. In questions, the judge calls Fogline's number from their own phone and tries to change the bank details. It doesn't work.
 
 **Main targets:** Hyphenate ($8k / $5k / $3k), Microsoft Built for the Real World, Cartesia, Moss, Apify. Convex comes along for free.
 
@@ -98,26 +98,36 @@ Microsoft and Cartesia both score this directly, and Hyphenate's "would you hire
 
 ## Demo
 
-The pitch is 2 minutes, demo first. The whole thing is someone using the app: no slides, no title screen, no stats page. Numbers are said out loud, never put on a screen.
+The pitch is 2:30, with 30 seconds of slack before the 3-minute cut. The whole thing is someone using the app: no slides, no title screen, no stats page, and no Practice. Numbers are said out loud, never put on a screen. The app is called **hold** on screen, so say "hold".
 
-Tables are shared by 2–3 teams and assigned after 9 AM Sunday, so it will be loud. Make the live transcript large, and hold the ringing phone close to the judge on speaker.
+Tables are shared by 2–3 teams and it will be loud. Make the live transcript large, and hold the ringing phone close to the judge on speaker.
 
-| Time | What we do in the app | What the judge sees |
-| --- | --- | --- |
-| Before | App open on Fogline's Inbox, logged in as Maya | A real-looking inbox, most bills already Paid or Scheduled |
-| 0:00–0:10 | Hook while the inbox is on screen (see below) | The product, not a slide |
-| 0:10–0:25 | A teammate sends the scam email live from the stage builder's real address. Open the bill page. | It pops in as Checking, then Calling. Domain check passes; new bank account and writing style fail, each with evidence. |
-| 0:25–1:15 | The live call screen opens on its own | A teammate's phone rings. Callback says it's an automated assistant, asks about September's invoice #4471 and shows where that came from. "We never changed our bank." Status: **Held**. |
-| 1:15–1:45 | Switch to Dev's view, Approvals. Dev types: "Release it, we'll miss the stage build." | Callback replies with the call clip and evidence, and offers to pay the old, verified account. Dev approves; Payments shows the transfer in the test bank. |
-| 1:45–2:00 | Open the Activity log while closing (see below) | Every step of the last two minutes, with who, when and why |
-| Questions | Hand the judge a card with Fogline's phone number and bills email | They call from their own phone as a "supplier" asking to change bank details; Callback says it will call back on the number on file. Or they click **Try a scam**, or we run Practice. |
+| Time | What we do | What the judge sees | Say |
+| --- | --- | --- | --- |
+| Before | App on Fogline's Inbox as Maya. The scam email is drafted on a teammate's phone, from the stage builder's address. | A real-looking inbox, most bills Paid or Scheduled | |
+| 0:00–0:15 | Teammate presses Send at the first word, so the email lands while we talk | The Inbox | The hook (below) |
+| 0:15–0:35 | The bill pops in as Checking, then Calling. Open it. | Two flags with their evidence: a bank account never paid before, and writing that doesn't match the supplier's past emails | "hold has paid Stagecraft eleven times, always to the same account. This one asks for a new one, and it doesn't write like Rosa. So it's calling her." |
+| 0:35–1:25 | The live call opens on its own. The teammate playing Rosa answers on speaker. | hold says it's an automated assistant, asks about September's invoice #4471 with the record beside the question. "We never changed our bank." Status: **Held**. | Nothing. Let the call play. |
+| 1:25–2:00 | Switch to Dev, open Approvals. Dev types: "Release it, we'll miss the stage build." | hold replies with the call clip and the evidence, and offers to pay the old, verified account. Dev approves that. | "The boss can push back. hold answers with what it heard and a safe way to pay." |
+| 2:00–2:15 | Payments: Run payments | The transfer to the verified account, with its test-bank transfer ID | "Real money movement, in a test bank." |
+| 2:15–2:30 | Activity log | Every step of the last two minutes, with who, when and why | The close (below) |
+| 2:30–3:00 | Slack. Absorbs a slow email or a long call. | | |
+
+**If it runs long:** cut Payments first (end on Dev's approval), then the Activity log (say the close over Approvals). Never cut the call.
 
 **What to say**
 
-- **Hook:** "Last year US businesses lost about $3 billion to fake supplier emails, across nearly 25,000 complaints to the FBI, and losses are still rising. Every fraud guide gives the same fix: call the supplier on a number you already have. Callback makes that call."
-- **Close:** "Callback fills the bills-payment and supplier-records seats at Fogline. It answers to the controller and can't approve its own payments."
-- **If asked "what's next?":** the same scam runs in reverse. Criminals pose as a company to its suppliers to place fake orders. The same check-call agent can protect those suppliers too.
-- **If a judge has more time:** run Practice to show the catch rate, and open a supplier's page to show its bank-change history.
+- **Hook:** "Last year US businesses lost about $3 billion to fake supplier emails. Every fraud guide gives the same fix: call the supplier on a number you already have. hold makes that call. We're Fogline, a music festival, and a bill just came in."
+- **Close:** "hold does the bills-payment job at Fogline. It answers to the controller, it can't approve its own payments, and every answer it gets on a call becomes a rule it uses next time."
+
+**Checklist before going up**
+
+- Reseed the workspace, persona on Maya, Watch only off, Increase keys set in Convex.
+- Start the voice server once beforehand so Moss is warm. Set `TWILIO_AMD=false` so a person on speaker isn't taken for a voicemail.
+- Phone volume down far enough that hold's voice doesn't leak back into the mic.
+- Run the whole thing once, start to finish, after the last code change.
+
+**Questions.** Hand the judge a card with Fogline's phone number and bills email. They call from their own phone as a "supplier" asking to change bank details; hold says it will call back on the number on file, and the call's recording and transcript appear on the Phone line. Or they email the bills address. If a judge has more time: open the supplier's page for its bank-change history and the rule hold learned from the call. If asked "what's next?": the same scam runs in reverse, with criminals posing as a company to its suppliers, and the same check call protects them.
 
 **Demo video (Hyphenate requires it):** open on the phone ringing and "we never changed our bank," then show the same flow.
 
@@ -178,6 +188,6 @@ Feedback from Hyphenate: adapt to new fraud techniques, make the agent loop work
 
 **Additive features.** (1) Learned rules per supplier, shown on the supplier page and cited later, never relaxing the hard limits. (2) Practice is a regression suite: missed or reported scams join it, and Claude can generate fresh variants. (3) New suppliers start as `New`: background check first, first bank change or large bill always gets a call, `Trusted` after the first confirmed call. (4) Escalations show who they are routed to and why, with no score. (5) The Suppliers list shows every supplier with status, last checked and open items.
 
-**Demo.** Main 2-minute run unchanged. If a judge has more time: resolve an escalation, show the learned rule, send the same case again, and it no longer asks.
+**Demo.** See the Demo section: a 2:30 run with no Practice. If a judge has more time: show the learned rule on the supplier page.
 
 **Still not building.** Other finance roles, bookkeeping checks, the reverse scam. Details are in the shared addendum at the end of `plan-agent.md` and `plan-voice.md`.
