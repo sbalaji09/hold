@@ -10,7 +10,7 @@ const NAV = [
   { href: "/approvals", label: "Approvals", icon: CircleCheck, countKey: "approvals" as const },
   { href: "/payments", label: "Payments", icon: Landmark },
   { href: "/suppliers", label: "Suppliers", icon: Building2 },
-  { href: "/phone-line", label: "Phone line", icon: Phone },
+  { href: "/phone", label: "Phone line", icon: Phone },
   { href: "/practice", label: "Practice", icon: FlaskConical },
   { href: "/activity", label: "Activity log", icon: ScrollText },
 ];
