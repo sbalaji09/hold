@@ -42,11 +42,12 @@ async function logActivity(
   });
 }
 
-// A thrown error rolls back every write this transaction made (Convex mutations are atomic), so a
-// refusal can only ever report the reason — it can't also leave an activity row behind. Only
-// successful actions are logged.
-function refuse(reason: string): never {
-  throw new ConvexError(reason);
+// A thrown error would roll back the activity row, so a refusal is a normal return: it writes the
+// row (who tried what and why it was refused) and hands the reason back for the UI to show.
+export type Refused = { refused: string };
+async function refuse(ctx: MutationCtx, actor: Actor, what: string, reason: string, billKey: string): Promise<Refused> {
+  await logActivity(ctx, actor, `was refused: ${what}`, reason, "bill", billKey);
+  return { refused: reason };
 }
 
 // ---------- mutations ----------
@@ -58,7 +59,7 @@ export const payBill = mutation({
     const row = await requireBillRow(ctx, billKey);
     const bill = await hydrateBill(ctx, row);
     const result = canPay(bill);
-    if (!result.allowed) return refuse(result.reason!);
+    if (!result.allowed) return refuse(ctx, "maya", "pay", result.reason!, billKey);
     await ctx.db.patch(row._id, { status: "Scheduled" });
     await logActivity(ctx, "callback", "scheduled payment", "Amount was under $10,000 and every check passed.", "bill", billKey);
   },
@@ -73,7 +74,7 @@ export const holdBill = mutation({
     const row = await requireBillRow(ctx, billKey);
     const bill = await hydrateBill(ctx, row);
     const result = canHold(bill);
-    if (!result.allowed) return refuse(result.reason!);
+    if (!result.allowed) return refuse(ctx, "maya", "hold", result.reason!, billKey);
     const why = reason ?? bill.checks.filter((c) => c.state === "flag").map((c) => c.evidence).join(" ") ?? "A check on this bill didn't pass.";
     const route = routeEscalation(bill.checks, bill.amountCents, { callOutcome: bill.call?.outcome === "handed_off" ? "handed_off" : null });
     const kind = bill.checks.find((c) => c.id === "bank-account" && c.state === "flag") ? "bank_change" : "held_payment";
@@ -109,7 +110,7 @@ export const requestCall = mutation({
     const row = await requireBillRow(ctx, billKey);
     const bill = await hydrateBill(ctx, row);
     const result = canCall(bill);
-    if (!result.allowed) return refuse(result.reason!);
+    if (!result.allowed) return refuse(ctx, "maya", "call supplier", result.reason!, billKey);
 
     const supplier = await ctx.db
       .query("suppliers")
@@ -166,9 +167,9 @@ export const decideApproval = mutation({
     if (!approvalRow) throw new ConvexError(`No pending approval for bill ${billKey}`);
 
     const approveCheck = canApprove(actor, "callback");
-    if (!approveCheck.allowed) return refuse(approveCheck.reason!);
+    if (!approveCheck.allowed) return refuse(ctx, actor, "approve", approveCheck.reason!, billKey);
     if (actor !== "dev") {
-      return refuse("Maya can't approve this. Dev has to sign off.");
+      return refuse(ctx, actor, "approve", "Maya can't approve this. Dev has to sign off.", billKey);
     }
 
     const row = await requireBillRow(ctx, billKey);
@@ -181,13 +182,13 @@ export const decideApproval = mutation({
           .withIndex("by_key", (q) => q.eq("key", payToBankAccountKey))
           .unique();
         if (!target || target.supplierKey !== bill.supplierKey) {
-          return refuse("That bank account isn't on file for this supplier.");
+          return refuse(ctx, actor, "approve", "That bank account isn't on file for this supplier.", billKey);
         }
         if (target.key === bill.bankAccountKey) {
-          return refuse("That's the account already on this bill, not the verified alternative.");
+          return refuse(ctx, actor, "approve", "That's the account already on this bill, not the verified alternative.", billKey);
         }
         if (target.status !== "active") {
-          return refuse("That account isn't a verified account on file.");
+          return refuse(ctx, actor, "approve", "That account isn't a verified account on file.", billKey);
         }
         await ctx.db.patch(row._id, { bankAccountKey: target.key, status: "Scheduled" });
         await ctx.db.patch(approvalRow._id, { status: "approved" });
@@ -205,7 +206,7 @@ export const decideApproval = mutation({
       }
       if (bill.status === "Held") {
         const release = canRelease(bill, actor);
-        if (!release.allowed) return refuse(release.reason!);
+        if (!release.allowed) return refuse(ctx, actor, "approve", release.reason!, billKey);
       }
       await ctx.db.patch(approvalRow._id, { status: "approved" });
       await ctx.db.patch(row._id, { status: "Scheduled" });

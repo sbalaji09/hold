@@ -264,14 +264,7 @@ export async function listSupplierSummaries(): Promise<Array<Supplier & { openIt
 }
 
 export async function listBankAccountsForSupplier(key: string): Promise<BankAccount[]> {
-  if (CONVEX_URL) {
-    // ponytail: no public Convex query exposes raw bank accounts by supplier; derive
-    // the set from the supplier's bills (every active account is referenced by at
-    // least one). Add a dedicated query if an account with zero bills ever matters.
-    const bills = await listBillsForSupplier(key);
-    const byKey = new Map(bills.map((b) => [b.bankAccount.key, b.bankAccount]));
-    return [...byKey.values()].sort((a, b) => (a.addedAt < b.addedAt ? -1 : 1));
-  }
+  if (CONVEX_URL) return fetchQuery(api.app.queries.listBankAccountsForSupplier, { supplierKey: key }, convexOpts());
   const d = await load();
   return d.bankAccounts
     .filter((b) => b.supplierKey === key)
@@ -284,12 +277,7 @@ export async function listBillsForSupplier(key: string): Promise<Bill[]> {
 }
 
 export async function listCallsForSupplier(key: string): Promise<Call[]> {
-  if (CONVEX_URL) {
-    // ponytail: same gap as listBankAccountsForSupplier — derived from bills' calls.
-    const bills = await listBillsForSupplier(key);
-    const byKey = new Map(bills.filter((b) => b.call).map((b) => [b.call!.key, b.call!]));
-    return [...byKey.values()].sort((a, b) => (a.startedAt < b.startedAt ? 1 : -1));
-  }
+  if (CONVEX_URL) return fetchQuery(api.app.queries.listCallsForSupplier, { supplierKey: key }, convexOpts());
   const d = await load();
   return d.calls.filter((c) => c.supplierKey === key).sort((a, b) => (a.startedAt < b.startedAt ? 1 : -1));
 }

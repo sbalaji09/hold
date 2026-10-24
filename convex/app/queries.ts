@@ -272,6 +272,31 @@ export const getSupplier = query({
   },
 });
 
+/** Every bank account on file for a supplier, including ones no bill points at. No full numbers. */
+export const listBankAccountsForSupplier = query({
+  args: { supplierKey: v.string() },
+  handler: async (ctx, { supplierKey }): Promise<BankAccount[]> => {
+    const rows = await ctx.db
+      .query("bankAccounts")
+      .withIndex("by_supplier", (q) => q.eq("supplierKey", supplierKey))
+      .collect();
+    return rows.map(toBankAccount).sort((a, b) => (a.addedAt < b.addedAt ? -1 : 1));
+  },
+});
+
+/** Finished calls about a supplier's bills, newest first. */
+export const listCallsForSupplier = query({
+  args: { supplierKey: v.string() },
+  handler: async (ctx, { supplierKey }): Promise<Call[]> => {
+    const bills = await ctx.db
+      .query("bills")
+      .withIndex("by_supplier", (q) => q.eq("supplierKey", supplierKey))
+      .collect();
+    const calls = await Promise.all(bills.map((b) => toCall(ctx, b.key, supplierKey)));
+    return calls.filter((c): c is Call => c !== null).sort((a, b) => (a.startedAt < b.startedAt ? 1 : -1));
+  },
+});
+
 /** Open (not Paid/Scheduled) bill count per supplier, for the Suppliers overview's "open items"
  * column (plan-agent.md addendum §3); each count links back to that supplier's own bill list. */
 export const listSupplierSummaries = query({

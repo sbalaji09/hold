@@ -87,12 +87,17 @@ export function PushbackThread({ approval, actor }: { approval: Approval; actor:
     setError(null);
     setPending(kind);
     try {
-      await decideApproval({
+      const res = await decideApproval({
         billKey: bill.key,
         decision: kind === "reject" ? "reject" : "approve",
         actor,
         payToBankAccountKey,
       });
+      if (res && typeof res === "object" && "refused" in res) {
+        setError(res.refused);
+        router.refresh();
+        return;
+      }
       const next = kind === "reject" ? "rejected" : kind === "approve-safe" ? "approved-safe" : "approved";
       setDecision(next);
       setRuleText(defaultRuleText(approval, next));

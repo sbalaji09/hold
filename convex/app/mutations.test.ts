@@ -116,19 +116,15 @@ describe("payBill", () => {
   test("refuses a bill at or over $10,000", async () => {
     const { t, fns, seed, activity, billRow } = harness();
     await seed({ amountCents: 1_500_000 });
-    await expect(t.mutation(fns.mutations.payBill, { billKey: "bill_4471" })).rejects.toThrow(
-      "Callback can't pay this on its own. Bills of $10,000 or more need Dev's approval.",
-    );
+    expect(await t.mutation(fns.mutations.payBill, { billKey: "bill_4471" })).toEqual({ refused: "Callback can't pay this on its own. Bills of $10,000 or more need Dev's approval." });
     expect((await billRow()).status).toBe("Checking");
-    expect(await activity()).toHaveLength(0);
+    expect(await activity()).toHaveLength(1);
   });
 
   test("refuses a flagged bill even under $10,000", async () => {
     const { t, fns, seed } = harness();
     await seed({ amountCents: 50_000, checks: [BANK_FLAG] });
-    await expect(t.mutation(fns.mutations.payBill, { billKey: "bill_4471" })).rejects.toThrow(
-      "Callback can't pay this bill. Bank account didn't check out.",
-    );
+    expect(await t.mutation(fns.mutations.payBill, { billKey: "bill_4471" })).toEqual({ refused: "Callback can't pay this bill. Bank account didn't check out." });
   });
 
   test("pays a safe bill under $10,000", async () => {
@@ -158,23 +154,17 @@ describe("decideApproval", () => {
 
   test("refuses Callback approving its own request (self-approval)", async () => {
     const h = await seedApproval({ amountCents: 1_500_000 }, "big_payment");
-    await expect(
-      h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "callback" as never }),
-    ).rejects.toThrow("Callback can't approve its own requests. Maya or Dev has to sign off.");
+    expect(await h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "callback" as never }),).toEqual({ refused: "Callback can't approve its own requests. Maya or Dev has to sign off." });
   });
 
   test("refuses Maya approving", async () => {
     const h = await seedApproval({ amountCents: 1_500_000 }, "big_payment");
-    await expect(h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "maya" })).rejects.toThrow(
-      "Maya can't approve this. Dev has to sign off.",
-    );
+    expect(await h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "maya" })).toEqual({ refused: "Maya can't approve this. Dev has to sign off." });
   });
 
   test("refuses Dev releasing a held payment whose bank change wasn't confirmed by call", async () => {
     const h = await seedApproval({ status: "Held", checks: [BANK_FLAG] }, "bank_change");
-    await expect(h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "dev" })).rejects.toThrow(
-      "Callback can't change bank details without a confirmed call. Call the supplier on the number on file first.",
-    );
+    expect(await h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "dev" })).toEqual({ refused: "Callback can't change bank details without a confirmed call. Call the supplier on the number on file first." });
     expect((await h.billRow()).status).toBe("Held");
   });
 
@@ -228,27 +218,23 @@ describe("decideApproval", () => {
 
     test("refuses a bank account belonging to a different supplier", async () => {
       const h = await seedHeldWithCall();
-      await expect(
-        h.t.mutation(h.fns.mutations.decideApproval, {
+      expect(await h.t.mutation(h.fns.mutations.decideApproval, {
           billKey: "bill_4471",
           decision: "approve",
           actor: "dev",
           payToBankAccountKey: "bank_other",
-        }),
-      ).rejects.toThrow("That bank account isn't on file for this supplier.");
+        }),).toEqual({ refused: "That bank account isn't on file for this supplier." });
       expect((await h.billRow()).status).toBe("Held");
     });
 
     test("refuses approving the new unverified account via payToBankAccountKey without a confirmed call", async () => {
       const h = await seedApproval({ status: "Held", checks: [BANK_FLAG] }, "bank_change");
-      await expect(
-        h.t.mutation(h.fns.mutations.decideApproval, {
+      expect(await h.t.mutation(h.fns.mutations.decideApproval, {
           billKey: "bill_4471",
           decision: "approve",
           actor: "dev",
           payToBankAccountKey: "bank_stage",
-        }),
-      ).rejects.toThrow("That's the account already on this bill, not the verified alternative.");
+        }),).toEqual({ refused: "That's the account already on this bill, not the verified alternative." });
       expect((await h.billRow()).status).toBe("Held");
     });
   });

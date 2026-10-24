@@ -1,7 +1,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { InboxRow } from "@/components/callback";
-import { listBills } from "@/lib/data";
+import { listApprovals, listBills } from "@/lib/data";
 import type { DataBillStatus } from "@/lib/types";
 import { INBOX_FILTERS, STATUS_TO_MARK, UNSETTLED_STATUS, emailPreview, shortDate } from "@/lib/inbox";
 
@@ -12,7 +12,8 @@ export default async function InboxPage({
 }): Promise<React.ReactElement> {
   const { status } = await searchParams;
   const activeStatus = status as DataBillStatus | undefined;
-  const bills = await listBills();
+  const [bills, approvals] = await Promise.all([listBills(), listApprovals()]);
+  const routed = new Map(approvals.map((a) => [a.bill.key, a.routedTo]));
   const rows = activeStatus ? bills.filter((b) => b.status === activeStatus) : bills;
 
   return (
@@ -59,7 +60,7 @@ export default async function InboxPage({
               href={`/bills/${bill.key}`}
               from={bill.supplier.name}
               subject={bill.email.subject}
-              preview={emailPreview(bill.email.body)}
+              preview={(routed.has(bill.key) ? `Routed to ${routed.get(bill.key) === "dev" ? "Dev" : "Maya"}. ` : "") + emailPreview(bill.email.body)}
               cents={bill.amountCents}
               status={STATUS_TO_MARK[bill.status]}
               unread={UNSETTLED_STATUS[bill.status]}

@@ -107,7 +107,8 @@ export const runPayments = action({
       try {
         const details = await ctx.runQuery(internal.app.increase.payoutDetails, { billKey });
         if (details.status !== "Scheduled") {
-          await ctx.runMutation(api.app.mutations.payBill, { billKey });
+          const paid = await ctx.runMutation(api.app.mutations.payBill, { billKey });
+          if (paid && typeof paid === "object" && "refused" in paid) throw new Error(paid.refused);
         }
         const { transferId } = await ctx.runAction(api.app.increase.sendTransfer, {
           routingNumber: details.routingNumber,

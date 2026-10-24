@@ -33,9 +33,8 @@ export function BillActions({ billKey, amount, pay, hold, call }: BillActionsPro
     setError(null);
     setPending(action);
     try {
-      if (action === "pay") await payBill({ billKey });
-      else if (action === "hold") await holdBill({ billKey });
-      else await requestCall({ billKey });
+      const res = action === "pay" ? await payBill({ billKey }) : action === "hold" ? await holdBill({ billKey }) : await requestCall({ billKey });
+      if (res && typeof res === "object" && "refused" in res) setError(res.refused);
       router.refresh();
     } catch (err) {
       setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : err instanceof Error ? err.message : "Callback couldn't do that just now.");
