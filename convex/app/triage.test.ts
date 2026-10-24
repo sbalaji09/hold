@@ -104,6 +104,7 @@ describe("every supplier email is sorted before anything else happens", () => {
   test("a 'document' asking to change banks can't be filed away: it goes through the bill checks", async () => {
     const t = await setup();
     await ingest(t, "Certificate", "Attached is our certificate. Also, we moved banks; please use our new account for invoice 4104, $1,000.00.");
+    await t.finishAllScheduledFunctions(vi.runAllTimers); // checks are revealed one at a time
     const [bill] = await bills(t);
     expect(bill).toBeDefined();
     expect(bill!.checks!.find((c: { id: string }) => c.id === "bank-account")!.state).toBe("flag");

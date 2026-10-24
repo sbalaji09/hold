@@ -265,7 +265,6 @@ export const finalizeIntake = internalMutation({
     const co = await getCompany(ctx);
     const limit = wholeDollars(co.approvalLimitCents);
     const billKey = freshKey("bill_in");
-    const status: Doc<"bills">["status"] = args.decision === "pay" ? "Scheduled" : args.decision === "ask_dev" ? "Needs you" : "Calling";
 
     const existing = args.existingEmailKey
       ? await ctx.db
@@ -298,12 +297,54 @@ export const finalizeIntake = internalMutation({
       dueDate: args.receivedAt,
       receivedAt: args.receivedAt,
       bankAccountKey: args.bankAccountKey,
-      status,
+      status: "Checking",
       emailKey,
       planted: false,
-      checks: args.checks,
+      checks: [],
     });
 
+    // The bill lands as Checking with an empty checks panel; revealChecks adds one check at a
+    // time, then does the decision step, so the page shows the agent working.
+    await ctx.scheduler.runAfter(CHECK_STEP_MS, internal.app.intake.revealChecks, {
+      billKey,
+      step: 0,
+      supplier: args.supplier,
+      amountCents: args.amountCents,
+      invoiceNo: args.invoiceNo,
+      checks: args.checks,
+      decision: args.decision,
+    });
+
+    return { billKey, supplierKey: args.supplier.key, status: "Checking" as Doc<"bills">["status"] };
+  },
+});
+
+const CHECK_STEP_MS = 1200;
+
+/** Adds the next check to a Checking bill; after the last one, settles the bill by decision. */
+export const revealChecks = internalMutation({
+  args: {
+    billKey: v.string(),
+    step: v.number(),
+    supplier: v.object({ key: v.string(), name: v.string(), trustedPhone: v.string() }),
+    amountCents: v.number(),
+    invoiceNo: v.string(),
+    checks: v.array(checkValidator),
+    decision: v.union(v.literal("pay"), v.literal("ask_dev"), v.literal("call")),
+  },
+  handler: async (ctx, args): Promise<void> => {
+    const bill = await ctx.db.query("bills").withIndex("by_key", (q) => q.eq("key", args.billKey)).unique();
+    if (!bill) return;
+    if (args.step < args.checks.length) {
+      await ctx.db.patch(bill._id, { checks: args.checks.slice(0, args.step + 1) });
+      await ctx.scheduler.runAfter(CHECK_STEP_MS, internal.app.intake.revealChecks, { ...args, step: args.step + 1 });
+      return;
+    }
+    const billKey = args.billKey;
+    const co = await getCompany(ctx);
+    const limit = wholeDollars(co.approvalLimitCents);
+    const status: Doc<"bills">["status"] = args.decision === "pay" ? "Scheduled" : args.decision === "ask_dev" ? "Needs you" : "Calling";
+    await ctx.db.patch(bill._id, { status });
     const flaggedLabels = args.checks.filter((c) => c.state === "flag").map((c) => c.label);
     const money = fmtMoney(args.amountCents);
 
@@ -357,7 +398,6 @@ export const finalizeIntake = internalMutation({
       ));
     }
 
-    return { billKey, supplierKey: args.supplier.key, status };
   },
 });
 

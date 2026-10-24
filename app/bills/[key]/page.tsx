@@ -167,7 +167,7 @@ export default async function BillPage({
       <aside className="flex min-w-0 flex-col gap-4">
         <section className="cb-doc">
           <div className="cb-doc-head">
-            Callback&rsquo;s checks
+            hold&rsquo;s checks
             <small>{bill.status === "Checking" ? "Running" : failCount ? `${failCount} failed` : "All passed"}</small>
           </div>
           <div role="list">
