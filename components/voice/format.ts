@@ -50,11 +50,10 @@ export function numberSourceLabel(source: NumberSource): string {
   return source === "on_file" ? "on file" : "from background check";
 }
 
-/** Cite label: "Invoice #4471". Refs that already name their kind ("Email 12 Sep") are used as they are. */
+/** Cite label: the record's own reference ("INV-4471", "Chase ··2210"); a bare "#4471" gets its kind ("Invoice #4471"). */
 export function citeLabel(source: Source): string {
   const ref = source.ref.trim();
-  if (ref.toLowerCase().startsWith(source.kind.toLowerCase())) return ref.charAt(0).toUpperCase() + ref.slice(1);
-  return `${source.kind.charAt(0).toUpperCase()}${source.kind.slice(1)} ${ref}`;
+  return ref.startsWith("#") ? `${source.kind.charAt(0).toUpperCase()}${source.kind.slice(1)} ${ref}` : ref;
 }
 
 /** Parse an ISO timestamp from the app's tables; null when absent or invalid. */

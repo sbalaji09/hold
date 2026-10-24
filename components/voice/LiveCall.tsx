@@ -132,12 +132,18 @@ function LiveCallView({ call, request, sourceHref }: { call: LiveCall; request: 
             otherName={otherName}
             live={live}
             sourceHref={sourceHref}
-            empty={view.active ? `Ringing ${formatPhone(request.to_number)}.` : "Nothing was said on this call."}
+            empty={
+              view.line === "ringing"
+                ? `Ringing ${formatPhone(request.to_number)}.`
+                : view.active
+                  ? "No one has picked up yet."
+                  : "Nothing was said on this call."
+            }
           />
         </div>
 
         <aside className="hv-side">
-          {call.result && <Result result={call.result} view={view} />}
+          {call.result && <Result result={call.result} />}
 
           <section className="cb-doc hv-pad">
             <div className="cb-caps">Why {AGENT} is calling</div>
@@ -239,23 +245,27 @@ function Takeover({ callId, view, takeoverRequested }: { callId: string; view: C
   );
 }
 
-function Result({ result, view }: { result: CallResultDoc; view: CallView }) {
+function Result({ result }: { result: CallResultDoc }) {
   const at = `${formatTime(result._creationTime)} · ${AGENT}`;
   return (
     <section className="cb-doc" aria-labelledby="hv-result-title">
       <div className="cb-doc-head">
         <span id="hv-result-title">Result</span>
-        <small>{result.evidence.length} answers</small>
+        {result.evidence.length > 0 && (
+          <small>
+            {result.evidence.length} {result.evidence.length === 1 ? "answer" : "answers"}
+          </small>
+        )}
       </div>
       <div className="hv-pad">
         {result.outcome === "handed_off" ? (
-          <StatusMark status="needs-you">Needs {HANDOFF_TO}</StatusMark>
+          <StatusMark status="needs-you" />
         ) : (
           <Endorsement kind={result.outcome === "confirmed" ? "confirmed" : "held"} meta={at}>
             {result.outcome === "confirmed" ? "Confirmed by call" : "Not confirmed"}
           </Endorsement>
         )}
-        <p className="hv-statement">{result.outcome === "handed_off" && view.note ? `${view.note} ${result.summary}` : result.summary}</p>
+        <p className="hv-statement">{result.summary}</p>
       </div>
       {result.evidence.length > 0 && (
         <div role="list" aria-label="Answers checked against the records">

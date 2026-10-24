@@ -73,7 +73,7 @@ describe("formatting", () => {
   it("labels cites and number sources", () => {
     expect(citeLabel({ kind: "invoice", ref: "#4471" })).toBe("Invoice #4471");
     expect(citeLabel({ kind: "email", ref: "Email 12 Sep" })).toBe("Email 12 Sep");
-    expect(citeLabel({ kind: "invoice", ref: "invoice INV-4471" })).toBe("Invoice INV-4471");
+    expect(citeLabel({ kind: "invoice", ref: "INV-4471 · Sep 12" })).toBe("INV-4471 · Sep 12");
     expect(numberSourceLabel("on_file")).toBe("on file");
     expect(numberSourceLabel("background_check")).toBe("from background check");
   });

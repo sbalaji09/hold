@@ -195,7 +195,19 @@
 }
 
 .hv-transcript-large .cb-script {
+  grid-template-columns: calc(var(--margin-width) + var(--space-6)) minmax(0, 1fr);
   padding: var(--space-4) 0;
+}
+
+/* Long references must not spill out of the margin column. */
+.hv-transcript .cb-margin {
+  min-width: 0;
+}
+
+.hv-transcript .cb-margin .cb-cite {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Phone line */
