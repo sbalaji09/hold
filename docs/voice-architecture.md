@@ -15,6 +15,7 @@ Interfaces are fixed in code; change them only deliberately and update every use
 | `voice/src/store/` | `VoiceStore` interface and its Convex implementation. |
 | `voice/src/audio/` | Twilio Media Streams, Cartesia STT and TTS websockets, barge-in, `PhoneTransport`. |
 | `voice/src/call/` | Conversation logic: outbound check call, inbound line, question building, judging, simulated supplier. |
+| `voice/src/call/lines.ts` | Every fixed spoken line, per language (English, Spanish), in the words of the company the workspace runs (`lib/company.ts`). |
 | `voice/src/server.ts`, `voice/src/dialer.ts`, `voice/src/main.ts` | HTTP and websocket server, Twilio webhooks, dialing loop. |
 | `web/src/voice/` | Live call screen, Phone line screen, auto-open hook. |
 

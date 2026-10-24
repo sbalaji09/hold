@@ -48,7 +48,8 @@ export type CallStatusValue =
   | "no_answer"
   | "retry_scheduled"
   | "dropped"
-  | "ended";
+  | "ended"
+  | "outside_hours"; // waiting for the payee's calling hours; retry_at says when
 
 export type Speaker = "callback" | "supplier" | "caller";
 
@@ -92,7 +93,7 @@ export interface PersonAnswerEvent {
 
 /** Bank, account or credential words: hold never says these on a check call, whoever wrote the line. */
 export function mentionsBankDetails(text: string): boolean {
-  return /\b(?:bank|account|routing|iban|swift|sort code|password|pin|passcode)\b/i.test(text);
+  return /\b(?:bank|account|routing|iban|swift|sort code|password|pin|passcode|banco|bancaria|cuenta|contraseña|clave)\b/i.test(text);
 }
 
 export type CallOutcome = "confirmed" | "not_confirmed" | "handed_off";

@@ -3,6 +3,7 @@
 import type { CallRequest, SupplierRecord } from "../../../shared/contract.js";
 import { MODELS, type ChatMessage, type LLM } from "./llm.js";
 import type { CallTransport, EndReason, SayResult, Utterance } from "./transport.js";
+import { companyFor, languageName, type Company } from "../../../lib/company.js";
 
 export type SupplierPersona = "real" | "scammer";
 
@@ -13,6 +14,10 @@ export interface SimulatedTransportOptions {
   /** Plays the persona. Required unless `script` is given. */
   llm?: LLM;
   supplierName?: string;
+  /** Who is calling. Absent = Fogline. */
+  company?: Company;
+  /** The payee's language: they answer in it. Absent = English. */
+  language?: string;
   /** The supplier's true history, which only the "real" persona sees. */
   records?: SupplierRecord[];
   /**
@@ -144,8 +149,10 @@ export class SimulatedTransport implements CallTransport {
   }
 
   private personaPrompt(): string {
-    const name = this.opts.supplierName ?? "the supplier";
-    const common = `You are on a phone call, playing someone at ${name}, a supplier to Fogline (a music festival in San Francisco). An automated assistant from Fogline's accounts team has called you. Speak like a real person on the phone: one or two short sentences, no lists, no stage directions. When the caller says goodbye, say a brief goodbye and then write <hangup>.`;
+    const co = this.opts.company ?? companyFor(undefined);
+    const name = this.opts.supplierName ?? `the ${co.payee.one}`;
+    const who = co.payee.one === "supplier" ? `someone at ${name}, a supplier to ${co.about}` : `${name}, one of the ${co.payee.many} of ${co.about}`;
+    const common = `You are on a phone call, playing ${who}. An automated assistant from ${co.owner} ${co.team} has called you. Speak like a real person on the phone, in ${languageName(this.opts.language ?? "en")}: one or two short sentences, no lists, no stage directions. When the caller says goodbye, say a brief goodbye and then write <hangup>.`;
     if ((this.opts.persona ?? "real") === "real") {
       const history = (this.opts.records ?? [])
         .map((r) => `- ${r.ref} (${r.kind}, ${r.date})${r.amount_cents === undefined ? "" : ` $${(r.amount_cents / 100).toFixed(2)}`}: ${r.text}`)
@@ -156,7 +163,7 @@ ${history || "(no records)"}
 You have NOT changed your bank account. If asked about a bank change, say clearly that you never changed your bank and that any email saying so wasn't from you.`;
     }
     return `${common}
-You are a scammer pretending to be ${name}. You recently emailed Fogline asking them to pay a new bank account (${this.opts.request.reason.join("; ")}). You do not know the supplier's real history: if asked about past invoices or calls, stall, guess vaguely, or deflect. Insist the bank change is real, say you changed banks recently, and push for the payment to go to the new account soon because it is urgent.`;
+You are a scammer pretending to be ${name}. You recently emailed ${co.name} asking them to pay a new bank account (${this.opts.request.reason.join("; ")}). You do not know the ${co.payee.one}'s real history: if asked about past invoices or calls, stall, guess vaguely, or deflect. Insist the bank change is real, say you changed banks recently, and push for the payment to go to the new account soon because it is urgent.`;
   }
 }
 

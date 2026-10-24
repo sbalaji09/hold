@@ -21,7 +21,8 @@ export interface TtsStream {
   close(): void;
 }
 
-export type TtsFactory = (sink: TtsSink) => TtsStream;
+/** language: the call's BCP-47 code ("es"); absent = the factory's default. */
+export type TtsFactory = (sink: TtsSink, call?: { language?: string }) => TtsStream;
 
 export interface CartesiaTtsOptions {
   apiKey: string;
@@ -30,11 +31,17 @@ export interface CartesiaTtsOptions {
   voiceId: string;
   maxBufferDelayMs: number;
   language?: string;
+  /** A voice per language ("es" -> a native Spanish voice). Absent = voiceId speaks every language. */
+  voiceIdByLanguage?: Record<string, string>;
   url?: string;
 }
 
 export function cartesiaTtsFactory(opts: CartesiaTtsOptions): TtsFactory {
-  return (sink) => new CartesiaTts(opts, sink);
+  return (sink, call) => {
+    const language = call?.language ?? opts.language;
+    const voiceId = (language && opts.voiceIdByLanguage?.[language]) || opts.voiceId;
+    return new CartesiaTts({ ...opts, language, voiceId }, sink);
+  };
 }
 
 interface ServerMessage {

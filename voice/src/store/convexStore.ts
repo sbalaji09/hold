@@ -121,6 +121,10 @@ export class ConvexStore implements VoiceStore {
     return this.client.query(fns.phonePlaybook, { secret: this.secret });
   }
 
+  getCompany() {
+    return this.client.query(api.app.company.current, {});
+  }
+
   async startInboundCall(call_id: string, caller_number: string): Promise<void> {
     await this.client.mutation(fns.startInboundCall, { secret: this.secret, call_id, caller_number });
   }

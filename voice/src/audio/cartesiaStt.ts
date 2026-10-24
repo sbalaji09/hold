@@ -18,7 +18,8 @@ export interface SttStream {
   close(): void;
 }
 
-export type SttFactory = (sink: SttSink) => SttStream;
+/** language: the call's BCP-47 code ("es"); absent = the factory's default. */
+export type SttFactory = (sink: SttSink, call?: { language?: string }) => SttStream;
 
 export interface CartesiaSttOptions {
   apiKey: string;
@@ -33,7 +34,7 @@ export interface CartesiaSttOptions {
 const MAX_BUFFER_BYTES = 8000 * 2; // keep up to 2 s of audio while (re)connecting
 
 export function cartesiaSttFactory(opts: CartesiaSttOptions): SttFactory {
-  return (sink) => new CartesiaStt(opts, sink);
+  return (sink, call) => new CartesiaStt({ ...opts, language: call?.language ?? opts.language }, sink);
 }
 
 export class CartesiaStt implements SttStream {

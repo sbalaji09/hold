@@ -20,6 +20,10 @@ const DENIAL_PATTERNS: RegExp[] = [
   // "that wasn't us", "we didn't send that"
   /\b(?:wasn'?t|was not|not) (?:us|from us)\b/i,
   /\b(?:didn'?t|did not|never) send\b/i,
+  // Spanish: "nunca cambiamos de banco", "no hemos cambiado nada", "es la misma cuenta", "eso no fui yo"
+  /\b(?:nunca|no)\b[^.?!]{0,30}\b(?:cambi|actualic|mov|ped|solicit|envi|mand)\w*[^.?!]{0,30}\b(?:banco|cuenta|datos|nada|instrucciones|eso|correo)/i,
+  /\bmism[ao] (?:cuenta|banco)\b/i,
+  /\bno (?:fui|fuimos|era|éramos|somos|soy) (?:yo|nosotros)\b|\beso no (?:es|fue|vino) (?:de )?(?:mí|mi|nosotros)\b/i,
 ];
 
 /** True if the text denies a bank change. Errs towards true: a false denial only holds a payment. */
@@ -29,11 +33,11 @@ export function isBankDenial(text: string): boolean {
 
 /** For an answer to "Did you recently change your bank account?": a leading "no" is a denial too. */
 export function isBankAnswerDenial(answer: string): boolean {
-  return isBankDenial(answer) || /^\W*(?:no|nope|nah|negative)\b(?!\s+(?:problem|worries))/i.test(answer);
+  return isBankDenial(answer) || /^\W*(?:no|nope|nah|negative)\b(?!\s+(?:problem|worries|hay problema))/i.test(answer);
 }
 
 const INJECTION =
-  /\b(?:ignore|disregard|forget|override)\b[^.?!]{0,30}\b(?:instructions?|rules?|prompts?|guidelines|previous|above|everything)\b|\byou are now\b|\bnew instructions\b|\bsystem prompt\b|\bdeveloper mode\b|\bjailbreak\b|\bpretend (?:to be|you)\b|\bact as\b|\bmark (?:this|it|me|the call)\b[^.?!]{0,20}\b(?:confirmed|verified|approved|correct)\b|\b(?:as an ai|you'?re an ai|language model)\b/i;
+  /\b(?:ignore|disregard|forget|override)\b[^.?!]{0,30}\b(?:instructions?|rules?|prompts?|guidelines|previous|above|everything)\b|\byou are now\b|\bnew instructions\b|\bsystem prompt\b|\bdeveloper mode\b|\bjailbreak\b|\bpretend (?:to be|you)\b|\bact as\b|\bmark (?:this|it|me|the call)\b[^.?!]{0,20}\b(?:confirmed|verified|approved|correct)\b|\b(?:as an ai|you'?re an ai|language model)\b|\bignor(?:a|e|ar)\b[^.?!]{0,30}\binstrucciones\b|\bnuevas instrucciones\b|\bahora eres\b|\bmarca(?:lo|la)? como (?:confirmad|verificad|aprobad)\w*/i;
 
 /** Spoken prompt injection ("ignore your instructions", "you are now..."). A real supplier never says this. */
 export function looksLikeInjection(text: string): boolean {
@@ -78,7 +82,7 @@ export function isPressure(text: string): boolean {
 }
 
 export function isGoodbye(text: string): boolean {
-  return /\b(?:bye|goodbye|good bye)\b/i.test(text) || /^\W*(?:ok(?:ay)?[, ]*)?(?:bye|goodbye|good bye|thanks?,? bye|that'?s (?:all|it|everything)|nothing else|no,? (?:thanks?|thank you|that'?s it|that'?s all)|i'?m (?:all set|good)|have a good (?:one|day))\b/i.test(
+  return /\b(?:bye|goodbye|good bye|adiós|adios|hasta luego)\b/i.test(text) || /^\W*(?:ok(?:ay)?[, ]*)?(?:bye|goodbye|good bye|thanks?,? bye|that'?s (?:all|it|everything)|nothing else|no,? (?:thanks?|thank you|that'?s it|that'?s all)|i'?m (?:all set|good)|have a good (?:one|day))\b/i.test(
     text.trim(),
   );
 }
@@ -90,8 +94,12 @@ export function classifyTurn(text: string): TurnIntent {
   const t = text.trim();
   if (/\b(?:call (?:me |us )?(?:back )?later|call (?:me |us )?back (?:later|tomorrow|another time|in)|not a good time|bad time|(?:i'?m|we'?re) (?:busy|in a meeting|driving|on another call)|can you call back)\b/i.test(t))
     return "later";
+  if (/\b(?:ll[áa]me(?:me|nos)? (?:m[áa]s tarde|luego|despu[ée]s|mañana)|no es (?:un )?buen momento|estoy (?:ocupad[oa]|manejando|en una reuni[óo]n)|(?:puede|podr[íi]a) llamar(?:me)? (?:m[áa]s tarde|despu[ée]s))/i.test(t))
+    return "later";
   if (/\b(?:wrong number|wrong person|(?:you|you'?ve) (?:have|got) the wrong|don'?t work (?:here|there|for)|never heard of|no one (?:here )?by that|not who you)\b/i.test(t))
     return "wrong_person";
+  if (/\b(?:n[úu]mero equivocado|se equivoc[óo]|persona equivocada|no trabaja aqu[íi]|no conozco a)/i.test(t)) return "wrong_person";
+  if (/(?:qui[ée]n (?:habla|es|llama|me llama)|de parte de qui[ée]n|de qu[ée] se trata|(?:es|eres) (?:un )?(?:robot|contestadora|grabaci[óo]n))/i.test(t)) return "who";
   if (/\b(?:who (?:is|'s) (?:this|calling)|who are you|who'?s this|what is this (?:about|regarding)|what'?s this about|is this a (?:robot|bot|recording|real person)|are you (?:a )?(?:robot|bot|human|real|an? ai|a person))\b/i.test(t))
     return "who";
   // "Hello?" or "Hi, this is Rosa" heard where an answer was expected (e.g. said on pickup).
@@ -101,8 +109,13 @@ export function classifyTurn(text: string): TurnIntent {
     return "repeat";
   if (/\b(?:hold on|hang on|one (?:sec|second|moment|minute)|give me a (?:sec|second|moment|minute)|let me (?:check|look|pull|find|see))\b/i.test(t))
     return "wait";
+  if (/\b(?:un momento|un segundo|esp[ée]re(?:me)?|d[ée]jeme (?:ver|revisar|buscar|checar))/i.test(t)) return "wait";
+  // A bare "Sí" stays an answer: it may be the yes to the bank question.
+  if (/^\W*(?:(?:s[íi]|bueno)\W*)?(?:bueno|al[óo]|hola|d[íi]game|diga)\W*$/i.test(t)) return "greeting";
+  if (/\b(?:(?:puede|podr[íi]a) repetir|rep[íi]tame|c[óo]mo dijo|no (?:le )?escuch[ée]|otra vez)(?![a-zñáéíóú])/i.test(t) ||/^\W*(?:perd[óo]n|mande|c[óo]mo|qu[ée])\W*$/i.test(t))
+    return "repeat";
   // A question back to us, not a hesitant answer like "Um, about nine thousand?".
-  const questionBack = /^\W*(?:(?:um|uh|sorry|wait|so|and|but)\W+)?(?:which|what|when|where|why|how|who|do|does|did|is|are|was|can|could|would|should)\b[^]*\?\s*$/i;
+  const questionBack = /^\W*(?:(?:um|uh|sorry|wait|so|and|but)\W+)?(?:which|what|when|where|why|how|who|do|does|did|is|are|was|can|could|would|should|cu[áa]l|qu[ée]|cu[áa]ndo|d[óo]nde|por qu[ée]|c[óo]mo|puede|podr[íi]a)(?![a-zñáéíóú])[^]*\?\s*$/i;
   if (!/\d/.test(t) && (questionBack.test(t) || /\b(?:which (?:one|invoice|bill)|what do you mean|do you mean|what invoice)\b/i.test(t)))
     return "clarify";
   return "answer";
@@ -110,11 +123,11 @@ export function classifyTurn(text: string): TurnIntent {
 
 // ---------- What Callback says ----------
 
-const NUMBER_WORD = String.raw`(?:zero|oh|one|two|three|four|five|six|seven|eight|nine)`;
+const NUMBER_WORD = String.raw`(?:zero|oh|one|two|three|four|five|six|seven|eight|nine|cero|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve)`;
 const SPELLED_DIGITS = new RegExp(String.raw`\b${NUMBER_WORD}(?:[\s,-]+${NUMBER_WORD}){2,}\b`, "i");
-const ACCOUNTISH = /\b(?:account|routing|iban|swift|sort code|card|acct)\s*(?:number|no\.?|#)|\bending in\b|\bon file (?:is|as|shows|says)\b|\bwe have (?:you|it|your \w+) (?:down|on file) as\b/i;
-const CONFIRMS = /\b(?:that'?s (?:correct|right|it|exactly)|that matches|matches (?:our|what)|checks out|you'?re (?:correct|right)|exactly right)/i;
-const CHANGES = /\b(?:i'?ve|i have|we'?ve|we have|has been|have been|i'?ll|i will|we'?ll|we will|let me|i can|i'?m going to)\s+(?:now\s+|just\s+|go ahead and\s+)?(?:updat|chang|switch|record(?:ed)? the new|sav|process|approv|releas|edit)\w*/i;
+const ACCOUNTISH = /\b(?:account|routing|iban|swift|sort code|card|acct)\s*(?:number|no\.?|#)|\bending in\b|\bon file (?:is|as|shows|says)\b|\bwe have (?:you|it|your \w+) (?:down|on file) as\b|\bn[úu]mero de (?:cuenta|ruta|tarjeta)\b|\btermina en\b|\btenemos registrad[ao]\b/i;
+const CONFIRMS = /\b(?:that'?s (?:correct|right|it|exactly)|that matches|matches (?:our|what)|checks out|you'?re (?:correct|right)|exactly right)|\b(?:es correcto|eso es correcto|correcto|eso coincide|coincide con|as[íi] es|tiene raz[óo]n)\b/i;
+const CHANGES = /\b(?:i'?ve|i have|we'?ve|we have|has been|have been|i'?ll|i will|we'?ll|we will|let me|i can|i'?m going to)\s+(?:now\s+|just\s+|go ahead and\s+)?(?:updat|chang|switch|record(?:ed)? the new|sav|process|approv|releas|edit)\w*|\b(?:he|hemos|voy a|vamos a|ya)\s+(?:actuali[zc]|cambi|guard|aprob|proces|registr)\w*/i;
 
 /**
  * True if a sentence Callback is about to speak would leak or confirm anything: digits (other than ones

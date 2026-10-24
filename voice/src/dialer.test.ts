@@ -121,6 +121,25 @@ describe("Dialer", () => {
     expect(h.store.requests.get("call_1")?.twilio_call_sid).toBe("CA1");
   });
 
+  test("gets through the payee's phone menu and speaks their language", async () => {
+    const h = setup();
+    cleanup = () => h.store.dispose();
+    h.store.suppliers.set("sup_stage", {
+      supplier_id: "sup_stage",
+      name: "Pacific Home Loans",
+      phone_on_file: "+14155550123",
+      aliases: [],
+      phone_menu: "ww2",
+      language: "es",
+    });
+    h.store.addRequest(request());
+    h.dialer.start();
+    await flush();
+    // The menu's recorded greeting would trip machine detection, so it's off for menu calls.
+    expect(h.twilio.dials[0]).toMatchObject({ to: "+14155550123", sendDigits: "ww2", amd: false });
+    expect(h.dialer.languageFor("call_1")).toBe("es");
+  });
+
   test("never dials the same request twice, even if the subscription repeats it", async () => {
     const h = setup();
     cleanup = () => h.store.dispose();

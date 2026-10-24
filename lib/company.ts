@@ -35,6 +35,8 @@ export interface Company {
   bill: Noun;
   /** What one entry in a payee's history is called on a call: "your September invoice". */
   record: string;
+  /** How to ask a payee about their history on a check call: what they would know and what they wouldn't. */
+  questionHint: string;
   /** What the company's own file on a payee records (check calls ask about it), by the note's field. */
   facts: { hiredFor: string; agreed: string; dates: string; foglineContact: string };
   /** Payee groups, key -> label. A payee's category is one of these keys. */
@@ -58,6 +60,7 @@ const fogline: Company = {
   payee: { one: "supplier", many: "suppliers" },
   bill: { one: "bill", many: "bills" },
   record: "invoice",
+  questionHint: "Suppliers can look up their invoices by number and month, and know what each was for and what it totaled.",
   facts: {
     hiredFor: "What Fogline hired them for",
     agreed: "What was agreed (price, terms)",
@@ -82,6 +85,8 @@ const bayline: Company = {
   payee: { one: "party", many: "parties" },
   bill: { one: "disbursement", many: "disbursements" },
   record: "disbursement",
+  questionHint:
+    "Lenders and agents can look up a file by its escrow number (written like 26-1179). A home seller knows the property address, the closing date and roughly what the sale came to, but not internal numbers; ask a seller about their escrow file, never about other closings.",
   facts: {
     hiredFor: "Their role in the closing",
     agreed: "What the settlement statement says",
@@ -106,6 +111,8 @@ const harbor: Company = {
   payee: { one: "employee", many: "employees" },
   bill: { one: "paycheck", many: "paychecks" },
   record: "paycheck",
+  questionHint:
+    "Employees don't know paycheck numbers: name a paycheck by its pay date, ask roughly what it came to, or ask about their role, clinic, manager or start date from their HR file.",
   facts: {
     hiredFor: "Role and clinic",
     agreed: "Pay (rate and schedule)",

@@ -85,6 +85,7 @@ function convexHarness(): Harness {
     listSupplierProfiles: () => t.query(fns.listSupplierProfiles, { secret: s }),
     getSupplierRecords: (supplier_id) => t.query(fns.getSupplierRecords, { secret: s, supplier_id }),
     getPhonePlaybook: () => t.query(fns.phonePlaybook, { secret: s }),
+    getCompany: () => t.query(api.app.company.current, {}),
     startInboundCall: (call_id, caller_number) =>
       t.mutation(fns.startInboundCall, { secret: s, call_id, caller_number }).then(() => undefined),
     finishInboundCall: (record) => t.mutation(fns.finishInboundCall, { secret: s, record }),

@@ -9,6 +9,7 @@ import type {
   SupplierProfile,
   SupplierRecord,
 } from "../../../shared/contract.js";
+import type { Company } from "../../../lib/company.js";
 
 export interface PhoneTactic {
   name: string;
@@ -44,6 +45,8 @@ export interface VoiceStore {
   getSupplierProfile(supplier_id: string): Promise<SupplierProfile | null>;
   listSupplierProfiles(): Promise<SupplierProfile[]>;
   getSupplierRecords(supplier_id: string): Promise<SupplierRecord[]>;
+  /** Who hold works for (lib/company.ts): the name, team and words every call uses. */
+  getCompany(): Promise<Company>;
   /** The playbook's phone tactics (names and signals), for the incoming line's prompt. */
   getPhonePlaybook(): Promise<PhoneTactic[]>;
 

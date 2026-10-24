@@ -15,6 +15,8 @@ const schema = z.object({
   TWILIO_PHONE_NUMBER: e164,
   CARTESIA_API_KEY: z.string().min(1),
   CARTESIA_VOICE_ID: z.string().min(1),
+  /** Optional native Spanish voice for calls to Spanish-speaking payees. Absent = CARTESIA_VOICE_ID speaks Spanish. */
+  CARTESIA_VOICE_ID_ES: z.string().min(1).optional(),
   ANTHROPIC_API_KEY: z.string().min(1),
   MOSS_PROJECT_ID: z.string().min(1),
   MOSS_PROJECT_KEY: z.string().min(1),

@@ -50,10 +50,14 @@ export function numberSourceLabel(source: NumberSource): string {
   return source === "on_file" ? "on file" : "from background check";
 }
 
-/** Cite label: the record's own reference ("INV-4471", "Chase ··2210"); a bare "#4471" gets its kind ("Invoice #4471"). */
-export function citeLabel(source: Source): string {
+/**
+ * Cite label: the record's own reference ("INV-4471", "Chase ··2210"); a bare "#4471" gets its kind
+ * ("Invoice #4471"), in the company's word for a payment record ("Paycheck #1043-02").
+ */
+export function citeLabel(source: Source, record = "invoice"): string {
   const ref = source.ref.trim();
-  return ref.startsWith("#") ? `${source.kind.charAt(0).toUpperCase()}${source.kind.slice(1)} ${ref}` : ref;
+  const kind = source.kind === "invoice" ? record : source.kind;
+  return ref.startsWith("#") ? `${kind.charAt(0).toUpperCase()}${kind.slice(1)} ${ref}` : ref;
 }
 
 /** Parse an ISO timestamp from the app's tables; null when absent or invalid. */
@@ -90,7 +94,7 @@ export function callTimes(call: LiveCall): { startMs: number | null; endMs: numb
 }
 
 /** What the Line on the Live call screen shows. */
-export function callView(call: LiveCall): CallView {
+export function callView(call: LiveCall, handoffTo = HANDOFF_TO): CallView {
   const { request, result } = call;
   const statuses = statusEvents(call.events);
   const last = statuses.at(-1);
@@ -102,12 +106,12 @@ export function callView(call: LiveCall): CallView {
     : "";
 
   const handoff = (): CallView => {
-    if (request?.takeover_requested) return { line: "dropped", label: "Taken over", note: `${HANDOFF_TO} took over the call.`, active: false };
-    if (dropped) return { line: "dropped", note: `${droppedNote} Handed off to ${HANDOFF_TO}.`, active: false };
+    if (request?.takeover_requested) return { line: "dropped", label: "Taken over", note: `${handoffTo} took over the call.`, active: false };
+    if (dropped) return { line: "dropped", note: `${droppedNote} Handed off to ${handoffTo}.`, active: false };
     if (!answered && statuses.some((e) => e.value === "no_answer")) {
-      return { line: "no-answer", note: `No answer after the retry. Handed off to ${HANDOFF_TO}.`, active: false };
+      return { line: "no-answer", note: `No answer after the retry. Handed off to ${handoffTo}.`, active: false };
     }
-    return { line: "dropped", label: "Handed off", note: `Handed off to ${HANDOFF_TO}.`, active: false };
+    return { line: "dropped", label: "Handed off", note: `Handed off to ${handoffTo}.`, active: false };
   };
 
   if (result) {
@@ -125,10 +129,15 @@ export function callView(call: LiveCall): CallView {
     case "dialing":
       return last?.value === "ringing" ? { line: "ringing", active: true } : { line: "ringing", label: "Dialing", active: true };
     case "in_progress":
-      if (request.takeover_requested) return { line: "connected", label: "Ending call", note: `Ending the call for ${HANDOFF_TO}.`, active: false };
+      if (request.takeover_requested) return { line: "connected", label: "Ending call", note: `Ending the call for ${handoffTo}.`, active: false };
       if (last?.value === "dropped") return { line: "dropped", note: droppedNote, active: false };
       return { line: "connected", active: true };
     case "retry_scheduled": {
+      const waiting = last?.value === "outside_hours" ? last : null;
+      if (waiting) {
+        const when = waiting.retry_at ?? (waiting.retry_at_ms !== undefined ? formatTime(waiting.retry_at_ms) : null);
+        return { line: "no-answer", label: "Waiting", note: when ? `Outside their calling hours. Calling ${when}.` : "Outside their calling hours.", active: true };
+      }
       const retryEvent = statuses.filter((e) => e.value === "retry_scheduled").at(-1);
       const retryMs = retryEvent?.retry_at_ms ?? request.retry_at_ms;
       const at = retryEvent?.retry_at ?? (retryMs !== undefined ? formatTime(retryMs) : undefined);

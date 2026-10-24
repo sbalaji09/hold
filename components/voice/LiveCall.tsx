@@ -6,7 +6,6 @@ import { Button, CheckRow, Endorsement, Line, StatusMark } from "@/components/ca
 import { useActiveCall, useLiveCall, useRequestTakeover, type CallRequestDoc, type CallResultDoc, type LiveCall } from "./api";
 import {
   AGENT,
-  HANDOFF_TO,
   buildTranscript,
   callTimes,
   callView,
@@ -100,7 +99,8 @@ export function LiveCallScreen({ callId, actor = "maya", sourceHref }: LiveCallS
 }
 
 function LiveCallView({ call, request, actor, sourceHref }: { call: LiveCall; request: CallRequestDoc; actor: "maya" | "dev"; sourceHref?: SourceHref }) {
-  const view = callView(call);
+  const { record, maya } = useCompany();
+  const view = callView(call, maya.name);
   const { startMs, endMs } = callTimes(call);
   const now = useNow(startMs !== null && endMs === null);
   const supplierName = call.supplier?.name || request.supplier_id;
@@ -171,11 +171,11 @@ function LiveCallView({ call, request, actor, sourceHref }: { call: LiveCall; re
                     const href = sourceHref?.(source);
                     return href ? (
                       <a key={i} className="cb-cite" href={href}>
-                        {citeLabel(source)}
+                        {citeLabel(source, record)}
                       </a>
                     ) : (
                       <span key={i} className="cb-cite">
-                        {citeLabel(source)}
+                        {citeLabel(source, record)}
                       </span>
                     );
                   })}
@@ -190,6 +190,7 @@ function LiveCallView({ call, request, actor, sourceHref }: { call: LiveCall; re
 }
 
 function Takeover({ callId, view, takeoverRequested }: { callId: string; view: CallView; takeoverRequested: boolean }) {
+  const HANDOFF_TO = useCompany().maya.name;
   const requestTakeover = useRequestTakeover();
   const [step, setStep] = useState<"idle" | "confirm" | "sending">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -253,6 +254,7 @@ function Takeover({ callId, view, takeoverRequested }: { callId: string; view: C
 }
 
 function Result({ result }: { result: CallResultDoc }) {
+  const { record } = useCompany();
   const at = `${formatTime(result._creationTime)} · ${AGENT}`;
   return (
     <section className="cb-doc" aria-labelledby="hv-result-title">
@@ -289,7 +291,7 @@ function Result({ result }: { result: CallResultDoc }) {
                 </>
               }
               quote={item.matches ? undefined : item.answer}
-              sources={item.source ? [citeLabel(item.source)] : undefined}
+              sources={item.source ? [citeLabel(item.source, record)] : undefined}
             />
           ))}
         </div>

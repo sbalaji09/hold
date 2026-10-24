@@ -1,4 +1,5 @@
 "use client";
+import { useCompany } from "@/lib/useCompany";
 import { useLayoutEffect, useRef } from "react";
 import { TranscriptLine } from "@/components/callback";
 import { AGENT, citeLabel, formatElapsed, type TranscriptRow } from "./format";
@@ -21,6 +22,7 @@ export interface TranscriptProps {
 
 /** A call transcript in a document. Sticks to the latest line unless the reader has scrolled up. */
 export function Transcript({ rows, otherName, live, sourceHref, empty, large }: TranscriptProps) {
+  const { record } = useCompany();
   const box = useRef<HTMLDivElement>(null);
   const atBottom = useRef(true);
 
@@ -53,7 +55,7 @@ export function Transcript({ rows, otherName, live, sourceHref, empty, large }: 
               speaker={row.speaker}
               name={row.speaker === "callback" ? AGENT : otherName}
               time={formatElapsed(row.ts * 1000)}
-              cite={row.source ? citeLabel(row.source) : undefined}
+              cite={row.source ? citeLabel(row.source, record) : undefined}
               citeHref={row.source ? sourceHref?.(row.source) : undefined}
               speaking={live && i === rows.length - 1}
             >

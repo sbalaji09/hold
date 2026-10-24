@@ -217,6 +217,8 @@ export default defineSchema({
           v.literal("retry_scheduled"),
           v.literal("dropped"),
           v.literal("ended"),
+          // Waiting for the payee's calling hours (CALLING_HOURS); retry_at says when.
+          v.literal("outside_hours"),
         ),
         retry_at: v.optional(v.string()),
         retry_at_ms: v.optional(v.number()),

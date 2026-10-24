@@ -5,6 +5,7 @@ import type { SupplierSearch } from "../../../shared/search.js";
 import type { VoiceStore } from "../store/types.js";
 import type { LLM } from "./llm.js";
 import type { CallTransport } from "./transport.js";
+import type { Company } from "../../../lib/company.js";
 
 export interface PrepareOutboundDeps {
   request: CallRequest;
@@ -43,6 +44,10 @@ export interface PreparedQuestion {
 export interface PreparedCall {
   supplierName: string;
   questions: PreparedQuestion[]; // 1-3, built from Moss hits on this supplier's history
+  /** Who the call speaks for. Absent = Fogline (older fixtures). */
+  company?: Company;
+  /** The payee's language ("es"): prompts, fixed lines, Cartesia STT and TTS. Absent = English. */
+  language?: string;
 }
 
 export { prepareOutboundCall, runOutboundCall } from "./outbound.js";

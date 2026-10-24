@@ -33,6 +33,7 @@ export interface ServerDeps {
   dialer: {
     attachStream(callId: string, callSid: string, transport: PhoneTransport): Promise<void>;
     onStatus(callId: string, callSid: string, kind: StatusKind): Promise<void>;
+    languageFor?(callId: string): string | undefined;
     readonly activeCalls: number;
   };
   runInbound: (deps: InboundCallDeps) => Promise<unknown>;
@@ -174,6 +175,8 @@ export function createVoiceServer(d: ServerDeps): Server {
       stt: d.stt,
       tts: d.tts,
       tuning: d.tuning,
+      // Incoming callers are unknown, so the line answers in English.
+      language: p.kind === "inbound" ? undefined : d.dialer.languageFor?.(callId),
     });
     live.add(transport);
     void transport.ended.then(() => live.delete(transport));

@@ -5,6 +5,8 @@ import type { PreparedCall, PreparedQuestion } from "./index.js";
 import { BANK_CHANGE_QUESTION, nearMiss, pickCandidates, prepareOutboundCall, runOutboundCall } from "./outbound.js";
 import { SimulatedTransport } from "./simulated.js";
 import { FakeLLM, FakeSearch, STAGE, STAGE_RECORDS, stageRequest } from "./testing.js";
+import { linesFor } from "./lines.js";
+import { COMPANIES } from "../../../lib/company.js";
 
 const INVOICE_Q: PreparedQuestion = {
   ask: "Can you confirm the total on your September invoice, number 4471?",
@@ -358,7 +360,7 @@ describe("runOutboundCall", () => {
     const { store, run } = setup(["Hi.", "Who is this?", "It was $18,400.", "Yes, we changed banks."]);
     const result = await run();
     const said = segments(store.eventsFor("call_123"), "callback");
-    expect(said).toContain(`${DISCLOSURE} I'm calling to double-check a recent invoice. ${INVOICE_Q.ask}`);
+    expect(said).toContain(`${DISCLOSURE} I'm calling to double-check a recent invoice from Stagecraft Rigging Co. ${INVOICE_Q.ask}`);
     expect(result.outcome).toBe("confirmed");
   });
 
@@ -486,5 +488,29 @@ describe("nearMiss (the quick check without Claude)", () => {
     expect(nearMiss("$18,400.00", "18,400")).toBe(false);
     expect(nearMiss("$18,400.00", "12,000")).toBe(false);
     expect(nearMiss("Main-stage truss build", "the truss")).toBe(false);
+  });
+});
+
+describe("a Spanish payroll call", () => {
+  const L = linesFor(COMPANIES.harbor, "es");
+  const prepared: PreparedCall = {
+    supplierName: "María Gutiérrez",
+    company: COMPANIES.harbor,
+    language: "es",
+    questions: [
+      { ask: "¿Más o menos cuánto fue su cheque de pago del dieciséis de octubre?", expected: "$1,718.40", source: { kind: "invoice", ref: "#1042-01", record_id: "bill_h1042-01" }, kind: "history" },
+      { ...BANK_Q, ask: L.bankQuestion },
+    ],
+  };
+
+  it("speaks Harbor's lines in Spanish, and a Spanish denial holds the paycheck whatever the judge says", async () => {
+    const { store, run } = setup(["¿Bueno?", "Como mil setecientos.", "No, nunca cambié mi cuenta."], { judge: judgeSays(true, true), prepared });
+    const result = await run();
+    const said = segments(store.eventsFor("call_123"), "callback");
+    expect(said[0]).toBe("Hola, le llama un asistente automático del equipo de nómina de Harbor Health. Esta llamada se graba.");
+    expect(said).toContain("Le llamo para confirmar su próximo cheque de pago. Tengo un par de preguntas rápidas.");
+    expect(said).toContain(L.bankQuestion);
+    expect(result.outcome).toBe("not_confirmed");
+    expect(result.summary).toBe("Employee says they never changed their bank details.");
   });
 });

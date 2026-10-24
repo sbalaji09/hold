@@ -13,6 +13,10 @@ Env vars: see `.env.example` for the full list and which ones are Convex-side (`
 
 Run tests with `pnpm vitest run`.
 
+### Company templates
+
+hold runs for one company per deployment (`lib/company.ts`). `pnpm seed` loads Fogline (festival bills), `pnpm seed:bayline` loads Bayline Title & Escrow (closing wires) and `pnpm seed:harbor` loads Harbor Health (clinic payroll). With `ALLOW_TEMPLATE_SWITCH=true` set in the Convex env, the Workspace screen (click the company name in the sidebar) switches between them in the app. Regenerate the two newer datasets with `npx tsx data/generateWorkspaces.ts`.
+
 Before pushing anything under `convex/`, it must pass the stricter check used at deploy time:
 
 ```sh
@@ -56,6 +60,15 @@ The server validates these at startup and lists anything missing or malformed.
 | `PUBLIC_BASE_URL` | The public `https://` URL Twilio uses to reach this server. Leave it unset: it comes from `NGROK_DOMAIN`. |
 | `PORT` | Local port, default `8080`. |
 | `MAYA_PHONE_NUMBER` | Optional. "End call and take over" transfers the live call to this number. Without it, takeover just ends the AI call. |
+| `CARTESIA_VOICE_ID_ES` | Optional. A native Spanish Sonic voice for calls to Spanish-speaking payees. Without it, `CARTESIA_VOICE_ID` speaks Spanish. |
+
+Convex-side settings for the company templates and calls (`npx convex env set NAME value`):
+
+| Variable | What it is |
+|---|---|
+| `ALLOW_TEMPLATE_SWITCH` | `true` lets the Workspace screen load another company template (Fogline, Bayline Title, Harbor Health). It replaces every payee, bill and call; learned playbooks are kept. |
+| `DEMO_PAYEE_PHONE` | A real phone a teammate holds. Loading a template makes it the number on file for that template's demo payee (Stagecraft, Marcia Delgado, María Gutiérrez). |
+| `CALLING_HOURS` | e.g. `8-18`. Live check calls wait for the payee's weekday business hours in their time zone and show "Calling Mon 8:00 AM". Unset = call any time (keep it unset for a weekend demo). |
 
 Optional tuning knobs, all with defaults that suit a phone on speaker in a loud room:
 
@@ -139,7 +152,8 @@ Phone audio goes Twilio, then Cartesia speech-to-text, then Claude, then Cartesi
 - **ink-whisper streaming speech-to-text** (`wss://api.cartesia.ai/stt/websocket`) with `pcm_mulaw` 8000 Hz input, so Twilio's frames go straight in.
 - **Endpointing controls**: `min_volume` and `max_silence_duration_secs`, plus the `finalize` command, which we send as soon as our own voice detector hears the caller stop, instead of waiting for server-side silence.
 - **Partial transcripts** as a second barge-in trigger alongside the energy detector.
-- A configured voice (`CARTESIA_VOICE_ID`) used for every call.
+- A configured voice (`CARTESIA_VOICE_ID`) used for every call, or a per-language voice (`CARTESIA_VOICE_ID_ES`).
+- **Languages.** Each payee can have a language (`suppliers.language`, e.g. `es`). A check call to them sets ink-whisper's `language` and Sonic's `language` for that call, speaks the disclosure and every fixed line from a hand-written Spanish table (`voice/src/call/lines.ts`), and has Claude write the questions and clarifications in Spanish. The code safety rules (bank denials, "call me later", leaks, prompt injection) understand Spanish too. Results and summaries stay in English for the team.
 
 Raw websockets (the `ws` package) were chosen over the SDK because barge-in needs exact control: cancel a context, ignore its late chunks, and recover a dropped socket mid-sentence without losing the rest of the reply.
 
@@ -149,6 +163,13 @@ Raw websockets (the `ws` package) were chosen over the SDK because barge-in need
 - **Barge-in.** If the caller talks over hold, sustained speech (about 200 ms, so a cough or clap does not count) or a two-word partial transcript stops playback at once: Twilio `clear` empties the phone's audio buffer and the Cartesia context is cancelled. hold then listens, and their words are the next thing it answers.
 - **Loud rooms.** The demo phone is on speaker at a busy table. The detector compares each frame with the quietest audio of the last 1.5 s, so steady crowd noise becomes the baseline instead of a trigger. All thresholds are environment knobs (above).
 - **Recovery.** If either Cartesia socket drops mid-call it reconnects. Speech-to-text replays up to 2 s of buffered audio; text-to-speech re-sends only the part of the sentence that had not been generated yet, on a fresh context.
+
+#### Calls for any company
+
+hold speaks for whichever company the workspace runs (`lib/company.ts`): the disclosure, the incoming-line greeting, the questions and the summaries use that company's name, team and words ("your upcoming paycheck", "an upcoming disbursement to Pacific Home Loans"). Questions follow a per-company hint: employees are asked about pay dates, their role and manager, never paycheck numbers; home sellers about their property and closing.
+
+- **Phone menus.** A payee's `phoneMenu` (e.g. `ww2`, each `w` a half-second pause) is sent as Twilio `sendDigits` after pickup, so a lender's "press 2 for payoffs" reaches the right desk. Machine detection is off for those calls, since the menu's recorded greeting would read as voicemail.
+- **Calling hours.** With `CALLING_HOURS` set, Convex's `claimRequest` refuses to dial outside the payee's weekday hours and schedules the call for the next opening without using up an attempt. The Live call screen shows "Outside their calling hours. Calling Mon 8:00 AM."
 
 #### Known limitations
 
@@ -162,4 +183,7 @@ Raw websockets (the `ws` package) were chosen over the SDK because barge-in need
 - If the voice server restarts during a live call, that call is cut and its request stays in "dialing" with no result; it needs a manual follow-up. Avoid editing voice code during a demo (`tsx watch` restarts on save).
 - Moss loads its embedding model through onnxruntime, which can crash while Node exits. A clean Ctrl-C can therefore end with exit code 134 after shutdown has finished; calls and data are unaffected.
 - The first Moss warm on a new machine downloads a 46 MB embedding model (about 3 minutes). Start the voice server once before the demo so it is cached.
+- Only English and Spanish have hand-written call lines. Another language code still sets Cartesia's language and Claude's, but the fixed lines (disclosure, goodbyes) fall back to English.
+- The incoming line always answers in English: the caller is unknown until they speak.
+- Calling hours assume every zone opens on the hour; a half-hour zone opens up to 30 minutes late.
 <!-- END voice section -->

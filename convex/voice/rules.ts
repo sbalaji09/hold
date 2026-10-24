@@ -58,3 +58,40 @@ export function followUpRequest(record: InboundCallRecord, supplier: SupplierPro
     attempt: 0,
   };
 }
+
+/** CALLING_HOURS "8-18" -> weekdays 8:00 to 18:00 in the payee's time zone. Unset or malformed = any time. */
+export function parseCallingHours(raw: string | undefined): { start: number; end: number } | null {
+  const m = /^\s*(\d{1,2})\s*-\s*(\d{1,2})\s*$/.exec(raw ?? "");
+  if (!m) return null;
+  const start = Number(m[1]);
+  const end = Number(m[2]);
+  return start < end && end <= 24 ? { start, end } : null;
+}
+
+function localClock(ms: number, timeZone: string): { weekday: string; hour: number } {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone, weekday: "short", hour: "numeric", hourCycle: "h23" }).formatToParts(new Date(ms));
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  return { weekday: get("weekday"), hour: Number(get("hour")) };
+}
+
+const isOpen = (ms: number, timeZone: string, h: { start: number; end: number }) => {
+  const { weekday, hour } = localClock(ms, timeZone);
+  return weekday !== "Sat" && weekday !== "Sun" && hour >= h.start && hour < h.end;
+};
+
+/**
+ * When a live check call may be placed: null if now is inside the payee's calling hours, else the
+ * next weekday opening. Nobody's phone rings at 2 AM because a scam email arrived at 2 AM.
+ */
+export function nextCallingTime(nowMs: number, timeZone: string, hours: { start: number; end: number } | null): number | null {
+  if (!hours || isOpen(nowMs, timeZone, hours)) return null;
+  // ponytail: hour-by-hour scan, at most four days (a long weekend); zones with half-hour offsets open on the hour mark.
+  const HOUR = 3_600_000;
+  for (let t = Math.ceil(nowMs / HOUR) * HOUR, i = 0; i < 96; t += HOUR, i++) if (isOpen(t, timeZone, hours)) return t;
+  return null;
+}
+
+/** "Mon 8:00 AM" in the payee's time zone, for the Live call screen. */
+export function formatCallingTime(ms: number, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-US", { timeZone, weekday: "short", hour: "numeric", minute: "2-digit" }).format(new Date(ms));
+}

@@ -43,6 +43,8 @@ const dialer = new Dialer({
       request,
       llm,
       supplierName: prepared.supplierName,
+      company: prepared.company,
+      language: prepared.language,
       records: await store.getSupplierRecords(request.supplier_id),
     }),
 });
@@ -67,6 +69,7 @@ const server = createVoiceServer({
     ...cartesia,
     model: config.CARTESIA_TTS_MODEL,
     voiceId: config.CARTESIA_VOICE_ID,
+    ...(config.CARTESIA_VOICE_ID_ES ? { voiceIdByLanguage: { es: config.CARTESIA_VOICE_ID_ES } } : {}),
     maxBufferDelayMs: config.CARTESIA_MAX_BUFFER_DELAY_MS,
   }),
   tuning: tuningFrom(config),

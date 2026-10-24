@@ -4,7 +4,7 @@
 // claim the row, emit "ringing", then dial request.to_number and nothing else. While it rings the
 // questions finish, so the first question adds no dead air. Every Twilio status / AMD callback,
 // media stream and takeover for the call is routed here, keyed by call_id.
-import type { CallRequest, CallResult, NumberSource } from "../../shared/contract.js";
+import type { CallRequest, CallResult, NumberSource, SupplierProfile } from "../../shared/contract.js";
 import type { SupplierSearch } from "../../shared/search.js";
 import { log } from "./audio/log.js";
 import type { PhoneTransport } from "./audio/phoneTransport.js";
@@ -37,6 +37,9 @@ export interface DialerDeps {
 interface LiveCall {
   request: CallRequest;
   prepared: Promise<PreparedCall>;
+  /** The payee's profile: their language and phone menu. Null if it couldn't be read. */
+  profile: Promise<SupplierProfile | null>;
+  language?: string;
   callSid: string | null;
   transport: PhoneTransport | null;
   /** The outcome of this attempt is decided (no answer, voicemail, takeover before answer). */
@@ -68,6 +71,11 @@ export class Dialer {
     return this.calls.size;
   }
 
+  /** The language to speak on a live call, for its speech-to-text and voice. Absent = English. */
+  languageFor(callId: string): string | undefined {
+    return this.calls.get(callId)?.language;
+  }
+
   /** Stop taking new requests, let live calls finish (up to graceMs), then hang up the rest. */
   async stop(graceMs = 20_000): Promise<void> {
     this.stopping = true;
@@ -89,6 +97,7 @@ export class Dialer {
     const c: LiveCall = {
       request: r,
       prepared: this.d.prepare({ request: r, store: this.d.store, search: this.d.search, llm: this.d.llm }),
+      profile: this.d.store.getSupplierProfile(r.supplier_id).catch(() => null),
       callSid: null,
       transport: null,
       settled: false,
@@ -100,6 +109,7 @@ export class Dialer {
       store: this.d.store,
     };
     c.prepared.catch(() => undefined); // awaited later; avoid an unhandled rejection meanwhile
+    void c.profile.then((p) => (c.language = p?.language));
     c.store = scopedStore(this.d.store, c);
     this.calls.set(r.call_id, c);
     this.begin(c).catch((err) => {
@@ -138,6 +148,8 @@ export class Dialer {
     await this.emitStatus(id, "ringing");
     const base = this.d.publicBaseUrl;
     const q = `callId=${encodeURIComponent(id)}`;
+    // A phone menu ("press 2 for payoffs") is answered with keys from the profile, never from the call.
+    const menu = (await c.profile)?.phone_menu;
     try {
       const { sid } = await this.d.twilio.dial({
         to: claimed.to_number,
@@ -145,7 +157,9 @@ export class Dialer {
         url: `${base}/twilio/outbound/${encodeURIComponent(id)}`,
         statusCallback: `${base}/twilio/status?${q}`,
         ringTimeoutS: this.d.ringTimeoutS,
-        amd: this.d.amd,
+        // Machine detection would hang up on the menu's recorded greeting.
+        amd: this.d.amd && !menu,
+        ...(menu ? { sendDigits: menu } : {}),
       });
       c.callSid = sid;
     } catch (err) {

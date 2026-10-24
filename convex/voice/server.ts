@@ -17,7 +17,18 @@ import schema from "../schema.js";
 import { forChannel } from "../../lib/fraudTechniques.js";
 import { loadPlaybook } from "../app/techniques.js";
 import * as records from "./records.js";
-import { followUpRequest, formatRetryAt, isClosed, noAnswerHandoff, retryDelayMs, UNKNOWN_CALLER } from "./rules.js";
+import {
+  followUpRequest,
+  formatCallingTime,
+  formatRetryAt,
+  isClosed,
+  nextCallingTime,
+  noAnswerHandoff,
+  parseCallingHours,
+  retryDelayMs,
+  UNKNOWN_CALLER,
+} from "./rules.js";
+import { getCompany } from "../app/company.js";
 
 // ---------- auth ----------
 
@@ -181,13 +192,38 @@ export const queuedRequests = query({
   },
 });
 
-/** Atomically queued -> dialing, attempt += 1. Null if it is not queued (someone else claimed it). */
+/**
+ * Atomically queued -> dialing, attempt += 1. Null if it is not queued (someone else claimed it), or
+ * if CALLING_HOURS is set and it's outside the payee's: then it waits for their next weekday opening,
+ * without using up an attempt.
+ */
 export const claimRequest = mutation({
   args: { secret, call_id: v.string() },
   handler: async (ctx, args) => {
     assertVoiceSecret(args.secret);
     const row = await findRequest(ctx, args.call_id);
     if (!row || row.status !== "queued") return null;
+    const hours = parseCallingHours(process.env.CALLING_HOURS);
+    if (hours && row.mode !== "simulated") {
+      const payee = await ctx.db
+        .query("suppliers")
+        .withIndex("by_key", (q) => q.eq("key", row.supplier_id))
+        .unique();
+      const timeZone = payee?.timeZone ?? (await getCompany(ctx)).timeZone;
+      const openAt = nextCallingTime(Date.now(), timeZone, hours);
+      if (openAt !== null) {
+        await ctx.db.patch(row._id, { status: "retry_scheduled", retry_at_ms: openAt });
+        await ctx.db.insert("callEvents", {
+          call_id: row.call_id,
+          type: "status",
+          value: "outside_hours",
+          retry_at: formatCallingTime(openAt, timeZone),
+          retry_at_ms: openAt,
+        });
+        await ctx.scheduler.runAt(openAt, internal.voice.server.requeue, { call_id: row.call_id });
+        return null;
+      }
+    }
     const attempt = (row.attempt ?? 0) + 1;
     await ctx.db.patch(row._id, { status: "dialing", attempt, retry_at_ms: undefined });
     return toCallRequest({ ...row, status: "dialing", attempt });

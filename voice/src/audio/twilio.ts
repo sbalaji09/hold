@@ -11,6 +11,8 @@ export interface DialParams {
   statusCallback: string;
   ringTimeoutS: number;
   amd: boolean;
+  /** Keys to press once the line picks up, to get through a phone menu ("ww2"; w waits half a second). */
+  sendDigits?: string;
 }
 
 export interface TwilioApi {
@@ -38,6 +40,7 @@ export function twilioApi(accountSid: string, authToken: string): TwilioApi {
         statusCallbackMethod: "POST",
         statusCallbackEvent: ["initiated", "ringing", "answered", "completed"],
         timeout: p.ringTimeoutS,
+        ...(p.sendDigits ? { sendDigits: p.sendDigits } : {}),
         ...(p.amd
           ? {
               machineDetection: "Enable",

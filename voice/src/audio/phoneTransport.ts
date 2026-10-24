@@ -37,6 +37,8 @@ export interface PhoneTransportOptions {
   stt: SttFactory;
   tts: TtsFactory;
   tuning: AudioTuning;
+  /** Language spoken on this call ("es"). Absent = English. */
+  language?: string;
   now?: () => number;
 }
 
@@ -115,13 +117,17 @@ export class PhoneTransport implements CallTransport {
       minDbfs: o.tuning.vadMinDbfs,
       hangoverMs: o.tuning.finalizeSilenceMs,
     });
-    this.stt = o.stt({ partial: (t) => this.onPartial(t), final: (t) => this.onFinal(t) });
-    this.tts = o.tts({
+    const call = { language: o.language };
+    this.stt = o.stt({ partial: (t) => this.onPartial(t), final: (t) => this.onFinal(t) }, call);
+    this.tts = o.tts(
+      {
       audio: (id, b) => this.onTtsAudio(id, b),
       words: (id, w, s) => this.onTtsWords(id, w, s),
       done: (id) => this.onTtsDone(id),
       error: (id, e) => this.onTtsError(id, e),
-    });
+      },
+      call,
+    );
   }
 
   elapsed(): number {
