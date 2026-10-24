@@ -31,19 +31,18 @@ export const liveCall = query({
   },
 });
 
-/** The most recently created call that is dialing or in progress, for auto-opening the Live call screen. */
+/** The most recently created call that is queued, dialing or in progress, for auto-opening the Live call screen. */
 export const activeCall = query({
   args: {},
   handler: async (ctx) => {
-    const latest = (status: "dialing" | "in_progress") =>
+    const latest = (status: "queued" | "dialing" | "in_progress") =>
       ctx.db
         .query("callRequests")
         .withIndex("by_status", (q) => q.eq("status", status))
         .order("desc")
         .first();
-    const [dialing, inProgress] = await Promise.all([latest("dialing"), latest("in_progress")]);
-    if (!dialing || !inProgress) return dialing ?? inProgress;
-    return dialing._creationTime > inProgress._creationTime ? dialing : inProgress;
+    const rows = await Promise.all([latest("queued"), latest("dialing"), latest("in_progress")]);
+    return rows.reduce((a, r) => (r && (!a || r._creationTime > a._creationTime) ? r : a), null as (typeof rows)[number]);
   },
 });
 

@@ -219,35 +219,45 @@
   max-width: 70ch;
 }
 
-/* The venue is loud: the Live call transcript is set large, in the system's own type roles. */
+/* The venue is loud: the Live call transcript is one column in large sans type, newest line at the bottom. */
 .hv-transcript-large {
   height: clamp(320px, 56vh, 680px);
   max-height: none;
-}
-
-.hv-transcript-large .cb-dialogue {
-  font-size: 24px;
-  line-height: 34px;
-  max-width: none;
-}
-
-.hv-transcript-large .cb-script-callback .cb-dialogue {
-  font-size: 21px;
-  line-height: 32px;
-}
-
-.hv-transcript-large .cb-cue {
-  font-size: 12px;
-}
-
-.hv-transcript-large .cb-tc {
-  font-size: 13px;
-  line-height: 20px;
+  padding: var(--space-2) var(--space-5);
 }
 
 .hv-transcript-large .cb-script {
-  grid-template-columns: calc(var(--margin-width) + var(--space-6)) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 8px;
   padding: var(--space-4) 0;
+  border-top: 1px solid var(--line);
+}
+
+.hv-transcript-large .cb-script:first-child {
+  border-top: 0;
+}
+
+.hv-transcript-large .cb-margin {
+  order: 2;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.hv-transcript-large .cb-margin:not(:has(.cb-cite)),
+.hv-transcript-large .cb-tc {
+  display: none;
+}
+
+.hv-transcript-large .cb-cue {
+  font-size: 13px;
+  line-height: 20px;
+  margin-bottom: 4px;
+}
+
+.hv-transcript-large .cb-dialogue,
+.hv-transcript-large .cb-script-callback .cb-dialogue {
+  font: 400 24px/34px var(--font-sans);
+  max-width: none;
 }
 
 /* Long references must not spill out of the margin column. */

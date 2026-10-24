@@ -2,8 +2,21 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Button, CheckRow, Endorsement, Line, StatusMark } from "@/components/callback";
-import { useActiveCall, useLiveCall, useRequestTakeover, type CallRequestDoc, type CallResultDoc, type LiveCall } from "./api";
+import {
+  Button,
+  CheckRow,
+  Endorsement,
+  Line,
+  StatusMark,
+} from "@/components/callback";
+import {
+  useActiveCall,
+  useLiveCall,
+  useRequestTakeover,
+  type CallRequestDoc,
+  type CallResultDoc,
+  type LiveCall,
+} from "./api";
 import {
   AGENT,
   buildTranscript,
@@ -72,7 +85,11 @@ export interface LiveCallScreenProps {
 }
 
 /** The Live call screen for `/calls/[callId]`. */
-export function LiveCallScreen({ callId, actor = "maya", sourceHref }: LiveCallScreenProps) {
+export function LiveCallScreen({
+  callId,
+  actor = "maya",
+  sourceHref,
+}: LiveCallScreenProps) {
   const call = useLiveCall(callId);
 
   if (call === undefined) {
@@ -89,16 +106,34 @@ export function LiveCallScreen({ callId, actor = "maya", sourceHref }: LiveCallS
           <div className="cb-caps">Live call</div>
           <h1 className="cb-subject">No call with this ID</h1>
           <p className="hv-sub">
-            <span className="hv-record">{callId}</span> isn&apos;t in the call log. <Link href="/phone">Open the phone line</Link>.
+            <span className="hv-record">{callId}</span> isn&apos;t in the call
+            log. <Link href="/phone">Open the phone line</Link>.
           </p>
         </header>
       </main>
     );
   }
-  return <LiveCallView call={call} request={call.request} actor={actor} sourceHref={sourceHref} />;
+  return (
+    <LiveCallView
+      call={call}
+      request={call.request}
+      actor={actor}
+      sourceHref={sourceHref}
+    />
+  );
 }
 
-function LiveCallView({ call, request, actor, sourceHref }: { call: LiveCall; request: CallRequestDoc; actor: "maya" | "dev"; sourceHref?: SourceHref }) {
+function LiveCallView({
+  call,
+  request,
+  actor,
+  sourceHref,
+}: {
+  call: LiveCall;
+  request: CallRequestDoc;
+  actor: "maya" | "dev";
+  sourceHref?: SourceHref;
+}) {
   const { record, maya } = useCompany();
   const view = callView(call, maya.name);
   const { startMs, endMs } = callTimes(call);
@@ -108,17 +143,28 @@ function LiveCallView({ call, request, actor, sourceHref }: { call: LiveCall; re
   const otherName = contact ? `${contact} (${supplierName})` : supplierName;
   const rows = buildTranscript(call.events);
   const live = view.line === "connected" && view.active;
-  const questions = call.events.flatMap((e) => (e.type === "question" ? [e.source] : []));
+  const questions = call.events.flatMap((e) =>
+    e.type === "question" ? [e.source] : []
+  );
   const ask = view.active ? openAsk(call.events) : null;
 
   return (
     <main className="hv-page">
       <header className="hv-head">
         <div className="hv-head-text">
-          <div className="cb-caps">Live call · {request.mode === "simulated" ? "Practice, simulated supplier" : "outgoing check"}</div>
+          <div className="cb-caps">
+            Live call ·{" "}
+            {request.mode === "simulated"
+              ? "Practice, simulated supplier"
+              : "outgoing check"}
+          </div>
           <h1 className="cb-subject">{supplierName}</h1>
         </div>
-        <Takeover callId={request.call_id} view={view} takeoverRequested={!!request.takeover_requested} />
+        <Takeover
+          callId={request.call_id}
+          view={view}
+          takeoverRequested={!!request.takeover_requested}
+        />
       </header>
 
       <div className="hv-call">
@@ -126,13 +172,28 @@ function LiveCallView({ call, request, actor, sourceHref }: { call: LiveCall; re
           <Line
             state={view.line}
             label={view.label}
-            supplier={contact ? `${call.supplier?.contactName} · ${supplierName}` : supplierName}
+            supplier={
+              contact
+                ? `${call.supplier?.contactName} · ${supplierName}`
+                : supplierName
+            }
             number={formatPhone(request.to_number)}
             source={numberSourceLabel(request.number_source)}
-            elapsed={startMs === null ? undefined : formatElapsed((endMs ?? now) - startMs)}
+            elapsed={
+              startMs === null
+                ? undefined
+                : formatElapsed((endMs ?? now) - startMs)
+            }
             note={view.note}
           />
-          {ask && <AskPerson key={ask.ask_id} ask={ask} callId={request.call_id} actor={actor} />}
+          {ask && (
+            <AskPerson
+              key={ask.ask_id}
+              ask={ask}
+              callId={request.call_id}
+              actor={actor}
+            />
+          )}
           <Transcript
             large
             done={!view.active}
@@ -143,9 +204,11 @@ function LiveCallView({ call, request, actor, sourceHref }: { call: LiveCall; re
             empty={
               view.line === "ringing"
                 ? `Ringing ${formatPhone(request.to_number)}.`
+                : view.line === "connected" && view.active
+                ? "Connected. Waiting for the first words."
                 : view.active
-                  ? "No one has picked up yet."
-                  : "Nothing was said on this call."
+                ? "Getting ready to call."
+                : "Nothing was said on this call."
             }
           />
         </div>
@@ -162,7 +225,9 @@ function LiveCallView({ call, request, actor, sourceHref }: { call: LiveCall; re
             </ul>
             <div className="cb-caps hv-mt">Why this number</div>
             <p className="hv-small">
-              {formatPhone(request.to_number)} is {numberSourceLabel(request.number_source)}. {AGENT} never dials a number from the email.
+              {formatPhone(request.to_number)} is{" "}
+              {numberSourceLabel(request.number_source)}. {AGENT} never dials a
+              number from the email.
             </p>
             {questions.length > 0 && (
               <>
@@ -190,7 +255,15 @@ function LiveCallView({ call, request, actor, sourceHref }: { call: LiveCall; re
   );
 }
 
-function Takeover({ callId, view, takeoverRequested }: { callId: string; view: CallView; takeoverRequested: boolean }) {
+function Takeover({
+  callId,
+  view,
+  takeoverRequested,
+}: {
+  callId: string;
+  view: CallView;
+  takeoverRequested: boolean;
+}) {
   const HANDOFF_TO = useCompany().maya.name;
   const requestTakeover = useRequestTakeover();
   const [step, setStep] = useState<"idle" | "confirm" | "sending">("idle");
@@ -204,7 +277,13 @@ function Takeover({ callId, view, takeoverRequested }: { callId: string; view: C
   if (!view.active) {
     return (
       <div className="hv-actions">
-        <Button locked={takeoverRequested ? `${HANDOFF_TO} has this call now.` : "The call has ended. There is nothing to take over."}>
+        <Button
+          locked={
+            takeoverRequested
+              ? `${HANDOFF_TO} has this call now.`
+              : "The call has ended. There is nothing to take over."
+          }
+        >
           End call and take over
         </Button>
       </div>
@@ -238,12 +317,21 @@ function Takeover({ callId, view, takeoverRequested }: { callId: string; view: C
   };
 
   return (
-    <div className="hv-actions hv-confirm" role="group" aria-label="Confirm take over">
+    <div
+      className="hv-actions hv-confirm"
+      role="group"
+      aria-label="Confirm take over"
+    >
       <p className="hv-small">
         {AGENT} hangs up and the call goes to {HANDOFF_TO}.
       </p>
       <div className="hv-confirm-buttons">
-        <Button ref={confirmRef} variant="primary" onClick={confirm} disabled={step === "sending"}>
+        <Button
+          ref={confirmRef}
+          variant="primary"
+          onClick={confirm}
+          disabled={step === "sending"}
+        >
           {step === "sending" ? "Ending call" : "End call"}
         </Button>
         <Button onClick={() => setStep("idle")} disabled={step === "sending"}>
@@ -263,7 +351,8 @@ function Result({ result }: { result: CallResultDoc }) {
         <span id="hv-result-title">Result</span>
         {result.evidence.length > 0 && (
           <small>
-            {result.evidence.length} {result.evidence.length === 1 ? "answer" : "answers"}
+            {result.evidence.length}{" "}
+            {result.evidence.length === 1 ? "answer" : "answers"}
           </small>
         )}
       </div>
@@ -271,8 +360,13 @@ function Result({ result }: { result: CallResultDoc }) {
         {result.outcome === "handed_off" ? (
           <StatusMark status="needs-you" />
         ) : (
-          <Endorsement kind={result.outcome === "confirmed" ? "confirmed" : "held"} meta={at}>
-            {result.outcome === "confirmed" ? "Confirmed by call" : "Not confirmed"}
+          <Endorsement
+            kind={result.outcome === "confirmed" ? "confirmed" : "held"}
+            meta={at}
+          >
+            {result.outcome === "confirmed"
+              ? "Confirmed by call"
+              : "Not confirmed"}
           </Endorsement>
         )}
         <p className="hv-statement">{result.summary}</p>
@@ -287,32 +381,56 @@ function Result({ result }: { result: CallResultDoc }) {
               title={item.ask}
               evidence={
                 <>
-                  {item.matches ? <span className="hv-quote">“{item.answer}”</span> : "Doesn't match the records."}
-                  {item.decided_by && <DecidedBy who={item.decided_by} matches={item.matches} />}
+                  {item.matches ? (
+                    <span className="hv-quote">“{item.answer}”</span>
+                  ) : (
+                    "Doesn't match the records."
+                  )}
+                  {item.decided_by && (
+                    <DecidedBy who={item.decided_by} matches={item.matches} />
+                  )}
                 </>
               }
               quote={item.matches ? undefined : item.answer}
-              sources={item.source ? [citeLabel(item.source, record)] : undefined}
+              sources={
+                item.source ? [citeLabel(item.source, record)] : undefined
+              }
             />
           ))}
         </div>
       )}
-      {result.recording_url && <Recording url={result.recording_url} clip={result.clip} />}
+      {result.recording_url && (
+        <Recording url={result.recording_url} clip={result.clip} />
+      )}
     </section>
   );
 }
 
 /** A person judged this answer during the call; hold's own judgment didn't decide it. */
-function DecidedBy({ who, matches }: { who: "maya" | "dev"; matches: boolean }) {
+function DecidedBy({
+  who,
+  matches,
+}: {
+  who: "maya" | "dev";
+  matches: boolean;
+}) {
   return (
     <span className="hv-small">
       {" "}
-      Judged {matches ? "a match" : "not a match"} by <span className="hv-person">{person(useCompany(), who).full}</span> during the call.
+      Judged {matches ? "a match" : "not a match"} by{" "}
+      <span className="hv-person">{person(useCompany(), who).full}</span> during
+      the call.
     </span>
   );
 }
 
-export function Recording({ url, clip }: { url: string; clip?: CallResultDoc["clip"] }) {
+export function Recording({
+  url,
+  clip,
+}: {
+  url: string;
+  clip?: CallResultDoc["clip"];
+}) {
   const audio = useRef<HTMLAudioElement>(null);
   const stopAt = useRef<number | null>(null);
 
@@ -334,7 +452,10 @@ export function Recording({ url, clip }: { url: string; clip?: CallResultDoc["cl
         preload="metadata"
         aria-label="Call recording"
         onTimeUpdate={(e) => {
-          if (stopAt.current !== null && e.currentTarget.currentTime >= stopAt.current) {
+          if (
+            stopAt.current !== null &&
+            e.currentTarget.currentTime >= stopAt.current
+          ) {
             e.currentTarget.pause();
             stopAt.current = null;
           }
@@ -342,12 +463,14 @@ export function Recording({ url, clip }: { url: string; clip?: CallResultDoc["cl
         onSeeking={(e) => {
           // A manual seek outside the clip means the listener wants the whole recording.
           const t = e.currentTarget.currentTime;
-          if (clip && (t < clip.start_s || t > clip.end_s)) stopAt.current = null;
+          if (clip && (t < clip.start_s || t > clip.end_s))
+            stopAt.current = null;
         }}
       />
       {clip && (
         <Button size="sm" onClick={playClip}>
-          Play key sentence {formatElapsed(clip.start_s * 1000)}-{formatElapsed(clip.end_s * 1000)}
+          Play key sentence {formatElapsed(clip.start_s * 1000)}-
+          {formatElapsed(clip.end_s * 1000)}
         </Button>
       )}
     </div>
