@@ -98,6 +98,7 @@ describe("classifyTurn", () => {
     ["Sorry?", "repeat"],
     ["Can you say that again?", "repeat"],
     ["Hold on, let me check.", "wait"],
+    ["Give me just a minute. I can do that for you.", "wait"],
     ["Which invoice do you mean?", "clarify"],
     ["Why do you need to know?", "clarify"],
     ["Um, about nine thousand?", "answer"],
