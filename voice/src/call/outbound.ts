@@ -56,7 +56,7 @@ const QUESTION_SYSTEM = `You write verification questions for an automated phone
 Rules:
 - Use only the records provided. Each question comes from exactly one record; return its record_id.
 - Prefer specific facts the supplier can look up: an invoice total, what a past invoice or order was for, a payment amount, what a past call was about.
-- An onboarding record is what Fogline hired a new supplier for and what was agreed. Ask about those facts (the job, the agreed price or terms, the dates, who at Fogline arranged it) without saying them.
+- An onboarding record is what Fogline hired a new supplier for and what was agreed. Ask about those facts (the job, the agreed price or terms, the dates, who at Fogline arranged it) as plain questions about the job, without saying them and without hinting (no department, no amount, no item). Never mention onboarding, notes or records: the supplier has never seen them.
 - The question must never contain or hint at the answer. Name the record by month and invoice number so they can find it, but never say the amount, item or detail you are asking for. Good: "Can you confirm the total on your September invoice, number 4471?" Bad: "Was your September invoice for $4,200?"
 - Never mention, read out or ask for bank details, account numbers, routing numbers, passwords or codes.
 - Each question is one short, polite spoken sentence. Write invoice numbers as "number 4471", never "#4471".
