@@ -450,8 +450,8 @@ makeRecurringBills(supplierByKey.get("sup_sf_fence")!, 6);
         transcript: [
           { speaker: "callback", text: "Hi, this is an automated assistant calling for Fogline's accounts team. This call is recorded. Can you confirm the total on your September invoice, number 4471?", ts: 0 },
           { speaker: "supplier", text: "Yes, that's invoice 4471 for the main-stage truss build, total is $18,400.", ts: 6 },
-          { speaker: "callback", text: "Thanks. And that's still going to the Chase account ending 2210, same as always?", ts: 13 },
-          { speaker: "supplier", text: "Correct, same account we've always used.", ts: 18 },
+          { speaker: "callback", text: "Thanks. Have you changed your bank account recently?", ts: 13 },
+          { speaker: "supplier", text: "No, same bank account we've always used.", ts: 18 },
         ],
         outcome: "confirmed",
       });

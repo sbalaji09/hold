@@ -5220,12 +5220,12 @@
         },
         {
           "speaker": "callback",
-          "text": "Thanks. And that's still going to the Chase account ending 2210, same as always?",
+          "text": "Thanks. Have you changed your bank account recently?",
           "ts": 13
         },
         {
           "speaker": "supplier",
-          "text": "Correct, same account we've always used.",
+          "text": "No, same bank account we've always used.",
           "ts": 18
         }
       ],
