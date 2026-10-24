@@ -1,8 +1,7 @@
-"use client";
-import { use } from "react";
 import { LiveCallScreen } from "@/components/voice";
+import { getPersona } from "@/lib/persona";
 
-export default function LiveCallPage({ params }: { params: Promise<{ callId: string }> }) {
-  const { callId } = use(params);
-  return <LiveCallScreen key={callId} callId={decodeURIComponent(callId)} />;
+export default async function LiveCallPage({ params }: { params: Promise<{ callId: string }> }) {
+  const [{ callId }, actor] = await Promise.all([params, getPersona()]);
+  return <LiveCallScreen key={callId} callId={decodeURIComponent(callId)} actor={actor} />;
 }

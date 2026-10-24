@@ -7,6 +7,7 @@ import {
   MAX_ATTEMPTS,
   type CallRequest,
   type CallResult,
+  type PersonAnswerEvent,
   type SourceKind,
 } from "../../shared/contract.js";
 import { internal } from "../_generated/api.js";
@@ -64,6 +65,7 @@ export function toCallResult(d: Doc<"callResults">): CallResult {
       answer: e.answer,
       matches: e.matches,
       ...(e.source ? { source: { ...e.source, kind: e.source.kind as SourceKind } } : {}),
+      ...(e.decided_by ? { decided_by: e.decided_by } : {}),
     })),
     summary: d.summary,
   };
@@ -226,6 +228,44 @@ export const markInProgress = mutation({
     const row = await mustFindRequest(ctx, args.call_id);
     if (isClosed(row.status)) return;
     await ctx.db.patch(row._id, { status: "in_progress", startedAt: row.startedAt ?? new Date().toISOString() });
+  },
+});
+
+/** The first reply to one of hold's mid-call questions for a person, or null while none has come. */
+export async function findPersonAnswer(ctx: QueryCtx, call_id: string, ask_id: string): Promise<PersonAnswerEvent | null> {
+  const events = await ctx.db
+    .query("callEvents")
+    .withIndex("by_call", (q) => q.eq("call_id", call_id))
+    .collect();
+  for (const e of events) {
+    if (e.type !== "person_answer" || e.ask_id !== ask_id) continue;
+    const { _id, _creationTime, ...answer } = e;
+    return answer;
+  }
+  return null;
+}
+
+/** The voice server subscribes to this while hold waits for a person mid-call. */
+export const personAnswer = query({
+  args: { secret, call_id: v.string(), ask_id: v.string() },
+  handler: async (ctx, args) => {
+    assertVoiceSecret(args.secret);
+    return findPersonAnswer(ctx, args.call_id, args.ask_id);
+  },
+});
+
+/**
+ * No one answered in time: closes the question so a late click can't count. Returns the answer if
+ * one arrived first, so voice never ignores a person who did reply.
+ */
+export const closeAsk = mutation({
+  args: { secret, call_id: v.string(), ask_id: v.string() },
+  handler: async (ctx, args) => {
+    assertVoiceSecret(args.secret);
+    const existing = await findPersonAnswer(ctx, args.call_id, args.ask_id);
+    if (existing) return existing;
+    await ctx.db.insert("callEvents", { call_id: args.call_id, type: "person_answer", ask_id: args.ask_id, verdict: "no_reply" });
+    return null;
   },
 });
 

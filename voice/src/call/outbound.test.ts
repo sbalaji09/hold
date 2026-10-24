@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DISCLOSURE, type CallEvent, type SupplierRecord } from "../../../shared/contract.js";
 import { MemoryStore } from "../store/memoryStore.js";
 import type { PreparedCall, PreparedQuestion } from "./index.js";
-import { BANK_CHANGE_QUESTION, pickCandidates, prepareOutboundCall, runOutboundCall } from "./outbound.js";
+import { BANK_CHANGE_QUESTION, nearMiss, pickCandidates, prepareOutboundCall, runOutboundCall } from "./outbound.js";
 import { SimulatedTransport } from "./simulated.js";
 import { FakeLLM, FakeSearch, STAGE, STAGE_RECORDS, stageRequest } from "./testing.js";
 
@@ -394,3 +394,97 @@ describe("runOutboundCall", () => {
 function round1(n: number) {
   return Math.round(n * 10) / 10;
 }
+
+describe("checking with a person mid-call", () => {
+  type Reply = { verdict: "matches" | "no_match" | "follow_up"; follow_up?: string };
+  const VAGUE = "About eighteen thousand, I think.";
+  const DENIAL_LINE = "No, we never changed our bank.";
+
+  /** Maya replies to each ask_person event in turn, as the Live call screen would. */
+  function mayaReplies(store: MemoryStore, replies: Reply[]) {
+    const append = store.appendEvent.bind(store);
+    store.appendEvent = async (e) => {
+      await append(e);
+      const reply = e.type === "ask_person" ? replies.shift() : undefined;
+      if (e.type === "ask_person" && reply) setTimeout(() => store.answerAsk({ call_id: e.call_id, ask_id: e.ask_id, by: "maya", ...reply }), 5);
+    };
+  }
+
+  function setupAsk(script: string[], opts: { quick?: () => unknown; judge?: unknown; mode?: "live" | "simulated" } = {}) {
+    const store = new MemoryStore({ suppliers: [STAGE], records: STAGE_RECORDS });
+    const request = stageRequest(opts.mode ? { mode: opts.mode } : {});
+    store.addRequest(request);
+    const transport = new SimulatedTransport({ request, script });
+    const llm = new FakeLLM({
+      json: {
+        "You check one answer": (opts.quick ?? (() => ({ verdict: "unsure" }))) as never,
+        "You judge": (opts.judge ?? judgeSays(false, false)) as never,
+      },
+    });
+    const run = (personTimeoutMs = 1_000) => runOutboundCall({ store, transport, request, prepared: PREPARED, llm, personTimeoutMs });
+    return { store, llm, run };
+  }
+
+  const asks = (store: MemoryStore) => store.eventsFor("call_123").flatMap((e) => (e.type === "ask_person" ? [e] : []));
+
+  it("an unsure answer goes to Maya, and her verdict decides it; words said while on hold aren't taken as answers", async () => {
+    // "<over>" is said over hold's thanks, while it is about to check with Maya.
+    const { store, run } = setupAsk([VAGUE, "<over>Sure, no problem.", DENIAL_LINE]);
+    mayaReplies(store, [{ verdict: "matches" }]);
+    const result = await run();
+
+    expect(asks(store)).toMatchObject([{ ask: INVOICE_Q.ask, answer: VAGUE, expected: "$18,400.00", follow_up_allowed: true }]);
+    expect(segments(store.eventsFor("call_123"), "callback")).toContain("One moment, I'm just checking that with the team.");
+    expect(result.evidence[0]).toMatchObject({ answer: VAGUE, matches: true, decided_by: "maya" });
+    expect(result.evidence[1]).toMatchObject({ ask: BANK_CHANGE_QUESTION, answer: DENIAL_LINE });
+    expect(result.outcome).toBe("not_confirmed");
+    expectNothingReadBack(store);
+  });
+
+  it("with no reply in time, the question is closed and hold judges strictly on its own", async () => {
+    const { store, run } = setupAsk([VAGUE, DENIAL_LINE]);
+    const result = await run(20);
+    expect(store.eventsFor("call_123").filter((e) => e.type === "person_answer")).toMatchObject([{ verdict: "no_reply" }]);
+    expect(result.evidence[0]).toMatchObject({ matches: false });
+    expect(result.evidence[0]!.decided_by).toBeUndefined();
+    // A late click can't count once hold moved on.
+    expect(store.answerAsk({ call_id: "call_123", ask_id: asks(store)[0]!.ask_id, verdict: "matches", by: "maya" })).toBe(false);
+  });
+
+  it("Maya's follow-up is asked on the call and its answer comes back to her once", async () => {
+    const FOLLOW_UP = "What was that invoice for?";
+    const { store, run } = setupAsk([VAGUE, "The main-stage truss build.", "Yes, we moved banks last week."], { judge: judgeSays(true, true) });
+    mayaReplies(store, [{ verdict: "follow_up", follow_up: FOLLOW_UP }, { verdict: "matches" }]);
+    const result = await run();
+
+    expect(asks(store).map((a) => [a.ask, a.follow_up_allowed])).toEqual([
+      [INVOICE_Q.ask, true],
+      [FOLLOW_UP, false],
+    ]);
+    expect(segments(store.eventsFor("call_123"), "callback")).toContain(FOLLOW_UP);
+    expect(result.evidence).toHaveLength(2);
+    expect(result.evidence[0]).toMatchObject({ ask: FOLLOW_UP, answer: "The main-stage truss build.", decided_by: "maya", matches: true });
+    expect(result.outcome).toBe("confirmed");
+  });
+
+  it("a clear answer, the bank question and simulated calls never wait on a person", async () => {
+    const clear = setupAsk(["$18,400.", DENIAL_LINE], { quick: () => ({ verdict: "match" }) });
+    await clear.run();
+    expect(asks(clear.store)).toEqual([]);
+    expect(clear.llm.jsonCalls.filter((c) => c.system.includes("You check one answer"))).toHaveLength(1); // not for the bank question
+
+    const simulated = setupAsk([VAGUE, DENIAL_LINE], { mode: "simulated" });
+    await simulated.run();
+    expect(asks(simulated.store)).toEqual([]);
+    expect(simulated.llm.jsonCalls.some((c) => c.system.includes("You check one answer"))).toBe(false);
+  });
+});
+
+describe("nearMiss (the quick check without Claude)", () => {
+  it("flags a different amount within 10%, not an exact one or a far one", () => {
+    expect(nearMiss("$18,400.00", "about 18,000")).toBe(true);
+    expect(nearMiss("$18,400.00", "18,400")).toBe(false);
+    expect(nearMiss("$18,400.00", "12,000")).toBe(false);
+    expect(nearMiss("Main-stage truss build", "the truss")).toBe(false);
+  });
+});

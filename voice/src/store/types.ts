@@ -5,6 +5,7 @@ import type {
   CallRequest,
   CallResult,
   InboundCallRecord,
+  PersonAnswerEvent,
   SupplierProfile,
   SupplierRecord,
 } from "../../../shared/contract.js";
@@ -22,6 +23,10 @@ export interface VoiceStore {
   getRequest(call_id: string): Promise<CallRequest | null>;
   /** Fires when Maya presses "End call and take over". */
   watchTakeover(call_id: string, cb: () => void): () => void;
+  /** Fires once with the first person's reply to a mid-call question (ask_person event). */
+  watchPersonAnswer(call_id: string, ask_id: string, cb: (answer: PersonAnswerEvent) => void): () => void;
+  /** Stops waiting for a reply. Returns the reply if one already came, else records "no_reply". */
+  closeAsk(call_id: string, ask_id: string): Promise<PersonAnswerEvent | null>;
   setTwilioCallSid(call_id: string, sid: string): Promise<void>;
   markInProgress(call_id: string): Promise<void>;
 

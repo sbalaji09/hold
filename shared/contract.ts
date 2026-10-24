@@ -55,7 +55,45 @@ export type Speaker = "callback" | "supplier" | "caller";
 export type CallEvent =
   | { call_id: string; type: "status"; value: CallStatusValue; retry_at?: string; retry_at_ms?: number }
   | { call_id: string; type: "segment"; speaker: Speaker; text: string; ts: number; end_ts?: number }
-  | { call_id: string; type: "question"; ask: string; source: Source };
+  | { call_id: string; type: "question"; ask: string; source: Source }
+  | AskPersonEvent
+  | PersonAnswerEvent;
+
+/** A person on the team, as the app names them. */
+export type Person = "maya" | "dev";
+
+/**
+ * hold couldn't judge an answer on its own and asked a person, mid-call. Shown on the Live call
+ * screen until a PersonAnswerEvent with the same ask_id arrives.
+ */
+export interface AskPersonEvent {
+  call_id: string;
+  type: "ask_person";
+  ask_id: string;
+  ask: string; // the question hold asked on the call
+  answer: string; // what the supplier said
+  expected: string; // what the records say; shown to the team, never spoken
+  source: Source;
+  follow_up_allowed: boolean;
+}
+
+/**
+ * The reply to an AskPersonEvent. First one wins. "no_reply" is written by voice when no one
+ * answered in time; hold then judges the answer strictly on its own.
+ */
+export interface PersonAnswerEvent {
+  call_id: string;
+  type: "person_answer";
+  ask_id: string;
+  verdict: "matches" | "no_match" | "follow_up" | "no_reply";
+  follow_up?: string;
+  by?: Person;
+}
+
+/** Bank, account or credential words: hold never says these on a check call, whoever wrote the line. */
+export function mentionsBankDetails(text: string): boolean {
+  return /\b(?:bank|account|routing|iban|swift|sort code|password|pin|passcode)\b/i.test(text);
+}
 
 export type CallOutcome = "confirmed" | "not_confirmed" | "handed_off";
 
@@ -64,6 +102,8 @@ export interface Evidence {
   source?: Source;
   answer: string;
   matches: boolean;
+  /** Set when a person judged this answer during the call instead of hold. */
+  decided_by?: Person;
 }
 
 export interface Clip {

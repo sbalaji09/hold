@@ -1,12 +1,15 @@
 // Queries and mutations for the team's screens (Live call, Phone line).
 // They return the app's table rows as stored.
 // TODO(auth): these are public until the app adds team login; then guard them with ctx.auth.
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
+import { mentionsBankDetails } from "../../shared/contract.js";
+import { person } from "../../lib/company.js";
+import { getCompany } from "../app/company.js";
 import type { Doc } from "../_generated/dataModel.js";
 import { mutation, query } from "../_generated/server.js";
 import { getSupplierContact } from "./records.js";
-import { TAKEOVER_BEFORE_CONNECT_SUMMARY } from "./rules.js";
-import { findRequest, findResult, writeResult } from "./server.js";
+import { findPersonAnswer, findRequest, findResult, writeResult } from "./server.js";
+import { isClosed, TAKEOVER_BEFORE_CONNECT_SUMMARY } from "./rules.js";
 
 /**
  * Everything the Live call screen shows for one call. Events are in creation order.
@@ -93,5 +96,63 @@ export const requestTakeover = mutation({
     if (row.status === "queued" || row.status === "retry_scheduled") {
       await writeResult(ctx, { call_id, outcome: "handed_off", evidence: [], summary: TAKEOVER_BEFORE_CONNECT_SUMMARY });
     }
+  },
+});
+
+const FOLLOW_UP_MAX = 200;
+
+/**
+ * Maya or Dev answers hold's mid-call question on the Live call screen. The first reply wins; one
+ * that comes after hold stopped waiting is refused with the reason, so a late click never counts.
+ */
+export const answerAsk = mutation({
+  args: {
+    call_id: v.string(),
+    ask_id: v.string(),
+    verdict: v.union(v.literal("matches"), v.literal("no_match"), v.literal("follow_up")),
+    follow_up: v.optional(v.string()),
+    actor: v.union(v.literal("maya"), v.literal("dev")),
+  },
+  handler: async (ctx, { call_id, ask_id, verdict, follow_up, actor }) => {
+    const request = await findRequest(ctx, call_id);
+    if (!request) throw new ConvexError(`Unknown call ${call_id}.`);
+    const events = await ctx.db
+      .query("callEvents")
+      .withIndex("by_call", (q) => q.eq("call_id", call_id))
+      .collect();
+    const ask = events.find((e) => e.type === "ask_person" && e.ask_id === ask_id);
+    if (!ask || ask.type !== "ask_person") throw new ConvexError("hold didn't ask that on this call.");
+    if (isClosed(request.status) || (await findPersonAnswer(ctx, call_id, ask_id))) {
+      throw new ConvexError("hold already moved on from this question.");
+    }
+    const line = follow_up?.trim() ?? "";
+    if (verdict === "follow_up") {
+      if (!ask.follow_up_allowed) throw new ConvexError("hold already asked one follow-up. Say whether this answer matches.");
+      if (!line) throw new ConvexError("Write the question for hold to ask.");
+      if (line.length > FOLLOW_UP_MAX) throw new ConvexError(`Keep it under ${FOLLOW_UP_MAX} characters, one spoken question.`);
+      if (mentionsBankDetails(line)) throw new ConvexError("hold never asks about bank or account details on a check call.");
+    }
+    await ctx.db.insert("callEvents", {
+      call_id,
+      type: "person_answer",
+      ask_id,
+      verdict,
+      by: actor,
+      ...(verdict === "follow_up" ? { follow_up: line } : {}),
+    });
+    const who = person(await getCompany(ctx), actor);
+    const said =
+      verdict === "follow_up"
+        ? `Asked hold to follow up with "${line}".`
+        : `Said "${ask.answer}" ${verdict === "matches" ? "matches" : "doesn't match"} the records (${ask.source.ref}).`;
+    await ctx.db.insert("activity", {
+      key: `act_${crypto.randomUUID()}`,
+      actor,
+      what: `${who.name} answered hold during a check call`,
+      why: said,
+      refKind: "bill",
+      refKey: request.bill_id,
+      at: new Date().toISOString(),
+    });
   },
 });

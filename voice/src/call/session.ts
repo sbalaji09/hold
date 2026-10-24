@@ -18,6 +18,8 @@ export class CallSession {
   private reason: EndReason | null = null;
   /** When the opening line finished playing in full; greetings said over it are not turns. */
   private openingEndS: number | null = null;
+  /** Words that started before this were said while hold was busy (waiting on a person): transcript only. */
+  private ignoreBeforeS: number | null = null;
   private stop!: () => void;
   private readonly stopped = new Promise<null>((resolve) => (this.stop = () => resolve(null)));
 
@@ -64,6 +66,7 @@ export class CallSession {
       const u = await this.hearOnce(timeoutMs);
       // "Hello?" said on pickup, over the opening line, already got its answer: the opening itself.
       if (u && this.openingEndS !== null && u.start_s < this.openingEndS && classifyTurn(u.text) === "greeting") continue;
+      if (u && this.ignoreBeforeS !== null && u.start_s < this.ignoreBeforeS) continue;
       return u;
     }
   }
@@ -80,6 +83,11 @@ export class CallSession {
     if (!u.text.trim()) return null;
     await this.record(this.other, u.text.trim(), u.start_s, u.end_s);
     return u;
+  }
+
+  /** Anything heard that started before `s` stays in the transcript but is never taken as a reply. */
+  ignoreHeardBefore(s: number): void {
+    this.ignoreBeforeS = s;
   }
 
   async emit(event: CallEvent): Promise<void> {

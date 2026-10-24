@@ -6,6 +6,7 @@ import {
   type CallRequest,
   type CallResult,
   type InboundCallRecord,
+  type PersonAnswerEvent,
   type SupplierProfile,
   type SupplierRecord,
 } from "../../../shared/contract.js";
@@ -54,6 +55,7 @@ export class MemoryStore implements VoiceStore {
   private readonly now: () => number;
   private readonly queuedWatchers = new Set<(r: CallRequest[]) => void>();
   private readonly takeoverWatchers = new Map<string, Set<() => void>>();
+  private readonly answerWatchers = new Set<{ call_id: string; ask_id: string; cb: (a: PersonAnswerEvent) => void }>();
   private readonly timers = new Set<ReturnType<typeof setTimeout>>();
   private recordingSeq = 0;
 
@@ -84,6 +86,19 @@ export class MemoryStore implements VoiceStore {
     if (row.status === "queued" || row.status === "retry_scheduled") {
       await this.finishCall({ call_id, outcome: "handed_off", evidence: [], summary: TAKEOVER_BEFORE_CONNECT_SUMMARY });
     }
+  }
+
+  /** What the Live call screen does (convex/voice/ui.ts answerAsk). False if the question is already closed. */
+  answerAsk(answer: Omit<PersonAnswerEvent, "type">): boolean {
+    if (this.personAnswer(answer.call_id, answer.ask_id)) return false;
+    const event: PersonAnswerEvent = { ...answer, type: "person_answer" };
+    this.events.push(event);
+    for (const w of this.answerWatchers) if (w.call_id === answer.call_id && w.ask_id === answer.ask_id) w.cb(event);
+    return true;
+  }
+
+  private personAnswer(call_id: string, ask_id: string): PersonAnswerEvent | undefined {
+    return this.events.find((e): e is PersonAnswerEvent => e.type === "person_answer" && e.call_id === call_id && e.ask_id === ask_id);
   }
 
   eventsFor(call_id: string): CallEvent[] {
@@ -124,6 +139,24 @@ export class MemoryStore implements VoiceStore {
     set.add(cb);
     if (this.requests.get(call_id)?.takeover_requested) cb();
     return () => set.delete(cb);
+  }
+
+  watchPersonAnswer(call_id: string, ask_id: string, cb: (answer: PersonAnswerEvent) => void): () => void {
+    const existing = this.personAnswer(call_id, ask_id);
+    if (existing) {
+      cb(existing);
+      return () => {};
+    }
+    const w = { call_id, ask_id, cb };
+    this.answerWatchers.add(w);
+    return () => this.answerWatchers.delete(w);
+  }
+
+  async closeAsk(call_id: string, ask_id: string): Promise<PersonAnswerEvent | null> {
+    const existing = this.personAnswer(call_id, ask_id);
+    if (existing) return existing;
+    this.events.push({ call_id, type: "person_answer", ask_id, verdict: "no_reply" });
+    return null;
   }
 
   async setTwilioCallSid(call_id: string, sid: string): Promise<void> {

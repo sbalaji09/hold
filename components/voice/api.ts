@@ -81,3 +81,15 @@ export const useReportCall: () => (callId: string, verdict: CallVerdict, actor: 
       const report = useMutation(api.app.techniques.reportCall);
       return (callId, verdict, actor) => report({ callId, verdict, actor });
     };
+
+export type AskVerdict = "matches" | "no_match" | "follow_up";
+
+/** Maya or Dev answers hold's mid-call question (convex/voice/ui.ts answerAsk). */
+export const useAnswerAsk: () => (args: { callId: string; askId: string; verdict: AskVerdict; followUp?: string; actor: "maya" | "dev" }) => Promise<unknown> =
+  MOCK
+    ? () => async () => undefined
+    : () => {
+        const answer = useMutation(api.voice.ui.answerAsk);
+        return ({ callId, askId, verdict, followUp, actor }) =>
+          answer({ call_id: callId, ask_id: askId, verdict, actor, ...(followUp !== undefined ? { follow_up: followUp } : {}) });
+      };

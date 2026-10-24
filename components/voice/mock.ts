@@ -7,7 +7,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { CALLBACK_PROMISE, DISCLOSURE } from "@/shared/contract";
 import type { CallEventDoc, CallRequestDoc, CallResultDoc, InboundCallDoc, LiveCall, PhoneLine } from "./api";
 
-const SCENARIOS = ["not_confirmed", "confirmed", "no_answer", "dropped", "phone"] as const;
+const SCENARIOS = ["not_confirmed", "confirmed", "no_answer", "dropped", "phone", "ask"] as const;
 export type Scenario = (typeof SCENARIOS)[number];
 
 export function scenarioFromSearch(search: string): Scenario | null {
@@ -39,7 +39,9 @@ function useMockSeconds(): number | null {
 type EventInit =
   | { type: "status"; value: Extract<CallEventDoc, { type: "status" }>["value"]; retry_at_ms?: number }
   | { type: "segment"; speaker: "callback" | "supplier"; text: string }
-  | { type: "question"; ask: string; source: { kind: string; ref: string; record_id?: string } };
+  | { type: "question"; ask: string; source: { kind: string; ref: string; record_id?: string } }
+  | Omit<Extract<CallEventDoc, { type: "ask_person" }>, "_id" | "_creationTime" | "call_id">
+  | Omit<Extract<CallEventDoc, { type: "person_answer" }>, "_id" | "_creationTime" | "call_id">;
 
 interface Step {
   at: number; // seconds after the call starts
@@ -53,6 +55,7 @@ const ANSWERED_AT = 4;
 const CLOSING_LINE = "Thanks, that's everything I needed. Have a good day. Goodbye.";
 const Q1 = { ask: "What was the invoice number on your September invoice for the main-stage truss?", source: { kind: "invoice", ref: "INV-4471" } };
 const Q2 = { ask: "Did you recently change your bank account?", source: { kind: "payment", ref: "Chase ··2210" } };
+const Q_TOTAL = { ask: "Can you confirm the total on your September invoice, number 4471?", source: Q1.source };
 const A1 = "Forty-four seventy-one. Why, is something wrong?";
 
 const opening: Step[] = [
@@ -107,6 +110,29 @@ const SCRIPTS: Record<Exclude<Scenario, "phone">, Step[]> = {
       "Rosa confirmed invoice 4471 and that Stagecraft recently changed banks.",
       CLOSING_LINE,
     ),
+  ],
+  // hold checks a vague answer with Maya; the mock gives her 20 seconds to look before it moves on.
+  ask: [
+    ...opening.slice(0, 4),
+    { at: 9, event: { type: "question", ...Q_TOTAL } },
+    { at: 9.5, event: { type: "segment", speaker: "callback", text: Q_TOTAL.ask } },
+    { at: 15, event: { type: "segment", speaker: "supplier", text: "Around eighteen thousand, I think." } },
+    { at: 16, event: { type: "segment", speaker: "callback", text: "Thanks." } },
+    {
+      at: 16.5,
+      event: {
+        type: "ask_person",
+        ask_id: "ask_mock",
+        ask: Q_TOTAL.ask,
+        answer: "Around eighteen thousand, I think.",
+        expected: "$18,400.00",
+        source: Q_TOTAL.source,
+        follow_up_allowed: true,
+      },
+    },
+    { at: 17, event: { type: "segment", speaker: "callback", text: "One moment, I'm just checking that with the team." } },
+    { at: 37, event: { type: "person_answer", ask_id: "ask_mock", verdict: "no_reply" } },
+    { at: 37.5, event: { type: "segment", speaker: "callback", text: "Thanks for waiting." } },
   ],
   no_answer: [
     { at: 0, status: "dialing", event: { type: "status", value: "ringing" } },

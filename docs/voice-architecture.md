@@ -29,6 +29,7 @@ Interfaces are fixed in code; change them only deliberately and update every use
    `PhoneTransport` bridges audio to Cartesia STT (ink-whisper) and Sonic TTS, with barge-in.
    Recording starts via the REST API when the stream starts, so `ts` 0 equals recording 0 s.
 5. `runOutboundCall` says the disclosure, asks the questions, writes `segment` / `question` events, judges the answers and calls `finishCall`.
+   After each history answer, a quick check (run while "Thanks" plays) can mark it unsure. hold then says it is checking with the team, writes an `ask_person` event and waits up to 20 s for a `person_answer` from the Live call screen (`convex/voice/ui.ts` `answerAsk`). The person's verdict decides that answer; one follow-up question they write is asked on the call. With no reply, `closeAsk` records `no_reply` and hold judges strictly on its own.
 6. No answer, busy, failed or voicemail: `reportNoAnswer`. Convex schedules one retry or hands off.
    A stream that closes before the session finishes is `dropped`, which leads to `handed_off` with whatever evidence was actually heard.
 7. The recording-status webhook downloads the recording from Twilio and calls `attachRecording`.

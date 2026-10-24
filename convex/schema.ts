@@ -236,6 +236,25 @@ export default defineSchema({
         ask: v.string(),
         source: callEventSource,
       }),
+      // hold asked a person to judge an answer mid-call (shared/contract.ts AskPersonEvent).
+      v.object({
+        call_id: v.string(),
+        type: v.literal("ask_person"),
+        ask_id: v.string(),
+        ask: v.string(),
+        answer: v.string(),
+        expected: v.string(),
+        source: callEventSource,
+        follow_up_allowed: v.boolean(),
+      }),
+      v.object({
+        call_id: v.string(),
+        type: v.literal("person_answer"),
+        ask_id: v.string(),
+        verdict: v.union(v.literal("matches"), v.literal("no_match"), v.literal("follow_up"), v.literal("no_reply")),
+        follow_up: v.optional(v.string()),
+        by: v.optional(v.union(v.literal("maya"), v.literal("dev"))),
+      }),
     ),
   ).index("by_call", ["call_id"]),
 
@@ -252,6 +271,7 @@ export default defineSchema({
         source: v.optional(callEventSource),
         answer: v.string(),
         matches: v.boolean(),
+        decided_by: v.optional(v.union(v.literal("maya"), v.literal("dev"))),
       }),
     ),
     summary: v.string(),

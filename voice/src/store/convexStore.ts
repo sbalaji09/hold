@@ -1,7 +1,7 @@
 // VoiceStore over Convex (convex/voice/server.ts). Subscriptions use the websocket client;
 // every call passes VOICE_SERVER_SECRET, which Convex checks against its own env var.
 import { ConvexClient } from "convex/browser";
-import type { CallEvent, CallRequest, CallResult, InboundCallRecord } from "../../../shared/contract.js";
+import type { CallEvent, CallRequest, CallResult, InboundCallRecord, PersonAnswerEvent } from "../../../shared/contract.js";
 import { api } from "../../../convex/_generated/api.js";
 import type { Id } from "../../../convex/_generated/dataModel.js";
 import type { VoiceStore } from "./types.js";
@@ -52,6 +52,25 @@ export class ConvexStore implements VoiceStore {
       },
       (err) => console.error(`[convexStore] takeover subscription failed for ${call_id}`, err),
     );
+  }
+
+  watchPersonAnswer(call_id: string, ask_id: string, cb: (answer: PersonAnswerEvent) => void): () => void {
+    let fired = false;
+    return this.client.onUpdate(
+      fns.personAnswer,
+      { secret: this.secret, call_id, ask_id },
+      (row) => {
+        if (row && !fired) {
+          fired = true;
+          cb(row);
+        }
+      },
+      (err) => console.error(`[convexStore] personAnswer subscription failed for ${call_id}`, err),
+    );
+  }
+
+  async closeAsk(call_id: string, ask_id: string): Promise<PersonAnswerEvent | null> {
+    return this.client.mutation(fns.closeAsk, { secret: this.secret, call_id, ask_id });
   }
 
   async setTwilioCallSid(call_id: string, sid: string): Promise<void> {

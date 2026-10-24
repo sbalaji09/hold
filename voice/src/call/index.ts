@@ -20,6 +20,8 @@ export interface OutboundCallDeps {
   /** Questions prepared by prepareOutboundCall() while the phone was ringing (Moss pre-warm). */
   prepared: PreparedCall;
   llm: LLM;
+  /** How long hold waits for a person mid-call before judging on its own. Default OUTBOUND_LIMITS.personTimeoutMs. */
+  personTimeoutMs?: number;
 }
 
 export interface InboundCallDeps {

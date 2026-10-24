@@ -18,6 +18,9 @@ import {
   type CallView,
 } from "./format";
 import { Transcript, type SourceHref } from "./Transcript";
+import { AskPerson, openAsk } from "./AskPerson";
+import { person } from "@/lib/company";
+import { useCompany } from "@/lib/useCompany";
 import "./voice.css";
 
 export function liveCallPath(callId: string): string {
@@ -63,12 +66,14 @@ export function useNow(enabled: boolean): number {
 
 export interface LiveCallScreenProps {
   callId: string;
+  /** Who is signed in, for answering hold's questions mid-call. */
+  actor?: "maya" | "dev";
   /** Link for a question's source record (`record_id`), once the app has record pages. */
   sourceHref?: SourceHref;
 }
 
 /** The Live call screen for `/calls/[callId]`. */
-export function LiveCallScreen({ callId, sourceHref }: LiveCallScreenProps) {
+export function LiveCallScreen({ callId, actor = "maya", sourceHref }: LiveCallScreenProps) {
   const call = useLiveCall(callId);
 
   if (call === undefined) {
@@ -91,10 +96,10 @@ export function LiveCallScreen({ callId, sourceHref }: LiveCallScreenProps) {
       </main>
     );
   }
-  return <LiveCallView call={call} request={call.request} sourceHref={sourceHref} />;
+  return <LiveCallView call={call} request={call.request} actor={actor} sourceHref={sourceHref} />;
 }
 
-function LiveCallView({ call, request, sourceHref }: { call: LiveCall; request: CallRequestDoc; sourceHref?: SourceHref }) {
+function LiveCallView({ call, request, actor, sourceHref }: { call: LiveCall; request: CallRequestDoc; actor: "maya" | "dev"; sourceHref?: SourceHref }) {
   const view = callView(call);
   const { startMs, endMs } = callTimes(call);
   const now = useNow(startMs !== null && endMs === null);
@@ -104,6 +109,7 @@ function LiveCallView({ call, request, sourceHref }: { call: LiveCall; request: 
   const rows = buildTranscript(call.events);
   const live = view.line === "connected" && view.active;
   const questions = call.events.flatMap((e) => (e.type === "question" ? [e.source] : []));
+  const ask = view.active ? openAsk(call.events) : null;
 
   return (
     <main className="hv-page">
@@ -126,6 +132,7 @@ function LiveCallView({ call, request, sourceHref }: { call: LiveCall; request: 
             elapsed={startMs === null ? undefined : formatElapsed((endMs ?? now) - startMs)}
             note={view.note}
           />
+          {ask && <AskPerson key={ask.ask_id} ask={ask} callId={request.call_id} actor={actor} />}
           <Transcript
             large
             rows={rows}
@@ -275,7 +282,12 @@ function Result({ result }: { result: CallResultDoc }) {
               n={i + 1}
               result={item.matches ? "pass" : "fail"}
               title={item.ask}
-              evidence={item.matches ? <span className="hv-quote">“{item.answer}”</span> : "Doesn't match the records."}
+              evidence={
+                <>
+                  {item.matches ? <span className="hv-quote">“{item.answer}”</span> : "Doesn't match the records."}
+                  {item.decided_by && <DecidedBy who={item.decided_by} matches={item.matches} />}
+                </>
+              }
               quote={item.matches ? undefined : item.answer}
               sources={item.source ? [citeLabel(item.source)] : undefined}
             />
@@ -284,6 +296,16 @@ function Result({ result }: { result: CallResultDoc }) {
       )}
       {result.recording_url && <Recording url={result.recording_url} clip={result.clip} />}
     </section>
+  );
+}
+
+/** A person judged this answer during the call; hold's own judgment didn't decide it. */
+function DecidedBy({ who, matches }: { who: "maya" | "dev"; matches: boolean }) {
+  return (
+    <span className="hv-small">
+      {" "}
+      Judged {matches ? "a match" : "not a match"} by <span className="hv-person">{person(useCompany(), who).full}</span> during the call.
+    </span>
   );
 }
 
