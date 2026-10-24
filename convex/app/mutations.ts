@@ -233,6 +233,12 @@ export const decideApproval = mutation({
       if (bill.status === "Held") {
         const release = canRelease(bill, actor);
         if (!release.allowed) return refuse(ctx, actor, "approve", release.reason!, billKey);
+        // Dev approved a bank change after a confirmed call: that account is now verified, so a
+        // saved rule for it can stop the same change being asked about again (checks.ts).
+        if (bill.checks.find((c) => c.id === "bank-account")?.state === "flag") {
+          const acct = await ctx.db.query("bankAccounts").withIndex("by_key", (q) => q.eq("key", bill.bankAccountKey)).unique();
+          if (acct) await ctx.db.patch(acct._id, { verifiedBy: "call+dev" });
+        }
       }
       await ctx.db.patch(approvalRow._id, { status: "approved" });
       await ctx.db.patch(row._id, { status: "Scheduled" });

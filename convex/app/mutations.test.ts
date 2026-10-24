@@ -187,6 +187,17 @@ describe("decideApproval", () => {
     expect((await h.billRow()).status).toBe("Held");
   });
 
+  test("Dev approving a bank change after a confirmed call marks that account verified by call + Dev", async () => {
+    const h = await seedApproval({ status: "Held", checks: [BANK_FLAG] }, "bank_change");
+    await h.t.run(async (ctx) => {
+      await ctx.db.insert("callRequests", { call_id: "call_c", bill_id: "bill_4471", supplier_id: "sup_stage", to_number: SUPPLIER.trustedPhone, number_source: "on_file", reason: ["bank-account"], status: "done" });
+      await ctx.db.insert("callResults", { call_id: "call_c", outcome: "confirmed", summary: "Confirmed.", evidence: [], recording_url: "" });
+    });
+    await h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "dev" });
+    const acct = await h.t.run((ctx) => ctx.db.query("bankAccounts").withIndex("by_key", (q) => q.eq("key", "bank_stage")).unique());
+    expect(acct?.verifiedBy).toBe("call+dev");
+  });
+
   test("Dev approves a big payment", async () => {
     const h = await seedApproval({ amountCents: 1_500_000 }, "big_payment");
     await h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "dev" });

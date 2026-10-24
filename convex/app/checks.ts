@@ -72,9 +72,9 @@ export interface RunChecksInput {
   amountCents: number;
   styleMatch?: { matches: boolean; reasons: string[] };
   /** Rules Maya or Dev saved for this supplier (plan-agent.md addendum §1). Never relaxes a hard
-   * limit: only a rule naming this exact bank account can turn a repeat "new account" flag into a
-   * pass (never the literal-bank-change-request branch above), and any rule for the supplier also
-   * surfaces as its own info check. Omit for suppliers with no saved rules. */
+   * limit: a rule naming this account's last four only passes a bank-change request when the
+   * account was already verified by a confirmed call plus Dev (verifiedBy call+dev); the rule alone
+   * never passes it. Any rule for the supplier also surfaces as its own info check. Omit for suppliers with no saved rules. */
   learnedRules?: LearnedRuleInput[];
 }
 
@@ -88,7 +88,19 @@ export function runChecks(input: RunChecksInput): Check[] {
 
   // 1. Bank account vs supplier history.
   let bankCheck: Check;
-  if (NEW_ACCOUNT_RE.test(email.body)) {
+  const verified = currentBankAccount.verifiedBy === "call+dev" && currentBankAccount.confirmedByCall;
+  const accountRule = (learnedRules ?? []).filter((r) => r.text.includes(currentBankAccount.last4)).pop();
+  if (NEW_ACCOUNT_RE.test(email.body) && verified && accountRule) {
+    // Already verified by a call and Dev, and a person saved a rule for this account: the same
+    // change isn't asked about again. The rule alone never does this; the verification does.
+    bankCheck = {
+      id: "bank-account",
+      label: "New bank account",
+      state: "pass",
+      evidence: `${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4} was verified by call and Dev's approval. Saved rule: ${accountRule.text}`,
+      cite: ruleCite(accountRule, supplier.key),
+    };
+  } else if (NEW_ACCOUNT_RE.test(email.body)) {
     bankCheck = {
       id: "bank-account",
       label: "New bank account",
@@ -110,8 +122,6 @@ export function runChecks(input: RunChecksInput): Check[] {
         cite: { kind: "supplier", ref: supplier.key },
       };
     } else {
-      // A learned rule can inform, but it can never flip this to a pass by itself — only an
-      // actually call+dev-verified account (handled above) does that, regardless of rule text.
       bankCheck = {
         id: "bank-account",
         label: "New bank account",
@@ -206,8 +216,8 @@ export function runChecks(input: RunChecksInput): Check[] {
   const checks = [bankCheck, domainCheck, rushCheck, amountCheck];
 
   // Learned rule info check (plan-agent.md addendum §1): the most recently saved rule for this
-  // supplier, cited back to its source. Informational only — it doesn't change the decision by
-  // itself; the bank-account branch above is the only check a rule can flip to a pass.
+  // supplier, cited back to its source. Informational only; the only decision a rule
+  // can affect is the bank-account branch above, and only for an already call+dev-verified account.
   if (learnedRules && learnedRules.length > 0) {
     const latest = learnedRules[learnedRules.length - 1]!;
     checks.push({

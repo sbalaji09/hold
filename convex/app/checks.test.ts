@@ -213,3 +213,23 @@ test("routeEscalation: a safe bill over $10k routes to Dev for approval", () => 
   expect(route.routedTo).toBe("dev");
   expect(route.reason).toMatch(/\$11,000\.00/);
 });
+
+test("a bank-change request to an account already verified by call + Dev passes only with a saved rule", () => {
+  const base = {
+    email: {
+      body: "We've switched banks. Please pay invoice #9 ($900.00) to our new account below.\n\nNew account: US Bank, account ending 5509.",
+      fromAddress: "a@perimeterprostaffing.com",
+      fromDomain: "perimeterprostaffing.com",
+    },
+    supplier: { key: "sup_perimeter_pro", name: "Perimeter Pro Staffing", domain: "perimeterprostaffing.com" },
+    pastPaidBankAccounts: [{ bank: "US Bank", last4: "9149" }],
+    pastPaidAmounts: [444719],
+    amountCents: 90000,
+  };
+  const rule = [{ text: "Perimeter Pro moved to US Bank \u00b7\u00b75509; Dev verified it by call.", sourceKind: "bill", sourceKey: "bill_5" }];
+  const verified = { bank: "US Bank", last4: "5509", verifiedBy: "call+dev" as const, confirmedByCall: true };
+  expect(runChecks({ ...base, currentBankAccount: verified }).find((c) => c.id === "bank-account")!.state).toBe("flag");
+  const withRule = runChecks({ ...base, currentBankAccount: verified, learnedRules: rule });
+  expect(withRule.find((c) => c.id === "bank-account")!.state).toBe("pass");
+  expect(decide(withRule, 90000)).toBe("pay");
+});
