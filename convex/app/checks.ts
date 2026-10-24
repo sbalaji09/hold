@@ -278,7 +278,7 @@ export type EscalationRouting = { routedTo: "maya" | "dev"; reason: string };
 export function routeEscalation(
   checks: Check[],
   amountCents: number,
-  options: { callOutcome?: "handed_off" | null; company?: Company } = {},
+  options: { callOutcome?: "confirmed" | "not_confirmed" | "handed_off" | null; company?: Company } = {},
 ): EscalationRouting {
   const co = options.company ?? companyFor(undefined);
   if (options.callOutcome === "handed_off") {
@@ -289,6 +289,12 @@ export function routeEscalation(
   const otherFlags = checks.filter((c) => c.state === "flag");
   if (otherFlags.length > 0) {
     return { routedTo: "dev", reason: otherFlags.map((c) => c.evidence).join(" ") };
+  }
+  if (options.callOutcome === "not_confirmed") {
+    return { routedTo: "dev", reason: `The check call didn't confirm this ${co.bill.one}, so it's held until ${co.dev.name} decides.` };
+  }
+  if (amountCents < co.approvalLimitCents) {
+    return { routedTo: "dev", reason: `This ${co.bill.one} needs ${co.dev.name}'s decision before anything is paid.` };
   }
   return { routedTo: "dev", reason: `${fmtMoney(amountCents)} is over hold's ${wholeDollars(co.approvalLimitCents)} limit, so it needs ${co.dev.name}'s approval.` };
 }

@@ -23,6 +23,12 @@ import { canCall, canHold, canPay } from "@/lib/policy";
 import { CALL_LINE_STATE, CHECK_RESULT, citeLabel, whyChecks, whyText } from "@/lib/bill";
 import { routeEscalation } from "@/convex/app/checks";
 
+/** Call length from the last transcript turn (ts is seconds into the call), as mm:ss. */
+function elapsed(transcript: { ts: number }[]): string | undefined {
+  const s = Math.round(Math.max(0, ...transcript.map((t) => t.ts)));
+  return s > 0 ? `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}` : undefined;
+}
+
 function formatPhone(e164: string): string {
   const d = e164.replace(/\D/g, "").slice(-10);
   return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
@@ -63,7 +69,7 @@ export default async function BillPage({
 
   const needsSignOff = (bill.status === "Held" || bill.status === "Needs you") && !awaitingConfirm;
   const route = needsSignOff
-    ? routeEscalation(bill.checks, bill.amountCents, { callOutcome: bill.call?.outcome === "handed_off" ? "handed_off" : null, company: co })
+    ? routeEscalation(bill.checks, bill.amountCents, { callOutcome: bill.call?.outcome ?? null, company: co })
     : null;
   const bodyParagraphs = bill.email.body.split(/\n+/).filter((l) => l.trim().length > 0);
   const amount = "$" + (bill.amountCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -116,6 +122,7 @@ export default async function BillPage({
         </section>
       ) : null}
 
+      <div className="flex min-w-0 flex-col gap-4">
       <article className="cb-doc relative min-w-0 self-start p-5">
         <div className="grid grid-cols-[64px_1fr] gap-y-0.5 border-b border-dashed border-line pb-3 font-mono text-[12px]/[18px] text-ink-muted">
           <span>From</span>
@@ -152,7 +159,7 @@ export default async function BillPage({
         </div>
         {bill.status === "Held" ? (
           <div className="absolute bottom-5 right-5">
-            <Endorsement kind="held" meta={`${formatDateTime(bill.call?.startedAt ?? bill.receivedAt)} · Callback`} />
+            <Endorsement kind="held" meta={`${formatDateTime(bill.call?.startedAt ?? bill.receivedAt)} · hold`} />
           </div>
         ) : bill.status === "Paid" && bill.payment ? (
           <div className="absolute bottom-5 right-5">
@@ -163,6 +170,37 @@ export default async function BillPage({
           </div>
         ) : null}
       </article>
+        {bill.email.fromDomain !== bill.supplier.domain ? (
+          <CopycatPanel billKey={bill.key} domain={bill.email.fromDomain} knownDomain={bill.supplier.domain} lastCheck={copycatChecks[0] ?? null} />
+        ) : null}
+
+        {bill.call ? (
+          <Line
+            state={CALL_LINE_STATE[bill.call.outcome]}
+            supplier={`${bill.supplier.contactName} \u00b7 ${bill.supplier.name}`}
+            number={formatPhone(bill.supplier.trustedPhone)}
+            note={bill.call.summary}
+            elapsed={elapsed(bill.call.transcript)}
+          />
+        ) : failCount > 0 && !awaitingConfirm ? (
+          <div className="cb-doc p-4 font-sans text-[13px]/[20px] text-ink-muted">
+            hold hasn&rsquo;t called {bill.supplier.name} yet.
+          </div>
+        ) : null}
+
+        {needsSignOff ? (
+          <section className="cb-doc p-4">
+            <SignOff state="awaiting" name={co.dev.full} role={co.dev.role} time={`Flagged ${formatDateTime(bill.receivedAt)}`} />
+            {route ? (
+              <p className="mt-3 border-t border-dashed border-line pt-3 font-mono text-[12px] text-ink-muted">
+                Routed to {co[route.routedTo].name}. {route.reason}
+              </p>
+            ) : null}
+          </section>
+        ) : null}
+
+
+      </div>
 
       <aside className="flex min-w-0 flex-col gap-4">
         <section className="cb-doc">
@@ -185,34 +223,6 @@ export default async function BillPage({
           </div>
         </section>
 
-        {bill.email.fromDomain !== bill.supplier.domain ? (
-          <CopycatPanel billKey={bill.key} domain={bill.email.fromDomain} knownDomain={bill.supplier.domain} lastCheck={copycatChecks[0] ?? null} />
-        ) : null}
-
-        {bill.call ? (
-          <Line
-            state={CALL_LINE_STATE[bill.call.outcome]}
-            supplier={`${bill.supplier.contactName} \u00b7 ${bill.supplier.name}`}
-            number={formatPhone(bill.supplier.trustedPhone)}
-            note={bill.call.transcript.find((t) => t.speaker === "supplier")?.text}
-          />
-        ) : failCount > 0 && !awaitingConfirm ? (
-          <div className="cb-doc p-4 font-sans text-[13px]/[20px] text-ink-muted">
-            Callback hasn&rsquo;t called {bill.supplier.name} yet.
-          </div>
-        ) : null}
-
-        {needsSignOff ? (
-          <section className="cb-doc p-4">
-            <SignOff state="awaiting" name={co.dev.full} role={co.dev.role} time={`Flagged ${formatDateTime(bill.receivedAt)}`} />
-            {route ? (
-              <p className="mt-3 border-t border-dashed border-line pt-3 font-mono text-[12px] text-ink-muted">
-                Routed to {co[route.routedTo].name}. {route.reason}
-              </p>
-            ) : null}
-          </section>
-        ) : null}
-
         {timeline.length > 0 ? (
           <section className="cb-doc">
             <div className="cb-doc-head">
@@ -223,7 +233,7 @@ export default async function BillPage({
               {timeline.map((e) => (
                 <LogEntry
                   key={e.key}
-                  actor={e.actor === "callback" ? "Callback" : co[e.actor].full}
+                  actor={e.actor === "callback" ? "hold" : co[e.actor].full}
                   agent={e.actor === "callback"}
                   time={formatDateTime(e.at)}
                   why={e.why}

@@ -285,7 +285,7 @@ export async function runSeed(ctx: MutationCtx, args: SeedArgs): Promise<void> {
       : b.status === "Held"
         ? "held_payment"
         : "big_payment";
-    const route = routeEscalation(checks, b.amountCents, { callOutcome: call?.outcome === "handed_off" ? "handed_off" : null, company: co });
+    const route = routeEscalation(checks, b.amountCents, { callOutcome: call?.outcome ?? null, company: co });
     await ctx.db.insert("approvals", {
       key: `appr_${b.key}`,
       billKey: b.key,

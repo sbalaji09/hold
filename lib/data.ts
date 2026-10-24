@@ -333,7 +333,7 @@ export async function listApprovals(): Promise<Approval[]> {
   return bills
     .map((bill) => {
       const route = routeEscalation(bill.checks, bill.amountCents, {
-        callOutcome: bill.call?.outcome === "handed_off" ? "handed_off" : null,
+        callOutcome: bill.call?.outcome ?? null,
       });
       return {
         key: "appr_" + bill.key,

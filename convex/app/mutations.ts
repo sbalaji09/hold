@@ -90,7 +90,7 @@ export const holdBill = mutation({
 async function holdRow(ctx: MutationCtx, row: Doc<"bills">, bill: Bill, reason?: string): Promise<void> {
   const billKey = bill.key;
   const why = reason ?? bill.checks.filter((c) => c.state === "flag").map((c) => c.evidence).join(" ") ?? "A check on this bill didn't pass.";
-  const route = routeEscalation(bill.checks, bill.amountCents, { callOutcome: bill.call?.outcome === "handed_off" ? "handed_off" : null });
+  const route = routeEscalation(bill.checks, bill.amountCents, { callOutcome: bill.call?.outcome ?? null });
   const kind = bill.checks.find((c) => c.id === "bank-account" && c.state === "flag") ? "bank_change" : "held_payment";
   await ctx.db.patch(row._id, { status: "Held" });
   const existingApproval = await ctx.db
