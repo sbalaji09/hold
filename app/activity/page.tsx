@@ -35,12 +35,14 @@ export default async function ActivityPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <h1 className="font-serif text-2xl text-ink">Activity log</h1>
-        <p className="text-[13px] text-ink-muted">
-          Every action by hold, {co.maya.name} and {co.dev.name}: who, when, what, why.
-        </p>
-      </div>
+      <header className="pt-head">
+        <div className="pt-head-text">
+          <h1 className="cb-display">Activity log</h1>
+          <p className="pt-sub">
+            Every action by hold, {co.maya.name} and {co.dev.name}: who, when, what, why.
+          </p>
+        </div>
+      </header>
 
       <ActivityFilters />
 
