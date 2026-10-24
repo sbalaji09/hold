@@ -1,6 +1,6 @@
 import { afterEach, expect, test, vi } from "vitest";
 import { SUPPLIER_INDEX } from "../../shared/search.js";
-import { emailsFromMoss, pickEmails } from "./styleMatch.js";
+import { emailsFromMoss, orderReasons, pickEmails } from "./styleMatch.js";
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -54,4 +54,14 @@ test("pickEmails keeps the 14 most recent and drops the email under test", () =>
   const picked = pickEmails(all, "body 19");
   expect(picked).toHaveLength(14);
   expect(picked[0]!.id).toBe("e18");
+});
+
+test("a mismatch leads with a difference, so the bill page never explains a failed check with a similarity", () => {
+  const verdict = {
+    score: 0.5,
+    differences: ["Past emails write amounts as '18,400 USD'; this one uses '$18,400.00'."],
+    similarities: ["Greeting 'Hi team,' and sign-off 'Thanks,' match past emails."],
+  };
+  expect(orderReasons({ ...verdict, matches: false })[0]).toContain("'18,400 USD'");
+  expect(orderReasons({ ...verdict, matches: true })[0]).toContain("Greeting 'Hi team,'");
 });
