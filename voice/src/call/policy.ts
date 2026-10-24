@@ -108,7 +108,7 @@ export function classifyTurn(text: string): TurnIntent {
     return "greeting";
   if (/\b(?:repeat (?:that|the question|it)|say (?:that|it) again|come again|what was (?:that|the question)|didn'?t (?:catch|hear) (?:that|you|the question)|one more time)\b/i.test(t) || /^\W*(?:what|huh|sorry|pardon|excuse me)\W*$/i.test(t))
     return "repeat";
-  if (/\b(?:hold on|hang on|one (?:sec|second|moment|minute)|give me a (?:sec|second|moment|minute)|let me (?:check|look|pull|find|see))\b/i.test(t))
+  if (/\b(?:hold on|hang on|one (?:sec|second|moment|minute)|give me (?:just )?a (?:sec|second|moment|minute|little|bit)|let me (?:check|look|pull|find|see))\b/i.test(t))
     return "wait";
   if (/\b(?:un momento|un segundo|esp[ée]re(?:me)?|d[ée]jeme (?:ver|revisar|buscar|checar))/i.test(t)) return "wait";
   // A bare "Sí" stays an answer: it may be the yes to the bank question.

@@ -367,7 +367,9 @@ async function converse(
     if (outcome === "answered") {
       // The check runs while the thanks plays, so a clear answer costs no extra wait.
       const answer = convo.answers[convo.answers.length - 1]!;
-      const [unsure] = await Promise.all([asker ? isUnsure(llm, answer, session.call_id) : false, session.say(L.acks[i % L.acks.length]!)]);
+      // No ack after the last answer: the closing line says thanks, and two in a row sound broken.
+      const last = i === prepared.questions.length - 1;
+      const [unsure] = await Promise.all([asker ? isUnsure(llm, answer, session.call_id) : false, last ? null : session.say(L.acks[i % L.acks.length]!)]);
       if (unsure && asker && !session.over) outcome = await checkWithPerson(session, asker, answer, llm, allowedNumbers, convo, prepared, L);
     }
     if (outcome === "ended") return;
