@@ -179,7 +179,7 @@ export const list = query({
 // ---------- human actions ----------
 
 function requirePerson(who: "callback" | "dev", what: string): "dev" {
-  if (who === "callback") throw new ConvexError(`Callback can't ${what} on its own.`);
+  if (who === "callback") throw new ConvexError(`hold can't ${what} on its own.`);
   return who;
 }
 
@@ -371,7 +371,7 @@ export const decideImprovement = mutation({
     if (!row || row.status !== "needs_approval") throw new ConvexError("This change isn't waiting for approval.");
     // Only Dev may approve a change, whether it loosens fraud checks or how hold sorts email.
     if (who === "callback") {
-      throw new ConvexError("Callback can't approve this on its own.");
+      throw new ConvexError("hold can't approve this on its own.");
     }
     if (decision === "decline") {
       await ctx.db.patch(row._id, { status: "declined", decidedBy: who });

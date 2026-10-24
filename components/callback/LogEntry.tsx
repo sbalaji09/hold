@@ -20,7 +20,7 @@ export function LogEntry(p: LogEntryProps): React.ReactElement {
     <div className={cx("cb-log", agent ? "cb-log-agent" : "cb-log-person")} role="listitem">
       <span className="cb-log-time">{p.time}</span>
       <span className={cx("cb-who", agent ? "cb-who-agent" : "cb-who-person")} title={p.actor}>
-        {agent ? "CB" : initials}
+        {agent ? "h" : initials}
       </span>
       <div>
         <span className="cb-log-what">

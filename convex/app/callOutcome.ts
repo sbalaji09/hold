@@ -2,12 +2,18 @@
 // Scheduled by convex/voice/server.ts's writeResult right after the result is saved, so a problem
 // here can never lose the call result itself. The rules live in lib/callOutcome.ts.
 import { v } from "convex/values";
+import { internal } from "../_generated/api.js";
 import { internalMutation } from "../_generated/server.js";
 import { decideCallOutcome, sentence } from "../../lib/callOutcome.js";
 import { getCompany } from "./company.js";
 import { hydrateBill } from "./queries.js";
 import { addBillToPracticeSet } from "./practice.js";
 import { openImprovement } from "./techniques.js";
+import { parseBankDetails } from "./intake.js";
+
+function monthDay(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
 export const applyCallResult = internalMutation({
   // reviewed: the approver just judged an answer this call left for review, so its bill is waiting on
@@ -81,6 +87,36 @@ export const applyCallResult = internalMutation({
     // The real supplier confirmed a bill hold's playbook flagged: a false alarm to learn from.
     if (result.outcome === "confirmed" && bill.checks.some((c) => c.id === "fraud-technique" && c.state === "flag")) {
       await openImprovement(ctx, { kind: "false_alarm", billKey: row.key, text: bill.email.body, by: "callback" });
+    }
+
+    // A bank-change call just finished: propose a rule from what it found. Never on Practice or
+    // a Practice-mode (simulated) call — only a real call to a real supplier teaches hold anything.
+    const bankChange = bill.checks.some((c) => c.id === "bank-account" && c.state === "flag");
+    if (bankChange && !row.practice && latest.mode !== "simulated") {
+      const when = monthDay(now);
+      if (result.outcome === "confirmed") {
+        const details = parseBankDetails(bill.email.body);
+        if (details) {
+          await ctx.runMutation(internal.app.rules.proposeRule, {
+            supplierKey: bill.supplier.key,
+            text: `${bill.supplier.name} confirmed ${details.bank} \u00b7\u00b7${details.last4} on a call to the number on file, ${when}. Pay this account without calling again.`,
+            kind: "verified_account",
+            bankLast4: details.last4,
+            bankName: details.bank,
+            sourceKind: "call",
+            sourceKey: call_id,
+          });
+        }
+      } else if (result.outcome === "not_confirmed") {
+        const contactFirst = bill.supplier.contactName?.split(" ")[0] || bill.supplier.name;
+        await ctx.runMutation(internal.app.rules.proposeRule, {
+          supplierKey: bill.supplier.key,
+          text: `${contactFirst} said on the ${when} call that ${bill.supplier.name} never changed banks. Treat any email asking to pay a new account as a scam.`,
+          kind: "never_changed_bank",
+          sourceKind: "call",
+          sourceKey: call_id,
+        });
+      }
     }
   },
 });

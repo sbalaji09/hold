@@ -187,6 +187,7 @@ function LiveCallView({
               key={ask.ask_id}
               ask={ask}
               callId={request.call_id}
+              partyName={contact || supplierName}
             />
           )}
           {review && (

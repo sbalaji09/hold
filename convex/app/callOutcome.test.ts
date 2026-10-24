@@ -123,7 +123,33 @@ describe("a check call's result moves its bill", () => {
     const [approval] = await h.approvals();
     expect(approval).toMatchObject({ billKey: "bill_in_1", kind: "bank_change", status: "pending", routedTo: "dev" });
     expect(approval!.reason).toContain("never changed their bank details");
-    expect((await h.activity()).map((a) => a.what)).toEqual(["held this bill after the check call"]);
+    expect((await h.activity()).map((a) => a.what)).toEqual([
+      "held this bill after the check call",
+      "proposed a rule for Stagecraft Rigging Co.",
+    ]);
+    const rules = await h.t.run((ctx) => ctx.db.query("learnedRules").collect());
+    expect(rules).toMatchObject([{ status: "proposed", kind: "never_changed_bank" }]);
+  });
+
+  test("a supplier that already has an active never-changed-bank rule doesn't get a duplicate proposal", async () => {
+    const h = harness();
+    await h.seed();
+    await h.t.run((ctx) =>
+      ctx.db.insert("learnedRules", {
+        key: "rule_existing",
+        supplierKey: "sup_stage",
+        text: "Stagecraft Rigging Co. says they've never changed their bank account.",
+        createdBy: "dev",
+        sourceKind: "call",
+        sourceKey: "call_old",
+        createdAt: "2026-10-01T00:00:00.000Z",
+        kind: "never_changed_bank",
+        status: "active",
+      }),
+    );
+    await h.finish("call_1", DENIAL);
+    const rules = await h.t.run((ctx) => ctx.db.query("learnedRules").collect());
+    expect(rules).toHaveLength(1);
   });
 
   test("a scam the call caught is kept as a test case for future playbook changes", async () => {
@@ -211,7 +237,7 @@ describe("a check call's result moves its bill", () => {
     await h.finish("call_1", { outcome: "confirmed", evidence: [], summary: "retry with a different result" });
     expect((await h.bill())!.status).toBe("Held");
     expect(await h.approvals()).toHaveLength(1);
-    expect(await h.activity()).toHaveLength(1);
+    expect(await h.activity()).toHaveLength(2);
   });
 });
 

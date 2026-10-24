@@ -15,6 +15,7 @@ import {
 import { BillActions } from "@/components/BillActions";
 
 import { ReportMissedScam } from "@/components/ReportMissedScam";
+import { ProposedRule } from "@/components/ProposedRule";
 import { NotABill } from "@/components/NotABill";
 
 import { CopycatPanel } from "@/components/CopycatPanel";
@@ -188,12 +189,14 @@ export default async function BillPage({
           </div>
         ) : null}
 
+        {bill.call ? <ProposedRule billKey={bill.key} supplierKey={bill.supplier.key} supplierName={bill.supplier.name} /> : null}
+
         {needsSignOff ? (
           <section className="cb-doc p-4">
             <SignOff state="awaiting" name="your approval" time={`Flagged ${formatDateTime(bill.receivedAt)}`} />
             {route ? (
               <p className="mt-3 border-t border-dashed border-line pt-3 font-mono text-[12px] text-ink-muted">
-                Routed to you. {route.reason}
+                Routed to you, the {co.approver}. {route.reason}
               </p>
             ) : null}
           </section>

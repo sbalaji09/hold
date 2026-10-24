@@ -6,6 +6,7 @@ import { shortDate } from "@/lib/inbox";
 import { Amount, AccountLine, CheckRow } from "@/components/callback";
 import { PushbackThread } from "@/components/PushbackThread";
 import { PlaybookApprovals } from "@/components/Playbook";
+import { routeEscalation } from "@/convex/app/checks";
 import type { ApprovalKind, CheckState } from "@/lib/types";
 
 export const metadata = { title: "Approvals · hold" };
@@ -24,7 +25,7 @@ export default async function ApprovalsPage() {
       <div>
         <h1 className="cb-display text-ink">Approvals</h1>
         <p className="mt-1 text-[13px] text-ink-muted">
-          {waiting} waiting on your approval.
+          {waiting} waiting on your approval as {co.approver}.
         </p>
       </div>
 
@@ -40,6 +41,9 @@ export default async function ApprovalsPage() {
             const bill = approval.bill;
             const checks = bill.checks.filter((c) => c.state === "flag");
             const passed = bill.checks.length - checks.length;
+            const reason =
+              approval.reason ??
+              routeEscalation(bill.checks, bill.amountCents, { callOutcome: bill.call?.outcome ?? null, company: co }).reason;
             return (
               <article key={approval.key} className="cb-doc">
                 <div className="cb-doc-head">
@@ -53,6 +57,9 @@ export default async function ApprovalsPage() {
                     <div>
                       <h2 className="cb-subject text-ink">{bill.email.subject}</h2>
                       <p className="mt-2 font-mono text-[13px] leading-5 text-ink">{approval.recommendation}</p>
+                      <p className="mt-2 font-mono text-[12px] text-ink-muted">
+                        Routed to you, the {co.approver}{approval.recommendation.includes(reason) ? "." : `: ${reason}`}
+                      </p>
                     </div>
                     <div role="list" className="border-t border-line">
                       {checks.map((check, i) => (

@@ -161,6 +161,11 @@ export interface LearnedRule {
   sourceKind: string;
   sourceKey: string;
   createdAt: string;
+  kind?: "verified_account" | "never_changed_bank" | "note";
+  bankLast4?: string;
+  bankName?: string;
+  status: "proposed" | "active" | "dismissed";
+  proposedBy?: "callback";
 }
 
 export interface BackgroundCheck {

@@ -27,12 +27,19 @@ export interface LearnedRuleInput {
    * suppressed-flag checks can cite the record it was saved from instead of a loose label. */
   sourceKind: string;
   sourceKey: string;
+  /** Absent/"note" = free text, matched against the bill by last-four digits (the old shape).
+   * "verified_account"/"never_changed_bank" are structured: matched by bankLast4, never by text. */
+  kind?: "verified_account" | "never_changed_bank" | "note";
+  bankLast4?: string;
 }
 
 /** Cite's kind union is fixed to email/bill/supplier/call/payment, so a rule saved from a bill
- * cites that bill; anything else falls back to the supplier record. */
+ * cites that bill, one proposed from a call cites that call, and anything else falls back to
+ * the supplier record. */
 function ruleCite(rule: LearnedRuleInput, supplierKey: string): Cite {
-  return rule.sourceKind === "bill" ? { kind: "bill", ref: rule.sourceKey } : { kind: "supplier", ref: supplierKey };
+  if (rule.sourceKind === "bill") return { kind: "bill", ref: rule.sourceKey };
+  if (rule.sourceKind === "call") return { kind: "call", ref: rule.sourceKey };
+  return { kind: "supplier", ref: supplierKey };
 }
 
 export interface CheckEmail {
@@ -99,16 +106,31 @@ export function runChecks(input: RunChecksInput): Check[] {
   // 1. Bank account vs supplier history.
   let bankCheck: Check;
   const verified = currentBankAccount.verifiedBy === "call+dev" && currentBankAccount.confirmedByCall;
-  const accountRule = (learnedRules ?? []).filter((r) => r.text.includes(currentBankAccount.last4)).pop();
+  const activeRules = learnedRules ?? [];
+  const verifiedAccountRule = activeRules.find((r) => r.kind === "verified_account" && r.bankLast4 === currentBankAccount.last4);
+  const neverChangedRule = activeRules.find((r) => r.kind === "never_changed_bank");
+  const noteRule = activeRules.filter((r) => (!r.kind || r.kind === "note") && r.text.includes(currentBankAccount.last4)).pop();
+  const accountRule = verifiedAccountRule ?? noteRule;
   if (NEW_ACCOUNT_RE.test(email.body) && verified && accountRule) {
-    // Already verified by a call and Dev, and a person saved a rule for this account: the same
+    // Already verified by a call and Dev, and a person kept a rule for this account: the same
     // change isn't asked about again. The rule alone never does this; the verification does.
     bankCheck = {
       id: "bank-account",
       label: "New bank account",
       state: "pass",
-      evidence: `${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4} was verified by call and your approval. Saved rule: ${accountRule.text}`,
+      evidence: `${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4} was verified by call and your approval. Learned rule: ${accountRule.text}`,
       cite: ruleCite(accountRule, supplier.key),
+    };
+  } else if (NEW_ACCOUNT_RE.test(email.body) && neverChangedRule) {
+    // A person kept a rule saying this supplier never changes banks: this email still gets a
+    // check call, but the flag now carries what hold already learned instead of only the generic text.
+    bankCheck = {
+      id: "bank-account",
+      label: "New bank account",
+      state: "flag",
+      evidence: `Learned rule applies: ${neverChangedRule.text}`,
+      quote: matchingLine(email.body, NEW_ACCOUNT_RE),
+      cite: ruleCite(neverChangedRule, supplier.key),
     };
   } else if (NEW_ACCOUNT_RE.test(email.body)) {
     bankCheck = {

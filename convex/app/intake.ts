@@ -123,10 +123,12 @@ export const gatherIntakeContext = internalQuery({
       .filter((q) => q.eq(q.field("status"), "Paid"))
       .collect();
 
-    const ruleRows = await ctx.db
-      .query("learnedRules")
-      .withIndex("by_supplier", (q) => q.eq("supplierKey", supplier.key))
-      .collect();
+    const ruleRows = (
+      await ctx.db
+        .query("learnedRules")
+        .withIndex("by_supplier", (q) => q.eq("supplierKey", supplier.key))
+        .collect()
+    ).filter((r) => (r.status ?? "active") === "active");
     return {
       supplier,
       currentBankAccount: {
@@ -144,7 +146,7 @@ export const gatherIntakeContext = internalQuery({
         return { bank: account?.bank ?? "unknown", last4: account?.last4 ?? "0000" };
       }),
       pastPaidAmounts: paidBills.map((b) => b.amountCents),
-      learnedRules: ruleRows.map((r) => ({ text: r.text, sourceKind: r.sourceKind, sourceKey: r.sourceKey })),
+      learnedRules: ruleRows.map((r) => ({ text: r.text, sourceKind: r.sourceKind, sourceKey: r.sourceKey, kind: r.kind, bankLast4: r.bankLast4 })),
     };
   },
 });

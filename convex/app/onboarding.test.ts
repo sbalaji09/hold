@@ -126,7 +126,7 @@ describe("you confirm a new supplier, then hold calls them", () => {
 
   test("Callback can't confirm a supplier, and you must say what Fogline hired them for", async () => {
     const { t, key } = await onboarded();
-    await expect(t.mutation(api.app.onboarding.confirmNewSupplier, { supplierKey: key, trustedPhone: "4155550123", note: NOTE, actor: "callback" })).rejects.toThrow("Callback can't confirm a supplier on its own. You have to.");
+    await expect(t.mutation(api.app.onboarding.confirmNewSupplier, { supplierKey: key, trustedPhone: "4155550123", note: NOTE, actor: "callback" })).rejects.toThrow("hold can't confirm a supplier on its own. You have to.");
     await expect(t.mutation(api.app.onboarding.confirmNewSupplier, { supplierKey: key, trustedPhone: "4155550123", note: { ...NOTE, hiredFor: " " }, actor: "dev" })).rejects.toThrow("hired them for");
   });
 

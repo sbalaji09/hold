@@ -148,6 +148,6 @@ describe("hold learns phone tactics", () => {
 
   test("Callback can't report a call on its own", async () => {
     const { t } = await setup("Hello?");
-    await expect(t.mutation(api.app.techniques.reportCall, { callId: "in_CA1", verdict: "scam", actor: "callback" })).rejects.toThrow("Callback can't");
+    await expect(t.mutation(api.app.techniques.reportCall, { callId: "in_CA1", verdict: "scam", actor: "callback" })).rejects.toThrow("hold can't");
   });
 });

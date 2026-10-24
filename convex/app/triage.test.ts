@@ -156,7 +156,7 @@ describe("your corrections teach triage through the same loop as fraud", () => {
 
     const [impr] = await t.run((ctx) => ctx.db.query("improvements").collect());
     expect(impr!.status).toBe("needs_approval");
-    await expect(t.mutation(api.app.techniques.decideImprovement, { key: impr!.key, decision: "approve", actor: "callback" })).rejects.toThrow("Callback can't approve this on its own.");
+    await expect(t.mutation(api.app.techniques.decideImprovement, { key: impr!.key, decision: "approve", actor: "callback" })).rejects.toThrow("hold can't approve this on its own.");
     await t.mutation(api.app.techniques.decideImprovement, { key: impr!.key, decision: "approve", actor: "dev" });
     expect((await t.run((ctx) => ctx.db.query("fraudTechniques").collect())).find((r) => r.name === "Build photos")).toMatchObject({ job: "triage", route: "file", status: "active" });
   });

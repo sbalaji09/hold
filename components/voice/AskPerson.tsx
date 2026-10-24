@@ -24,14 +24,27 @@ export function openAsk(events: CallEventDoc[]): AskEvent | null {
  * `review`: the call is over and nobody answered in time (or the approver was away), so the answer
  * waits here and on Today. No countdown; a question makes hold call back on the number on file.
  */
-export function AskPerson({ ask, callId, review = false }: { ask: AskEvent; callId: string; review?: boolean }) {
+export function AskPerson({
+  ask,
+  callId,
+  partyName,
+  review = false,
+}: {
+  ask: AskEvent;
+  callId: string;
+  partyName?: string;
+  review?: boolean;
+}) {
   const answer = useAnswerAsk();
   const now = useNow(!review);
   const [step, setStep] = useState<"idle" | "follow_up" | "sending">("idle");
   const [followUp, setFollowUp] = useState("");
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const left = Math.max(0, Math.ceil((ask._creationTime + WAIT_MS - now) / 1000));
+  const deadline = ask._creationTime + WAIT_MS;
+  const left = Math.max(0, Math.ceil((deadline - now) / 1000));
+  const fraction = Math.max(0, Math.min(1, (deadline - now) / WAIT_MS));
+  const party = partyName || "The supplier";
 
   useEffect(() => {
     if (step === "follow_up") inputRef.current?.focus();
@@ -50,38 +63,41 @@ export function AskPerson({ ask, callId, review = false }: { ask: AskEvent; call
 
   return (
     <section className="cb-doc hv-ask" aria-labelledby="hv-ask-title" role={review ? "region" : "alertdialog"}>
-      <div className="cb-doc-head">
-        <span id="hv-ask-title">{review ? "Check this answer" : `${AGENT} is checking with you`}</span>
-        {review ? null : (
-          <small role="timer" aria-live="off">
-            {left > 0 ? `${left}s` : "Deciding"}
-          </small>
-        )}
-      </div>
-      <div className="hv-pad hv-ask-body">
-        <p className="hv-statement">
+      {review ? null : (
+        <div className="hv-ask-bar" aria-hidden="true">
+          <div className="hv-ask-bar-fill" style={{ transform: `scaleX(${fraction})` }} />
+        </div>
+      )}
+      <div className="hv-ask-head">
+        <h2 id="hv-ask-title" className="hv-ask-title">
+          {review ? "Check this answer" : `${AGENT} needs you · ${party} is on hold`}
+        </h2>
+        <p className="hv-ask-timer" role={review ? undefined : "timer"} aria-live="off">
           {review
             ? `${AGENT} couldn't tell whether this answer matches the records, and nobody was free to check it during the call.`
-            : `The supplier is on hold. ${AGENT} couldn't tell whether this answer matches the records.`}
+            : left > 0
+              ? `${left}s to answer`
+              : "Time's up. It waits for your review after the call."}
         </p>
-        <dl className="hv-ask-facts">
-          <dt className="cb-caps">Asked</dt>
-          <dd className="hv-statement">{ask.ask}</dd>
-          <dt className="cb-caps">They said</dt>
-          <dd className="hv-quote">&ldquo;{ask.answer}&rdquo;</dd>
-          <dt className="cb-caps">On file</dt>
-          <dd>
-            <span className="hv-record">{ask.expected}</span> <span className="cb-cite">{citeLabel(ask.source)}</span>
-          </dd>
-          {ask.closest ? (
-            <>
-              <dt className="cb-caps">Sounds like</dt>
-              <dd>
-                <span className="hv-record">{ask.closest}</span>
-              </dd>
-            </>
-          ) : null}
-        </dl>
+      </div>
+      <div className="hv-pad hv-ask-body">
+        <p className="hv-ask-question">{ask.ask}</p>
+        <div className="hv-ask-compare">
+          <div className="hv-ask-col">
+            <div className="cb-caps">They said</div>
+            <div className="hv-ask-said">&ldquo;{ask.answer}&rdquo;</div>
+          </div>
+          <div className="hv-ask-col">
+            <div className="cb-caps">On file</div>
+            <div className="hv-ask-file">{ask.expected}</div>
+            <span className="cb-cite">{citeLabel(ask.source)}</span>
+          </div>
+        </div>
+        {ask.closest ? (
+          <p className="hv-small">
+            Sounds like <span className="hv-record">{ask.closest}</span>
+          </p>
+        ) : null}
 
         {step === "follow_up" || (step === "sending" && followUp) ? (
           <form

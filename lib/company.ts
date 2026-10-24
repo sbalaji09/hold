@@ -36,6 +36,8 @@ export interface Company {
   categories: Record<string, string>;
   /** hold pays on its own below this; at or above it the approver signs off. */
   approvalLimitCents: number;
+  /** The approver's job title, lowercase noun: "controller", "escrow officer". Never a person's name. */
+  approver: string;
   /** For retry times and calling hours. */
   timeZone: string;
 }
@@ -60,6 +62,7 @@ const fogline: Company = {
   },
   categories: { stage: "Stage", sound: "Sound", security: "Security", agency: "Artist agencies", food: "Food", other: "Site services" },
   approvalLimitCents: 1_000_000,
+  approver: "controller",
   timeZone: "America/Los_Angeles",
 };
 
@@ -84,6 +87,7 @@ const bayline: Company = {
   },
   categories: { seller: "Sellers", lender: "Loan payoffs", agent: "Agent commissions", vendor: "Closing vendors" },
   approvalLimitCents: 2_500_000,
+  approver: "escrow officer",
   timeZone: "America/Los_Angeles",
 };
 
@@ -108,6 +112,7 @@ const harbor: Company = {
   },
   categories: { nursing: "Nursing", clinicians: "Clinicians", front: "Front desk", facilities: "Facilities" },
   approvalLimitCents: 500_000,
+  approver: "payroll director",
   timeZone: "America/Los_Angeles",
 };
 

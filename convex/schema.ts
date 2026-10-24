@@ -393,7 +393,8 @@ export default defineSchema({
     .index("by_key", ["key"])
     .index("by_bill", ["billKey"]),
 
-  // Learned rules: saved when a human resolves an escalation. Never relax hard limits.
+  // Learned rules: saved when a human resolves an escalation, or proposed by hold after a
+  // check call and kept/dismissed by a human. Never relax hard limits.
   learnedRules: defineTable({
     key: v.string(),
     supplierKey: v.string(),
@@ -402,9 +403,20 @@ export default defineSchema({
     sourceKind: v.string(),
     sourceKey: v.string(),
     createdAt: v.string(),
+    // Absent kind = a free-text note (the old shape). Structured kinds let checks.ts apply a
+    // rule to a specific bank account instead of text-matching the last four digits.
+    kind: v.optional(v.union(v.literal("verified_account"), v.literal("never_changed_bank"), v.literal("note"))),
+    bankLast4: v.optional(v.string()),
+    bankName: v.optional(v.string()),
+    // Absent status = active (every rule saved before this field existed). "proposed" rules
+    // hold wrote after a call sit on the bill/supplier page until you keep or dismiss them;
+    // only an active rule can change a check.
+    status: v.optional(v.union(v.literal("proposed"), v.literal("active"), v.literal("dismissed"))),
+    proposedBy: v.optional(v.literal("callback")),
   })
     .index("by_key", ["key"])
-    .index("by_supplier", ["supplierKey"]),
+    .index("by_supplier", ["supplierKey"])
+    .index("by_source", ["sourceKey"]),
 
   // Apify background / copycat check results, one row per run.
   backgroundChecks: defineTable({

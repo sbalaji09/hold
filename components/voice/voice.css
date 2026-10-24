@@ -473,9 +473,54 @@
   margin-top: 0 !important;
 }
 
-/* hold checking an answer with a person mid-call (AskPerson.tsx). Signatory: it is a person's turn. */
+/* hold checking an answer with a person mid-call (AskPerson.tsx). Signatory: it is a person's turn,
+   so the card gets a distinct tinted header and accent, not just a thin side bar. */
 .hv-ask {
   border-left: 3px solid var(--signatory);
+  overflow: hidden;
+}
+
+/* Draining countdown, 20s across the top. Resets (full width) whenever a new ask event mounts. */
+.hv-ask-bar {
+  height: 3px;
+  background: var(--signatory-tint);
+}
+
+.hv-ask-bar-fill {
+  height: 100%;
+  width: 100%;
+  background: var(--signatory);
+  transform-origin: left;
+  transition: transform 1s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hv-ask-bar-fill {
+    transition: none;
+  }
+}
+
+.hv-ask-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  background: var(--signatory-tint);
+  border-bottom: 1px solid var(--line);
+}
+
+.hv-ask-title {
+  margin: 0;
+  font: 500 20px/26px var(--font-serif);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.hv-ask-timer {
+  margin: 0;
+  font: 600 11px/16px var(--font-sans);
+  letter-spacing: 0.02em;
+  color: var(--signatory);
 }
 
 .hv-ask-body {
@@ -484,24 +529,44 @@
   gap: var(--space-3);
 }
 
-.hv-ask-body > .hv-statement {
-  margin-top: 0 !important;
+.hv-ask-question {
+  margin: 0;
+  font: 500 15px/22px var(--font-sans);
+  color: var(--ink);
 }
 
-.hv-ask-facts {
+.hv-ask-compare {
   display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: var(--space-2) var(--space-3);
-  align-items: baseline;
-  margin: 0;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
 }
 
-.hv-ask-facts dd {
-  margin: 0;
+.hv-ask-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
 }
 
-.hv-ask-facts .hv-statement {
-  margin-top: 0 !important;
+.hv-ask-said {
+  font: italic 400 19px/26px var(--font-serif);
+  color: var(--signatory);
+}
+
+.hv-ask-file {
+  font: 500 19px/26px var(--font-sans);
+  color: var(--ink);
+  overflow-wrap: break-word;
+}
+
+.hv-ask-col .cb-cite {
+  align-self: flex-start;
+}
+
+@media (max-width: 480px) {
+  .hv-ask-compare {
+    grid-template-columns: 1fr;
+  }
 }
 
 .hv-ask-follow {

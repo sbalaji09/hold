@@ -7,7 +7,7 @@ import { useAction, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button, SignOff, Endorsement, Cite } from "@/components/callback";
 import type { Approval } from "@/lib/types";
-import type { Company } from "@/lib/company";
+import { cap, type Company } from "@/lib/company";
 import { useCompany } from "@/lib/useCompany";
 
 interface ThreadMsg {
@@ -152,7 +152,7 @@ export function PushbackThread({ approval }: { approval: Approval }): React.Reac
             ) : (
               <div key={i} className="rounded-md border border-line bg-surface-sunk p-3">
                 <div className="mb-1 flex items-center gap-2 text-[11px] text-ink-muted">
-                  <span>Callback</span>
+                  <span>hold</span>
                   <span>{fmtTime(m.at)}</span>
                 </div>
                 <p className="font-mono text-[13px] leading-5 text-ink">{m.text}</p>
@@ -210,7 +210,7 @@ export function PushbackThread({ approval }: { approval: Approval }): React.Reac
             Save as a rule for this {co.payee.one}
           </label>
           {ruleState === "saved" ? (
-            <p className="font-mono text-[13px] text-ink">Saved. Callback will cite this rule on {bill.supplier.name}'s later {co.bill.many}.</p>
+            <p className="font-mono text-[13px] text-ink">Saved. hold will cite this rule on {bill.supplier.name}'s later {co.bill.many}.</p>
           ) : (
             <>
               <textarea
@@ -240,12 +240,12 @@ export function PushbackThread({ approval }: { approval: Approval }): React.Reac
           <SignOff
             state="signed"
             name="You"
-            role="Controller"
+            role={cap(co.approver)}
             time={fmtTime(new Date().toISOString())}
             verb={decision === "approved-safe" ? "Approved \u00b7 verified account" : "Approved"}
           />
         ) : (
-          <SignOff state="awaiting" name="your approval" role="Approver" time={`Sent ${fmtTime(bill.receivedAt)}`} />
+          <SignOff state="awaiting" name="your approval" role={cap(co.approver)} time={`Sent ${fmtTime(bill.receivedAt)}`} />
         )}
       </div>
     </div>

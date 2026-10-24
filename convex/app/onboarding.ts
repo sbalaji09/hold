@@ -212,7 +212,7 @@ export const confirmNewSupplier = mutation({
   },
   handler: async (ctx, { supplierKey, trustedPhone, contactName, note, actor: who }) => {
     const co = await getCompany(ctx);
-    if (who === "callback") throw new ConvexError(`Callback can't confirm a ${co.payee.one} on its own. You have to.`);
+    if (who === "callback") throw new ConvexError(`hold can't confirm a ${co.payee.one} on its own. You have to.`);
     const supplier = await ctx.db
       .query("suppliers")
       .withIndex("by_key", (q) => q.eq("key", supplierKey))

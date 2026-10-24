@@ -101,7 +101,7 @@ async function emailRow(ctx: MutationCtx, emailKey: string) {
 }
 
 function person(who: "callback" | "dev", what: string): "dev" {
-  if (who === "callback") throw new ConvexError(`Callback can't ${what} on its own.`);
+  if (who === "callback") throw new ConvexError(`hold can't ${what} on its own.`);
   return who;
 }
 

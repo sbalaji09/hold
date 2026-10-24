@@ -23,7 +23,9 @@ export function citeLabel(cite: Cite, bill: Bill): string {
     case "email":
       return cite.ref === bill.email.key ? "This email" : `Email ${cite.ref}`;
     case "call":
-      return bill.call && cite.ref === bill.call.key ? `Call · ${new Date(bill.call.startedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : `Call ${cite.ref}`;
+      return bill.call && cite.ref === bill.call.key
+        ? `Call · ${new Date(bill.call.startedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+        : "Earlier call";
     case "supplier":
       return `${bill.supplier.name} record`;
     case "bill":

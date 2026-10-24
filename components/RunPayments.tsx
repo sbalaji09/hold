@@ -40,7 +40,7 @@ export function RunPayments({ billKeys, total, lockedReason }: RunPaymentsProps)
       setResults(out);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Callback couldn't run this payment batch.");
+      setError(err instanceof Error ? err.message : "hold couldn't run this payment batch.");
     } finally {
       setPending(false);
     }

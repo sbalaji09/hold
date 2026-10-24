@@ -233,3 +233,36 @@ test("a bank-change request to an account already verified by call + Dev passes 
   expect(withRule.find((c) => c.id === "bank-account")!.state).toBe("pass");
   expect(decide(withRule, 90000)).toBe("pay");
 });
+
+test("a kept never_changed_bank rule flags a new-account email citing the call; a kept verified_account rule for the same account passes it", () => {
+  const base = {
+    email: {
+      body: "We've switched banks. Please pay invoice #9 ($900.00) to our new account below.\n\nNew account: US Bank, account ending 5509.",
+      fromAddress: "a@perimeterprostaffing.com",
+      fromDomain: "perimeterprostaffing.com",
+    },
+    supplier: { key: "sup_perimeter_pro", name: "Perimeter Pro Staffing", domain: "perimeterprostaffing.com" },
+    pastPaidBankAccounts: [{ bank: "US Bank", last4: "9149" }],
+    pastPaidAmounts: [444719],
+    amountCents: 90000,
+  };
+
+  const neverChanged = [
+    { text: "Rosa said on the Oct 24 call that Perimeter Pro never changed banks.", kind: "never_changed_bank" as const, sourceKind: "call", sourceKey: "call_1" },
+  ];
+  const flagged = runChecks({ ...base, currentBankAccount: stagecraftAccount, learnedRules: neverChanged });
+  const bankCheck = flagged.find((c) => c.id === "bank-account")!;
+  expect(bankCheck.state).toBe("flag");
+  expect(bankCheck.evidence).toMatch(/Learned rule applies: Rosa said/);
+  expect(bankCheck.cite).toEqual({ kind: "call", ref: "call_1" });
+
+  const verifiedAccount = [
+    { text: "Perimeter Pro confirmed US Bank \u00b7\u00b75509 on a call to the number on file, Oct 24. Pay this account without calling again.", kind: "verified_account" as const, bankLast4: "5509", sourceKind: "call", sourceKey: "call_1" },
+  ];
+  const verified = { bank: "US Bank", last4: "5509", verifiedBy: "call+dev" as const, confirmedByCall: true };
+  const passed = runChecks({ ...base, currentBankAccount: verified, learnedRules: verifiedAccount });
+  const passedCheck = passed.find((c) => c.id === "bank-account")!;
+  expect(passedCheck.state).toBe("pass");
+  expect(passedCheck.cite).toEqual({ kind: "call", ref: "call_1" });
+  expect(decide(passed, 90000)).toBe("pay");
+});

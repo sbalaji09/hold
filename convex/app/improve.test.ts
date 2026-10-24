@@ -131,8 +131,8 @@ describe("hold learns from a scam it missed", () => {
   test("Callback can't report or teach on its own", async () => {
     const t = convexTest(schema, modules);
     await seed(t, { body: PORTAL_SCAM });
-    await expect(t.mutation(api.app.techniques.reportMissedScam, { billKey: "bill_trigger", actor: "callback" })).rejects.toThrow("Callback can't report a missed scam on its own.");
-    await expect(t.mutation(api.app.techniques.teach, { description: "Scammers now ask for payment through a portal link.", actor: "callback" })).rejects.toThrow("Callback can't teach itself something on its own.");
+    await expect(t.mutation(api.app.techniques.reportMissedScam, { billKey: "bill_trigger", actor: "callback" })).rejects.toThrow("hold can't report a missed scam on its own.");
+    await expect(t.mutation(api.app.techniques.teach, { description: "Scammers now ask for payment through a portal link.", actor: "callback" })).rejects.toThrow("hold can't teach itself something on its own.");
   });
 });
 
@@ -155,7 +155,7 @@ describe("hold learns from a false alarm, but only Dev can loosen it", () => {
     expect(impr).toMatchObject({ status: "needs_approval", trigger: { kind: "false_alarm", billKey: "bill_trigger", by: "callback" } });
     expect((await techniques(t)).filter((r) => r.status === "active").map((r) => r.key)).toEqual(["tech_portal"]); // nothing loosened yet
 
-    await expect(t.mutation(api.app.techniques.decideImprovement, { key: impr!.key, decision: "approve", actor: "callback" })).rejects.toThrow("Callback can't approve this on its own.");
+    await expect(t.mutation(api.app.techniques.decideImprovement, { key: impr!.key, decision: "approve", actor: "callback" })).rejects.toThrow("hold can't approve this on its own.");
     await t.mutation(api.app.techniques.decideImprovement, { key: impr!.key, decision: "approve", actor: "dev" });
     const after = await techniques(t);
     const refined = after.find((r) => r.supersedes === "tech_portal")!;
