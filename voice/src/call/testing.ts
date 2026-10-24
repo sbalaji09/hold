@@ -20,6 +20,7 @@ export class FakeLLM implements LLM {
 
   async json<T>(req: LLMRequest & { schema: z.ZodType<T> }): Promise<T> {
     this.jsonCalls.push(req);
+    assertApiShape(req);
     const out = resolve(this.routes.json, req);
     if (out instanceof Error) throw out;
     return req.schema.parse(out);
@@ -27,11 +28,17 @@ export class FakeLLM implements LLM {
 
   async *streamText(req: LLMRequest): AsyncIterable<string> {
     this.streamCalls.push(req);
+    assertApiShape(req);
     const out = resolve(this.routes.stream, req);
     if (out instanceof Error) throw out;
     // Token-ish chunks, so sentence re-chunking is exercised.
     for (const chunk of String(out).match(/\S+\s*/g) ?? []) yield chunk;
   }
+}
+
+/** The real API rejects these with a 400 ("does not support assistant message prefill"). */
+function assertApiShape(req: LLMRequest): void {
+  if (req.messages.at(-1)?.role !== "user") throw new Error("FakeLLM: conversation must end with a user message");
 }
 
 function resolve<T>(routes: Record<string, Reply<T>> | undefined, req: LLMRequest): T | Error {

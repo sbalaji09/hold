@@ -53,6 +53,8 @@ const schema = z.object({
   VAD_MIN_DBFS: num(-45),
   /** Barge in on an STT partial with at least this many words, even if the VAD did not fire. */
   BARGE_IN_MIN_WORDS: num(2),
+  /** During the opening line, only a transcript this long interrupts (a pickup "Hello?" must not). */
+  OPENING_BARGE_IN_MIN_WORDS: num(3),
 
   /** Twilio async answering machine detection. Voicemail is treated as no answer. */
   TWILIO_AMD: bool(true),
@@ -80,6 +82,7 @@ export interface AudioTuning {
   vadMarginDb: number;
   vadMinDbfs: number;
   bargeInMinWords: number;
+  openingBargeInMinWords: number;
 }
 
 export const DEFAULT_TUNING: AudioTuning = {
@@ -89,6 +92,7 @@ export const DEFAULT_TUNING: AudioTuning = {
   vadMarginDb: 12,
   vadMinDbfs: -45,
   bargeInMinWords: 2,
+  openingBargeInMinWords: 3,
 };
 
 export function tuningFrom(c: Config): AudioTuning {
@@ -99,5 +103,6 @@ export function tuningFrom(c: Config): AudioTuning {
     vadMarginDb: c.VAD_MARGIN_DB,
     vadMinDbfs: c.VAD_MIN_DBFS,
     bargeInMinWords: c.BARGE_IN_MIN_WORDS,
+    openingBargeInMinWords: c.OPENING_BARGE_IN_MIN_WORDS,
   };
 }

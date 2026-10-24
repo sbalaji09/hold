@@ -3,7 +3,8 @@
 import type { CallEvent, Speaker } from "../../../shared/contract.js";
 import type { VoiceStore } from "../store/types.js";
 import type { ChatMessage } from "./llm.js";
-import type { CallTransport, EndReason, SayResult, Utterance } from "./transport.js";
+import { classifyTurn } from "./policy.js";
+import type { CallTransport, EndReason, SayOptions, SayResult, Utterance } from "./transport.js";
 
 export interface Turn {
   speaker: Speaker;
@@ -15,6 +16,8 @@ export interface Turn {
 export class CallSession {
   readonly turns: Turn[] = [];
   private reason: EndReason | null = null;
+  /** When the opening line finished playing in full; greetings said over it are not turns. */
+  private openingEndS: number | null = null;
   private stop!: () => void;
   private readonly stopped = new Promise<null>((resolve) => (this.stop = () => resolve(null)));
 
@@ -46,16 +49,26 @@ export class CallSession {
   }
 
   /** Speak; resolves null if the call ends first. Writes a segment with what was actually played. */
-  async say(text: string | AsyncIterable<string>): Promise<SayResult | null> {
+  async say(text: string | AsyncIterable<string>, opts?: SayOptions): Promise<SayResult | null> {
     if (this.over) return null;
-    const r = await Promise.race([this.transport.say(text), this.stopped]);
+    const r = await Promise.race([this.transport.say(text, opts), this.stopped]);
     if (!r) return null;
     if (r.spokenText.trim()) await this.record("callback", r.spokenText.trim(), r.start_s, r.end_s);
+    if (opts?.opening && !r.interrupted) this.openingEndS = r.end_s;
     return r;
   }
 
   /** Next utterance; null on silence or when the call ends (check `over`). */
   async hear(timeoutMs: number): Promise<Utterance | null> {
+    for (;;) {
+      const u = await this.hearOnce(timeoutMs);
+      // "Hello?" said on pickup, over the opening line, already got its answer: the opening itself.
+      if (u && this.openingEndS !== null && u.start_s < this.openingEndS && classifyTurn(u.text) === "greeting") continue;
+      return u;
+    }
+  }
+
+  private async hearOnce(timeoutMs: number): Promise<Utterance | null> {
     if (this.over) return null;
     const u = await Promise.race([this.transport.listen({ timeoutMs }), this.stopped]);
     if (!u) {
@@ -95,6 +108,9 @@ export class CallSession {
       if (last?.role === role) last.content += " " + t.text;
       else messages.push({ role, content: t.text });
     }
+    // The API needs the last message to be the caller's. A fixed line we said after they spoke
+    // (the disclosure repeated after an interruption) isn't something for Claude to continue.
+    while (messages.at(-1)?.role === "assistant") messages.pop();
     if (messages[0]?.role !== "user") messages.unshift({ role: "user", content: "(The call connects.)" });
     return messages;
   }

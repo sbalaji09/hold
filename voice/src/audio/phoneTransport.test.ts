@@ -135,8 +135,8 @@ describe("say()", () => {
 });
 
 describe("barge-in", () => {
-  async function speaking(h: ReturnType<typeof setup>) {
-    const p = h.t.say("Hi, this is an automated assistant calling for Fogline.");
+  async function speaking(h: ReturnType<typeof setup>, opts?: { opening: boolean }) {
+    const p = h.t.say("Hi, this is an automated assistant calling for Fogline.", opts);
     await vi.advanceTimersByTimeAsync(0);
     const ctx = h.ttsSent[0]!.ctx;
     h.ttsSink().words(ctx, ["Hi,", "this", "is", "an", "automated"], [0, 0.3, 0.5, 0.6, 0.8]);
@@ -181,6 +181,26 @@ describe("barge-in", () => {
     h.feed(SPEECH, 4);
     h.feed(QUIET, 10);
     expect(h.twilio.some((m) => m.event === "clear")).toBe(false);
+  });
+
+  test("the opening line plays through a pickup \"Hello?\": voice alone and one word don't cut it", async () => {
+    const h = setup();
+    h.feed(QUIET, 50);
+    const { p, ctx } = await speaking(h, { opening: true });
+    h.feed(SPEECH, 25); // half a second of loud "Hello?"
+    h.sttSink().final("Hello?");
+    h.sttSink().partial("Hello? Hi");
+    expect(h.twilio.some((m) => m.event === "clear")).toBe(false);
+    h.ttsSink().done(ctx);
+    h.ackAll();
+    expect((await p).interrupted).toBe(false);
+  });
+
+  test("a real interruption still cuts the opening line", async () => {
+    const h = setup();
+    const { p } = await speaking(h, { opening: true });
+    h.sttSink().partial("I need to");
+    expect((await p).interrupted).toBe(true);
   });
 
   test("the words that interrupted are the next listen() result", async () => {

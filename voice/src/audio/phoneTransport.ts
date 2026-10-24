@@ -11,7 +11,7 @@
 //     from Twilio playback marks and Cartesia word timestamps.
 // Timing: t0 is the Media Stream start, which is when recording starts, so ts 0 = recording 0 s.
 import { randomUUID } from "node:crypto";
-import type { CallTransport, EndReason, SayResult, Utterance } from "../call/transport.js";
+import type { CallTransport, EndReason, SayOptions, SayResult, Utterance } from "../call/transport.js";
 import type { AudioTuning } from "../config.js";
 import type { SttFactory, SttStream } from "./cartesiaStt.js";
 import type { TtsFactory, TtsStream } from "./cartesiaTts.js";
@@ -66,6 +66,7 @@ interface ActiveSay {
   playedAt: number;
   firstAudioAt: number | null;
   calledAt: number;
+  opening: boolean; // see SayOptions.opening: no VAD barge-in, needs more transcribed words
   markTimer?: NodeJS.Timeout;
   resolve: (r: SayResult) => void;
 }
@@ -137,7 +138,8 @@ export class PhoneTransport implements CallTransport {
     if (ev === "onset") {
       this.lastActivityAt = this.now();
       this.turnStartS ??= Math.max(0, this.elapsed() - this.o.tuning.vadMinSpeechMs / 1000);
-      if (this.active) this.bargeIn("vad");
+      // A pickup "Hello?" over the opening line is voice too; there only the transcript decides.
+      if (this.active && !this.active.opening) this.bargeIn("vad");
     } else if (ev === "offset") {
       this.turnEndS = Math.max(0, this.elapsed() - this.o.tuning.finalizeSilenceMs / 1000);
       this.stt.finalize();
@@ -167,8 +169,8 @@ export class PhoneTransport implements CallTransport {
 
   // ---------------------------------------------------------------- CallTransport
 
-  say(text: string | AsyncIterable<string>): Promise<SayResult> {
-    const run = this.sayChain.then(() => this.sayNow(text));
+  say(text: string | AsyncIterable<string>, opts: SayOptions = {}): Promise<SayResult> {
+    const run = this.sayChain.then(() => this.sayNow(text, opts));
     this.sayChain = run.catch(() => undefined);
     return run;
   }
@@ -217,7 +219,7 @@ export class PhoneTransport implements CallTransport {
     this.turnStartS ??= this.elapsed();
     // No clearEot here: the end-of-turn timer itself holds the turn while partials keep coming,
     // and still closes it after MAX_TURN_HOLD_MS if a partial never turns final.
-    if (this.active && wordCount(text) >= this.o.tuning.bargeInMinWords) this.bargeIn("stt");
+    if (this.active && wordCount(text) >= this.bargeInWords(this.active)) this.bargeIn("stt");
   }
 
   private onFinal(delta: string) {
@@ -229,8 +231,12 @@ export class PhoneTransport implements CallTransport {
     this.turnStartS ??= this.elapsed();
     if (!this.firstFinalAt) this.firstFinalAt = this.now();
     if (!this.vad.speaking) this.turnEndS = this.elapsed();
-    if (this.active && wordCount(this.turnText) >= this.o.tuning.bargeInMinWords) this.bargeIn("stt");
+    if (this.active && wordCount(this.turnText) >= this.bargeInWords(this.active)) this.bargeIn("stt");
     this.armEot();
+  }
+
+  private bargeInWords(a: ActiveSay): number {
+    return a.opening ? this.o.tuning.openingBargeInMinWords : this.o.tuning.bargeInMinWords;
   }
 
   private armEot() {
@@ -279,7 +285,7 @@ export class PhoneTransport implements CallTransport {
 
   // ---------------------------------------------------------------- speaking internals
 
-  private async sayNow(input: string | AsyncIterable<string>): Promise<SayResult> {
+  private async sayNow(input: string | AsyncIterable<string>, opts: SayOptions): Promise<SayResult> {
     const startS = this.elapsed();
     if (this.endReason) return { interrupted: true, spokenText: "", start_s: startS, end_s: startS };
     const a: ActiveSay = {
@@ -300,6 +306,7 @@ export class PhoneTransport implements CallTransport {
       playedAt: 0,
       firstAudioAt: null,
       calledAt: this.now(),
+      opening: opts.opening ?? false,
       resolve: () => undefined,
     };
     const done = new Promise<SayResult>((r) => (a.resolve = r));

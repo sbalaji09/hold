@@ -18,13 +18,21 @@ export interface SayResult {
 
 export type EndReason = "hangup" | "dropped" | "takeover";
 
+export interface SayOptions {
+  /**
+   * The call's opening line (disclosure or greeting). People say "Hello?" as a line connects, so a
+   * burst of voice must not cut it: only a transcribed interruption of several words does.
+   */
+  opening?: boolean;
+}
+
 export interface CallTransport {
   /**
    * Speak text. Accepts a stream of text chunks (e.g. Claude tokens) for low first-audio latency.
    * Always interruptible: if the person starts talking, audio stops at once and this resolves
    * with interrupted=true; their words arrive through listen().
    */
-  say(text: string | AsyncIterable<string>): Promise<SayResult>;
+  say(text: string | AsyncIterable<string>, opts?: SayOptions): Promise<SayResult>;
   /**
    * Next final utterance from the other person. Utterances heard while not listening
    * (including the one that interrupted say()) are queued and returned first.

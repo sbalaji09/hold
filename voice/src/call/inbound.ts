@@ -7,6 +7,7 @@ import { CALLBACK_PROMISE, INBOUND_GREETING, type InboundCallRecord, type Suppli
 import type { InboundCallDeps } from "./index.js";
 import { MODELS, type LLM } from "./llm.js";
 import {
+  classifyTurn,
   guardStream,
   isBankChangeRequest,
   isGoodbye,
@@ -17,12 +18,16 @@ import {
   matchSupplier,
 } from "./policy.js";
 import { CallSession, type Turn } from "./session.js";
+import type { Utterance } from "./transport.js";
 
 export const INBOUND_LIMITS = {
   listenTimeoutMs: 12_000,
   maxSilences: 2,
   maxTurns: 14,
   maxCallSeconds: 240,
+  asideTimeoutMs: 4_000, // hearing out someone who talked over the greeting
+  asideTailMs: 750, // the rest of an interruption that arrives as a second piece ("Sorry." + "quick question...")
+  disclosureAttempts: 3,
 } as const;
 
 const BANK_CHANGE_LINE = `I can't change bank details over the phone. ${CALLBACK_PROMISE} Is there anything else I can help with?`;
@@ -33,6 +38,8 @@ const GOODBYE_LINE = "Thanks for calling Fogline's accounts team. Goodbye.";
 const SILENCE_LINE = "Are you still there?";
 const WRAP_UP_LINE = "I need to wrap up this call now. Thanks for calling Fogline's accounts team. Goodbye.";
 const SAFE_LINE = "I'm sorry, I can't help with that over the phone, but someone from our accounts team can follow up.";
+// Said when the caller cut into the greeting, so the disclosure is always heard in full.
+const DISCLOSURE_AGAIN = "Sorry, before we go on: I'm an automated assistant for Fogline's accounts team, and this call is recorded.";
 
 const RECEPTIONIST_SYSTEM = `You are the automated assistant answering the phone for Fogline's accounts team. Fogline is a music festival in San Francisco. The caller has already been told you are an automated assistant and that the call is recorded.
 
@@ -83,14 +90,14 @@ export async function runInboundCall(deps: InboundCallDeps): Promise<InboundCall
 }
 
 async function converse(session: CallSession, llm: LLM, state: { askedBankChange: boolean }): Promise<void> {
-  await session.say(INBOUND_GREETING);
+  const pending = await greetFully(session);
   let silences = 0;
   for (let turn = 0; !session.over; ) {
     if (turn >= INBOUND_LIMITS.maxTurns || session.transport.elapsed() > INBOUND_LIMITS.maxCallSeconds) {
       await session.say(WRAP_UP_LINE);
       return;
     }
-    const u = await session.hear(INBOUND_LIMITS.listenTimeoutMs);
+    const u = pending.shift() ?? (await session.hear(INBOUND_LIMITS.listenTimeoutMs));
     if (session.over) return;
     if (!u) {
       if (++silences >= INBOUND_LIMITS.maxSilences) {
@@ -121,6 +128,32 @@ async function converse(session: CallSession, llm: LLM, state: { askedBankChange
       ),
     );
   }
+}
+
+/**
+ * Greet with the disclosure. If the caller talks over it, hear them out and repeat the disclosure
+ * until it plays uninterrupted; what they said is returned to be answered next.
+ */
+async function greetFully(session: CallSession): Promise<Utterance[]> {
+  const asides: Utterance[] = [];
+  for (let attempt = 0; attempt < INBOUND_LIMITS.disclosureAttempts && !session.over; attempt++) {
+    const r = await session.say(attempt === 0 ? INBOUND_GREETING : DISCLOSURE_AGAIN, { opening: true });
+    if (!r?.interrupted) break;
+    const pieces: Utterance[] = [];
+    for (let u = await session.hear(INBOUND_LIMITS.asideTimeoutMs); u; u = await session.hear(INBOUND_LIMITS.asideTailMs)) {
+      pieces.push(u);
+    }
+    const aside = joinUtterances(pieces);
+    if (aside && classifyTurn(aside.text) !== "greeting") asides.push(aside);
+  }
+  // One reply to everything they said while cutting in, not one per piece.
+  const all = joinUtterances(asides);
+  return all ? [all] : [];
+}
+
+function joinUtterances(us: Utterance[]): Utterance | null {
+  if (us.length === 0) return null;
+  return { text: us.map((u) => u.text.trim()).join(" "), start_s: us[0]!.start_s, end_s: us.at(-1)!.end_s };
 }
 
 /**

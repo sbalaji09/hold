@@ -36,6 +36,43 @@ const extraction = (over: Record<string, unknown> = {}) => ({
 });
 
 describe("runInboundCall", () => {
+  it("lets the greeting play through a pickup \"Hello?\" and doesn't answer it as a request", async () => {
+    const { store, llm, run } = setup(["<over>Hello?", "No, that's all, thanks."]);
+    await run();
+
+    const lines = said(store.eventsFor(CALL_ID));
+    expect(lines[0]).toBe(INBOUND_GREETING);
+    expect(llm.streamCalls).toHaveLength(0);
+    expect(lines).toHaveLength(2); // greeting, goodbye
+  });
+
+  it("answers a question the caller cut into the greeting with, after re-giving the disclosure", async () => {
+    const { store, llm, run } = setup(
+      ["<interrupt>Sorry, quick question, are you open on weekends?", "<silence>", "No, that's all, thanks."],
+      { stream: { "answering the phone": "The accounts team works weekdays, nine to five." } },
+    );
+    await run();
+
+    const lines = said(store.eventsFor(CALL_ID));
+    expect(lines[1]).toMatch(/automated assistant.*this call is recorded/);
+    expect(lines[2]).toBe("The accounts team works weekdays, nine to five.");
+    expect(llm.streamCalls[0]!.messages.at(-1)).toEqual({ role: "user", content: "Sorry, quick question, are you open on weekends?" });
+  });
+
+  it("re-delivers the disclosure when a caller cuts into the greeting, then answers them", async () => {
+    const { store, run } = setup(
+      ["<interrupt>We've moved banks, I need to update our account details.", "<silence>", "No, that's all, thanks."],
+      { json: extraction() },
+    );
+    await run();
+
+    const lines = said(store.eventsFor(CALL_ID));
+    expect(INBOUND_GREETING.startsWith(lines[0]!)).toBe(true);
+    expect(lines[0]).not.toBe(INBOUND_GREETING); // cut off
+    expect(lines[1]).toMatch(/automated assistant.*this call is recorded/);
+    expect(lines[2]).toContain(CALLBACK_PROMISE);
+  });
+
   it("greets, promises a call back on a bank-change request, and books the follow-up to the number on file", async () => {
     const { store, llm, run } = setup(
       ["Hi, this is Rosa from Stagecraft Rigging.", "We've moved banks, I need to update our account details for the next payment.", "No, that's all, thanks."],

@@ -18,7 +18,8 @@ export interface SimulatedTransportOptions {
   /**
    * Scripted mode (tests): one entry per listen(). Special entries:
    * "<silence>" (no reply until the timeout), "<hangup>" (they hang up), "<drop>" (line drops),
-   * "<interrupt>text" (consumed by the next say(), which is cut off halfway by `text`).
+   * "<interrupt>text" (consumed by the next say(), which is cut off halfway by `text`),
+   * "<over>text" (said over the next say() without cutting it, like "Hello?" on pickup).
    */
   script?: string[];
 }
@@ -72,6 +73,12 @@ export class SimulatedTransport implements CallTransport {
       return { interrupted: true, spokenText, start_s, end_s: replyStart };
     }
 
+    if (next?.startsWith("<over>")) {
+      this.script!.shift();
+      const reply = next.slice("<over>".length).trim();
+      this.queue.push({ text: reply, start_s: start_s + 0.2, end_s: start_s + 0.2 + duration(reply) });
+      this.log.push({ speaker: "supplier", text: reply });
+    }
     this.clock += duration(full);
     this.log.push({ speaker: "callback", text: full });
     return { interrupted: false, spokenText: full, start_s, end_s: this.clock };

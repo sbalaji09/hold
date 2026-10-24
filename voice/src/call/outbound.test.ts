@@ -193,6 +193,16 @@ describe("runOutboundCall", () => {
     expect(fullDisclosure).toBeLessThan(firstQuestion);
   });
 
+  it('ignores a pickup "Hello?" said over the disclosure instead of taking it as the first answer', async () => {
+    const { store, run } = setup(["<over>Hello?", "It was eighteen thousand four hundred dollars.", "Yes, we switched banks last week."]);
+    const result = await run();
+
+    const asked = segments(store.eventsFor("call_123"), "callback").filter((s) => s.includes(INVOICE_Q.ask));
+    expect(asked).toHaveLength(1);
+    expect(result.evidence[0]!.answer).toBe("It was eighteen thousand four hundred dollars.");
+    expect(result.outcome).toBe("confirmed");
+  });
+
   it('treats "We never changed our bank" as not_confirmed even when other answers match and the judge says confirmed', async () => {
     const { store, run } = setup(["Hello?", "Yes, it was $18,400.", "No, we never changed our bank."], { judge: judgeSays(true, true) });
     const result = await run();

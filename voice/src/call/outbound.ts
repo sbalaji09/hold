@@ -341,7 +341,7 @@ async function converse(session: CallSession, prepared: PreparedCall, llm: LLM, 
 async function discloseFully(session: CallSession): Promise<"ok" | StopReason> {
   let aside: string | null = null;
   for (let attempt = 0; attempt < OUTBOUND_LIMITS.disclosureAttempts; attempt++) {
-    const r = await session.say(DISCLOSURE);
+    const r = await session.say(DISCLOSURE, { opening: true });
     if (!r) return "no_disclosure";
     if (!r.interrupted) {
       // Now that they know who is calling, act on what they said while interrupting.

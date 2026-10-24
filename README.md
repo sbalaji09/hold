@@ -51,6 +51,7 @@ Optional tuning knobs, all with defaults that suit a phone on speaker in a loud 
 | `VAD_MARGIN_DB` | `12` | How far above the background noise counts as speech. Raise it if noise cuts hold off. |
 | `VAD_MIN_DBFS` | `-45` | Absolute floor; quieter audio is never speech. |
 | `BARGE_IN_MIN_WORDS` | `2` | An STT partial with this many words also barges in. |
+| `OPENING_BARGE_IN_MIN_WORDS` | `3` | During the opening greeting or disclosure, voice alone never barges in; only a transcript this long does, so a pickup "Hello?" doesn't cut it. |
 | `TWILIO_AMD` | `true` | Answering machine detection. Voicemail counts as no answer. Set `false` if a real person on a noisy speakerphone gets taken for a machine. |
 | `TWILIO_RING_TIMEOUT_S` | `25` | Ring time before Twilio reports no answer. |
 
