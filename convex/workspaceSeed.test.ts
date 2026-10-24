@@ -66,16 +66,6 @@ describe.each(["bayline", "harbor"])("%s template", (name) => {
     }
   });
 
-  test("open items over the company's limit wait for its approver", async () => {
-    const t = convexTest(schema, modules);
-    await t.mutation(internal.seed.seed, data);
-    const co = await t.query(api.app.company.current, {});
-    const approvals = await t.run((ctx) => ctx.db.query("approvals").collect());
-    const big = approvals.filter((a) => a.kind === "big_payment");
-    expect(big.length).toBeGreaterThan(0);
-    for (const a of big) expect(a.recommendation).toContain(`${co.dev.name} needs to approve it`);
-  });
-
   test("the demo payee rings DEMO_PAYEE_PHONE, everyone else keeps their number", async () => {
     process.env.DEMO_PAYEE_PHONE = "+14155550199";
     try {

@@ -171,9 +171,13 @@ export async function runSeed(ctx: MutationCtx, args: SeedArgs): Promise<void> {
     await ctx.db.insert("suppliers", s.key === args.hero && demoPhone ? { ...s, trustedPhone: demoPhone } : s);
   }
   for (const b of args.bankAccounts) await ctx.db.insert("bankAccounts", b);
+  // Only settled history is loaded. Unpaid bills from the fixture would show checks and approvals
+  // nothing ran, so they're dropped; the planted scams stay as Practice fixtures, hidden from the inbox.
+  const bills = args.bills.filter((b) => b.status === "Paid" || b.planted);
+  const kept = new Set(bills.map((b) => b.key));
   const billIdByKey = new Map<string, Id<"bills">>();
-  for (const b of args.bills) billIdByKey.set(b.key, await ctx.db.insert("bills", b));
-  for (const e of args.emails) await ctx.db.insert("emails", e);
+  for (const b of bills) billIdByKey.set(b.key, await ctx.db.insert("bills", b.planted ? { ...b, practice: true } : b));
+  for (const e of args.emails) if (!e.billKey || kept.has(e.billKey)) await ctx.db.insert("emails", e);
   for (const p of args.payments) {
     const status = p.status === "pending" || p.status === "sent" || p.status === "failed" ? p.status : "sent";
     await ctx.db.insert("payments", { ...p, status });
@@ -242,13 +246,13 @@ export async function runSeed(ctx: MutationCtx, args: SeedArgs): Promise<void> {
   for (const c of args.calls) if (c.billKey) callByBillKey.set(c.billKey, c);
 
   const checksByBillKey = new Map<string, Check[]>();
-  for (const b of args.bills) {
+  for (const b of bills) {
     const supplier = suppliersByKey.get(b.supplierKey);
     const bankAccount = bankAccountsByKey.get(b.bankAccountKey);
     const email = emailsByKey.get(b.emailKey);
     if (!supplier || !bankAccount || !email) continue;
     const call = callByBillKey.get(b.key) ?? null;
-    const pastPaid = args.bills.filter((x) => x.supplierKey === b.supplierKey && x.key !== b.key && x.status === "Paid");
+    const pastPaid = bills.filter((x) => x.supplierKey === b.supplierKey && x.key !== b.key && x.status === "Paid");
     const pastPaidBankAccounts: CheckBankAccount[] = pastPaid.map((x) => {
       const a = bankAccountsByKey.get(x.bankAccountKey);
       return { bank: a?.bank ?? "unknown", last4: a?.last4 ?? "0000" };
@@ -272,7 +276,8 @@ export async function runSeed(ctx: MutationCtx, args: SeedArgs): Promise<void> {
     if (id) await ctx.db.patch(id, { checks });
   }
 
-  for (const b of args.bills) {
+  for (const b of bills) {
+    if (b.planted) continue;
     const approvable = b.status === "Held" || b.status === "Needs you" || (b.amountCents >= co.approvalLimitCents && b.status !== "Paid");
     if (!approvable) continue;
     const checks = checksByBillKey.get(b.key) ?? [];

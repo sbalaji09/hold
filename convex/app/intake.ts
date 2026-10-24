@@ -244,7 +244,8 @@ export const recordUnknownSender = internalMutation({
   },
 });
 
-export const finalizeIntake = internalMutation({
+/** The bill row, as Checking with nothing checked yet. addChecks and settleBill fill it in live. */
+export const startBill = internalMutation({
   args: {
     from: v.string(),
     fromDomain: v.string(),
@@ -255,8 +256,6 @@ export const finalizeIntake = internalMutation({
     bankAccountKey: v.string(),
     amountCents: v.number(),
     invoiceNo: v.string(),
-    checks: v.array(checkValidator),
-    decision: v.union(v.literal("pay"), v.literal("ask_dev"), v.literal("call")),
     messageId: v.optional(v.string()),
     // Maya said a message hold sorted away is a bill: the bill reuses that email row.
     existingEmailKey: v.optional(v.string()),
@@ -303,48 +302,37 @@ export const finalizeIntake = internalMutation({
       checks: [],
     });
 
-    // The bill lands as Checking with an empty checks panel; revealChecks adds one check at a
-    // time, then does the decision step, so the page shows the agent working.
-    await ctx.scheduler.runAfter(CHECK_STEP_MS, internal.app.intake.revealChecks, {
-      billKey,
-      step: 0,
-      supplier: args.supplier,
-      amountCents: args.amountCents,
-      invoiceNo: args.invoiceNo,
-      checks: args.checks,
-      decision: args.decision,
-    });
-
     return { billKey, supplierKey: args.supplier.key, status: "Checking" as Doc<"bills">["status"] };
   },
 });
 
-const CHECK_STEP_MS = 1200;
+/** Appends checks to a Checking bill as they finish, so the page shows them arriving. */
+export const addChecks = internalMutation({
+  args: { billKey: v.string(), checks: v.array(checkValidator) },
+  handler: async (ctx, args): Promise<void> => {
+    const bill = await ctx.db.query("bills").withIndex("by_key", (q) => q.eq("key", args.billKey)).unique();
+    if (bill) await ctx.db.patch(bill._id, { checks: [...(bill.checks ?? []), ...args.checks] });
+  },
+});
 
-/** Adds the next check to a Checking bill; after the last one, settles the bill by decision. */
-export const revealChecks = internalMutation({
+/** Every check is in: the decision sets the status and starts the call, approval or payment. */
+export const settleBill = internalMutation({
   args: {
     billKey: v.string(),
-    step: v.number(),
     supplier: v.object({ key: v.string(), name: v.string(), trustedPhone: v.string() }),
     amountCents: v.number(),
     invoiceNo: v.string(),
     checks: v.array(checkValidator),
     decision: v.union(v.literal("pay"), v.literal("ask_dev"), v.literal("call")),
   },
-  handler: async (ctx, args): Promise<void> => {
+  handler: async (ctx, args): Promise<{ billKey: string; supplierKey: string; status: Doc<"bills">["status"] }> => {
     const bill = await ctx.db.query("bills").withIndex("by_key", (q) => q.eq("key", args.billKey)).unique();
-    if (!bill) return;
-    if (args.step < args.checks.length) {
-      await ctx.db.patch(bill._id, { checks: args.checks.slice(0, args.step + 1) });
-      await ctx.scheduler.runAfter(CHECK_STEP_MS, internal.app.intake.revealChecks, { ...args, step: args.step + 1 });
-      return;
-    }
+    if (!bill) throw new Error("bill not found");
     const billKey = args.billKey;
     const co = await getCompany(ctx);
     const limit = wholeDollars(co.approvalLimitCents);
     const status: Doc<"bills">["status"] = args.decision === "pay" ? "Scheduled" : args.decision === "ask_dev" ? "Needs you" : "Calling";
-    await ctx.db.patch(bill._id, { status });
+    await ctx.db.patch(bill._id, { status, checks: args.checks });
     const flaggedLabels = args.checks.filter((c) => c.state === "flag").map((c) => c.label);
     const money = fmtMoney(args.amountCents);
 
@@ -398,6 +386,7 @@ export const revealChecks = internalMutation({
       ));
     }
 
+    return { billKey, supplierKey: args.supplier.key, status };
   },
 });
 
@@ -580,116 +569,124 @@ async function ingest(ctx: ActionCtx, args: IngestArgs, opts: { existingEmailKey
     const amountCents = parseAmountCents(args.body) ?? 0;
     const co = await ctx.runQuery(api.app.company.current, {});
 
-    // The two Claude checks run side by side, so neither adds to the other's wait.
     const playbook = forChannel(await ctx.runQuery(internal.app.techniques.activePlaybook, {}), "email");
     const emailKinds = toKinds(await ctx.runQuery(internal.app.techniques.activePlaybook, { job: "triage" }));
-    // The three Claude checks run side by side, so none adds to another's wait. A message being
-    // converted to a bill has already been sorted, so it skips triage.
-    const [style, technique, triaged] = await Promise.allSettled([
-      ctx.runAction(api.voice.styleMatch.styleMatch, { supplier_id: context.supplier.key, email_text: args.body }),
-      assessEmail(
-        anthropic(),
-        {
-          fromAddress,
-          subject: args.subject,
-          body: args.body,
-          supplierName: context.supplier.name,
-          supplierDomain: context.supplier.domain,
-          amountCents,
-          company: co,
-        },
-        playbook,
-      ),
-      opts.existingEmailKey
-        ? Promise.resolve(null)
-        : judgeEmail(anthropic(), { fromAddress, subject: args.subject, body: args.body, supplierName: context.supplier.name }, emailKinds),
-    ]);
-    // Any can fail (no ANTHROPIC_API_KEY, Moss down). Skip that one check rather than blocking
-    // intake; the bill still shows it as an info check so it's never silently omitted.
-    let styleMatch: { matches: boolean; reasons: string[] } | undefined;
-    let styleMatchError: string | undefined;
-    if (style.status === "fulfilled") styleMatch = { matches: style.value.matches, reasons: style.value.reasons };
-    else {
-      console.warn(`styleMatch failed for ${context.supplier.key}:`, style.reason);
-      styleMatchError = style.reason instanceof Error ? style.reason.message : String(style.reason);
-    }
-    const fraudTechnique =
-      technique.status === "fulfilled"
-        ? techniqueCheck(technique.value, playbook, fromAddress)
-        : {
-            id: "fraud-technique",
-            label: "Fraud technique",
-            state: "info" as const,
-            evidence: `Fraud techniques weren't checked: ${technique.reason instanceof Error ? technique.reason.message : String(technique.reason)}`,
-            cite: { kind: "email" as const, ref: fromAddress },
-          };
     const invoiceNo = parseInvoiceNo(args.body) ?? "unknown";
-
-    const checks = runChecks({
+    const checkInput = {
       email: { body: args.body, fromAddress, fromDomain },
       supplier: { key: context.supplier.key, name: context.supplier.name, domain: context.supplier.domain },
       currentBankAccount: context.currentBankAccount,
       pastPaidBankAccounts: context.pastPaidBankAccounts,
       pastPaidAmounts: context.pastPaidAmounts,
       amountCents,
-      styleMatch,
       learnedRules: context.learnedRules,
-      fraudTechnique,
       company: co,
-    });
-    if (styleMatchError) {
-      checks.push({
-        id: "writing-style",
-        label: "Writing style",
-        state: "info",
-        evidence: `Writing style wasn't checked: ${styleMatchError}`,
-        cite: { kind: "email", ref: fromAddress },
-      });
-    }
-    // Inbox triage (job #2): an email that isn't a bill never becomes one. Anything a fraud check
-    // flags still goes through the bill checks and a check call; if triage fails, intake carries
-    // on as before.
-    if (triaged.status === "fulfilled" && triaged.value) {
-      const fraudFlagged = checks.some((c) => ["fraud-technique", "bank-account", "domain"].includes(c.id) && c.state === "flag");
-      const sorted = routeEmail(triaged.value, emailKinds, { hasAmount: parseAmountCents(args.body) !== null, fraudFlagged });
-      if (sorted.route !== "bill") {
-        return await ctx.runMutation(internal.app.intake.recordMessage, {
-          from: args.from,
-          fromDomain,
-          subject: args.subject,
-          body: args.body,
-          receivedAt: args.receivedAt,
-          messageId: args.messageId,
-          supplier: { key: context.supplier.key, name: context.supplier.name },
-          triage: { kindKey: sorted.kindKey, kindName: sorted.kindName, route: sorted.route, why: sorted.why, quote: triaged.value.quote || undefined },
-        });
+    };
+
+    // The three Claude checks start together and are awaited where they're used. Any can fail
+    // (no ANTHROPIC_API_KEY, Moss down): that check shows as info rather than blocking intake.
+    const styleP = ctx.runAction(api.voice.styleMatch.styleMatch, { supplier_id: context.supplier.key, email_text: args.body });
+    const techniqueP = assessEmail(
+      anthropic(),
+      { fromAddress, subject: args.subject, body: args.body, supplierName: context.supplier.name, supplierDomain: context.supplier.domain, amountCents, company: co },
+      playbook,
+    );
+    // A message being converted to a bill has already been sorted, so it skips triage.
+    const triageP = opts.existingEmailKey
+      ? Promise.resolve(null)
+      : judgeEmail(anthropic(), { fromAddress, subject: args.subject, body: args.body, supplierName: context.supplier.name }, emailKinds);
+    // Avoid unhandled rejections while another one is being awaited.
+    for (const p of [styleP, techniqueP, triageP]) p.catch(() => undefined);
+
+    const styleResult = async (): Promise<Check> => {
+      try {
+        const r = await styleP;
+        return runChecks({ ...checkInput, styleMatch: { matches: r.matches, reasons: r.reasons } }).find((c) => c.id === "writing-style")!;
+      } catch (err) {
+        console.warn(`styleMatch failed for ${context.supplier.key}:`, err);
+        const why = err instanceof Error ? err.message : String(err);
+        return { id: "writing-style", label: "Writing style", state: "info", evidence: `Writing style wasn't checked: ${why}`, cite: { kind: "email", ref: fromAddress } };
       }
-    } else if (triaged.status === "rejected") {
-      console.warn(`triage failed for ${context.supplier.key}:`, triaged.reason);
+    };
+    const techniqueResult = async (): Promise<Check> => {
+      try {
+        return techniqueCheck(await techniqueP, playbook, fromAddress);
+      } catch (err) {
+        return {
+          id: "fraud-technique",
+          label: "Fraud technique",
+          state: "info",
+          evidence: `Fraud techniques weren't checked: ${err instanceof Error ? err.message : String(err)}`,
+          cite: { kind: "email", ref: fromAddress },
+        };
+      }
+    };
+
+    // Inbox triage (job #2): an email that isn't a bill never becomes one. Anything a fraud check
+    // flags still goes through the bill checks and a check call; if triage fails, intake carries on.
+    let triaged: Awaited<typeof triageP> = null;
+    try {
+      triaged = await triageP;
+    } catch (err) {
+      console.warn(`triage failed for ${context.supplier.key}:`, err);
     }
+    let early: { style: Check; technique: Check } | undefined;
+    if (triaged) {
+      const hasAmount = parseAmountCents(args.body) !== null;
+      let sorted = routeEmail(triaged, emailKinds, { hasAmount, fraudFlagged: false });
+      if (sorted.route !== "bill") {
+        // Not a bill unless a fraud check flags it, which needs the other checks first.
+        early = { style: await styleResult(), technique: await techniqueResult() };
+        const checks = [...runChecks(checkInput), early.style, early.technique];
+        const fraudFlagged = checks.some((c) => ["fraud-technique", "bank-account", "domain"].includes(c.id) && c.state === "flag");
+        sorted = routeEmail(triaged, emailKinds, { hasAmount, fraudFlagged });
+        if (sorted.route !== "bill") {
+          return await ctx.runMutation(internal.app.intake.recordMessage, {
+            from: args.from,
+            fromDomain,
+            subject: args.subject,
+            body: args.body,
+            receivedAt: args.receivedAt,
+            messageId: args.messageId,
+            supplier: { key: context.supplier.key, name: context.supplier.name },
+            triage: { kindKey: sorted.kindKey, kindName: sorted.kindName, route: sorted.route, why: sorted.why, quote: triaged.quote || undefined },
+          });
+        }
+      }
+    }
+
+    // It's a bill: it appears now, as Checking, and each check lands on it as it finishes.
+    const supplier = { key: context.supplier.key, name: context.supplier.name, trustedPhone: context.supplier.trustedPhone };
+    const started = await ctx.runMutation(internal.app.intake.startBill, {
+      from: args.from,
+      fromDomain,
+      subject: args.subject,
+      body: args.body,
+      receivedAt: args.receivedAt,
+      supplier,
+      bankAccountKey: context.currentBankAccountKey,
+      amountCents,
+      invoiceNo,
+      messageId: args.messageId,
+      existingEmailKey: opts.existingEmailKey,
+    });
+    const show = (checks: Check[]) => ctx.runMutation(internal.app.intake.addChecks, { billKey: started.billKey, checks });
+    const checks = runChecks(checkInput); // bank, domain, rush, amount, learned rule: lookups, not models
+    await show(checks);
+    const style = early?.style ?? (await styleResult());
+    await show([style]);
+    const technique = early?.technique ?? (await techniqueResult());
+    await show([technique]);
+    checks.push(style, technique);
 
     let decision: Decision = decide(checks, amountCents, co);
     // New-supplier addendum (plan-agent.md addendum §3): a bank change or a bill of $5,000+ from
-    // a supplier Callback hasn't confirmed by call yet always gets a call, even if every check
+    // a supplier hold hasn't confirmed by call yet always gets a call, even if every check
     // passed (there's simply no history to trust yet).
     if (context.supplier.status === "new" && decision !== "call") {
       const bankFlagged = checks.find((c) => c.id === "bank-account")?.state === "flag";
       if (bankFlagged || amountCents >= NEW_SUPPLIER_CALL_THRESHOLD_CENTS) decision = "call";
     }
 
-    return await ctx.runMutation(internal.app.intake.finalizeIntake, {
-      from: args.from,
-      fromDomain,
-      subject: args.subject,
-      body: args.body,
-      receivedAt: args.receivedAt,
-      supplier: { key: context.supplier.key, name: context.supplier.name, trustedPhone: context.supplier.trustedPhone },
-      bankAccountKey: context.currentBankAccountKey,
-      amountCents,
-      invoiceNo,
-      checks,
-      decision,
-      messageId: args.messageId,
-      existingEmailKey: opts.existingEmailKey,
-    });
+    return await ctx.runMutation(internal.app.intake.settleBill, { billKey: started.billKey, supplier, amountCents, invoiceNo, checks, decision });
 }

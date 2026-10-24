@@ -28,16 +28,10 @@ describe("seed", () => {
     }
   });
 
-  test("approvals count matches JSON-mode listApprovals (Held/Needs-you + unpaid over $10k)", async () => {
+  test("nothing is pre-staged: no approvals, and every inbox bill is settled history", async () => {
     const t = await seeded();
-    const approvals = await t.run((ctx) => ctx.db.query("approvals").collect());
-    const TEN_THOUSAND_CENTS = 1_000_000;
-    const expected = fogline.bills.filter(
-      (b: { status: string; amountCents: number }) =>
-        b.status === "Held" || b.status === "Needs you" || (b.amountCents > TEN_THOUSAND_CENTS && b.status !== "Paid"),
-    ).length;
-    expect(expected).toBe(7);
-    expect(approvals).toHaveLength(expected);
-    expect(approvals.every((a) => a.status === "pending")).toBe(true);
+    expect(await t.run((ctx) => ctx.db.query("approvals").collect())).toHaveLength(0);
+    const bills = await t.run((ctx) => ctx.db.query("bills").collect());
+    expect(bills.filter((b) => !b.practice).every((b) => b.status === "Paid")).toBe(true);
   });
 });
