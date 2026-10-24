@@ -1,0 +1,344 @@
+/* Layout for the voice screens (Live call, Phone line). Component styles come from
+   design/callback/components/bundle.css; every colour, font, radius and shadow is a token. */
+
+.hv-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-6) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.hv-page :focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.hv-page p {
+  margin: 0;
+}
+
+.hv-page a:not(.cb-cite) {
+  color: var(--ink);
+  text-decoration-color: var(--line-control);
+  text-underline-offset: 3px;
+}
+
+.hv-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-3) var(--space-5);
+  padding-bottom: var(--space-2);
+}
+
+.hv-head h1 {
+  text-wrap: balance;
+}
+
+.hv-head-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hv-sub {
+  font: 400 13px/20px var(--font-sans);
+  color: var(--ink-muted);
+}
+
+.hv-record {
+  font-family: var(--font-mono);
+  color: var(--ink);
+}
+
+.hv-small {
+  font: 400 12px/17px var(--font-sans);
+  color: var(--ink-muted);
+}
+
+.hv-statement {
+  margin-top: var(--space-2) !important;
+  font: 400 13.5px/22px var(--font-mono);
+  color: var(--ink);
+}
+
+.hv-quote {
+  font: italic 400 14px/20px var(--font-serif);
+  color: var(--signatory);
+}
+
+.hv-error {
+  font: 400 12px/17px var(--font-sans);
+  color: var(--hold);
+}
+
+.hv-empty {
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+
+.hv-pad {
+  padding: var(--space-4);
+}
+
+.hv-mt {
+  margin-top: var(--space-3);
+}
+
+/* Live call */
+.hv-call {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.hv-call-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.hv-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.hv-reasons {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-4);
+  font: 400 13px/20px var(--font-sans);
+}
+
+.hv-cites {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.hv-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.hv-confirm {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+
+.hv-confirm-buttons {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.hv-recording {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.hv-recording audio {
+  width: 100%;
+  height: var(--control-height);
+}
+
+/* Transcript */
+.hv-transcript {
+  padding: var(--space-3) var(--space-5) var(--space-3) 0;
+  max-height: 560px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  min-width: 0;
+}
+
+/* The venue is loud: the Live call transcript is set large, in the system's own type roles. */
+.hv-transcript-large {
+  height: clamp(320px, 56vh, 680px);
+  max-height: none;
+}
+
+.hv-transcript-large .cb-dialogue {
+  font-size: 24px;
+  line-height: 34px;
+  max-width: none;
+}
+
+.hv-transcript-large .cb-script-callback .cb-dialogue {
+  font-size: 21px;
+  line-height: 32px;
+}
+
+.hv-transcript-large .cb-cue {
+  font-size: 12px;
+}
+
+.hv-transcript-large .cb-tc {
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.hv-transcript-large .cb-script {
+  padding: var(--space-4) 0;
+}
+
+/* Phone line */
+.hv-number {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.hv-page .hv-number-value {
+  font: 400 30px/36px var(--font-mono);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+}
+
+.hv-inbound {
+  margin-bottom: var(--space-2);
+}
+
+.hv-phone {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.hv-past {
+  display: grid;
+  grid-template-columns: minmax(260px, 380px) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.hv-list {
+  overflow: hidden;
+}
+
+.hv-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 14px var(--space-4);
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.hv-row:first-of-type {
+  border-top: 0;
+}
+
+.hv-row:hover,
+.hv-row.on {
+  background: var(--surface-hover);
+}
+
+.hv-row.on {
+  box-shadow: inset 2px 0 0 var(--ink);
+}
+
+.hv-row:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+
+.hv-row-text {
+  min-width: 0;
+}
+
+.hv-strong {
+  font: 600 14px/20px var(--font-sans);
+  overflow-wrap: anywhere;
+}
+
+.hv-detail {
+  min-width: 0;
+}
+
+.hv-detail-meta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-4);
+  border-bottom: 1px solid var(--line);
+}
+
+.hv-detail .hv-transcript {
+  box-shadow: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+@media (max-width: 960px) {
+  .hv-call,
+  .hv-past {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .hv-page {
+    padding: var(--space-4) var(--space-4) var(--space-8);
+  }
+
+  .hv-actions,
+  .hv-number {
+    align-items: flex-start;
+  }
+
+  .hv-transcript {
+    padding: var(--space-2) var(--space-4);
+  }
+
+  /* No room for the margin column: timecode and cite sit above the line. */
+  .hv-transcript .cb-script {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 4px;
+  }
+
+  .hv-transcript .cb-margin {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .hv-transcript-large .cb-dialogue {
+    font-size: 20px;
+    line-height: 29px;
+  }
+
+  .hv-transcript-large .cb-script-callback .cb-dialogue {
+    font-size: 18px;
+    line-height: 27px;
+  }
+
+  .hv-detail-meta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
