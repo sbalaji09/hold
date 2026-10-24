@@ -47,7 +47,8 @@ export const activeCall = query({
 });
 
 /**
- * Phone line screen: Fogline's number, live incoming calls and past calls (newest first).
+ * Phone line screen: Fogline's number, live incoming calls, past incoming calls and every outgoing
+ * check call hold placed (each newest first). Practice calls never ring a phone, so they're left out.
  * A live call's transcript is built from its segment events, since the record's transcript
  * is only written when the call ends. Seeded historical rows have no status and count as past.
  */
@@ -76,7 +77,30 @@ export const phoneLine = query({
     const past = await newestFirst()
       .filter((q) => q.neq(q.field("status"), "in_progress"))
       .take(take);
-    return { number: process.env.TWILIO_PHONE_NUMBER ?? null, active, past };
+    const requests = await ctx.db
+      .query("callRequests")
+      .order("desc")
+      .filter((q) => q.neq(q.field("mode"), "simulated"))
+      .take(take);
+    const outgoing = await Promise.all(
+      requests.map(async (r) => {
+        const [result, supplier] = await Promise.all([findResult(ctx, r.call_id), getSupplierContact(ctx, r.supplier_id)]);
+        // A review answered with a question was handed to its call back; only an open one waits on you.
+        const reviewOpen =
+          result?.outcome === "needs_review" &&
+          waitingForReview(await ctx.db.query("callEvents").withIndex("by_call", (q) => q.eq("call_id", r.call_id)).collect()).length > 0;
+        return {
+          review_open: reviewOpen,
+          call_id: r.call_id,
+          supplier: supplier?.name ?? r.supplier_id,
+          to_number: r.to_number,
+          status: r.status,
+          at: r.startedAt ? Date.parse(r.startedAt) : r._creationTime,
+          outcome: result?.outcome ?? null,
+        };
+      }),
+    );
+    return { number: process.env.TWILIO_PHONE_NUMBER ?? null, active, past, outgoing };
   },
 });
 

@@ -293,6 +293,7 @@ export function useMockPhoneLine(scenario: Scenario): PhoneLine | undefined {
     number: "+14155550100",
     active: ended ? [] : [inbound],
     past: ended ? [inbound, older] : [older],
+    outgoing: [],
   };
 }
 

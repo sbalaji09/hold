@@ -4,8 +4,8 @@ import { ConvexError } from "convex/values";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button, CheckRow, Line, StatusMark } from "@/components/callback";
 import { useCompany } from "@/lib/useCompany";
-import { usePhoneLine, useReportCall, useSupplierName, useTacticNames, type CallVerdict, type InboundCallDoc } from "./api";
-import { AGENT, formatElapsed, formatPhone, formatWhen, parseTime, type TranscriptRow } from "./format";
+import { useLiveCall, usePhoneLine, useReportCall, useSupplierName, useTacticNames, type CallVerdict, type InboundCallDoc, type OutgoingCall } from "./api";
+import { AGENT, buildTranscript, callView, formatElapsed, formatPhone, formatWhen, parseTime, type TranscriptRow } from "./format";
 import { liveCallPath, Recording, useNow } from "./LiveCall";
 import { Transcript } from "./Transcript";
 import "./voice.css";
@@ -53,7 +53,7 @@ export function PhoneLineScreen({ callId }: { callId?: string }) {
       <header className="hv-head">
         <div className="hv-head-text">
           <h1 className="cb-display">Phone line</h1>
-          <p className="hv-sub">{co.owner} {co.team.replace(/ team$/, "")} line. {AGENT} answers every call.</p>
+          <p className="hv-sub">{co.owner} {co.team.replace(/ team$/, "")} line. {AGENT} answers every call and places every check call.</p>
         </div>
         <div className="hv-number">
           <div className="cb-caps">{co.owner} number</div>
@@ -72,7 +72,7 @@ export function PhoneLineScreen({ callId }: { callId?: string }) {
       ))}
 
       <div className="hv-phone">
-        <PastCalls calls={line.past} number={number} callId={callId} />
+        <PastCalls calls={line.past} outgoing={line.outgoing} number={number} callId={callId} />
       </div>
     </main>
   );
@@ -96,24 +96,31 @@ function ActiveCall({ call }: { call: InboundCallDoc }) {
   );
 }
 
-function PastCalls({ calls, number, callId }: { calls: InboundCallDoc[]; number: string | null; callId?: string }) {
+type Item = { dir: "in"; call: InboundCallDoc; at: number } | { dir: "out"; call: OutgoingCall; at: number };
+
+function PastCalls({ calls, outgoing, number, callId }: { calls: InboundCallDoc[]; outgoing: OutgoingCall[]; number: string | null; callId?: string }) {
   const co = useCompany();
   // The open call is tracked by call_id so links from the Activity log (/phone?call=in_...) land on it.
   const [openId, setOpenId] = useState<string | null>(callId ?? null);
   // Ticks so a just-ended call moves from "Screening" to its verdict (or to unscreened) without a reload.
   const now = useNow(calls.some((c) => screenState(c, Date.now()) === "screening"));
-  const open = calls.find((c) => c.call_id === openId) ?? calls[0];
+  // Incoming and outgoing calls in one list, newest first.
+  const items: Item[] = [
+    ...calls.map((call): Item => ({ dir: "in", call, at: parseTime(call.receivedAt) ?? call._creationTime })),
+    ...outgoing.map((call): Item => ({ dir: "out", call, at: call.at })),
+  ].sort((a, b) => b.at - a.at);
+  const openItem = items.find((i) => i.call.call_id === openId) ?? items[0];
   const detailRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    if (callId && calls.some((c) => c.call_id === callId)) detailRef.current?.scrollIntoView({ block: "start" });
+    if (callId && items.some((i) => i.call.call_id === callId)) detailRef.current?.scrollIntoView({ block: "start" });
     // Only on arrival from a link, not on every live update.
   }, [callId]);
 
-  if (!open) {
+  if (!openItem) {
     return (
       <section className="cb-doc">
-        <div className="cb-doc-head">Incoming calls</div>
+        <div className="cb-doc-head">Calls</div>
         <p className="hv-empty">
           {number ? `No calls yet. ${co.owner} line is ${number}.` : "No calls yet."} Calls show up here as they happen.
         </p>
@@ -125,52 +132,113 @@ function PastCalls({ calls, number, callId }: { calls: InboundCallDoc[]; number:
     <div className="hv-past">
       <section className="cb-doc hv-list" aria-labelledby="hv-past-title">
         <div className="cb-doc-head">
-          <span id="hv-past-title">Incoming calls</span>
-          <small>{calls.length}</small>
+          <span id="hv-past-title">Calls</span>
+          <small>{items.length}</small>
         </div>
-        {calls.map((call) => (
-          <button
-            key={call._id}
-            type="button"
-            className={`hv-row${call._id === open._id ? " on" : ""}`}
-            aria-pressed={call._id === open._id}
-            onClick={() => setOpenId(call.call_id)}
-          >
-            <div className="hv-row-text">
-              <div className="hv-strong">{who(call)}</div>
-              <div className="cb-when">
-                {formatPhone(call.caller_number)} · {formatWhen(parseTime(call.receivedAt) ?? call._creationTime, now)}
+        {items.map((item) => {
+          const on = item.call.call_id === openItem.call.call_id;
+          return (
+            <button
+              key={item.call.call_id}
+              type="button"
+              className={`hv-row${on ? " on" : ""}`}
+              aria-pressed={on}
+              onClick={() => setOpenId(item.call.call_id)}
+            >
+              <div className="hv-row-text">
+                <div className="hv-strong">{item.dir === "in" ? who(item.call) : `Check call to ${item.call.supplier}`}</div>
+                <div className="cb-when">
+                  {item.dir === "in" ? "Incoming" : "Outgoing"} · {formatPhone(item.dir === "in" ? item.call.caller_number : item.call.to_number)} · {formatWhen(item.at, now)}
+                </div>
               </div>
-            </div>
-            <RowMark call={call} screen={screenState(call, now)} />
-          </button>
-        ))}
+              {item.dir === "in" ? <RowMark call={item.call} screen={screenState(item.call, now)} /> : <OutgoingMark call={item.call} />}
+            </button>
+          );
+        })}
       </section>
 
-      <section ref={detailRef} className="cb-doc hv-detail" aria-label="Call transcript">
-        <div className="cb-doc-head">
-          <span>{who(open)}</span>
-          <small>{formatPhone(open.caller_number)}</small>
-        </div>
-        <div className="hv-pad hv-detail-meta">
-          <div>
-            <div className="cb-caps">Asked for</div>
-            <p>{open.requested || "Nothing specific."}</p>
-          </div>
-          <div>
-            <div className="cb-caps">Follow-up</div>
-            {open.triggered_call_id ? <CheckCall call={open} /> : <p className="hv-small">None needed.</p>}
-          </div>
-        </div>
-        <Verdict key={`verdict-${open._id}`} call={open} screen={screenState(open, now)} />
-        <Transcript key={open._id} rows={rows(open)} otherName="Caller" live={false} empty="No transcript was saved for this call." />
-        {open.recording_url && (
-          <div className="hv-pad">
-            <Recording key={open._id} url={open.recording_url} />
-          </div>
-        )}
-      </section>
+      {openItem.dir === "out" ? (
+        <OutgoingDetail key={openItem.call.call_id} ref={detailRef} call={openItem.call} />
+      ) : (
+        <IncomingDetail ref={detailRef} open={openItem.call} now={now} />
+      )}
     </div>
+  );
+}
+
+function IncomingDetail({ open, now, ref }: { open: InboundCallDoc; now: number; ref: React.Ref<HTMLElement> }) {
+  return (
+    <section ref={ref} className="cb-doc hv-detail" aria-label="Call transcript">
+      <div className="cb-doc-head">
+        <span>{who(open)}</span>
+        <small>{formatPhone(open.caller_number)}</small>
+      </div>
+      <div className="hv-pad hv-detail-meta">
+        <div>
+          <div className="cb-caps">Asked for</div>
+          <p>{open.requested || "Nothing specific."}</p>
+        </div>
+        <div>
+          <div className="cb-caps">Follow-up</div>
+          {open.triggered_call_id ? <CheckCall call={open} /> : <p className="hv-small">None needed.</p>}
+        </div>
+      </div>
+      <Verdict key={`verdict-${open._id}`} call={open} screen={screenState(open, now)} />
+      <Transcript key={open._id} rows={rows(open)} otherName="Caller" live={false} empty="No transcript was saved for this call." />
+      {open.recording_url && (
+        <div className="hv-pad">
+          <Recording key={open._id} url={open.recording_url} />
+        </div>
+      )}
+    </section>
+  );
+}
+
+/** Where an outgoing check call stands, in the system's six status words. */
+function OutgoingMark({ call }: { call: OutgoingCall }) {
+  if (call.outcome === "confirmed") return <StatusMark status="paid">Confirmed</StatusMark>;
+  if (call.outcome === "not_confirmed") return <StatusMark status="held">Not confirmed</StatusMark>;
+  if (call.outcome === "needs_review" && !call.review_open) return <StatusMark status="paid">Called back</StatusMark>;
+  if (call.outcome) return <StatusMark status="needs-you">{call.outcome === "needs_review" ? "Needs your review" : "Handed off"}</StatusMark>;
+  return <StatusMark status="calling">{call.status === "retry_scheduled" ? "Calling again" : "Calling"}</StatusMark>;
+}
+
+/** An outgoing check call: what hold found, the transcript and recording, and the full call page. */
+function OutgoingDetail({ call, ref }: { call: OutgoingCall; ref: React.Ref<HTMLElement> }) {
+  const live = useLiveCall(call.call_id);
+  const view = live ? callView(live) : null;
+  const result = live?.result;
+  return (
+    <section ref={ref} className="cb-doc hv-detail" aria-label="Call transcript">
+      <div className="cb-doc-head">
+        <span>Check call to {call.supplier}</span>
+        <small>{formatPhone(call.to_number)}</small>
+      </div>
+      <div className="hv-pad hv-detail-meta">
+        <div>
+          <div className="cb-caps">Why {AGENT} called</div>
+          <p>{live?.request?.reason.join(" · ") || "Checking a bill."}</p>
+        </div>
+        <div>
+          <div className="cb-caps">Result</div>
+          <p>{result ? result.summary : view?.note ?? "Still on the line."}</p>
+          <p>
+            <Link href={liveCallPath(call.call_id)}>Open the call</Link>
+          </p>
+        </div>
+      </div>
+      <Transcript
+        rows={live ? buildTranscript(live.events) : []}
+        otherName={call.supplier}
+        live={Boolean(view?.active)}
+        empty={live === undefined ? "Loading the transcript." : "Nothing was said on this call."}
+      />
+      {result?.recording_url && (
+        <div className="hv-pad">
+          <Recording url={result.recording_url} clip={result.clip} />
+        </div>
+      )}
+    </section>
   );
 }
 

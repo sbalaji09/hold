@@ -409,6 +409,11 @@ describe("convex-only", () => {
     line = await t.query(api.voice.ui.phoneLine, {});
     expect(line.active).toEqual([]);
     expect(line.past.map((c) => c.call_id)).toEqual(["in_1"]);
+
+    // Outgoing check calls are on the phone line too; Practice calls never ring a phone, so they aren't.
+    await t.run((ctx) => ctx.db.insert("callRequests", { ...baseRequest, call_id: "call_practice", status: "queued", attempt: 0, mode: "simulated" }));
+    expect(line.outgoing).toMatchObject([{ call_id: "call_1", supplier: "Stagecraft Rigging Co.", status: "dialing", outcome: null, review_open: false }]);
+    expect((await t.query(api.voice.ui.phoneLine, {})).outgoing.map((c) => c.call_id)).toEqual(["call_1"]);
   });
 
   test("records adapter reads the real Fogline seed, without planted scams", async () => {

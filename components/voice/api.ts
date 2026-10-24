@@ -24,6 +24,20 @@ export interface PhoneLine {
   active: InboundCallDoc[];
   /** Newest first. */
   past: InboundCallDoc[];
+  /** Check calls hold placed, newest first. Open one with useLiveCall. */
+  outgoing: OutgoingCall[];
+}
+
+export interface OutgoingCall {
+  call_id: string;
+  supplier: string;
+  to_number: string;
+  status: CallRequestDoc["status"];
+  /** When it started, or was queued (ms). */
+  at: number;
+  outcome: CallResultDoc["outcome"] | null;
+  /** An answer from this call still waits for your review. */
+  review_open: boolean;
 }
 
 /**
