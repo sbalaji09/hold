@@ -171,12 +171,26 @@
   mask-image: linear-gradient(to bottom, transparent 0, #000 var(--space-6));
 }
 
-/* A finished call: the whole transcript at normal size, nothing to scroll. */
+/* A finished call: the whole transcript, one typeface, no scroll box. Timecodes are hidden: the
+   supplier's lines carry no reliable time, so the column would read out of order. */
 .hv-transcript-done {
   max-height: none;
   overflow: visible;
   mask-image: none;
   padding-left: var(--space-5);
+}
+
+.hv-transcript-done .cb-script {
+  grid-template-columns: 148px minmax(0, 1fr);
+  padding: var(--space-3) 0;
+}
+
+.hv-transcript-done .cb-tc {
+  display: none;
+}
+
+.hv-transcript-done .cb-script-callback .cb-dialogue {
+  font: 400 15px/24px var(--font-sans);
 }
 
 /* The venue is loud: the Live call transcript is set large, in the system's own type roles. */
