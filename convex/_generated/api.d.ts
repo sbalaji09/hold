@@ -18,6 +18,7 @@ import type * as app_queries from "../app/queries.js";
 import type * as app_suppliers from "../app/suppliers.js";
 import type * as http from "../http.js";
 import type * as seed from "../seed.js";
+import type * as voice_dev from "../voice/dev.js";
 import type * as voice_records from "../voice/records.js";
 import type * as voice_rules from "../voice/rules.js";
 import type * as voice_server from "../voice/server.js";
@@ -41,6 +42,7 @@ declare const fullApi: ApiFromModules<{
   "app/suppliers": typeof app_suppliers;
   http: typeof http;
   seed: typeof seed;
+  "voice/dev": typeof voice_dev;
   "voice/records": typeof voice_records;
   "voice/rules": typeof voice_rules;
   "voice/server": typeof voice_server;
