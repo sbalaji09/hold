@@ -86,32 +86,45 @@ export async function prepareOutboundCall(deps: PrepareOutboundDeps): Promise<Pr
   return { supplierName: profile?.name ?? "your company", questions };
 }
 
-/** History records worth asking about. Emails are left out: a scammer with mailbox access has read them. */
+/** How many records of each kind Claude gets to pick questions from, newest first. */
+export const CANDIDATES_PER_KIND = { invoice: 6, payment: 3, call: 3 } as const;
+/** Moss over-fetch per kind. Its embeddings rank months and invoice numbers poorly, so its top hit is not trusted. */
+const MOSS_TOP_K = 20;
+
+/**
+ * History records worth asking about. Emails are left out: a scammer with mailbox access has read them.
+ * Moss finds each kind's records; selection is by record.date (newest first), never by Moss rank.
+ */
 async function gatherCandidates({ request, store, search }: PrepareOutboundDeps): Promise<SupplierRecord[]> {
   const sid = request.supplier_id;
-  const q = (query: string, kinds: SupplierRecord["kind"][], topK: number) =>
-    search.search(sid, query, { kinds, topK }).catch((err) => {
+  const q = (query: string, kinds: SupplierRecord["kind"][]) =>
+    search.search(sid, query, { kinds, topK: MOSS_TOP_K }).catch((err) => {
       console.error(`[call ${request.call_id}] Moss search failed:`, err);
       return [];
     });
   const hits = (
     await Promise.all([
-      q(`invoice total amount ${request.reason.join(" ")}`, ["invoice"], 6),
-      q("payment paid amount", ["payment"], 3),
-      q("phone call conversation", ["call"], 3),
+      q(`invoice total amount ${request.reason.join(" ")}`, ["invoice"]),
+      q("payment paid amount", ["payment"]),
+      q("phone call conversation", ["call"]),
     ])
   ).flat();
 
   let records = hits.map((h) => h.record);
-  if (records.length === 0) {
-    records = await store.getSupplierRecords(sid).catch(() => []);
-    records.sort((a, b) => b.date.localeCompare(a.date));
-  }
+  if (records.length === 0) records = await store.getSupplierRecords(sid).catch(() => []);
+  return pickCandidates(records, sid, request.bill_id);
+}
+
+/** Newest records per kind, deduped, excluding emails and the bill under review. Pure, for tests. */
+export function pickCandidates(records: SupplierRecord[], supplier_id: string, bill_id: string): SupplierRecord[] {
   const seen = new Set<string>();
-  return records
-    .filter((r) => r.supplier_id === sid && r.kind !== "email" && r.id !== request.bill_id)
+  const usable = records
+    .filter((r) => r.supplier_id === supplier_id && r.kind !== "email" && r.id !== bill_id)
     .filter((r) => !seen.has(r.id) && (seen.add(r.id), true))
-    .slice(0, 12);
+    .sort((a, b) => b.date.localeCompare(a.date));
+  return (Object.keys(CANDIDATES_PER_KIND) as (keyof typeof CANDIDATES_PER_KIND)[])
+    .flatMap((kind) => usable.filter((r) => r.kind === kind).slice(0, CANDIDATES_PER_KIND[kind]))
+    .sort((a, b) => b.date.localeCompare(a.date));
 }
 
 async function claudeQuestions(llm: LLM, candidates: SupplierRecord[], limit: number, call_id: string): Promise<PreparedQuestion[]> {

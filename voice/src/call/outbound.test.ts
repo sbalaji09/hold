@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { DISCLOSURE, type CallEvent } from "../../../shared/contract.js";
+import { DISCLOSURE, type CallEvent, type SupplierRecord } from "../../../shared/contract.js";
 import { MemoryStore } from "../store/memoryStore.js";
 import type { PreparedCall, PreparedQuestion } from "./index.js";
-import { BANK_CHANGE_QUESTION, prepareOutboundCall, runOutboundCall } from "./outbound.js";
+import { BANK_CHANGE_QUESTION, pickCandidates, prepareOutboundCall, runOutboundCall } from "./outbound.js";
 import { SimulatedTransport } from "./simulated.js";
 import { FakeLLM, FakeSearch, STAGE, STAGE_RECORDS, stageRequest } from "./testing.js";
 
@@ -94,6 +94,35 @@ describe("prepareOutboundCall", () => {
     ]);
     expect(prepared.questions[0]!.expected).toBe("$18,400.00");
     for (const q of prepared.questions) expect(q.ask).not.toMatch(/\$|18,?400|3,?348|account number|routing/i);
+  });
+
+  it("over-fetches from Moss and picks the newest records by date, not by Moss rank", async () => {
+    // Moss ranks month/number queries poorly: here it ranks the old invoices first and #4471 last.
+    const old = Array.from({ length: 9 }, (_, i) => ({
+      id: `bill_41${30 + i}`,
+      supplier_id: "sup_stage",
+      kind: "invoice" as const,
+      ref: `#41${30 + i}`,
+      date: `2026-0${4 + Math.floor(i / 2)}-1${i % 2}`,
+      text: `Invoice #41${30 + i}`,
+      amount_cents: 100_000 + i,
+    }));
+    const records = [...old, ...STAGE_RECORDS];
+    const search = new FakeSearch(records);
+    const topKs: (number | undefined)[] = [];
+    const spy = { ...search, warm: search.warm.bind(search), index: search.index.bind(search),
+      search: (sid: string, q: string, o?: { topK?: number; kinds?: SupplierRecord["kind"][] }) => (topKs.push(o?.topK), search.search(sid, q, o)) };
+    const store = new MemoryStore({ suppliers: [STAGE], records });
+    const llm = new FakeLLM({ json: { "verification questions": new Error("overloaded") } });
+    const prepared = await prepareOutboundCall({ request, store, search: spy, llm });
+
+    expect(topKs.every((k) => k !== undefined && k >= 15)).toBe(true);
+    expect(prepared.questions[0]!.source).toEqual({ kind: "invoice", ref: "#4471", record_id: "bill_4471" });
+
+    const picked = pickCandidates(records, "sup_stage", "bill_4488");
+    expect(picked.filter((r) => r.kind === "invoice").map((r) => r.ref)).toEqual(["#4471", "#4138", "#4137", "#4136", "#4135", "#4134"]);
+    expect(picked.map((r) => r.date)).toEqual([...picked.map((r) => r.date)].sort().reverse());
+    expect(picked.some((r) => r.kind === "email")).toBe(false);
   });
 
   it("asks no bank question when the reason isn't about bank details, and copes with no history", async () => {
