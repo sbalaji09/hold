@@ -200,6 +200,27 @@ export default async function BillPage({
         ) : null}
 
 
+        {timeline.length > 0 ? (
+          <section className="cb-doc">
+            <div className="cb-doc-head">
+              Timeline
+              <small>{timeline.length} events</small>
+            </div>
+            <div role="list">
+              {timeline.map((e) => (
+                <LogEntry
+                  key={e.key}
+                  actor={e.actor === "callback" ? "hold" : co[e.actor].full}
+                  agent={e.actor === "callback"}
+                  time={formatDateTime(e.at)}
+                  why={e.why}
+                >
+                  {e.what}
+                </LogEntry>
+              ))}
+            </div>
+          </section>
+        ) : null}
       </div>
 
       <aside className="flex min-w-0 flex-col gap-4">
@@ -223,27 +244,6 @@ export default async function BillPage({
           </div>
         </section>
 
-        {timeline.length > 0 ? (
-          <section className="cb-doc">
-            <div className="cb-doc-head">
-              Timeline
-              <small>{timeline.length} events</small>
-            </div>
-            <div role="list">
-              {timeline.map((e) => (
-                <LogEntry
-                  key={e.key}
-                  actor={e.actor === "callback" ? "hold" : co[e.actor].full}
-                  agent={e.actor === "callback"}
-                  time={formatDateTime(e.at)}
-                  why={e.why}
-                >
-                  {e.what}
-                </LogEntry>
-              ))}
-            </div>
-          </section>
-        ) : null}
       </aside>
     </div>
   );
