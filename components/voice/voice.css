@@ -160,12 +160,18 @@
 }
 
 /* Transcript */
+.hv-transcript-card {
+  min-width: 0;
+}
+
 .hv-transcript {
   padding: var(--space-3) var(--space-5) var(--space-3) 0;
   max-height: 560px;
   overflow-y: auto;
   overscroll-behavior: contain;
   min-width: 0;
+  /* Older lines fade out under the top edge instead of being sliced mid-line. */
+  mask-image: linear-gradient(to bottom, transparent 0, #000 var(--space-6));
 }
 
 /* The venue is loud: the Live call transcript is set large, in the system's own type roles. */
@@ -300,7 +306,7 @@
   border-bottom: 1px solid var(--line);
 }
 
-.hv-detail .hv-transcript {
+.hv-detail .hv-transcript-card {
   box-shadow: none;
   border-radius: 0;
   background: transparent;

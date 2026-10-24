@@ -49,23 +49,26 @@ interface Step {
 }
 
 const ANSWERED_AT = 4;
+// Same fixed closing as voice/src/call/outbound.ts. The real call never reads bank details back.
+const CLOSING_LINE = "Thanks, that's everything I needed. Have a good day. Goodbye.";
 const Q1 = { ask: "What was the invoice number on your September invoice for the main-stage truss?", source: { kind: "invoice", ref: "INV-4471" } };
-const Q2 = { ask: "Did Stagecraft change bank accounts this month?", source: { kind: "payment", ref: "Chase ··2210" } };
+const Q2 = { ask: "Did you recently change your bank account?", source: { kind: "payment", ref: "Chase ··2210" } };
 const A1 = "Forty-four seventy-one. Why, is something wrong?";
 
 const opening: Step[] = [
   { at: 0, status: "dialing", event: { type: "status", value: "ringing" } },
   { at: ANSWERED_AT, status: "in_progress", event: { type: "status", value: "in_progress" } },
   { at: 5, event: { type: "segment", speaker: "callback", text: DISCLOSURE } },
+  { at: 8, event: { type: "segment", speaker: "callback", text: "I'm calling to double-check a recent invoice from Stagecraft Rigging Co. I have a couple of quick questions." } },
   { at: 9, event: { type: "question", ...Q1 } },
-  { at: 9.5, event: { type: "segment", speaker: "callback", text: `I'm calling about an email we got this morning from your accounts address. Before I update anything: ${Q1.ask.charAt(0).toLowerCase()}${Q1.ask.slice(1)}` } },
+  { at: 9.5, event: { type: "segment", speaker: "callback", text: Q1.ask } },
   { at: 15, event: { type: "segment", speaker: "supplier", text: A1 } },
 ];
 
 function secondQuestion(answer: string, matches: boolean, outcome: CallResultDoc["outcome"], summary: string, close: string): Step[] {
   return [
     { at: 18, event: { type: "question", ...Q2 } },
-    { at: 18.5, event: { type: "segment", speaker: "callback", text: `We got an email today saying you moved banks to Mercury, account ending 8817. ${Q2.ask}` } },
+    { at: 18.5, event: { type: "segment", speaker: "callback", text: `Thanks. ${Q2.ask}` } },
     { at: 23, event: { type: "segment", speaker: "supplier", text: answer } },
     { at: 27, event: { type: "segment", speaker: "callback", text: close } },
     { at: 31, status: "done", event: { type: "status", value: "ended" } },
@@ -91,8 +94,8 @@ const SCRIPTS: Record<Exclude<Scenario, "phone">, Step[]> = {
       "We never changed our bank. Who sent that?",
       false,
       "not_confirmed",
-      "Rosa said Stagecraft never changed banks. The Mercury ··8817 account isn't theirs.",
-      "Understood. We'll keep paying Chase ending 2210 and hold this one. Thanks, Rosa.",
+      "Rosa said Stagecraft never changed banks, so the new account on this bill isn't theirs.",
+      CLOSING_LINE,
     ),
   ],
   confirmed: [
@@ -101,8 +104,8 @@ const SCRIPTS: Record<Exclude<Scenario, "phone">, Step[]> = {
       "Yes, we moved to Mercury in October. Our controller sent the new details.",
       true,
       "confirmed",
-      "Rosa confirmed invoice INV-4471 and the move to Mercury ··8817.",
-      "Thanks, Rosa. Dev will approve the new account before we pay it.",
+      "Rosa confirmed invoice 4471 and that Stagecraft recently changed banks.",
+      CLOSING_LINE,
     ),
   ],
   no_answer: [

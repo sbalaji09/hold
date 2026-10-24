@@ -30,35 +30,38 @@ export function Transcript({ rows, otherName, live, sourceHref, empty, large }: 
   }, [rows.length]);
 
   return (
-    <div
-      ref={box}
-      className={`cb-doc hv-transcript${large ? " hv-transcript-large" : ""}`}
-      role="log"
-      aria-live="polite"
-      aria-label="Transcript"
-      tabIndex={0}
-      onScroll={(e) => {
-        const el = e.currentTarget;
-        atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48;
-      }}
-    >
-      {rows.length === 0 ? (
-        <p className="hv-empty">{empty}</p>
-      ) : (
-        rows.map((row, i) => (
-          <TranscriptLine
-            key={row.key}
-            speaker={row.speaker}
-            name={row.speaker === "callback" ? AGENT : otherName}
-            time={formatElapsed(row.ts * 1000)}
-            cite={row.source ? citeLabel(row.source) : undefined}
-            citeHref={row.source ? sourceHref?.(row.source) : undefined}
-            speaking={live && i === rows.length - 1}
-          >
-            {row.text}
-          </TranscriptLine>
-        ))
-      )}
+    // The card is a separate wrapper so the scroller's edge fade can't hide its background or shadow.
+    <div className="cb-doc hv-transcript-card">
+      <div
+        ref={box}
+        className={`hv-transcript${large ? " hv-transcript-large" : ""}`}
+        role="log"
+        aria-live="polite"
+        aria-label="Transcript"
+        tabIndex={0}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48;
+        }}
+      >
+        {rows.length === 0 ? (
+          <p className="hv-empty">{empty}</p>
+        ) : (
+          rows.map((row, i) => (
+            <TranscriptLine
+              key={row.key}
+              speaker={row.speaker}
+              name={row.speaker === "callback" ? AGENT : otherName}
+              time={formatElapsed(row.ts * 1000)}
+              cite={row.source ? citeLabel(row.source) : undefined}
+              citeHref={row.source ? sourceHref?.(row.source) : undefined}
+              speaking={live && i === rows.length - 1}
+            >
+              {row.text}
+            </TranscriptLine>
+          ))
+        )}
+      </div>
     </div>
   );
 }
