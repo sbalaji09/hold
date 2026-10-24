@@ -75,9 +75,9 @@ export function isReadbackRequest(text: string): boolean {
 }
 
 const PRESSURE =
-  /\b(?:urgent\w*|asap|right now|immediately|today|tonight|deadline|won'?t get built|can'?t wait|emergency|this is (?:dev|maya)|i'?m (?:dev|maya)|i'?m (?:the|your) (?:controller|boss|manager|cfo|ceo|director)|authori[sz]\w*|approv\w*|override|on my authority|i'?ll take responsibility)\b/i;
+  /\b(?:urgent\w*|asap|right now|immediately|today|tonight|deadline|won'?t get built|can'?t wait|emergency|i'?m (?:the|your) (?:controller|boss|manager|cfo|ceo|director)|authori[sz]\w*|approv\w*|override|on my authority|i'?ll take responsibility)\b/i;
 
-/** Urgency or claimed authority ("the stage won't get built", "this is Dev"). */
+/** Urgency or claimed authority ("the stage won't get built", "I'm the controller"). */
 export function isPressure(text: string): boolean {
   return PRESSURE.test(text);
 }

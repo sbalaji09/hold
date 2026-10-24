@@ -4,8 +4,6 @@
 import { ConvexError } from "convex/values";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/callback";
-import { person } from "@/lib/company";
-import { useCompany } from "@/lib/useCompany";
 import { useAnswerAsk, type AskVerdict, type CallEventDoc } from "./api";
 import { AGENT, citeLabel } from "./format";
 import { useNow } from "./LiveCall";
@@ -22,9 +20,8 @@ export function openAsk(events: CallEventDoc[]): AskEvent | null {
   return asks[asks.length - 1] ?? null;
 }
 
-export function AskPerson({ ask, callId, actor }: { ask: AskEvent; callId: string; actor: "maya" | "dev" }) {
+export function AskPerson({ ask, callId }: { ask: AskEvent; callId: string }) {
   const answer = useAnswerAsk();
-  const who = person(useCompany(), actor);
   const now = useNow(true);
   const [step, setStep] = useState<"idle" | "follow_up" | "sending">("idle");
   const [followUp, setFollowUp] = useState("");
@@ -40,7 +37,7 @@ export function AskPerson({ ask, callId, actor }: { ask: AskEvent; callId: strin
     setStep("sending");
     setError(null);
     try {
-      await answer({ callId, askId: ask.ask_id, verdict, actor, ...(verdict === "follow_up" ? { followUp } : {}) });
+      await answer({ callId, askId: ask.ask_id, verdict, ...(verdict === "follow_up" ? { followUp } : {}) });
     } catch (err) {
       setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : "That didn't reach hold. Try again.");
       setStep(verdict === "follow_up" ? "follow_up" : "idle");
@@ -131,9 +128,7 @@ export function AskPerson({ ask, callId, actor }: { ask: AskEvent; callId: strin
             {error}
           </p>
         ) : null}
-        <p className="hv-small">
-          As <span className="hv-person">{who.full}</span>. No answer in 20 seconds and {AGENT} counts it as not matching.
-        </p>
+        <p className="hv-small">No answer in 20 seconds and {AGENT} counts it as not matching.</p>
       </div>
     </section>
   );

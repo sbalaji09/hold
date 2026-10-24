@@ -115,7 +115,7 @@ function buildChecks(
         id: "bank-account",
         label: "New bank account",
         state: "pass",
-        evidence: `Fogline verified the ${bankAccount.bank} \u00b7\u00b7${bankAccount.last4} account by call on ${fmtDate(call.startedAt)}; Dev approved the change.`,
+        evidence: `Fogline verified the ${bankAccount.bank} \u00b7\u00b7${bankAccount.last4} account by call on ${fmtDate(call.startedAt)}; you approved the change.`,
         cite: { kind: "call", ref: call.key },
       };
     } else {
@@ -311,10 +311,10 @@ function recommendation(bill: Bill): string {
   if (flagged.length > 0) {
     return `Hold this payment. ${flagged.map((c) => c.evidence).join(" ")}`;
   }
-  return `Pay ${fmtMoney(bill.amountCents)} to ${bill.bankAccount.bank} \u00b7\u00b7${bill.bankAccount.last4}. All checks passed; this is over Callback's $10,000 limit, so Dev needs to approve it.`;
+  return `Pay ${fmtMoney(bill.amountCents)} to ${bill.bankAccount.bank} \u00b7\u00b7${bill.bankAccount.last4}. All checks passed; this is over Callback's $10,000 limit, so it needs your approval to approve it.`;
 }
 
-/** Playbook changes waiting for a person's sign-off (shown on Approvals). Fraud changes need Dev; inbox ones, Maya or Dev. Convex only. */
+/** Playbook changes waiting for a person's sign-off (shown on Approvals). Fraud and inbox changes both need your approval. Convex only. */
 export const listPlaybookApprovals = perRender(async function listPlaybookApprovals(): Promise<Array<{ key: string; job: "fraud" | "triage"; name: string }>> {
   if (!CONVEX_URL) return [];
   const { improvements } = await fetchQuery(api.app.techniques.list, {}, convexOpts());
@@ -457,7 +457,7 @@ export async function listChecksForBill(key: string): Promise<BackgroundCheck[]>
   return [];
 }
 
-/** Rules Maya or Dev saved for a supplier (plan-agent.md addendum §1). The JSON fixture has
+/** Rules saved for a supplier (plan-agent.md addendum §1). The JSON fixture has
  * no learned-rules table, so the fallback is always empty; nothing to learn from without Convex. */
 export async function listRules(supplierKey: string): Promise<LearnedRule[]> {
   if (CONVEX_URL) {

@@ -1,5 +1,5 @@
 // Suppliers screen: the one write this file owns is adding a new supplier
-// (Maya, from the Suppliers list). Background check is Apify's job, a later
+// (from the Suppliers list). Background check is Apify's job, a later
 // phase — a brand-new supplier simply starts with no background check run.
 import { ConvexError, v } from "convex/values";
 import { internalMutation, mutation } from "../_generated/server.js";
@@ -63,7 +63,7 @@ export const add = mutation({
     });
     await ctx.db.insert("activity", {
       key: "act_sup_" + key,
-      actor: "maya",
+      actor: "dev",
       what: `added ${trimmedName} as a supplier.`,
       why: "New supplier onboarding.",
       refKind: "supplier",

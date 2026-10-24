@@ -1,6 +1,6 @@
 // Inbox triage, job #2 on hold's loop: every email from a known supplier is sorted by kind before
-// anything else happens. Bills go through the bill checks; everything else goes to Maya or is
-// filed, so a "Re: load-in schedule" email is never paid as a $0 bill. Maya's corrections teach it
+// anything else happens. Bills go through the bill checks; everything else goes to the approver or
+// is filed, so a "Re: load-in schedule" email is never paid as a $0 bill. Corrections teach it
 // (convex/app/improve.ts with ./jobs/triage.ts). The routing safety rules are in lib/triage.ts.
 import type Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
@@ -20,7 +20,7 @@ Pick the one kind the email is (kindKey = its key). If none fits, kindKey is emp
 Judge what the email is for, not what it mentions in passing: a reminder about an invoice already sent is not a new invoice.`;
 
 export const toKinds = (playbook: Technique[]): EmailKind[] =>
-  playbook.map((t) => ({ key: t.key, name: t.name, howItWorks: t.howItWorks, signals: t.signals, example: t.example, route: (t.route ?? "to_maya") as Route }));
+  playbook.map((t) => ({ key: t.key, name: t.name, howItWorks: t.howItWorks, signals: t.signals, example: t.example, route: (t.route ?? "to_dev") as Route }));
 
 /** Which kind of supplier email this is, by the triage playbook. */
 export async function judgeEmail(
@@ -48,12 +48,12 @@ export async function judgeEmail(
   return kinds.some((k) => k.key === out.kindKey) ? out : { ...out, kindKey: "" };
 }
 
-// ---------- Maya's side: the messages, and correcting hold ----------
+// ---------- the approver's side: the messages, and correcting hold ----------
 
-const actor = v.union(v.literal("callback"), v.literal("maya"), v.literal("dev"));
-const route = v.union(v.literal("bill"), v.literal("to_maya"), v.literal("file"));
+const actor = v.union(v.literal("callback"), v.literal("dev"));
+const route = v.union(v.literal("bill"), v.literal("to_dev"), v.literal("file"));
 
-/** Messages for Maya (open first, newest first) and what hold filed recently. */
+/** Messages for the approver (open first, newest first) and what hold filed recently. */
 export const messages = query({
   args: {},
   handler: async (ctx) => {
@@ -100,15 +100,15 @@ async function emailRow(ctx: MutationCtx, emailKey: string) {
   return email;
 }
 
-function person(who: "callback" | "maya" | "dev", what: string): "maya" | "dev" {
-  if (who === "callback") throw new ConvexError(`Callback can't ${what} on its own. Maya or Dev has to.`);
+function person(who: "callback" | "dev", what: string): "dev" {
+  if (who === "callback") throw new ConvexError(`Callback can't ${what} on its own.`);
   return who;
 }
 
-const log = (ctx: MutationCtx, who: "callback" | "maya" | "dev", what: string, why: string, refKind: string, refKey: string) =>
+const log = (ctx: MutationCtx, who: "callback" | "dev", what: string, why: string, refKind: string, refKey: string) =>
   ctx.db.insert("activity", { key: `act_${crypto.randomUUID()}`, actor: who, what, why, refKind, refKey, at: new Date().toISOString() });
 
-/** Maya dealt with a message. */
+/** The approver dealt with a message. */
 export const resolveMessage = mutation({
   args: { emailKey: v.string(), actor },
   handler: async (ctx, { emailKey, actor: who }) => {
@@ -121,14 +121,14 @@ export const resolveMessage = mutation({
 });
 
 /** Remember the right answer and learn from it: the Practice set grows, the loop runs. */
-async function learnRoute(ctx: MutationCtx, p: "maya" | "dev", email: Doc<"emails">, right: Route, kindName: string) {
+async function learnRoute(ctx: MutationCtx, p: "dev", email: Doc<"emails">, right: Route, kindName: string) {
   await ctx.db.insert("practiceEmails", { key: `pmail_${crypto.randomUUID()}`, kind: `Corrected: ${kindName}`, text: email.body, expected: right, source: "corrected" });
   return openImprovement(ctx, { kind: "corrected", emailKey: email.key, expected: right, text: email.body, by: p }, "triage");
 }
 
 /**
  * hold sorted a message wrong. "bill" sends it through the bill checks (the full intake, not a
- * shortcut); "to_maya" or "file" moves it. Either way hold learns from the correction.
+ * shortcut); "to_dev" or "file" moves it. Either way hold learns from the correction.
  */
 export const correctMessage = mutation({
   args: { emailKey: v.string(), route, actor },
@@ -138,7 +138,7 @@ export const correctMessage = mutation({
     if (!email.triage || email.billKey) throw new ConvexError("That email isn't a message.");
     if (email.triage.route === right && !email.triage.correctedRoute) throw new ConvexError(`hold already sent it there (${ROUTE_WORDS[right]}).`);
     await ctx.db.patch(email._id, {
-      triage: { ...email.triage, correctedRoute: right, correctedBy: p, status: right === "file" ? "filed" : right === "to_maya" ? "open" : "done" },
+      triage: { ...email.triage, correctedRoute: right, correctedBy: p, status: right === "file" ? "filed" : right === "to_dev" ? "open" : "done" },
     });
     if (right === "bill") await ctx.scheduler.runAfter(0, internal.app.intake.fileAsBill, { emailKey });
     const opened = await learnRoute(ctx, p, email, right, email.triage.kindName);
@@ -149,7 +149,7 @@ export const correctMessage = mutation({
 
 /** A bill hold made from an email that isn't one: holds it so it can't be paid, and learns. */
 export const notABill = mutation({
-  args: { billKey: v.string(), route: v.union(v.literal("to_maya"), v.literal("file")), actor },
+  args: { billKey: v.string(), route: v.union(v.literal("to_dev"), v.literal("file")), actor },
   handler: async (ctx, { billKey, route: right, actor: who }) => {
     const p = person(who, "say a bill isn't one");
     const bill = await ctx.db
@@ -165,7 +165,7 @@ export const notABill = mutation({
         supplierKey: bill.supplierKey,
         kindName: email.triage?.kindName ?? "Not a bill",
         route: email.triage?.route ?? "bill",
-        why: "Maya said this email isn't a bill.",
+        why: "You said this email isn't a bill.",
         status: right === "file" ? "filed" : "open",
         correctedRoute: right,
         correctedBy: p,

@@ -29,7 +29,7 @@ const schema = z.object({
     .refine((u) => u.startsWith("https://"), "must be https (Twilio needs a public TLS URL, e.g. ngrok)")
     .transform((u) => u.replace(/\/+$/, "")),
   PORT: num(8080),
-  MAYA_PHONE_NUMBER: optionalE164,
+  TAKEOVER_PHONE_NUMBER: optionalE164,
   /** Local dev: the voice server opens its own ngrok tunnel on this permanent (free) domain. */
   NGROK_DOMAIN: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),
   NGROK_AUTHTOKEN: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),

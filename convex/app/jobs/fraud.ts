@@ -80,7 +80,6 @@ async function billVerdict(row: Row, fullPlaybook: Technique[]): Promise<Verdict
 
 export const fraudJob: Job<Proposal> = {
   key: "fraud",
-  approver: "dev",
   noun: "fraud playbook",
   schema: Proposal,
   system: `You maintain hold's playbook of payment-fraud techniques for the company's payments team. hold checks every incoming supplier email against it.

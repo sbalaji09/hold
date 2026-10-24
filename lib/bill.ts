@@ -53,10 +53,10 @@ export function whyText(bill: Bill): string {
     }
     if (bill.call?.outcome === "confirmed") {
       return flagged.some((c) => c.id === "bank-account")
-        ? `${bill.supplier.contactName} confirmed the bank change on a call to the number on file. Dev has to approve the new account before it's paid.`
-        : `${bill.supplier.contactName} confirmed this bill on a call, but ${amount} is over the $10,000 limit, so Dev has to approve it.`;
+        ? `${bill.supplier.contactName} confirmed the bank change on a call to the number on file. You have to approve the new account before it's paid.`
+        : `${bill.supplier.contactName} confirmed this bill on a call, but ${amount} is over the $10,000 limit, so it needs your approval.`;
     }
-    return `Every check passed, but ${amount} is over the $10,000 limit, so Dev has to approve it.`;
+    return `Every check passed, but ${amount} is over the $10,000 limit, so it needs your approval.`;
   }
   if (bill.status === "Scheduled" && bill.call?.outcome === "confirmed") {
     return `${bill.supplier.contactName} confirmed this bill on a call to the number on file, so it's paid on the next run.`;

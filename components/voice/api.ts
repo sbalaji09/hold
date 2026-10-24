@@ -75,21 +75,21 @@ export const useSupplierName: (supplierId: string | undefined) => string | null 
     };
 
 /** Report a missed scam call, or clear a flagged one. `key` is null when hold is already learning from it. */
-export const useReportCall: () => (callId: string, verdict: CallVerdict, actor: "maya" | "dev") => Promise<{ key: string | null }> = MOCK
+export const useReportCall: () => (callId: string, verdict: CallVerdict) => Promise<{ key: string | null }> = MOCK
   ? () => async () => ({ key: "impr_mock" })
   : () => {
       const report = useMutation(api.app.techniques.reportCall);
-      return (callId, verdict, actor) => report({ callId, verdict, actor });
+      return (callId, verdict) => report({ callId, verdict, actor: "dev" });
     };
 
 export type AskVerdict = "matches" | "no_match" | "follow_up";
 
-/** Maya or Dev answers hold's mid-call question (convex/voice/ui.ts answerAsk). */
-export const useAnswerAsk: () => (args: { callId: string; askId: string; verdict: AskVerdict; followUp?: string; actor: "maya" | "dev" }) => Promise<unknown> =
+/** Dev answers hold's mid-call question (convex/voice/ui.ts answerAsk). */
+export const useAnswerAsk: () => (args: { callId: string; askId: string; verdict: AskVerdict; followUp?: string }) => Promise<unknown> =
   MOCK
     ? () => async () => undefined
     : () => {
         const answer = useMutation(api.voice.ui.answerAsk);
-        return ({ callId, askId, verdict, followUp, actor }) =>
-          answer({ call_id: callId, ask_id: askId, verdict, actor, ...(followUp !== undefined ? { follow_up: followUp } : {}) });
+        return ({ callId, askId, verdict, followUp }) =>
+          answer({ call_id: callId, ask_id: askId, verdict, actor: "dev", ...(followUp !== undefined ? { follow_up: followUp } : {}) });
       };

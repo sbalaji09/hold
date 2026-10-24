@@ -180,9 +180,9 @@ test("a learned rule can never let a literal bank-change request through", () =>
   expect(decide(checks, 90000)).toBe("call");
 });
 
-test("routeEscalation: handed_off call outcome routes to Maya", () => {
+test("routeEscalation: handed_off call outcome routes to Dev", () => {
   const route = routeEscalation([], 90000, { callOutcome: "handed_off" });
-  expect(route.routedTo).toBe("maya");
+  expect(route.routedTo).toBe("dev");
   expect(route.reason).toMatch(/no answer/);
 });
 

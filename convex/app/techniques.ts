@@ -22,7 +22,7 @@ import { addBillToPracticeSet } from "./practice.js";
 
 export const ASSESS_MODEL = "claude-sonnet-5-5";
 
-const actor = v.union(v.literal("callback"), v.literal("maya"), v.literal("dev"));
+const actor = v.union(v.literal("callback"), v.literal("dev"));
 
 // ---------- the assessment ----------
 
@@ -178,12 +178,12 @@ export const list = query({
 
 // ---------- human actions ----------
 
-function requirePerson(who: "callback" | "maya" | "dev", what: string): "maya" | "dev" {
-  if (who === "callback") throw new ConvexError(`Callback can't ${what} on its own. Maya or Dev has to.`);
+function requirePerson(who: "callback" | "dev", what: string): "dev" {
+  if (who === "callback") throw new ConvexError(`Callback can't ${what} on its own.`);
   return who;
 }
 
-async function log(ctx: MutationCtx, who: "callback" | "maya" | "dev", what: string, why: string, refKind: string, refKey: string) {
+async function log(ctx: MutationCtx, who: "callback" | "dev", what: string, why: string, refKind: string, refKey: string) {
   await ctx.db.insert("activity", { key: `act_${crypto.randomUUID()}`, actor: who, what, why, refKind, refKey, at: new Date().toISOString() });
 }
 
@@ -202,7 +202,7 @@ export async function openImprovement(
     channel?: "email" | "phone";
     expected?: string;
     text: string;
-    by: "callback" | "maya" | "dev";
+    by: "callback" | "dev";
   },
   job: JobKey = "fraud",
 ): Promise<{ key: string } | null> {
@@ -369,10 +369,9 @@ export const decideImprovement = mutation({
       .withIndex("by_key", (q) => q.eq("key", key))
       .unique();
     if (!row || row.status !== "needs_approval") throw new ConvexError("This change isn't waiting for approval.");
-    // Fraud: only Dev may loosen it. Triage: it's Maya's inbox, so Maya (or Dev) decides.
-    const triage = row.job === "triage";
-    if (who === "callback" || (!triage && who !== "dev")) {
-      throw new ConvexError(triage ? "Maya or Dev has to approve a change to how hold sorts email." : "Only Dev can approve a change that makes hold less strict.");
+    // Only Dev may approve a change, whether it loosens fraud checks or how hold sorts email.
+    if (who === "callback") {
+      throw new ConvexError("Callback can't approve this on its own.");
     }
     if (decision === "decline") {
       await ctx.db.patch(row._id, { status: "declined", decidedBy: who });
@@ -387,7 +386,7 @@ export const decideImprovement = mutation({
  * Puts a replayed proposal into the playbook: a new row (a refinement supersedes, and retires, the
  * row it refines), so it applies to the very next email and can be reverted.
  */
-export async function promoteImprovement(ctx: MutationCtx, key: string, by: "callback" | "maya" | "dev"): Promise<void> {
+export async function promoteImprovement(ctx: MutationCtx, key: string, by: "callback" | "dev"): Promise<void> {
   const row = await ctx.db
     .query("improvements")
     .withIndex("by_key", (q) => q.eq("key", key))

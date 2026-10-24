@@ -28,7 +28,7 @@ export default async function SuppliersPage({
   const graphView = (await searchParams).view === "graph";
   const [suppliers, bills, co] = await Promise.all([listSupplierSummaries(), graphView ? listBills() : [], getCompany()]);
   const Payee = capital(co.payee);
-  // New suppliers nobody has confirmed yet: Maya's (or Dev's) turn, so they lead the list.
+  // New suppliers nobody has confirmed yet: your turn, so they lead the list.
   const needsConfirming = (s: (typeof suppliers)[number]) => s.status === "new" && !s.onboarding?.confirmedAt;
   const awaiting = suppliers.filter(needsConfirming).length;
   const rows = [...suppliers].sort((a, b) => Number(needsConfirming(b)) - Number(needsConfirming(a)));

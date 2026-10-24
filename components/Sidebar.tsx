@@ -5,15 +5,13 @@ import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import { countPlaybookApprovals, getCompany, listApprovals, listBills, listMessages } from "@/lib/data";
 import { capital } from "@/lib/company";
 import { UNSETTLED_STATUS } from "@/lib/inbox";
-import { getPersona, setPersona } from "@/lib/persona";
 
 export async function Sidebar(): Promise<React.ReactElement> {
-  const [approvals, changes, bills, messages, persona, co] = await Promise.all([
+  const [approvals, changes, bills, messages, co] = await Promise.all([
     listApprovals(),
     countPlaybookApprovals(),
     listBills(),
     listMessages(),
-    getPersona(),
     getCompany(),
   ]);
   const open = bills.filter((b) => UNSETTLED_STATUS[b.status]).length + messages.open.length;
@@ -34,26 +32,10 @@ export async function Sidebar(): Promise<React.ReactElement> {
           <Guilloche size={24} lobes={9} strands={6} className="pt-brand-seal" />
           <span className="pt-word">hold</span>
         </div>
-        <WorkspaceSwitcher current={co.key} actor={persona} />
+        <WorkspaceSwitcher current={co.key} />
       </div>
       {/* renderedAt marks each server render, so the client can tell a background refresh landed. */}
       <NavLinks items={items} renderedAt={Date.now()} />
-      <div className="pt-persona">
-        <span className="cb-caps">Signed in as</span>
-        <form action={setPersona} className="pt-seg">
-          {(
-            [
-              ["maya", co.maya.name, co.maya.role],
-              ["dev", co.dev.name, co.dev.role],
-            ] as const
-          ).map(([who, name, role]) => (
-            <button key={who} type="submit" name="who" value={who} className={persona === who ? "on" : undefined} aria-pressed={persona === who}>
-              <b>{name}</b>
-              <span>{role}</span>
-            </button>
-          ))}
-        </form>
-      </div>
     </aside>
   );
 }

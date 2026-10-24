@@ -52,10 +52,10 @@ describe("decideCallOutcome", () => {
     expect(d.approval!.reason).toContain("never changed their bank details");
   });
 
-  test("handed off: Maya decides, never paid", () => {
+  test("handed off: it's yours to decide, never paid", () => {
     const d = decideCallOutcome(bill({ checks: [RUSH_FLAG] }), "handed_off", "No answer after 2 attempts.");
     expect(d.status).toBe("Needs you");
-    expect(d.approval).toMatchObject({ kind: "held_payment", routedTo: "maya" });
+    expect(d.approval).toMatchObject({ kind: "held_payment", routedTo: "dev" });
     expect(d.approval!.reason).toContain("No answer after 2 attempts.");
   });
 
@@ -97,8 +97,8 @@ describe("whyText after a check call", () => {
     expect(text).not.toContain("$10,000");
   });
 
-  test("a confirmed bank change says Dev has to approve the new account", () => {
-    expect(whyText(bill({ status: "Needs you", call: call("confirmed", "ok") }))).toMatch(/Rosa Quintero confirmed the bank change.*Dev has to approve/);
+  test("a confirmed bank change says You have to approve the new account", () => {
+    expect(whyText(bill({ status: "Needs you", call: call("confirmed", "ok") }))).toMatch(/Rosa Quintero confirmed the bank change.*You have to approve/);
   });
 
   test("a confirmed small bill says why it will be paid", () => {

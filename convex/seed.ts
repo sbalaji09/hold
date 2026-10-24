@@ -279,7 +279,7 @@ export async function runSeed(ctx: MutationCtx, args: SeedArgs): Promise<void> {
     const recommendation =
       flagged.length > 0
         ? `Hold this payment. ${flagged.map((c) => c.evidence).join(" ")}`
-        : `Pay ${fmtMoney(b.amountCents)} to ${bankAccount?.bank ?? "the account on file"} \u00b7\u00b7${bankAccount?.last4 ?? ""}. All checks passed; this is over hold's ${wholeDollars(co.approvalLimitCents)} limit, so ${co.dev.name} needs to approve it.`;
+        : `Pay ${fmtMoney(b.amountCents)} to ${bankAccount?.bank ?? "the account on file"} \u00b7\u00b7${bankAccount?.last4 ?? ""}. All checks passed; this is over hold's ${wholeDollars(co.approvalLimitCents)} limit, so it needs your approval.`;
     const kind = checks.find((c) => c.id === "bank-account" && c.state === "flag")
       ? "bank_change"
       : b.status === "Held"

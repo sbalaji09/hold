@@ -44,7 +44,7 @@ export class CallSession {
     return this.reason !== null;
   }
 
-  /** Mark the call over. The first reason wins (a drop stays a drop if Maya presses takeover later). */
+  /** Mark the call over. The first reason wins (a drop stays a drop if the approver presses takeover later). */
   end(reason: EndReason): void {
     this.reason ??= reason;
     this.stop();

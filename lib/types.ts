@@ -26,7 +26,7 @@ export interface Supplier {
     firstBillKey?: string;
     emailPhones: string[];
     note?: { hiredFor: string; agreed: string; dates: string; foglineContact: string };
-    confirmedBy?: "maya" | "dev";
+    confirmedBy?: "dev";
     confirmedAt?: string;
   };
 }
@@ -136,12 +136,12 @@ export interface Approval {
   status: "pending";
   /** Callback's recommendation, in its own voice. */
   recommendation: string;
-  routedTo?: "maya" | "dev";
+  routedTo?: "dev";
   reason?: string;
   thread: Array<{ from: string; text: string; at: string }>;
 }
 
-export type ActivityActor = "callback" | "maya" | "dev";
+export type ActivityActor = "callback" | "dev";
 
 export interface ActivityEntry {
   key: string;
@@ -157,7 +157,7 @@ export interface LearnedRule {
   key: string;
   supplierKey: string;
   text: string;
-  createdBy: "maya" | "dev";
+  createdBy: "dev";
   sourceKind: string;
   sourceKey: string;
   createdAt: string;

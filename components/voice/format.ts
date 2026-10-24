@@ -8,8 +8,6 @@ export const TIME_ZONE = "America/Los_Angeles";
 /** The agent's name on screen and in transcripts. */
 export const AGENT = "hold";
 
-/** Who a handed-off call goes to. */
-export const HANDOFF_TO = "Maya";
 
 export type LineState = "ringing" | "connected" | "no-answer" | "dropped" | "confirmed" | "not-confirmed";
 
@@ -94,7 +92,7 @@ export function callTimes(call: LiveCall): { startMs: number | null; endMs: numb
 }
 
 /** What the Line on the Live call screen shows. */
-export function callView(call: LiveCall, handoffTo = HANDOFF_TO): CallView {
+export function callView(call: LiveCall): CallView {
   const { request, result } = call;
   const statuses = statusEvents(call.events);
   const last = statuses.at(-1);
@@ -106,12 +104,12 @@ export function callView(call: LiveCall, handoffTo = HANDOFF_TO): CallView {
     : "";
 
   const handoff = (): CallView => {
-    if (request?.takeover_requested) return { line: "dropped", label: "Taken over", note: `${handoffTo} took over the call.`, active: false };
-    if (dropped) return { line: "dropped", note: `${droppedNote} Handed off to ${handoffTo}.`, active: false };
+    if (request?.takeover_requested) return { line: "dropped", label: "Taken over", note: "You took over the call.", active: false };
+    if (dropped) return { line: "dropped", note: `${droppedNote} Handed off to you.`, active: false };
     if (!answered && statuses.some((e) => e.value === "no_answer")) {
-      return { line: "no-answer", note: `No answer after the retry. Handed off to ${handoffTo}.`, active: false };
+      return { line: "no-answer", note: "No answer after the retry. Handed off to you.", active: false };
     }
-    return { line: "dropped", label: "Handed off", note: `Handed off to ${handoffTo}.`, active: false };
+    return { line: "dropped", label: "Handed off", note: "Handed off to you.", active: false };
   };
 
   if (result) {
@@ -129,7 +127,7 @@ export function callView(call: LiveCall, handoffTo = HANDOFF_TO): CallView {
     case "dialing":
       return last?.value === "ringing" ? { line: "ringing", active: true } : { line: "ringing", label: "Dialing", active: true };
     case "in_progress":
-      if (request.takeover_requested) return { line: "connected", label: "Ending call", note: `Ending the call for ${handoffTo}.`, active: false };
+      if (request.takeover_requested) return { line: "connected", label: "Ending call", note: "Ending the call for you.", active: false };
       if (last?.value === "dropped") return { line: "dropped", note: droppedNote, active: false };
       return { line: "connected", active: true };
     case "retry_scheduled": {

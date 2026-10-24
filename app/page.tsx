@@ -10,7 +10,6 @@ import { listActivityWithLinks } from "@/lib/activity";
 import { capital } from "@/lib/company";
 import { getCompany, getSettings, listApprovals, listBills, listMessages, listPayments, listPlaybookApprovals, listSuppliers } from "@/lib/data";
 import { STATUS_TO_MARK, shortDate } from "@/lib/inbox";
-import { getPersona } from "@/lib/persona";
 import { WATCH_ONLY_REASON } from "@/lib/policy";
 import type { ApprovalKind, Bill } from "@/lib/types";
 
@@ -64,8 +63,7 @@ function billTitle(b: Bill): string {
 }
 
 export default async function TodayPage(): Promise<React.ReactElement> {
-  const [persona, co, bills, approvals, messages, payments, suppliers, changes, settings, activity] = await Promise.all([
-    getPersona(),
+  const [co, bills, approvals, messages, payments, suppliers, changes, settings, activity] = await Promise.all([
     getCompany(),
     listBills(),
     listApprovals(),
@@ -76,21 +74,20 @@ export default async function TodayPage(): Promise<React.ReactElement> {
     getSettings(),
     listActivityWithLinks(),
   ]);
-  const me = co[persona];
-  const other = co[persona === "dev" ? "maya" : "dev"];
 
   // ---- waiting on you ----
-  const mine = approvals.filter((a) => (a.routedTo ?? "dev") === persona);
-  const toConfirm = persona === "maya" ? suppliers.filter((s) => s.status === "new" && s.onboarding && !s.onboarding.confirmedBy) : [];
-  const myChanges = changes.filter((c) => persona === "dev" || c.job === "triage");
-  const myMessages = persona === "maya" ? messages.open : [];
+  const mine = approvals;
+  const toConfirm = suppliers.filter((s) => s.status === "new" && s.onboarding && !s.onboarding.confirmedBy);
+  const myChanges = changes;
+  const myMessages = messages.open;
+
   const waiting = mine.length + toConfirm.length + myChanges.length + myMessages.length;
   const waitingKeys = new Set(mine.map((a) => a.billKey));
   const waitingRows: React.ReactElement[] = [
     ...mine.map((a) => (
       <Row
         key={a.key}
-        href={persona === "dev" ? "/approvals" : `/bills/${a.billKey}`}
+        href="/approvals"
         title={`${KIND_LABEL[a.kind]}: ${billTitle(a.bill)}`}
         line={a.reason ?? a.recommendation}
         right={<Amount cents={a.bill.amountCents} />}
@@ -123,7 +120,7 @@ export default async function TodayPage(): Promise<React.ReactElement> {
       />
     )),
   ];
-  const waitingAll = persona === "dev" ? "/approvals" : `/inbox?status=${encodeURIComponent("Needs you")}`;
+  const waitingAll = "/approvals";
 
   // ---- the rest of the job ----
   const working = bills.filter((b) => (b.status === "Checking" || b.status === "Calling" || b.status === "Held" || b.status === "Needs you") && !waitingKeys.has(b.key));
@@ -132,23 +129,21 @@ export default async function TodayPage(): Promise<React.ReactElement> {
   const sent = payments.filter((p) => p.status === "sent").sort((a, b) => b.paidAt.localeCompare(a.paidAt));
   const review = suppliers.filter((s) => s.status === "new" || s.status === "under_review");
   const recent = [...activity].sort((a, b) => b.at.localeCompare(a.at)).slice(0, SHOWN);
-  const actorName = { callback: "hold", maya: co.maya.name, dev: co.dev.name } as const;
+  const actorName = { callback: "hold", dev: "You" } as const;
 
   return (
     <div className="pt-today">
       <header className="pt-head">
         <div className="pt-head-text">
           <h1 className="cb-display">Today</h1>
-          <p className="pt-sub">
-            Signed in as {me.full}, {me.role.toLowerCase()}. {waiting === 0 ? "Nothing is waiting on you." : `${waiting} waiting on you.`}
-          </p>
+          <p className="pt-sub">{waiting === 0 ? "Nothing is waiting on you." : `${waiting} waiting on your approval.`}</p>
         </div>
       </header>
 
       <div className="pt-dash-grid">
-        <Section title={`Waiting on ${me.name}`} href={waitingAll} you>
+        <Section title="Needs your approval" href={waitingAll} you>
           {waitingRows.length === 0 ? (
-            <Empty>Nothing is waiting on you. hold puts anything that needs {me.name} here; the rest goes to {other.name} or happens on its own.</Empty>
+            <Empty>Nothing is waiting on you.</Empty>
           ) : (
             <>
               {waitingRows.slice(0, waitingRows.length > SHOWN ? SHOWN - 1 : SHOWN)}

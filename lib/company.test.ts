@@ -18,16 +18,16 @@ describe("company profiles", () => {
 
   test("each company's approval limit decides who pays", () => {
     expect(canPay(bill(900_000), false, fogline).allowed).toBe(true);
-    expect(canPay(bill(1_200_000), false, fogline).reason).toBe("Callback can't pay this on its own. Bills of $10,000 or more need Dev's approval.");
+    expect(canPay(bill(1_200_000), false, fogline).reason).toBe("Callback can't pay this on its own. Bills of $10,000 or more need your approval.");
     expect(canPay(bill(1_200_000), false, bayline).allowed).toBe(true);
-    expect(canPay(bill(600_000), false, harbor).reason).toBe("Callback can't pay this on its own. Paychecks of $5,000 or more need Dana's approval.");
+    expect(canPay(bill(600_000), false, harbor).reason).toBe("Callback can't pay this on its own. Paychecks of $5,000 or more need your approval.");
     expect(decide([], 600_000, harbor)).toBe("ask_dev");
     expect(decide([], 600_000, fogline)).toBe("pay");
-    expect(routeEscalation([], 3_000_000, { company: bayline }).reason).toBe("$30,000.00 is over hold's $25,000 limit, so it needs Marcus's approval.");
+    expect(routeEscalation([], 3_000_000, { company: bayline }).reason).toBe("$30,000.00 is over hold's $25,000 limit, so it needs your approval.");
   });
 
   test("a held release names the company's approver", () => {
-    expect(canRelease(bill(100, "Held"), "callback", harbor).reason).toBe("Callback can't release a held payment. Dana has to approve it.");
+    expect(canRelease(bill(100, "Held"), "callback", harbor).reason).toBe("Callback can't release a held payment. It needs your approval.");
   });
 
   test("payroll and escrow wording counts as a bank change, in the company's words", () => {

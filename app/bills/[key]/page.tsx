@@ -16,7 +16,7 @@ import { BillActions } from "@/components/BillActions";
 
 import { ReportMissedScam } from "@/components/ReportMissedScam";
 import { NotABill } from "@/components/NotABill";
-import { getPersona } from "@/lib/persona";
+
 import { CopycatPanel } from "@/components/CopycatPanel";
 import { getBill, getCompany, getSettings, listActivity, listChecksForBill } from "@/lib/data";
 import { canCall, canHold, canPay } from "@/lib/policy";
@@ -51,7 +51,7 @@ export default async function BillPage({
   if (!bill) notFound();
 
   const copycatChecks = bill.email.fromDomain !== bill.supplier.domain ? await listChecksForBill(key) : [];
-  const [settings, persona, co] = await Promise.all([getSettings(), getPersona(), getCompany()]);
+  const [settings, co] = await Promise.all([getSettings(), getCompany()]);
 
   const activity = await listActivity();
   const timeline = activity
@@ -100,8 +100,8 @@ export default async function BillPage({
             </div>
           </details>
           {pay.allowed || hold.allowed || call.allowed ? <BillActions billKey={bill.key} amount={amount} pay={pay} hold={hold} call={call} /> : null}
-          {bill.status !== "Held" ? <ReportMissedScam billKey={bill.key} actor={persona} /> : null}
-          {bill.status !== "Paid" ? <NotABill billKey={bill.key} supplier={bill.supplier.name} actor={persona} /> : null}
+          {bill.status !== "Held" ? <ReportMissedScam billKey={bill.key} /> : null}
+          {bill.status !== "Paid" ? <NotABill billKey={bill.key} supplier={bill.supplier.name} /> : null}
         </div>
       </div>
 
@@ -113,7 +113,7 @@ export default async function BillPage({
               New {co.payee.one}: confirm who they are
             </h2>
             <p className="m-0 font-mono text-[12.5px]/[19px] text-ink-muted">
-              {co.name} has never paid {bill.supplier.name}. Confirm a trusted number and what {co.name} hired them for; then hold calls them about this {co.bill.one}. {co.dev.name} approves the first payment.
+              {co.name} has never paid {bill.supplier.name}. Confirm a trusted number and what {co.name} hired them for; then hold calls them about this {co.bill.one}. You approve the first payment.
             </p>
           </div>
           <Link href={`/suppliers/${bill.supplier.key}`} className="cb-btn cb-btn-primary no-underline">
@@ -153,7 +153,7 @@ export default async function BillPage({
               bank={bill.bankAccount.bank}
               last4={bill.bankAccount.last4}
               state={bankFlagged ? "new" : "verified"}
-              note={bill.bankAccount.verifiedBy === "call+dev" ? `Verified by call, ${co.dev.name} approved` : "Verified at onboarding"}
+              note={bill.bankAccount.verifiedBy === "call+dev" ? "Verified by call, you approved" : "Verified at onboarding"}
             />
           )}
         </div>
@@ -190,10 +190,10 @@ export default async function BillPage({
 
         {needsSignOff ? (
           <section className="cb-doc p-4">
-            <SignOff state="awaiting" name={co.dev.full} role={co.dev.role} time={`Flagged ${formatDateTime(bill.receivedAt)}`} />
+            <SignOff state="awaiting" name="your approval" time={`Flagged ${formatDateTime(bill.receivedAt)}`} />
             {route ? (
               <p className="mt-3 border-t border-dashed border-line pt-3 font-mono text-[12px] text-ink-muted">
-                Routed to {co[route.routedTo].name}. {route.reason}
+                Routed to you. {route.reason}
               </p>
             ) : null}
           </section>
@@ -210,7 +210,7 @@ export default async function BillPage({
               {timeline.map((e) => (
                 <LogEntry
                   key={e.key}
-                  actor={e.actor === "callback" ? "hold" : co[e.actor].full}
+                  actor={e.actor === "callback" ? "hold" : "you"}
                   agent={e.actor === "callback"}
                   time={formatDateTime(e.at)}
                   why={e.why}

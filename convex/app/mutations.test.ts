@@ -116,7 +116,7 @@ describe("payBill", () => {
   test("refuses a bill at or over $10,000", async () => {
     const { t, fns, seed, activity, billRow } = harness();
     await seed({ amountCents: 1_500_000 });
-    expect(await t.mutation(fns.mutations.payBill, { billKey: "bill_4471" })).toEqual({ refused: "Callback can't pay this on its own. Bills of $10,000 or more need Dev's approval." });
+    expect(await t.mutation(fns.mutations.payBill, { billKey: "bill_4471" })).toEqual({ refused: "Callback can't pay this on its own. Bills of $10,000 or more need your approval." });
     expect((await billRow()).status).toBe("Checking");
     expect(await activity()).toHaveLength(1);
   });
@@ -137,7 +137,7 @@ describe("payBill", () => {
   test("refuses to move money while Watch only is on", async () => {
     const { t, fns, seed, billRow } = harness();
     await seed({ amountCents: 50_000 });
-    await t.mutation(fns.mutations.setWatchOnly, { watchOnly: true, actor: "maya" });
+    await t.mutation(fns.mutations.setWatchOnly, { watchOnly: true, actor: "dev" });
     expect(await t.mutation(fns.mutations.payBill, { billKey: "bill_4471" })).toEqual({
       refused: "Watch only is on. Callback flags and calls but doesn't move money.",
     });
@@ -173,12 +173,7 @@ describe("decideApproval", () => {
 
   test("refuses Callback approving its own request (self-approval)", async () => {
     const h = await seedApproval({ amountCents: 1_500_000 }, "big_payment");
-    expect(await h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "callback" as never }),).toEqual({ refused: "Callback can't approve its own requests. Maya or Dev has to sign off." });
-  });
-
-  test("refuses Maya approving", async () => {
-    const h = await seedApproval({ amountCents: 1_500_000 }, "big_payment");
-    expect(await h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "maya" })).toEqual({ refused: "Maya can't approve this. Dev has to sign off." });
+    expect(await h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "callback" as never }),).toEqual({ refused: "Callback can't approve its own requests. It needs your approval." });
   });
 
   test("refuses Dev releasing a held payment whose bank change wasn't confirmed by call", async () => {
@@ -206,7 +201,7 @@ describe("decideApproval", () => {
 
   test("refuses Dev's approval while Watch only is on", async () => {
     const h = await seedApproval({ amountCents: 1_500_000 }, "big_payment");
-    await h.t.mutation(h.fns.mutations.setWatchOnly, { watchOnly: true, actor: "maya" });
+    await h.t.mutation(h.fns.mutations.setWatchOnly, { watchOnly: true, actor: "dev" });
     expect(await h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "dev" })).toEqual({
       refused: "Watch only is on. Callback flags and calls but doesn't move money.",
     });
@@ -302,7 +297,7 @@ describe("requestCall", () => {
         supplier_id: "sup_stage",
         to_number: SUPPLIER.trustedPhone,
         number_source: "on_file",
-        reason: ["Maya asked to confirm this bill"],
+        reason: ["Asked to confirm this bill"],
         status: "dialing",
         attempt: 0,
         mode: "live",
@@ -337,7 +332,7 @@ describe("claimPayment", () => {
   test("refuses while Watch only is on, so no transfer can go out", async () => {
     const { t, fns, seed } = harness();
     await seed({ status: "Scheduled" });
-    await t.mutation(fns.mutations.setWatchOnly, { watchOnly: true, actor: "maya" });
+    await t.mutation(fns.mutations.setWatchOnly, { watchOnly: true, actor: "dev" });
     const claim = await t.mutation(fns.mutations.claimPayment, { billKey: "bill_4471", bankAccountKey: "bank_stage", amountCents: 500_000 });
     expect(claim).toEqual({ refused: "Watch only is on. Callback flags and calls but doesn't move money." });
     expect(await t.run((ctx) => ctx.db.query("payments").collect())).toHaveLength(0);

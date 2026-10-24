@@ -59,7 +59,7 @@ The server validates these at startup and lists anything missing or malformed.
 | `TWILIO_POINT_WEBHOOK` | `true` to point Fogline's number at this server on startup. Whichever server starts last owns the number. |
 | `PUBLIC_BASE_URL` | The public `https://` URL Twilio uses to reach this server. Leave it unset: it comes from `NGROK_DOMAIN`. |
 | `PORT` | Local port, default `8080`. |
-| `MAYA_PHONE_NUMBER` | Optional. "End call and take over" transfers the live call to this number. Without it, takeover just ends the AI call. |
+| `TAKEOVER_PHONE_NUMBER` | Optional. "End call and take over" transfers the live call to this number. Without it, takeover just ends the AI call. |
 | `CARTESIA_VOICE_ID_ES` | Optional. A native Spanish Sonic voice for calls to Spanish-speaking payees. Without it, `CARTESIA_VOICE_ID` speaks Spanish. |
 
 Convex-side settings for the company templates and calls (`npx convex env set NAME value`):
@@ -193,8 +193,8 @@ hold speaks for whichever company the workspace runs (`lib/company.ts`): the dis
 Moss is hold's memory of every supplier: one shared index (`fogline-suppliers`) of each supplier's invoices, payments, past calls, onboarding facts and emails, every query filtered to one supplier. Bank account numbers are never indexed. The voice server loads the index into memory at startup, so searches run locally with no network round trip.
 
 **Live, on every answer.** When the supplier answers a check-call question, hold searches their history with their own words while it says "thanks" (`answerLookup` in `voice/src/call/outbound.ts`). The records the answer sounds like go to two places, and never into anything said on the call:
-- hold's mid-call check: an answer that doesn't fit the record asked about, but clearly describes another real one (a supplier mixing up July's invoice with June's), counts as unsure, so it goes to Maya instead of failing.
-- Maya's prompt on the Live call screen, as "Sounds like: invoice #4134, 2026-06-26: …", so she can decide in seconds while the supplier holds.
+- hold's mid-call check: an answer that doesn't fit the record asked about, but clearly describes another real one (a supplier mixing up July's invoice with June's), counts as unsure, so it goes to the approver instead of failing.
+- The approver's prompt on the Live call screen, as "Sounds like: invoice #4134, 2026-06-26: …", so they can decide in seconds while the supplier holds.
 
 Emails are left out of this search: a scammer with mailbox access has read them.
 

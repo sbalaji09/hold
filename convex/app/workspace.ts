@@ -29,7 +29,7 @@ export const templateSwitch = query({
 export const loadTemplate = mutation({
   args: {
     company: v.union(v.literal("fogline"), v.literal("bayline"), v.literal("harbor")),
-    actor: v.union(v.literal("maya"), v.literal("dev")),
+    actor: v.literal("dev"),
   },
   handler: async (ctx, { company, actor }) => {
     if (!switchAllowed()) throw new ConvexError(SWITCH_OFF);

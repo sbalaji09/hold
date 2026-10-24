@@ -55,11 +55,10 @@ export const recordProgress = internalMutation({
     if (status === "promoted") await promoteImprovement(ctx, key, "callback");
     if (status === "rejected" || status === "needs_approval") {
       const job = JOBS[row.job ?? "fraud"];
-      const approver = job.approver === "dev" ? "Dev" : "Maya";
       await ctx.db.insert("activity", {
         key: `act_${crypto.randomUUID()}`,
         actor: "callback",
-        what: status === "rejected" ? `kept its ${job.noun} as it was` : `asked ${approver} to approve a less strict ${job.noun}`,
+        what: status === "rejected" ? `kept its ${job.noun} as it was` : `asked for approval of a less strict ${job.noun}`,
         why: summary ?? "",
         refKind: row.trigger.billKey ? "bill" : "improvement",
         refKey: row.trigger.billKey ?? key,

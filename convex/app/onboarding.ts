@@ -1,9 +1,9 @@
 // New suppliers. A bill from a domain hold doesn't know becomes a New supplier draft (unless the
 // domain imitates a known supplier, which is a scam, not a newcomer), the background check runs on
-// its own, and the bill waits. Maya confirms who they are: a trusted number from an independent
+// its own, and the bill waits. You confirm who they are: a trusted number from an independent
 // source (never the email) and Fogline's own facts about the engagement, which is what the check
 // call asks about, because nothing on the web is secret enough to verify a stranger with.
-// Then hold calls them. A confirmed call still sends the first payment to Dev.
+// Then hold calls them. A confirmed call still sends the first payment to you.
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { ConvexError, v } from "convex/values";
 import { z } from "zod";
@@ -51,7 +51,7 @@ export function newSupplierCheck(name: string, domain: string, ref: string, co: 
     id: "new-supplier",
     label: `New ${co.payee.one}`,
     state: "flag",
-    evidence: `${co.name} has never paid ${name} (${domain}). Nothing is paid until ${co.maya.name} confirms who they are and hold reaches them on a number that didn't come from this email.`,
+    evidence: `${co.name} has never paid ${name} (${domain}). Nothing is paid until you confirm who they are and hold reaches them on a number that didn't come from this email.`,
     cite: { kind: "email", ref },
   };
 }
@@ -93,7 +93,7 @@ function slug(name: string): string {
   return (name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "supplier") + "_" + Math.random().toString(36).slice(2, 6);
 }
 
-/** Creates the New supplier and its first bill (waiting for Maya), then starts the background check. */
+/** Creates the New supplier and its first bill (waiting for you), then starts the background check. */
 export const onboardFromEmail = internalMutation({
   args: {
     from: v.string(),
@@ -128,7 +128,7 @@ export const onboardFromEmail = internalMutation({
         domain: args.fromDomain.toLowerCase(),
         contactName: args.contactName.trim(),
         contactEmail: args.fromAddress,
-        trustedPhone: "", // only Maya sets this, from a source that isn't the email
+        trustedPhone: "", // only you set this, from a source that isn't the email
         phoneLastCheckedAt: "",
         status: "new",
         onboarding: { source: "email", firstBillKey: billKey, emailPhones },
@@ -168,7 +168,7 @@ export const onboardFromEmail = internalMutation({
         key: `act_${crypto.randomUUID()}`,
         actor: "callback",
         what: `added ${name} as a new ${co.payee.one} from their first ${co.bill.one}`,
-        why: `${args.fromDomain} isn't a ${co.payee.one} ${co.name} knows${args.whatFor ? ` (${args.whatFor})` : ""}. Running a background check; ${co.maya.name} confirms who they are before anything is paid.`,
+        why: `${args.fromDomain} isn't a ${co.payee.one} ${co.name} knows${args.whatFor ? ` (${args.whatFor})` : ""}. Running a background check; you confirm who they are before anything is paid.`,
         refKind: "supplier",
         refKey: supplierKey,
         at: now,
@@ -178,8 +178,8 @@ export const onboardFromEmail = internalMutation({
     await ctx.db.insert("activity", {
       key: `act_${crypto.randomUUID()}`,
       actor: "callback",
-      what: `held a first ${co.bill.one} from new ${co.payee.one} ${name} for ${co.maya.name}`,
-      why: `${capital(co.payee).many} new to ${co.name} wait until ${co.maya.name} confirms who they are and hold reaches them by phone.`,
+      what: `held a first ${co.bill.one} from new ${co.payee.one} ${name} for you`,
+      why: `${capital(co.payee).many} new to ${co.name} wait until you confirm who they are and hold reaches them by phone.`,
       refKind: "bill",
       refKey: billKey,
       at: now,
@@ -188,9 +188,9 @@ export const onboardFromEmail = internalMutation({
   },
 });
 
-// ---------- Maya confirms a new supplier ----------
+// ---------- confirming a new supplier ----------
 
-const actor = v.union(v.literal("callback"), v.literal("maya"), v.literal("dev"));
+const actor = v.union(v.literal("callback"), v.literal("dev"));
 
 async function emailsFrom(ctx: MutationCtx, domain: string): Promise<Doc<"emails">[]> {
   // ponytail: scans emails; fine at Fogline's size, index fromDomain if it grows.
@@ -198,7 +198,7 @@ async function emailsFrom(ctx: MutationCtx, domain: string): Promise<Doc<"emails
 }
 
 /**
- * Maya confirms a new supplier: the trusted number (from the background check or Fogline's own
+ * You confirm a new supplier: the trusted number (from the background check or Fogline's own
  * records, never from the supplier's email) and what Fogline hired them for. Then hold calls them
  * about every bill of theirs that is waiting.
  */
@@ -212,7 +212,7 @@ export const confirmNewSupplier = mutation({
   },
   handler: async (ctx, { supplierKey, trustedPhone, contactName, note, actor: who }) => {
     const co = await getCompany(ctx);
-    if (who === "callback") throw new ConvexError(`Callback can't confirm a ${co.payee.one} on its own. ${co.maya.name} or ${co.dev.name} has to.`);
+    if (who === "callback") throw new ConvexError(`Callback can't confirm a ${co.payee.one} on its own. You have to.`);
     const supplier = await ctx.db
       .query("suppliers")
       .withIndex("by_key", (q) => q.eq("key", supplierKey))
@@ -272,7 +272,7 @@ export const confirmNewSupplier = mutation({
         key: `act_${crypto.randomUUID()}`,
         actor: "callback",
         what: `called ${supplier.name} to confirm their first bill`,
-        why: `On ${fromCheck ? "the number from the background check" : `the number ${co.maya.name} confirmed`}; asking about what ${co.name} hired them for.`,
+        why: `On ${fromCheck ? "the number from the background check" : "the number you confirmed"}; asking about what ${co.name} hired them for.`,
         refKind: "bill",
         refKey: bill.key,
         at: now,

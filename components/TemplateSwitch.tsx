@@ -13,7 +13,7 @@ import type { CompanyKey } from "@/lib/company";
 export const SWITCH_OFF_REASON = "Switching is off: it replaces every bill, payee and call. Set ALLOW_TEMPLATE_SWITCH=true in the Convex env.";
 
 /** Loads a template and returns to Today. `allowed` is undefined while Convex answers. */
-export function useTemplateLoader(actor: "maya" | "dev") {
+export function useTemplateLoader() {
   const router = useRouter();
   const load = useMutation(api.app.workspace.loadTemplate);
   const allowed = useQuery(api.app.workspace.templateSwitch, {})?.allowed;
@@ -24,7 +24,7 @@ export function useTemplateLoader(actor: "maya" | "dev") {
     setPending(company);
     setError(null);
     try {
-      await load({ company, actor });
+      await load({ company, actor: "dev" });
       router.push("/");
       router.refresh();
       return true;
@@ -39,8 +39,8 @@ export function useTemplateLoader(actor: "maya" | "dev") {
   return { allowed, pending, error, run };
 }
 
-export function TemplateSwitch({ company, name, current, actor }: { company: CompanyKey; name: string; current: boolean; actor: "maya" | "dev" }) {
-  const { allowed, pending, error, run } = useTemplateLoader(actor);
+export function TemplateSwitch({ company, name, current }: { company: CompanyKey; name: string; current: boolean }) {
+  const { allowed, pending, error, run } = useTemplateLoader();
 
   if (current) return <Button variant="secondary" size="sm" locked={`This workspace is ${name} now.`}>Loaded</Button>;
   if (allowed === false) {

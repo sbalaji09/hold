@@ -31,8 +31,6 @@ export interface BaseProposal {
 
 export interface Job<P extends BaseProposal> {
   key: JobKey;
-  /** Who approves a change that makes the job less careful. */
-  approver: "dev" | "maya";
   /** "fraud playbook", "inbox playbook": for the Activity log. */
   noun: string;
   schema: z.ZodType<P>;

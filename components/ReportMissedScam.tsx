@@ -7,7 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/callback";
 import { errorText } from "@/components/Playbook";
 
-export function ReportMissedScam({ billKey, actor }: { billKey: string; actor: "maya" | "dev" }): React.ReactElement {
+export function ReportMissedScam({ billKey }: { billKey: string }): React.ReactElement {
   const report = useMutation(api.app.techniques.reportMissedScam);
   const [open, setOpen] = React.useState(false);
   const [pending, setPending] = React.useState(false);
@@ -24,7 +24,7 @@ export function ReportMissedScam({ billKey, actor }: { billKey: string; actor: "
     setError(null);
     setPending(true);
     try {
-      const r = await report({ billKey, actor });
+      const r = await report({ billKey, actor: "dev" });
       setResult(r.key ? "hold is learning from this bill." : "hold is already learning from this bill.");
       setOpen(false);
     } catch (err) {

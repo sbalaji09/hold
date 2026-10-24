@@ -141,7 +141,7 @@ describe("a check call's result moves its bill", () => {
     expect(await h.t.run((ctx) => ctx.db.query("practiceScams").collect())).toHaveLength(0);
   });
 
-  test("no answer twice: Needs you, routed to Maya with the reason", async () => {
+  test("no answer twice: Needs you, routed to you with the reason", async () => {
     const h = harness();
     await h.seed();
     for (let i = 0; i < 2; i++) {
@@ -150,10 +150,10 @@ describe("a check call's result moves its bill", () => {
       await h.t.finishAllScheduledFunctions(vi.runAllTimers); // the retry requeue, then the bill
     }
     expect((await h.bill())!.status).toBe("Needs you");
-    expect((await h.approvals())[0]).toMatchObject({ routedTo: "maya", status: "pending" });
+    expect((await h.approvals())[0]).toMatchObject({ routedTo: "dev", status: "pending" });
   });
 
-  test("Maya taking over before the call connects: Needs you", async () => {
+  test("taking over before the call connects: Needs you", async () => {
     const h = harness();
     await h.seed();
     await h.t.mutation(api.voice.ui.requestTakeover, { call_id: "call_1" });
@@ -189,7 +189,7 @@ describe("a check call's result moves its bill", () => {
   test("a late result from an earlier call can't move the bill", async () => {
     const h = harness();
     await h.seed();
-    await h.addCall("call_2"); // Maya called again; call_1's result arrives afterwards
+    await h.addCall("call_2"); // called again; call_1's result arrives afterwards
     await h.finish("call_1", DENIAL);
     expect((await h.bill())!.status).toBe("Calling");
     expect((await h.activity())[0]!.why).toContain("A newer check call on this bill decides it");

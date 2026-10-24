@@ -354,7 +354,7 @@ describe("runOutboundCall", () => {
     expect(result.evidence[0]!.answer).toBe("It was $18,400.");
   });
 
-  it("hands off when Maya takes over", async () => {
+  it("hands off when the approver takes over", async () => {
     const store = new MemoryStore({ suppliers: [STAGE] });
     const request = stageRequest();
     store.addRequest(request);
@@ -370,7 +370,7 @@ describe("runOutboundCall", () => {
     const result = await runOutboundCall({ store, transport, request, prepared: PREPARED, llm });
 
     expect(result.outcome).toBe("handed_off");
-    expect(result.summary).toBe("Maya took over the call.");
+    expect(result.summary).toBe("You took over the call.");
     expect(await transport.ended).toBe("hangup");
     expect(store.requests.get("call_123")!.status).toBe("handed_off");
   });
@@ -429,13 +429,13 @@ describe("checking with a person mid-call", () => {
   const VAGUE = "About eighteen thousand, I think.";
   const DENIAL_LINE = "No, we never changed our bank.";
 
-  /** Maya replies to each ask_person event in turn, as the Live call screen would. */
-  function mayaReplies(store: MemoryStore, replies: Reply[]) {
+  /** The approver replies to each ask_person event in turn, as the Live call screen would. */
+  function approverReplies(store: MemoryStore, replies: Reply[]) {
     const append = store.appendEvent.bind(store);
     store.appendEvent = async (e) => {
       await append(e);
       const reply = e.type === "ask_person" ? replies.shift() : undefined;
-      if (e.type === "ask_person" && reply) setTimeout(() => store.answerAsk({ call_id: e.call_id, ask_id: e.ask_id, by: "maya", ...reply }), 5);
+      if (e.type === "ask_person" && reply) setTimeout(() => store.answerAsk({ call_id: e.call_id, ask_id: e.ask_id, by: "dev", ...reply }), 5);
     };
   }
 
@@ -456,15 +456,15 @@ describe("checking with a person mid-call", () => {
 
   const asks = (store: MemoryStore) => store.eventsFor("call_123").flatMap((e) => (e.type === "ask_person" ? [e] : []));
 
-  it("an unsure answer goes to Maya, and her verdict decides it; words said while on hold aren't taken as answers", async () => {
-    // "<over>" is said over hold's thanks, while it is about to check with Maya.
+  it("an unsure answer goes to the approver, whose verdict decides it; words said while on hold aren't taken as answers", async () => {
+    // "<over>" is said over hold's thanks, while it is about to check with the approver.
     const { store, run } = setupAsk([VAGUE, "<over>Sure, no problem.", DENIAL_LINE]);
-    mayaReplies(store, [{ verdict: "matches" }]);
+    approverReplies(store, [{ verdict: "matches" }]);
     const result = await run();
 
     expect(asks(store)).toMatchObject([{ ask: INVOICE_Q.ask, answer: VAGUE, expected: "$18,400.00", follow_up_allowed: true }]);
     expect(segments(store.eventsFor("call_123"), "callback")).toContain("One moment, I'm just checking that with the team.");
-    expect(result.evidence[0]).toMatchObject({ answer: VAGUE, matches: true, decided_by: "maya" });
+    expect(result.evidence[0]).toMatchObject({ answer: VAGUE, matches: true, decided_by: "dev" });
     expect(result.evidence[1]).toMatchObject({ ask: BANK_CHANGE_QUESTION, answer: DENIAL_LINE });
     expect(result.outcome).toBe("not_confirmed");
     expectNothingReadBack(store);
@@ -477,13 +477,13 @@ describe("checking with a person mid-call", () => {
     expect(result.evidence[0]).toMatchObject({ matches: false });
     expect(result.evidence[0]!.decided_by).toBeUndefined();
     // A late click can't count once hold moved on.
-    expect(store.answerAsk({ call_id: "call_123", ask_id: asks(store)[0]!.ask_id, verdict: "matches", by: "maya" })).toBe(false);
+    expect(store.answerAsk({ call_id: "call_123", ask_id: asks(store)[0]!.ask_id, verdict: "matches", by: "dev" })).toBe(false);
   });
 
-  it("Maya's follow-up is asked on the call and its answer comes back to her once", async () => {
+  it("the approver's follow-up is asked on the call and its answer comes back once", async () => {
     const FOLLOW_UP = "What was that invoice for?";
     const { store, run } = setupAsk([VAGUE, "The main-stage truss build.", "Yes, we moved banks last week."], { judge: judgeSays(true, true) });
-    mayaReplies(store, [{ verdict: "follow_up", follow_up: FOLLOW_UP }, { verdict: "matches" }]);
+    approverReplies(store, [{ verdict: "follow_up", follow_up: FOLLOW_UP }, { verdict: "matches" }]);
     const result = await run();
 
     expect(asks(store).map((a) => [a.ask, a.follow_up_allowed])).toEqual([
@@ -492,13 +492,13 @@ describe("checking with a person mid-call", () => {
     ]);
     expect(segments(store.eventsFor("call_123"), "callback")).toContain(FOLLOW_UP);
     expect(result.evidence).toHaveLength(2);
-    expect(result.evidence[0]).toMatchObject({ ask: FOLLOW_UP, answer: "The main-stage truss build.", decided_by: "maya", matches: true });
+    expect(result.evidence[0]).toMatchObject({ ask: FOLLOW_UP, answer: "The main-stage truss build.", decided_by: "dev", matches: true });
     expect(result.outcome).toBe("confirmed");
   });
 
-  it("Moss looks the answer up live: other records it sounds like reach the check and Maya, never the call", async () => {
+  it("Moss looks the answer up live: other records it sounds like reach the check and the approver, never the call", async () => {
     const { store, llm, run } = setupAsk([VAGUE, DENIAL_LINE], { search: new FakeSearch(STAGE_RECORDS) });
-    mayaReplies(store, [{ verdict: "matches" }]);
+    approverReplies(store, [{ verdict: "matches" }]);
     await run();
 
     const quick = llm.jsonCalls.find((c) => c.system.includes("You check one answer"))!;

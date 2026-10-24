@@ -13,8 +13,8 @@ import { formatPhone } from "@/components/voice/format";
 import { capitalise } from "@/components/RouteCorrection";
 import { ROUTE_WORDS, type Route } from "@/lib/triage";
 import {
-  PERSON_NAME,
   channelLabel,
+
   countWord,
   improvementMark,
   progressLine,
@@ -27,8 +27,8 @@ import {
   type Improvement,
 } from "@/lib/playbook";
 
-type Actor = "maya" | "dev";
 type Job = "fraud" | "triage";
+
 const jobOf = (r: { job?: Job }): Job => r.job ?? "fraud";
 
 // Same name-addressed reference app/practice/page.tsx uses for the Practice set.
@@ -142,12 +142,12 @@ const TEACH: Record<Job, { head: string; label: string; short: string; placehold
     label:
       "Describe a kind of email suppliers send and where it belongs. hold writes it up as a kind of email, replays it against the practice emails and paid invoices, and only adds it if nothing regresses.",
     short: "Describe the kind of email in a sentence or two so hold can learn it.",
-    placeholder: "Suppliers send a credit note when an order is cancelled. It isn't a bill to pay; Maya should see it so she can match it to the invoice...",
+    placeholder: "Suppliers send a credit note when an order is cancelled. It isn't a bill to pay; it should be seen so it can be matched to the invoice...",
     failed: "hold couldn't take that kind of email just now. Try again in a minute.",
   },
 };
 
-function TeachForm({ actor, job }: { actor: Actor; job: Job }): React.ReactElement {
+function TeachForm({ job }: { job: Job }): React.ReactElement {
   const words = TEACH[job];
   const teach = useMutation(api.app.techniques.teach);
   const [text, setText] = React.useState("");
@@ -166,7 +166,7 @@ function TeachForm({ actor, job }: { actor: Actor; job: Job }): React.ReactEleme
     setDone(false);
     setPending(true);
     try {
-      await teach({ description: text.trim(), actor, job });
+      await teach({ description: text.trim(), actor: "dev", job });
       setText("");
       setDone(true);
     } catch (err) {
@@ -180,7 +180,7 @@ function TeachForm({ actor, job }: { actor: Actor; job: Job }): React.ReactEleme
     <form onSubmit={onSubmit} className="cb-doc">
       <div className="cb-doc-head">
         <span>{words.head}</span>
-        <small>As {PERSON_NAME[actor]}</small>
+        <small>Your proposal</small>
       </div>
       <div className="pt-compose">
         <label htmlFor="teach-text" className="pt-small">
@@ -221,7 +221,7 @@ function TeachForm({ actor, job }: { actor: Actor; job: Job }): React.ReactEleme
 
 function ReplayTable({ cases, names }: { cases: NonNullable<Improvement["replay"]>["cases"]; names: Record<string, string> }) {
   // Fraud cases are flag/pass; triage cases are routes.
-  const word = (v: string) => ({ flag: "Flag", pass: "Pass", bill: "Bill", to_maya: "To Maya", file: "File" })[v] ?? v;
+  const word = (v: string) => ({ flag: "Flag", pass: "Pass", bill: "Bill", to_dev: "To you", file: "File" })[v] ?? v;
   return (
     <div className="mt-2 overflow-x-auto rounded-sm border border-line">
       <table className="w-full min-w-[520px] border-collapse text-left">
@@ -262,27 +262,16 @@ function ReplayTable({ cases, names }: { cases: NonNullable<Improvement["replay"
   );
 }
 
-function Decide({ impr, actor }: { impr: Improvement; actor: Actor }): React.ReactElement {
+function Decide({ impr }: { impr: Improvement }): React.ReactElement {
   const decide = useMutation(api.app.techniques.decideImprovement);
   const [pending, setPending] = React.useState<"approve" | "decline" | null>(null);
   const [error, setError] = React.useState<string | null>(null);
-
-  const triage = impr.job === "triage";
-  if (!triage && actor !== "dev") {
-    return (
-      <div className="pt-decide">
-        <Button variant="primary" size="sm" locked="Only Dev can approve a change that makes hold less strict.">
-          Approve change
-        </Button>
-      </div>
-    );
-  }
 
   async function go(decision: "approve" | "decline") {
     setError(null);
     setPending(decision);
     try {
-      await decide({ key: impr.key, decision, actor });
+      await decide({ key: impr.key, decision, actor: "dev" });
     } catch (err) {
       setError(errorText(err, "Couldn't record that decision. Try again."));
     } finally {
@@ -292,11 +281,7 @@ function Decide({ impr, actor }: { impr: Improvement; actor: Actor }): React.Rea
 
   return (
     <div className="pt-decide">
-      <p className="pt-small">
-        {triage
-          ? "This change files some email away where no one sees it, so it waits for Maya or Dev."
-          : "This change makes hold less strict, so it waits for you."}
-      </p>
+      <p className="pt-small">This change {impr.job === "triage" ? "files some email away where no one sees it" : "makes hold less strict"}, so it waits for you.</p>
       <div className="flex flex-wrap gap-2">
         <Button variant="primary" size="sm" disabled={pending !== null} onClick={() => go("approve")}>
           {pending === "approve" ? "Approving…" : "Approve change"}
@@ -314,7 +299,7 @@ function Decide({ impr, actor }: { impr: Improvement; actor: Actor }): React.Rea
   );
 }
 
-function ImprovementRow({ impr, actor, names }: { impr: Improvement; actor: Actor; names: Record<string, string> }) {
+function ImprovementRow({ impr, names }: { impr: Improvement; names: Record<string, string> }) {
   const by = triggerBy(impr.trigger);
   const p = impr.proposal;
   const progress = progressLine(impr);
@@ -364,7 +349,7 @@ function ImprovementRow({ impr, actor, names }: { impr: Improvement; actor: Acto
         <div className="mt-3 rounded-sm bg-surface-sunk px-3 py-2.5">
           <div className="cb-caps">
             {p.action === "refine" ? "Proposed refinement" : impr.job === "triage" ? "Proposed kind of email" : "Proposed technique"} &middot;{" "}
-            {impr.job === "triage" ? capitalise(ROUTE_WORDS[p.route ?? "to_maya"]) : channelLabel(p.channel)}
+            {impr.job === "triage" ? capitalise(ROUTE_WORDS[p.route ?? "to_dev"]) : channelLabel(p.channel)}
           </div>
           <p className="mt-1 text-[14px] font-semibold text-ink">{p.name}</p>
           <p className="mt-1 text-[13px]/[20px] text-ink">{p.howItWorks}</p>
@@ -384,14 +369,14 @@ function ImprovementRow({ impr, actor, names }: { impr: Improvement; actor: Acto
         </details>
       ) : null}
 
-      {impr.status === "needs_approval" ? <Decide impr={impr} actor={actor} /> : null}
+      {impr.status === "needs_approval" ? <Decide impr={impr} /> : null}
     </article>
   );
 }
 
 // ---------- the playbook ----------
 
-function Revert({ t, actor }: { t: FraudTechnique; actor: Actor }): React.ReactElement {
+function Revert({ t }: { t: FraudTechnique }): React.ReactElement {
   const revert = useMutation(api.app.techniques.revertTechnique);
   const [confirming, setConfirming] = React.useState(false);
   const [pending, setPending] = React.useState(false);
@@ -401,7 +386,7 @@ function Revert({ t, actor }: { t: FraudTechnique; actor: Actor }): React.ReactE
     setError(null);
     setPending(true);
     try {
-      await revert({ techniqueKey: t.key, actor });
+      await revert({ techniqueKey: t.key, actor: "dev" });
     } catch (err) {
       setError(errorText(err, "Couldn't revert it. Try again."));
       setPending(false);
@@ -442,12 +427,10 @@ function Revert({ t, actor }: { t: FraudTechnique; actor: Actor }): React.ReactE
 
 function TechniqueRow({
   t,
-  actor,
   improvements,
   names,
 }: {
   t: FraudTechnique;
-  actor: Actor;
   improvements: Improvement[];
   names: Record<string, string>;
 }) {
@@ -456,7 +439,7 @@ function TechniqueRow({
     <article id={t.key} className="grid scroll-mt-4 grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-[minmax(0,1fr)_auto] border-t border-line px-4 py-3.5 first:border-0" aria-label={t.name}>
       <div className="min-w-0">
         <h3 className="pt-strong text-ink">{t.name}</h3>
-        <p className="cb-caps mt-0.5">{t.job === "triage" ? capitalise(ROUTE_WORDS[t.route ?? "to_maya"]) : channelLabel(t.channel)}</p>
+        <p className="cb-caps mt-0.5">{t.job === "triage" ? capitalise(ROUTE_WORDS[t.route ?? "to_dev"]) : channelLabel(t.channel)}</p>
         <p className="mt-1 text-[13px]/[20px] text-ink">{t.howItWorks}</p>
         <Signals signals={t.signals} />
         <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-ink-muted">
@@ -473,7 +456,7 @@ function TechniqueRow({
       </div>
       {t.status === "active" && t.sourceKind !== "seed" ? (
         <div className="self-start">
-          <Revert t={t} actor={actor} />
+          <Revert t={t} />
         </div>
       ) : null}
     </article>
@@ -526,7 +509,7 @@ function useJobFromHash(rows: Array<{ key: string; job?: Job }> | undefined, job
   }, [rows, hash, job, setJob]);
 }
 
-function Learned({ actor }: { actor: Actor }): React.ReactElement {
+function Learned(): React.ReactElement {
   const data = useQuery(api.app.techniques.list, {});
   const names = useRecordNames(data?.practiceCalls ?? NO_CALLS, data?.practiceEmails ?? NO_CALLS);
   const [job, setJob] = React.useState<Job>("fraud");
@@ -561,7 +544,7 @@ function Learned({ actor }: { actor: Actor }): React.ReactElement {
       : `hold checks every incoming bill against ${techniqueCount(email, "email technique")} and every call to the phone line against ${techniqueCount(phone, "phone tactic")}`) +
     (learned ? `. ${countWord(learned)} of them ${learned === 1 ? "was" : "were"} learned here.` : ", all from the starting playbook.") +
     (working ? ` ${countWord(working)} ${working === 1 ? "change is" : "changes are"} replaying now.` : "") +
-    (waiting ? ` ${countWord(waiting)} ${waiting === 1 ? "waits" : "wait"} for ${triage ? "Maya" : "Dev"}.` : "");
+    (waiting ? ` ${countWord(waiting)} ${waiting === 1 ? "waits" : "wait"} for you.` : "");
 
   return (
     <>
@@ -576,7 +559,7 @@ function Learned({ actor }: { actor: Actor }): React.ReactElement {
 
       <p className="pt-sub">{sentence}</p>
 
-      <TeachForm key={job} actor={actor} job={job} />
+      <TeachForm key={job} job={job} />
 
       <section className="cb-doc" aria-labelledby="changes-head">
         <div className="cb-doc-head">
@@ -592,7 +575,7 @@ function Learned({ actor }: { actor: Actor }): React.ReactElement {
         ) : (
           <div>
             {improvements.map((i) => (
-              <ImprovementRow key={i.key} impr={i} actor={actor} names={names} />
+              <ImprovementRow key={i.key} impr={i} names={names} />
             ))}
           </div>
         )}
@@ -626,7 +609,7 @@ function Learned({ actor }: { actor: Actor }): React.ReactElement {
             ) : (
               <div>
                 {shown.map((t) => (
-                  <TechniqueRow key={t.key} t={t} actor={actor} improvements={improvements} names={names} />
+                  <TechniqueRow key={t.key} t={t} improvements={improvements} names={names} />
                 ))}
               </div>
             )}
@@ -639,7 +622,7 @@ function Learned({ actor }: { actor: Actor }): React.ReactElement {
             </summary>
             <div className="border-t border-line">
               {retired.map((t) => (
-                <TechniqueRow key={t.key} t={t} actor={actor} improvements={improvements} names={names} />
+                <TechniqueRow key={t.key} t={t} improvements={improvements} names={names} />
               ))}
             </div>
           </details>
@@ -670,24 +653,24 @@ export class LoadBoundary extends React.Component<{ children: React.ReactNode; w
   }
 }
 
-export function Playbook({ actor }: { actor: Actor }): React.ReactElement {
+export function Playbook(): React.ReactElement {
   return (
     <div id="learned" className="flex flex-col gap-4 px-6 pb-6">
       <h2 id="learned-head" className="font-serif text-[24px]/[30px] text-ink">
         What hold has learned
       </h2>
       <LoadBoundary>
-        <Learned actor={actor} />
+        <Learned />
       </LoadBoundary>
     </div>
   );
 }
 
 /**
- * Approvals screen: playbook changes that make hold less strict wait here for a person (Dev for
- * fraud, Maya or Dev for inbox sorting). Renders nothing when none are waiting.
+ * Approvals screen: playbook changes that make hold less strict wait here for you (fraud,
+ * inbox sorting). Renders nothing when none are waiting.
  */
-export function PlaybookApprovals({ actor }: { actor: Actor }): React.ReactElement | null {
+export function PlaybookApprovals(): React.ReactElement | null {
   const data = useQuery(api.app.techniques.list, {});
   const names = useRecordNames(data?.practiceCalls ?? NO_CALLS, data?.practiceEmails ?? NO_CALLS);
   const waiting = (data?.improvements ?? []).filter((i) => i.status === "needs_approval");
@@ -699,7 +682,7 @@ export function PlaybookApprovals({ actor }: { actor: Actor }): React.ReactEleme
         <small>{waiting.length}</small>
       </div>
       {waiting.map((i) => (
-        <ImprovementRow key={i.key} impr={i} actor={actor} names={names} />
+        <ImprovementRow key={i.key} impr={i} names={names} />
       ))}
     </section>
   );

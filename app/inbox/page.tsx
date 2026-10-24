@@ -9,7 +9,7 @@ import { INBOX_FILTERS, MESSAGE_MARK, STATUS_TO_MARK, UNSETTLED_STATUS, emailPre
 export const metadata = { title: "Inbox · hold" };
 
 const EMPTY: Record<string, string> = {
-  messages: "No messages from suppliers. hold sorts every supplier email, and anything for Maya lands here.",
+  messages: "No messages from suppliers. hold sorts every supplier email, and anything for you lands here.",
   filed: "Nothing filed yet. Emails hold files, and messages marked done, show up here.",
 };
 

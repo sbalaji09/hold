@@ -92,7 +92,7 @@ export function BackgroundCheckPanel({ supplierKey, lastCheck, autoRunning, onUs
               Use as trusted number
             </Button>
           ) : (
-            <Button size="sm" locked={`${co.dev.name} confirms numbers`}>
+            <Button size="sm" locked="Needs your confirmation">
               Use as trusted number
             </Button>
           )}

@@ -116,7 +116,7 @@ export function TryAScam({ onStart, onFail, onDone }: { onStart?: () => void; on
             </>
           ) : (
             <>
-              Sent. It isn&rsquo;t a bill: hold {result.status === "Filed" ? "filed it on the supplier record" : `sent it to ${co.maya.name} as a message`}.{" "}
+              Sent. It isn&rsquo;t a bill: hold {result.status === "Filed" ? "filed it on the supplier record" : "sent it to you as a message"}.{" "}
               {result.emailKey ? (
                 <Link href={`/messages/${encodeURIComponent(result.emailKey)}`} className="text-ink underline underline-offset-4">
                   Open the message

@@ -1,5 +1,4 @@
 {
-  "hero": "sup_stage",
   "suppliers": [
     {
       "key": "sup_stage",
@@ -5305,7 +5304,7 @@
       "billKey": "bill_4471",
       "direction": "out",
       "startedAt": "2026-09-03T16:00:00.000Z",
-      "summary": "Confirmed total and scope on September invoice #4471 (main-stage truss) before payment; supplier verified, Dev approved.",
+      "summary": "Confirmed total and scope on September invoice #4471 (main-stage truss) before payment; supplier verified, you approved.",
       "transcript": [
         {
           "speaker": "callback",
@@ -5357,7 +5356,7 @@
       "billKey": "bill_4141",
       "direction": "out",
       "startedAt": "2026-10-18T23:12:00.000Z",
-      "summary": "Tried the number on file to confirm the bank-change request; no answer, retried once, handed off to Maya.",
+      "summary": "Tried the number on file to confirm the bank-change request; no answer, retried once, handed off to you.",
       "transcript": [
         {
           "speaker": "callback",
@@ -5394,7 +5393,7 @@
       "billKey": "bill_4144",
       "direction": "out",
       "startedAt": "2026-10-18T01:36:00.000Z",
-      "summary": "Called the number on file about the bank-change request; supplier confirmed it wasn't theirs, flagged a look-alike domain, handed to Maya to block the sender.",
+      "summary": "Called the number on file about the bank-change request; supplier confirmed it wasn't theirs, flagged a look-alike domain, handed to you to block the sender.",
       "transcript": [
         {
           "speaker": "callback",
@@ -5415,7 +5414,7 @@
       "billKey": "bill_4145",
       "direction": "out",
       "startedAt": "2026-09-09T16:00:00.000Z",
-      "summary": "Verified the new US Bank account after Perimeter Pro's ownership change; supplier confirmed details, Dev approved the change.",
+      "summary": "Verified the new US Bank account after Perimeter Pro's ownership change; supplier confirmed details, you approved the change.",
       "transcript": [
         {
           "speaker": "callback",
@@ -5436,7 +5435,7 @@
       "billKey": "bill_4146",
       "direction": "out",
       "startedAt": "2026-08-15T16:00:00.000Z",
-      "summary": "Verified Horizon's new Bank of America account by phone before Dev approved the change.",
+      "summary": "Verified Horizon's new Bank of America account by phone before you approved the change.",
       "transcript": [
         {
           "speaker": "callback",
@@ -5457,7 +5456,7 @@
       "billKey": "bill_4147",
       "direction": "out",
       "startedAt": "2026-09-24T16:00:00.000Z",
-      "summary": "Verified SF Fence's new Silicon Valley Bank account by phone before Dev approved the change.",
+      "summary": "Verified SF Fence's new Silicon Valley Bank account by phone before you approved the change.",
       "transcript": [
         {
           "speaker": "callback",
@@ -5567,5 +5566,6 @@
         "new bank account"
       ]
     }
-  ]
+  ],
+  "hero": "sup_stage"
 }

@@ -60,8 +60,8 @@ export type CallEvent =
   | AskPersonEvent
   | PersonAnswerEvent;
 
-/** A person on the team, as the app names them. */
-export type Person = "maya" | "dev";
+/** The approver, the app's one human role, stored internally as the literal "dev". */
+export type Person = "dev";
 
 /**
  * hold couldn't judge an answer on its own and asked a person, mid-call. Shown on the Live call
@@ -170,5 +170,5 @@ export const INBOUND_GREETING =
 
 export const CALLBACK_PROMISE = "We'll call you back on the number we have.";
 
-/** Max dial attempts before handing off to Maya (first try + one retry). */
+/** Max dial attempts before handing off to the approver (first try + one retry). */
 export const MAX_ATTEMPTS = 2;

@@ -1,16 +1,9 @@
 // Who hold works for. One company per deployment; the settings row names which one (convex/app/company.ts).
-// Every screen, prompt, call script and rule reads its name, people, words and limits from here,
+// Every screen, prompt, call script and rule reads its name, words and limits from here,
 // so the same engine runs a festival's bills, a title company's closing wires or a clinic's payroll.
-// The role keys stay "maya" (the person who works the queue) and "dev" (the person who signs off).
+// Nobody is named: the one approver is the internal key "dev", never shown.
 
 export type CompanyKey = "fogline" | "bayline" | "harbor";
-
-export interface Person {
-  /** First name, as used in sentences: "Dev has to approve it." */
-  name: string;
-  full: string;
-  role: string;
-}
 
 export interface Noun {
   one: string;
@@ -43,8 +36,6 @@ export interface Company {
   categories: Record<string, string>;
   /** hold pays on its own below this; at or above it the approver signs off. */
   approvalLimitCents: number;
-  maya: Person;
-  dev: Person;
   /** For retry times and calling hours. */
   timeZone: string;
 }
@@ -69,8 +60,6 @@ const fogline: Company = {
   },
   categories: { stage: "Stage", sound: "Sound", security: "Security", agency: "Artist agencies", food: "Food", other: "Site services" },
   approvalLimitCents: 1_000_000,
-  maya: { name: "Maya", full: "Maya Lin", role: "Bookkeeper" },
-  dev: { name: "Dev", full: "Dev Okafor", role: "Controller" },
   timeZone: "America/Los_Angeles",
 };
 
@@ -95,8 +84,6 @@ const bayline: Company = {
   },
   categories: { seller: "Sellers", lender: "Loan payoffs", agent: "Agent commissions", vendor: "Closing vendors" },
   approvalLimitCents: 2_500_000,
-  maya: { name: "Lena", full: "Lena Park", role: "Escrow officer" },
-  dev: { name: "Marcus", full: "Marcus Hale", role: "Escrow manager" },
   timeZone: "America/Los_Angeles",
 };
 
@@ -121,8 +108,6 @@ const harbor: Company = {
   },
   categories: { nursing: "Nursing", clinicians: "Clinicians", front: "Front desk", facilities: "Facilities" },
   approvalLimitCents: 500_000,
-  maya: { name: "Jordan", full: "Jordan Reyes", role: "Payroll specialist" },
-  dev: { name: "Dana", full: "Dana Whitfield", role: "HR director" },
   timeZone: "America/Los_Angeles",
 };
 
@@ -141,11 +126,6 @@ export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** "Supplier", "Party", "Employee". */
 export const capital = (n: Noun) => ({ one: cap(n.one), many: cap(n.many) });
-
-/** The person signing off or working the queue, by role key. */
-export function person(co: Company, who: "maya" | "dev"): Person {
-  return co[who];
-}
 
 /** "es" -> "Spanish", for screens. Unknown codes come back as written. */
 export function languageName(code: string): string {

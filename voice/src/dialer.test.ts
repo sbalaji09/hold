@@ -240,8 +240,8 @@ describe("Dialer", () => {
     expect(h.store.results.has("call_1")).toBe(false); // the conversation's handed_off was dropped
   });
 
-  test("takeover during a live call redirects to Maya before the conversation layer reacts", async () => {
-    const h = setup({ mayaNumber: "+14155550100" });
+  test("takeover during a live call redirects to the approver before the conversation layer reacts", async () => {
+    const h = setup({ takeoverPhoneNumber: "+14155550100" });
     cleanup = () => h.store.dispose();
     h.store.addRequest(request());
     h.dialer.start();

@@ -33,7 +33,7 @@ const dialer = new Dialer({
   twilio,
   publicBaseUrl: config.PUBLIC_BASE_URL,
   fromNumber: config.TWILIO_PHONE_NUMBER,
-  mayaNumber: config.MAYA_PHONE_NUMBER,
+  takeoverPhoneNumber: config.TAKEOVER_PHONE_NUMBER,
   amd: config.TWILIO_AMD,
   ringTimeoutS: config.TWILIO_RING_TIMEOUT_S,
   prepare: prepareOutboundCall,

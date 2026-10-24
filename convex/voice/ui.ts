@@ -3,8 +3,6 @@
 // TODO(auth): these are public until the app adds team login; then guard them with ctx.auth.
 import { ConvexError, v } from "convex/values";
 import { mentionsBankDetails } from "../../shared/contract.js";
-import { person } from "../../lib/company.js";
-import { getCompany } from "../app/company.js";
 import type { Doc } from "../_generated/dataModel.js";
 import { mutation, query } from "../_generated/server.js";
 import { getSupplierContact } from "./records.js";
@@ -101,7 +99,7 @@ export const requestTakeover = mutation({
 const FOLLOW_UP_MAX = 200;
 
 /**
- * Maya or Dev answers hold's mid-call question on the Live call screen. The first reply wins; one
+ * The approver answers hold's mid-call question on the Live call screen. The first reply wins; one
  * that comes after hold stopped waiting is refused with the reason, so a late click never counts.
  */
 export const answerAsk = mutation({
@@ -110,7 +108,7 @@ export const answerAsk = mutation({
     ask_id: v.string(),
     verdict: v.union(v.literal("matches"), v.literal("no_match"), v.literal("follow_up")),
     follow_up: v.optional(v.string()),
-    actor: v.union(v.literal("maya"), v.literal("dev")),
+    actor: v.literal("dev"),
   },
   handler: async (ctx, { call_id, ask_id, verdict, follow_up, actor }) => {
     const request = await findRequest(ctx, call_id);
@@ -139,7 +137,6 @@ export const answerAsk = mutation({
       by: actor,
       ...(verdict === "follow_up" ? { follow_up: line } : {}),
     });
-    const who = person(await getCompany(ctx), actor);
     const said =
       verdict === "follow_up"
         ? `Asked hold to follow up with "${line}".`
@@ -147,7 +144,7 @@ export const answerAsk = mutation({
     await ctx.db.insert("activity", {
       key: `act_${crypto.randomUUID()}`,
       actor,
-      what: `${who.name} answered hold during a check call`,
+      what: "You answered hold during a check call",
       why: said,
       refKind: "bill",
       refKey: request.bill_id,

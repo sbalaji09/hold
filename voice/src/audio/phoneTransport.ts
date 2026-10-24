@@ -171,7 +171,7 @@ export class PhoneTransport implements CallTransport {
     this.finish("dropped");
   }
 
-  /** Call before redirecting the call to Maya, so the stream stop that follows reads as a takeover. */
+  /** Call before redirecting the call to the approver, so the stream stop that follows reads as a takeover. */
   markTakeover() {
     this.finish("takeover");
   }

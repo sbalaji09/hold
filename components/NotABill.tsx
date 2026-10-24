@@ -9,7 +9,7 @@ import { RouteCorrection } from "@/components/RouteCorrection";
 import { ROUTE_WORDS } from "@/lib/triage";
 import { useCompany } from "@/lib/useCompany";
 
-export function NotABill({ billKey, supplier, actor }: { billKey: string; supplier: string; actor: "maya" | "dev" }): React.ReactElement {
+export function NotABill({ billKey, supplier }: { billKey: string; supplier: string }): React.ReactElement {
   const notABill = useMutation(api.app.triage.notABill);
   const co = useCompany();
   const router = useRouter();
@@ -18,13 +18,13 @@ export function NotABill({ billKey, supplier, actor }: { billKey: string; suppli
       id="not-a-bill"
       label={`Not a ${co.bill.one}`}
       intro="hold holds this bill so it can't be paid. Where does the email belong?"
-      options={["to_maya", "file"]}
+      options={["to_dev", "file"]}
       consequence={(r) =>
-        `${r === "file" ? `It's filed on ${supplier}'s record.` : `It's kept as a message for ${co.maya.name}.`} hold learns from the correction and replays it before it changes how it sorts.`
+        `${r === "file" ? `It's filed on ${supplier}'s record.` : "It's kept as a message for you."} hold learns from the correction and replays it before it changes how it sorts.`
       }
       confirmLabel="Hold it"
       onMove={async (r) => {
-        const res = await notABill({ billKey, route: r, actor });
+        const res = await notABill({ billKey, route: r, actor: "dev" });
         router.refresh();
         return (
           <>

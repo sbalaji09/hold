@@ -8,7 +8,7 @@ const clean = { hasAmount: false, fraudFlagged: false };
 
 describe("routeEmail", () => {
   test("follows the kind's route for an ordinary email", () => {
-    expect(routeEmail(judged("Schedule or logistics update"), kinds, clean)).toMatchObject({ route: "to_maya", kindName: "Schedule or logistics update" });
+    expect(routeEmail(judged("Schedule or logistics update"), kinds, clean)).toMatchObject({ route: "to_dev", kindName: "Schedule or logistics update" });
     expect(routeEmail(judged("Document for the file"), kinds, clean).route).toBe("file");
     expect(routeEmail(judged("Invoice"), kinds, { hasAmount: true, fraudFlagged: false }).route).toBe("bill");
   });
@@ -19,23 +19,23 @@ describe("routeEmail", () => {
     expect(r.why).toContain("fraud check flagged it");
   });
 
-  test("an invoice with no amount goes to Maya instead of becoming a $0 bill", () => {
-    expect(routeEmail(judged("Invoice"), kinds, clean)).toMatchObject({ route: "to_maya" });
+  test("an invoice with no amount goes to the approver instead of becoming a $0 bill", () => {
+    expect(routeEmail(judged("Invoice"), kinds, clean)).toMatchObject({ route: "to_dev" });
   });
 
   test("an email that mentions money is never filed away unseen", () => {
-    expect(routeEmail(judged("Newsletter or announcement"), kinds, { hasAmount: true, fraudFlagged: false }).route).toBe("to_maya");
+    expect(routeEmail(judged("Newsletter or announcement"), kinds, { hasAmount: true, fraudFlagged: false }).route).toBe("to_dev");
   });
 
-  test("a kind hold doesn't know goes to Maya with the reason", () => {
+  test("a kind hold doesn't know goes to the approver with the reason", () => {
     const r = routeEmail({ kindKey: "", why: "", quote: "" }, kinds, clean);
-    expect(r).toMatchObject({ route: "to_maya", kindName: "Unknown kind" });
+    expect(r).toMatchObject({ route: "to_dev", kindName: "Unknown kind" });
     expect(r.why).toContain("doesn't match any kind");
   });
 });
 
 test("the starting kinds and practice emails are distinct and cover every route", () => {
   expect(new Set(SEED_EMAIL_KINDS.map((k) => k.name)).size).toBe(SEED_EMAIL_KINDS.length);
-  expect(new Set(SEED_EMAIL_KINDS.map((k) => k.route))).toEqual(new Set(["bill", "to_maya", "file"]));
-  expect(new Set(SEED_PRACTICE_EMAILS.map((e) => e.expected))).toEqual(new Set(["bill", "to_maya", "file"]));
+  expect(new Set(SEED_EMAIL_KINDS.map((k) => k.route))).toEqual(new Set(["bill", "to_dev", "file"]));
+  expect(new Set(SEED_PRACTICE_EMAILS.map((e) => e.expected))).toEqual(new Set(["bill", "to_dev", "file"]));
 });

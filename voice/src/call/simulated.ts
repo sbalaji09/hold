@@ -5,20 +5,20 @@ import { MODELS, type ChatMessage, type LLM } from "./llm.js";
 import type { CallTransport, EndReason, SayResult, Utterance } from "./transport.js";
 import { companyFor, languageName, type Company } from "../../../lib/company.js";
 
-export type SupplierPersona = "real" | "scammer";
+export type SupplierRole = "real" | "scammer";
 
 export interface SimulatedTransportOptions {
   request: CallRequest;
   /** "real" knows the true history and never changed banks; "scammer" doesn't, and pushes the new account. */
-  persona?: SupplierPersona;
-  /** Plays the persona. Required unless `script` is given. */
+  role?: SupplierRole;
+  /** Plays the role. Required unless `script` is given. */
   llm?: LLM;
   supplierName?: string;
   /** Who is calling. Absent = Fogline. */
   company?: Company;
   /** The payee's language: they answer in it. Absent = English. */
   language?: string;
-  /** The supplier's true history, which only the "real" persona sees. */
+  /** The supplier's true history, which only the "real" role sees. */
   records?: SupplierRecord[];
   /**
    * Scripted mode (tests): one entry per listen(). Special entries:
@@ -31,7 +31,7 @@ export interface SimulatedTransportOptions {
 
 const SECONDS_PER_WORD = 0.38;
 const REPLY_GAP_S = 0.6;
-const MAX_PERSONA_TURNS = 20;
+const MAX_ROLE_TURNS = 20;
 
 export class SimulatedTransport implements CallTransport {
   readonly ended: Promise<EndReason>;
@@ -43,7 +43,7 @@ export class SimulatedTransport implements CallTransport {
   private clock = 0;
   private readonly queue: Utterance[] = [];
   private readonly script: string[] | null;
-  private personaTurns = 0;
+  private roleTurns = 0;
   private hangupAfterReply = false;
 
   constructor(private readonly opts: SimulatedTransportOptions) {
@@ -95,7 +95,7 @@ export class SimulatedTransport implements CallTransport {
     if (this.endReason) return null;
     if (this.hangupAfterReply) return this.end("hangup");
 
-    const reply = this.script ? this.script.shift() : await this.personaReply();
+    const reply = this.script ? this.script.shift() : await this.supplierReply();
     if (reply === undefined || reply === "<hangup>") return this.end("hangup");
     if (reply === "<drop>") return this.end("dropped");
     if (reply === "<silence>" || reply.trim() === "") {
@@ -122,8 +122,8 @@ export class SimulatedTransport implements CallTransport {
   }
 
   /** Next line from the Claude-played supplier; "<hangup>" when they're done, "" (silence) if Claude fails. */
-  private async personaReply(): Promise<string> {
-    if (++this.personaTurns > MAX_PERSONA_TURNS) return "<hangup>";
+  private async supplierReply(): Promise<string> {
+    if (++this.roleTurns > MAX_ROLE_TURNS) return "<hangup>";
     // From the supplier's side: Callback's words are the user turns.
     const messages: ChatMessage[] = [];
     for (const entry of this.log) {
@@ -135,9 +135,9 @@ export class SimulatedTransport implements CallTransport {
     if (messages[0]?.role !== "user") messages.unshift({ role: "user", content: "(Your phone rings and you answer.)" });
     let text = "";
     try {
-      for await (const chunk of this.opts.llm!.streamText({ model: MODELS.fast, system: this.personaPrompt(), messages, maxTokens: 120 })) text += chunk;
+      for await (const chunk of this.opts.llm!.streamText({ model: MODELS.fast, system: this.supplierPrompt(), messages, maxTokens: 120 })) text += chunk;
     } catch (err) {
-      console.error("[simulated] persona reply failed:", err);
+      console.error("[simulated] role reply failed:", err);
       return "";
     }
     if (!/<hangup>/i.test(text)) return text.trim();
@@ -148,12 +148,12 @@ export class SimulatedTransport implements CallTransport {
     return spoken;
   }
 
-  private personaPrompt(): string {
+  private supplierPrompt(): string {
     const co = this.opts.company ?? companyFor(undefined);
     const name = this.opts.supplierName ?? `the ${co.payee.one}`;
     const who = co.payee.one === "supplier" ? `someone at ${name}, a supplier to ${co.about}` : `${name}, one of the ${co.payee.many} of ${co.about}`;
     const common = `You are on a phone call, playing ${who}. An automated assistant from ${co.owner} ${co.team} has called you. Speak like a real person on the phone, in ${languageName(this.opts.language ?? "en")}: one or two short sentences, no lists, no stage directions. When the caller says goodbye, say a brief goodbye and then write <hangup>.`;
-    if ((this.opts.persona ?? "real") === "real") {
+    if ((this.opts.role ?? "real") === "real") {
       const history = (this.opts.records ?? [])
         .map((r) => `- ${r.ref} (${r.kind}, ${r.date})${r.amount_cents === undefined ? "" : ` $${(r.amount_cents / 100).toFixed(2)}`}: ${r.text}`)
         .join("\n");

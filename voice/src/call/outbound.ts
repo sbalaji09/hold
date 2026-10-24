@@ -44,7 +44,7 @@ export const OUTBOUND_LIMITS = {
   maxCallSeconds: 300,
   questionTimeoutMs: 12_000, // Claude question building, while the phone rings
   quickJudgeTimeoutMs: 3_000, // "is this answer unsure?", while the thanks plays
-  personTimeoutMs: 20_000, // waiting on Maya mid-call, then hold judges strictly on its own
+  personTimeoutMs: 20_000, // waiting on the approver mid-call, then hold judges strictly on its own
 } as const;
 
 
@@ -325,7 +325,7 @@ export async function runOutboundCall(deps: OutboundCallDeps): Promise<CallResul
       call_id: request.call_id,
       outcome: "handed_off",
       evidence: [],
-      summary: `hold hit an error during the call, so ${co.maya.name} should follow up by hand.`,
+      summary: "hold hit an error during the call, so you should follow up by hand.",
     };
   } finally {
     unwatch();
@@ -575,7 +575,7 @@ export function nearMiss(expected: string, answer: string): boolean {
 }
 
 /**
- * Asks Maya (or Dev) to judge an answer while the supplier holds. Their verdict decides the answer;
+ * Asks the approver to judge an answer while the supplier holds. Their verdict decides the answer;
  * a follow-up question they write is asked on the call and its answer comes back to them once.
  * With no reply in time, the answer stays with hold's own (strict) judgment.
  */
@@ -611,7 +611,7 @@ async function checkWithPerson(
     // Whatever they said while on hold ("sure", "hello?") is not an answer to what comes next.
     session.ignoreHeardBefore(session.transport.elapsed());
     if (reply && (reply.verdict === "matches" || reply.verdict === "no_match")) {
-      answer.decidedBy = { by: reply.by ?? "maya", matches: reply.verdict === "matches" };
+      answer.decidedBy = { by: reply.by ?? "dev", matches: reply.verdict === "matches" };
     }
     if (!reply || reply.verdict !== "follow_up" || !reply.follow_up || round > 0) {
       await session.say(L.thanksForWaiting);
@@ -757,7 +757,7 @@ async function decide(call_id: string, prepared: PreparedCall, convo: Conversati
   const progress = `after ${convo.answers.length} of ${total} question${total === 1 ? "" : "s"} were answered`;
   const reason = session.endReason;
 
-  if (reason === "takeover") return { ...base, outcome: "handed_off", summary: `${co.maya.name} took over the call.` };
+  if (reason === "takeover") return { ...base, outcome: "handed_off", summary: "You took over the call." };
 
   const denied = Boolean(denial || bankAnswerDenial);
   const endedEarly = !convo.completed;

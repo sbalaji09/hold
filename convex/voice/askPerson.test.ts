@@ -33,7 +33,7 @@ async function setup(status: "in_progress" | "done" = "in_progress") {
     await ctx.db.insert("callEvents", ASK);
   });
   const answer = (args: { verdict: "matches" | "no_match" | "follow_up"; follow_up?: string; ask_id?: string }) =>
-    t.mutation(api.voice.ui.answerAsk, { call_id: "call_1", ask_id: ASK.ask_id, actor: "maya", ...args });
+    t.mutation(api.voice.ui.answerAsk, { call_id: "call_1", ask_id: ASK.ask_id, actor: "dev", ...args });
   const replies = () => t.run(async (ctx) => (await ctx.db.query("callEvents").collect()).filter((e) => e.type === "person_answer"));
   return { t, answer, replies };
 }
@@ -42,12 +42,12 @@ beforeEach(() => vi.stubEnv("VOICE_SERVER_SECRET", SECRET));
 afterEach(() => vi.unstubAllEnvs());
 
 describe("answerAsk", () => {
-  test("records Maya's verdict for voice and logs it on the bill", async () => {
+  test("records the approver's verdict for voice and logs it on the bill", async () => {
     const { t, answer, replies } = await setup();
     await answer({ verdict: "matches" });
-    expect(await replies()).toMatchObject([{ ask_id: ASK.ask_id, verdict: "matches", by: "maya" }]);
+    expect(await replies()).toMatchObject([{ ask_id: ASK.ask_id, verdict: "matches", by: "dev" }]);
     const [log] = await t.run((ctx) => ctx.db.query("activity").collect());
-    expect(log).toMatchObject({ actor: "maya", refKind: "bill", refKey: "bill_4471" });
+    expect(log).toMatchObject({ actor: "dev", refKind: "bill", refKey: "bill_4471" });
     expect(log!.why).toContain("matches the records (#4471)");
     expect(await t.query(api.voice.server.personAnswer, { secret: SECRET, call_id: "call_1", ask_id: ASK.ask_id })).toMatchObject({ verdict: "matches" });
   });

@@ -1,15 +1,14 @@
 import * as React from "react";
 import { Amount } from "@/components/callback";
 import { TemplateSwitch } from "@/components/TemplateSwitch";
-import { COMPANIES, cap, capital, inSentence } from "@/lib/company";
+import { COMPANIES, cap, capital } from "@/lib/company";
 import { getCompany } from "@/lib/data";
-import { getPersona } from "@/lib/persona";
 
 export const metadata = { title: "Workspace · hold" };
 
 /** Who hold works for, and the other company templates the same engine runs. */
 export default async function WorkspacePage(): Promise<React.ReactElement> {
-  const [co, persona] = await Promise.all([getCompany(), getPersona()]);
+  const co = await getCompany();
 
   return (
     <div className="flex flex-col gap-4">
@@ -39,16 +38,11 @@ export default async function WorkspacePage(): Promise<React.ReactElement> {
                 </dd>
                 <dt className="cb-caps pt-0.5">Signs off</dt>
                 <dd className="m-0 text-ink">
-                  <span className="font-serif italic text-signatory">{c.dev.full}</span>, {inSentence(c.dev.role)}, on {c.bill.many} of{" "}
-                  <Amount cents={c.approvalLimitCents} /> or more
-                </dd>
-                <dt className="cb-caps pt-0.5">Works the queue</dt>
-                <dd className="m-0 text-ink">
-                  <span className="font-serif italic text-signatory">{c.maya.full}</span>, {inSentence(c.maya.role)}
+                  Your approval, on {c.bill.many} of <Amount cents={c.approvalLimitCents} /> or more
                 </dd>
               </dl>
               <div className="mt-auto pt-2">
-                <TemplateSwitch company={c.key} name={c.name} current={c.key === co.key} actor={persona} />
+                <TemplateSwitch company={c.key} name={c.name} current={c.key === co.key} />
               </div>
             </div>
           </article>

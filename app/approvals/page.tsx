@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { getPersona } from "@/lib/persona";
 import { countPlaybookApprovals, getCompany, listApprovals } from "@/lib/data";
-import { capital, inSentence, wholeDollars } from "@/lib/company";
+import { capital, wholeDollars } from "@/lib/company";
 import { CHECK_RESULT, citeLabel } from "@/lib/bill";
 import { shortDate } from "@/lib/inbox";
 import { Amount, AccountLine, CheckRow } from "@/components/callback";
@@ -17,7 +16,7 @@ const kindLabel = (kind: ApprovalKind, limitCents: number): string =>
 const CHECK_ORDER: Record<CheckState, number> = { flag: 0, info: 1, pass: 2 };
 
 export default async function ApprovalsPage() {
-  const [approvals, changes, persona, co] = await Promise.all([listApprovals(), countPlaybookApprovals(), getPersona(), getCompany()]);
+  const [approvals, changes, co] = await Promise.all([listApprovals(), countPlaybookApprovals(), getCompany()]);
   const waiting = approvals.length + changes;
 
   return (
@@ -25,13 +24,11 @@ export default async function ApprovalsPage() {
       <div>
         <h1 className="cb-display text-ink">Approvals</h1>
         <p className="mt-1 text-[13px] text-ink-muted">
-          {persona === "dev"
-            ? `Signed in as ${co.dev.full}, ${inSentence(co.dev.role)}. ${waiting} waiting on your sign-off.`
-            : `Signed in as ${co.maya.full}, ${inSentence(co.maya.role)}. ${waiting} waiting. Payments need ${co.dev.name}'s sign-off; you can read and reply.`}
+          {waiting} waiting on your approval.
         </p>
       </div>
 
-      <PlaybookApprovals actor={persona} />
+      <PlaybookApprovals />
 
       {waiting === 0 ? (
         <div className="cb-doc p-6 text-[13px] text-ink-muted">
@@ -85,7 +82,7 @@ export default async function ApprovalsPage() {
                         />
                       </div>
                     </div>
-                    <PushbackThread actor={persona} approval={approval} />
+                    <PushbackThread approval={approval} />
                   </div>
                 </div>
               </article>

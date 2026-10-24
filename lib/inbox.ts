@@ -25,7 +25,7 @@ export const UNSETTLED_STATUS: Record<DataBillStatus, boolean> = {
 };
 
 /**
- * What the Inbox shows: a bill status, Maya's open messages from suppliers, or the quiet view of
+ * What the Inbox shows: a bill status, your open messages from suppliers, or the quiet view of
  * messages that are done or filed. Absent = everything open: every bill plus open messages.
  */
 export type InboxView = DataBillStatus | "messages" | "filed";
@@ -74,7 +74,7 @@ export function inboxItems<B extends { status: DataBillStatus; receivedAt: strin
   return items.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
 }
 
-/** A message's mark: open ones are Maya's turn; done and filed ones are settled, so grey. */
+/** A message's mark: open ones are waiting on you; done and filed ones are settled, so grey. */
 export const MESSAGE_MARK: Record<"open" | "done" | "filed", { status: BillStatus; label: string }> = {
   open: { status: "needs-you", label: "Needs you" },
   done: { status: "paid", label: "Done" },

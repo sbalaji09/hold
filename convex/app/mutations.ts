@@ -1,5 +1,5 @@
-// Server-side actions a bookkeeper (or Callback itself) can take on a bill, plus Dev's approve/
-// reject. Every rule from lib/policy.ts is enforced here, not just in the UI, and every attempt —
+// Server-side actions Callback or the approver can take on a bill, including approve/reject.
+// Every rule from lib/policy.ts is enforced here, not just in the UI, and every attempt —
 // refused or not — writes an activity row with the reason. requestCall writes a callRequests row
 // per plan-agent.md's "Interface contract" §1 (to_number only from the supplier's trusted phone;
 // voice owns everything downstream of that row).
@@ -15,7 +15,7 @@ import { getCompany } from "./company.js";
 import { wholeDollars } from "../../lib/company.js";
 import { routeEscalation } from "./checks.js";
 
-const actorValidator = v.union(v.literal("callback"), v.literal("maya"), v.literal("dev"));
+const actorValidator = v.union(v.literal("callback"), v.literal("dev"));
 
 async function requireBillRow(ctx: MutationCtx, billKey: string): Promise<Doc<"bills">> {
   const row = await ctx.db
@@ -64,7 +64,7 @@ export const payBill = mutation({
     const watchOnly = await getWatchOnlySetting(ctx);
     const co = await getCompany(ctx);
     const result = canPay(bill, watchOnly, co);
-    if (!result.allowed) return refuse(ctx, "maya", "pay", result.reason!, billKey);
+    if (!result.allowed) return refuse(ctx, "dev", "pay", result.reason!, billKey);
     await ctx.db.patch(row._id, { status: "Scheduled" });
     await logActivity(ctx, "callback", "scheduled payment", `Amount was under ${wholeDollars(co.approvalLimitCents)} and every check passed.`, "bill", billKey);
   },
@@ -79,7 +79,7 @@ export const holdBill = mutation({
     const row = await requireBillRow(ctx, billKey);
     const bill = await hydrateBill(ctx, row);
     const result = canHold(bill);
-    if (!result.allowed) return refuse(ctx, "maya", "hold", result.reason!, billKey);
+    if (!result.allowed) return refuse(ctx, "dev", "hold", result.reason!, billKey);
     await holdRow(ctx, row, bill, reason);
   },
 });
@@ -123,7 +123,7 @@ export const requestCall = mutation({
     const row = await requireBillRow(ctx, billKey);
     const bill = await hydrateBill(ctx, row);
     const result = canCall(bill);
-    if (!result.allowed) return refuse(ctx, "maya", "call supplier", result.reason!, billKey);
+    if (!result.allowed) return refuse(ctx, "dev", "call supplier", result.reason!, billKey);
 
     const supplier = await ctx.db
       .query("suppliers")
@@ -131,7 +131,7 @@ export const requestCall = mutation({
       .unique();
     if (!supplier) throw new ConvexError(`Unknown supplier ${bill.supplierKey}`);
     if (!supplier.trustedPhone) {
-      return refuse(ctx, "maya", "call supplier", "No number on file yet. Run the background check and confirm a number first.", billKey);
+      return refuse(ctx, "dev", "call supplier", "No number on file yet. Run the background check and confirm a number first.", billKey);
     }
 
     // A call is already in flight for this bill: don't queue a second one, just hand back the
@@ -154,7 +154,7 @@ export const requestCall = mutation({
       supplier_id: supplier.key,
       to_number: supplier.trustedPhone,
       number_source: "on_file",
-      reason: reason.length > 0 ? reason : [`${co.maya.name} asked to confirm this ${co.bill.one}`],
+      reason: reason.length > 0 ? reason : [`Confirming this ${co.bill.one}`],
       status: "queued",
       attempt: 0,
       mode: "live",
@@ -164,7 +164,7 @@ export const requestCall = mutation({
       ctx,
       "callback",
       `called ${supplier.name} to verify this ${co.bill.one}`,
-      reason.length > 0 ? reason.join("; ") : `${co.maya.name} asked to confirm this ${co.bill.one}.`,
+      reason.length > 0 ? reason.join("; ") : `Confirming this ${co.bill.one}.`,
       "bill",
       billKey,
     );
@@ -173,8 +173,7 @@ export const requestCall = mutation({
 });
 
 /**
- * Dev or Maya decides a pending approval (big payment, held payment or bank change). Only Dev can
- * approve: Maya can see and discuss, never sign off (plan-agent.md "Decision and limits").
+ * Decides a pending approval (big payment, held payment or bank change).
  * Approving a held/bank-change bill also runs canRelease: a bank change needs a confirmed call.
  * `actor` accepts "callback" too, even though the UI never sends it, so the server (not just the
  * mutation's own type) is what refuses a self-approval.
@@ -197,9 +196,6 @@ export const decideApproval = mutation({
     const co = await getCompany(ctx);
     const approveCheck = canApprove(actor, "callback", co);
     if (!approveCheck.allowed) return refuse(ctx, actor, "approve", approveCheck.reason!, billKey);
-    if (actor !== "dev") {
-      return refuse(ctx, actor, "approve", `${co.maya.name} can't approve this. ${co.dev.name} has to sign off.`, billKey);
-    }
 
     const row = await requireBillRow(ctx, billKey);
     const bill = await hydrateBill(ctx, row);
@@ -255,11 +251,11 @@ export const decideApproval = mutation({
   },
 });
 
-/** Maya or Dev flips the global Watch only setting from the Payments page. On: Callback still
+/** Flips the global Watch only setting from the Payments page. On: Callback still
  * checks, flags and calls, but payBill/runPayments/decideApproval-approve refuse to move money
  * (lib/policy.ts's canMoveMoney). Logged to activity either way. */
 export const setWatchOnly = mutation({
-  args: { watchOnly: v.boolean(), actor: v.union(v.literal("maya"), v.literal("dev")) },
+  args: { watchOnly: v.boolean(), actor: v.literal("dev") },
   handler: async (ctx, { watchOnly, actor }) => {
     const row = await ctx.db
       .query("settings")

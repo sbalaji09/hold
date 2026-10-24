@@ -101,7 +101,7 @@ describe("callView", () => {
     expect(callView(call(req({ status: "done" }), [], res("not_confirmed")))).toEqual({ line: "not-confirmed", active: false });
     expect(callView(call(req({ status: "handed_off" }), [], res("handed_off")))).toMatchObject({
       label: "Handed off",
-      note: "Handed off to Maya.",
+      note: "Handed off to you.",
       active: false,
     });
   });
@@ -115,21 +115,21 @@ describe("callView", () => {
     expect(callView(call(req({ status: "queued", attempt: 1 }), noAnswer)).label).toBe("Calling again");
     expect(callView(call(req({ status: "handed_off" }), [...noAnswer, ...noAnswer], res("handed_off")))).toMatchObject({
       line: "no-answer",
-      note: "No answer after the retry. Handed off to Maya.",
+      note: "No answer after the retry. Handed off to you.",
     });
   });
 
   it("says when and where the line dropped", () => {
     const events = [status("in_progress", T), status("dropped", T + 48_000)];
     expect(callView(call(req({ status: "in_progress" }), events))).toEqual({ line: "dropped", note: "Line dropped at 00:48.", active: false });
-    expect(callView(call(req({ status: "handed_off" }), events, res("handed_off"))).note).toBe("Line dropped at 00:48. Handed off to Maya.");
+    expect(callView(call(req({ status: "handed_off" }), events, res("handed_off"))).note).toBe("Line dropped at 00:48. Handed off to you.");
   });
 
   it("shows a takeover", () => {
     expect(callView(call(req({ status: "in_progress", takeover_requested: true })))).toMatchObject({ label: "Ending call", active: false });
     expect(callView(call(req({ status: "handed_off", takeover_requested: true }), [], res("handed_off")))).toMatchObject({
       label: "Taken over",
-      note: "Maya took over the call.",
+      note: "You took over the call.",
     });
   });
 

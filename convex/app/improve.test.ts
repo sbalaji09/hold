@@ -87,7 +87,7 @@ describe("hold learns from a scam it missed", () => {
     await seed(t, { body: PORTAL_SCAM });
     fake.proposals = [proposal(["payment portal"])];
 
-    await t.mutation(api.app.techniques.reportMissedScam, { billKey: "bill_trigger", actor: "maya" });
+    await t.mutation(api.app.techniques.reportMissedScam, { billKey: "bill_trigger", actor: "dev" });
     await t.finishAllScheduledFunctions(vi.runAllTimers);
 
     const [impr] = await improvements(t);
@@ -119,7 +119,7 @@ describe("hold learns from a scam it missed", () => {
     await seed(t, { body: PORTAL_SCAM });
     fake.proposals = [proposal(["invoice"]), proposal(["invoice"])];
 
-    await t.mutation(api.app.techniques.reportMissedScam, { billKey: "bill_trigger", actor: "maya" });
+    await t.mutation(api.app.techniques.reportMissedScam, { billKey: "bill_trigger", actor: "dev" });
     await t.finishAllScheduledFunctions(vi.runAllTimers);
 
     const [impr] = await improvements(t);
@@ -131,8 +131,8 @@ describe("hold learns from a scam it missed", () => {
   test("Callback can't report or teach on its own", async () => {
     const t = convexTest(schema, modules);
     await seed(t, { body: PORTAL_SCAM });
-    await expect(t.mutation(api.app.techniques.reportMissedScam, { billKey: "bill_trigger", actor: "callback" })).rejects.toThrow("Maya or Dev");
-    await expect(t.mutation(api.app.techniques.teach, { description: "Scammers now ask for payment through a portal link.", actor: "callback" })).rejects.toThrow("Maya or Dev");
+    await expect(t.mutation(api.app.techniques.reportMissedScam, { billKey: "bill_trigger", actor: "callback" })).rejects.toThrow("Callback can't report a missed scam on its own.");
+    await expect(t.mutation(api.app.techniques.teach, { description: "Scammers now ask for payment through a portal link.", actor: "callback" })).rejects.toThrow("Callback can't teach itself something on its own.");
   });
 });
 
@@ -155,14 +155,14 @@ describe("hold learns from a false alarm, but only Dev can loosen it", () => {
     expect(impr).toMatchObject({ status: "needs_approval", trigger: { kind: "false_alarm", billKey: "bill_trigger", by: "callback" } });
     expect((await techniques(t)).filter((r) => r.status === "active").map((r) => r.key)).toEqual(["tech_portal"]); // nothing loosened yet
 
-    await expect(t.mutation(api.app.techniques.decideImprovement, { key: impr!.key, decision: "approve", actor: "maya" })).rejects.toThrow("Only Dev");
+    await expect(t.mutation(api.app.techniques.decideImprovement, { key: impr!.key, decision: "approve", actor: "callback" })).rejects.toThrow("Callback can't approve this on its own.");
     await t.mutation(api.app.techniques.decideImprovement, { key: impr!.key, decision: "approve", actor: "dev" });
     const after = await techniques(t);
     const refined = after.find((r) => r.supersedes === "tech_portal")!;
     expect(refined).toMatchObject({ status: "active", sourceKind: "false_alarm", signals: ["payment portal", "instead of"] });
     expect(after.find((r) => r.key === "tech_portal")!.status).toBe("retired");
 
-    await t.mutation(api.app.techniques.revertTechnique, { techniqueKey: refined.key, actor: "maya" });
+    await t.mutation(api.app.techniques.revertTechnique, { techniqueKey: refined.key, actor: "dev" });
     const reverted = await techniques(t);
     expect(reverted.find((r) => r.key === refined.key)!.status).toBe("retired");
     expect(reverted.find((r) => r.key === "tech_portal")!.status).toBe("active");

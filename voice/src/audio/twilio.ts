@@ -19,7 +19,7 @@ export interface TwilioApi {
   dial(p: DialParams): Promise<{ sid: string }>;
   /** End the call whatever its state (ringing calls are canceled, live ones completed). */
   hangup(callSid: string): Promise<void>;
-  /** Replace the live call's TwiML (takeover: <Dial> Maya). */
+  /** Replace the live call's TwiML (takeover: <Dial> to the approver). */
   redirect(callSid: string, twiml: string): Promise<void>;
   /** Start recording both sides now; Twilio posts recordingStatusCallback when done. */
   startRecording(callSid: string, statusCallback: string): Promise<void>;

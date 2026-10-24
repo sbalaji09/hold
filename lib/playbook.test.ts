@@ -20,14 +20,14 @@ describe("playbook words", () => {
   test("names the trigger and who raised it", () => {
     expect(triggerTitle(impr({}).trigger, names)).toBe("Missed scam on INV-4502 · Stagecraft Rigging Co.");
     expect(triggerBy(impr({}).trigger)).toEqual({ person: null, text: "Found in a Practice run" });
-    const taught = impr({ trigger: { kind: "taught", text: "...", by: "maya" } }).trigger;
+    const taught = impr({ trigger: { kind: "taught", text: "...", by: "dev" } }).trigger;
     expect(triggerTitle(taught, names)).toBe("A new technique to learn");
-    expect(triggerBy(taught)).toEqual({ person: "Maya Lin", text: "Taught by" });
+    expect(triggerBy(taught)).toEqual({ person: "You", text: "Taught by" });
     expect(triggerTitle({ kind: "false_alarm", billKey: "gone", text: "", by: "callback" }, names)).toBe("False alarm on a bill");
   });
 
   test("a change that came from a call", () => {
-    const reported = { kind: "missed_scam" as const, channel: "phone" as const, callId: "in_CA1", text: "Caller: hi", by: "maya" as const };
+    const reported = { kind: "missed_scam" as const, channel: "phone" as const, callId: "in_CA1", text: "Caller: hi", by: "dev" as const };
     expect(triggerTitle(reported, names)).toBe("Scam call from (628) 555-0199");
     expect(triggerTitle({ ...reported, kind: "false_alarm", callId: "in_gone" }, names)).toBe("Call wrongly flagged to the phone line");
     const practice = { ...reported, kind: "false_alarm" as const, callId: "pcall_1", by: "callback" as const };
@@ -47,7 +47,7 @@ describe("playbook words", () => {
 
   test("a technique's source", () => {
     const t = { key: "t", sourceKind: "taught", improvementKey: "impr_1", status: "active" } as FraudTechnique;
-    expect(techniqueSource(t, [impr({ trigger: { kind: "taught", text: "", by: "dev" } })], names)).toEqual({ text: "Taught by", person: "Dev Okafor", link: null });
+    expect(techniqueSource(t, [impr({ trigger: { kind: "taught", text: "", by: "dev" } })], names)).toEqual({ text: "Taught by", person: "You", link: null });
     expect(techniqueSource({ ...t, sourceKind: "seed" }, [], names).text).toBe("Starting playbook");
     expect(techniqueSource({ ...t, sourceKind: "missed_scam", sourceRef: "bill_1" }, [], names)).toEqual({
       text: "Learned from a missed scam on INV-4502 · Stagecraft Rigging Co.",
@@ -66,24 +66,24 @@ describe("playbook words", () => {
     expect(countWord(14)).toBe("14");
   });
 
-  test("triage changes: corrections, Practice emails, and who approves", () => {
+  test("triage changes: corrections, Practice emails, and approval wording", () => {
     const tnames = { email_in_1: "Re: load-in schedule", pmail_1: "Payment reminder" };
-    const corrected = { kind: "corrected" as const, emailKey: "email_in_1", expected: "to_maya", text: "Hi team, load-in moves.", by: "maya" as const };
-    expect(triggerTitle(corrected, tnames, "triage")).toBe("Maya corrected an email: Re: load-in schedule");
-    expect(triggerTitle({ ...corrected, emailKey: "email_gone" }, tnames, "triage")).toBe("Maya corrected an email: Hi team, load-in moves.");
-    expect(triggerBy(corrected)).toEqual({ person: "Maya Lin", text: "Corrected by" });
+    const corrected = { kind: "corrected" as const, emailKey: "email_in_1", expected: "to_dev", text: "Hi team, load-in moves.", by: "dev" as const };
+    expect(triggerTitle(corrected, tnames, "triage")).toBe("You corrected an email: Re: load-in schedule");
+    expect(triggerTitle({ ...corrected, emailKey: "email_gone" }, tnames, "triage")).toBe("You corrected an email: Hi team, load-in moves.");
+    expect(triggerBy(corrected)).toEqual({ person: "You", text: "Corrected by" });
     const practice = { ...corrected, emailKey: "pmail_1", by: "callback" as const };
     expect(triggerTitle(practice, tnames, "triage")).toBe("Practice email sorted wrong: Payment reminder");
     expect(triggerBy(practice)).toEqual({ person: null, text: "Found in a Practice run" });
     expect(triggerTitle({ kind: "taught", text: "", by: "dev" }, tnames, "triage")).toBe("A new kind of email to learn");
     expect(recordLink("pmail_1")).toEqual({ href: "#pmail_1", label: "The Practice email" });
     expect(recordLink("email_in_1")).toEqual({ href: "/messages/email_in_1", label: "Open the email" });
-    expect(improvementMark({ status: "needs_approval", job: "triage" }).label).toBe("Waiting for Maya");
-    expect(improvementMark({ status: "needs_approval", job: undefined }).label).toBe("Waiting for Dev");
+    expect(improvementMark({ status: "needs_approval", job: "triage" }).label).toBe("Waiting for your approval");
+    expect(improvementMark({ status: "needs_approval", job: undefined }).label).toBe("Waiting for your approval");
     const t = { key: "t", sourceKind: "corrected", sourceRef: "email_in_1", improvementKey: "impr_1", status: "active" } as FraudTechnique;
     expect(techniqueSource(t, [impr({ trigger: corrected })], tnames)).toEqual({
       text: "Learned from \u201cRe: load-in schedule\u201d, corrected by",
-      person: "Maya Lin",
+      person: "You",
       link: { href: "/messages/email_in_1", label: "Open the email" },
     });
     expect(techniqueSource({ ...t, sourceRef: "pmail_1" }, [], tnames).text).toBe("Learned from the Practice email \u201cPayment reminder\u201d");

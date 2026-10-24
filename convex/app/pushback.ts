@@ -1,4 +1,4 @@
-// Approvals "pushback" (plan-agent.md step: Dev writes "Release it, we'll miss the stage build.").
+// Approvals "pushback" (plan-agent.md step: you write "Release it, we'll miss the stage build.").
 // Claude answers with the call's own evidence and clip, then offers the safe alternative: paying
 // the supplier's old, verified account instead of the one on this bill.
 import Anthropic from "@anthropic-ai/sdk";
@@ -23,7 +23,7 @@ export interface PushbackInput {
   supplierName: string;
   amountCents: number;
   devText: string;
-  /** Whose approver is writing. Absent = Fogline's Dev. */
+  /** Absent = Fogline's approver. */
   company?: Company;
   call: PushbackEvidence;
   oldAccount: { bank: string; last4: string };
@@ -31,7 +31,7 @@ export interface PushbackInput {
 
 const Reply = z.object({ text: z.string() });
 
-const SYSTEM = `You are hold, an automated payments assistant. The person who signs off on payments (named below) is pushing back on a payment
+const SYSTEM = `You are hold, an automated payments assistant. The person who signs off on payments is pushing back on a payment
 you held because a check call didn't confirm the payee's new bank details.
 Reply in 2-4 short sentences, in Callback's voice: calm, specific, never defensive.
 - Quote what the payee actually said on the call (from the evidence given), not a generic warning.
@@ -54,9 +54,9 @@ ${turns}
 ${clip}
 Old, verified account on file: ${input.oldAccount.bank} ··${input.oldAccount.last4}.
 
-${co.dev.name} (${co.dev.role}) wrote: "${input.devText}"
+You wrote: "${input.devText}"
 
-Reply to ${co.dev.name}.`;
+Reply to them.`;
 }
 
 /** The bill's most recent call result, with its evidence and clip, for Claude's prompt. */

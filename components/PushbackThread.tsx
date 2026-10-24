@@ -22,24 +22,22 @@ type Decision = "approved" | "approved-safe" | "rejected" | null;
 function defaultRuleText(approval: Approval, decision: Decision, co: Company): string {
   const bill = approval.bill;
   const acct = bill.bankAccount;
-  const dev = co.dev.name;
   if (approval.kind === "bank_change") {
-    return `Bank changes need a passed call plus ${dev}; verified account ${acct.bank} \u00b7\u00b7${acct.last4}.`;
+    return `Bank changes need a passed call plus your approval; verified account ${acct.bank} \u00b7\u00b7${acct.last4}.`;
   }
   return decision === "rejected"
-    ? `Hold ${co.bill.many} like ${co.record} ${bill.invoiceNo} for ${bill.supplier.name} for ${dev}'s review.`
-    : `Pay ${co.bill.many} like ${co.record} ${bill.invoiceNo} for ${bill.supplier.name} without asking ${dev} again.`;
+    ? `Hold ${co.bill.many} like ${co.record} ${bill.invoiceNo} for ${bill.supplier.name} for your review.`
+    : `Pay ${co.bill.many} like ${co.record} ${bill.invoiceNo} for ${bill.supplier.name} without asking again.`;
 }
 
 function fmtTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
-/** Dev's sign-off, reply thread and pushback for one approval. */
-export function PushbackThread({ approval, actor }: { approval: Approval; actor: "maya" | "dev" }): React.ReactElement {
+/** Your sign-off, reply thread and pushback for one approval. */
+export function PushbackThread({ approval }: { approval: Approval }): React.ReactElement {
   const router = useRouter();
   const co = useCompany();
-  const devLock = `${co.dev.name} has to approve this`;
   const convexConfigured = Boolean(process.env.NEXT_PUBLIC_CONVEX_URL);
   const reply = useAction(api.app.pushback.reply);
   const decideApproval = useMutation(api.app.mutations.decideApproval);
@@ -95,7 +93,7 @@ export function PushbackThread({ approval, actor }: { approval: Approval; actor:
       const res = await decideApproval({
         billKey: bill.key,
         decision: kind === "reject" ? "reject" : "approve",
-        actor,
+        actor: "dev",
         payToBankAccountKey,
       });
       if (res && typeof res === "object" && "refused" in res) {
@@ -127,7 +125,7 @@ export function PushbackThread({ approval, actor }: { approval: Approval; actor:
       await saveRule({
         supplierKey: bill.supplier.key,
         text,
-        actor,
+        actor: "dev",
         sourceKind: "approval",
         sourceKey: approval.key,
       });
@@ -146,7 +144,7 @@ export function PushbackThread({ approval, actor }: { approval: Approval; actor:
             m.from === "dev" ? (
               <div key={i} className="rounded-md border border-line bg-surface p-3">
                 <div className="mb-1 flex items-center gap-2 text-[11px] text-ink-muted">
-                  <span>{co.dev.full}</span>
+                  <span>You</span>
                   <span>{fmtTime(m.at)}</span>
                 </div>
                 <p className="font-serif text-[15px] italic text-signatory">{"\u201c" + m.text + "\u201d"}</p>
@@ -170,21 +168,15 @@ export function PushbackThread({ approval, actor }: { approval: Approval; actor:
       ) : null}
 
       {decision === null && lastFromCallback && safeAlternative ? (
-        actor === "dev" ? (
-          <Button variant="primary" size="sm" disabled={pending !== null} onClick={() => decide("approve-safe", safeAlternative.bankAccountKey)}>
-            {`Approve \u00b7 pay ${acct.bank} \u00b7\u00b7${acct.last4} instead`}
-          </Button>
-        ) : (
-          <Button variant="primary" size="sm" locked={devLock}>
-            {`Approve \u00b7 pay ${acct.bank} \u00b7\u00b7${acct.last4} instead`}
-          </Button>
-        )
+        <Button variant="primary" size="sm" disabled={pending !== null} onClick={() => decide("approve-safe", safeAlternative.bankAccountKey)}>
+          {`Approve \u00b7 pay ${acct.bank} \u00b7\u00b7${acct.last4} instead`}
+        </Button>
       ) : null}
 
       {decision === null ? (
         <form className="flex flex-col gap-2 border-t border-line pt-4" onSubmit={send}>
           <label htmlFor={`reply-${approval.key}`} className="cb-caps">
-            Reply to Callback
+            Reply to hold
           </label>
           <textarea
             id={`reply-${approval.key}`}
@@ -198,25 +190,14 @@ export function PushbackThread({ approval, actor }: { approval: Approval; actor:
             <Button variant="secondary" size="sm" type="submit" disabled={pending !== null}>
               {pending === "reply" ? "Sending…" : "Send"}
             </Button>
-            {actor === "dev" ? (
-              <>
-                <Button variant="primary" size="sm" disabled={pending !== null} onClick={() => decide("approve")}>
-                  Approve
-                </Button>
-                <Button variant="secondary" size="sm" disabled={pending !== null} onClick={() => decide("reject")}>
-                  Reject
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="primary" size="sm" locked={devLock}>
-                  Approve
-                </Button>
-                <Button variant="secondary" size="sm" locked={devLock}>
-                  Reject
-                </Button>
-              </>
-            )}
+            <>
+              <Button variant="primary" size="sm" disabled={pending !== null} onClick={() => decide("approve")}>
+                Approve
+              </Button>
+              <Button variant="secondary" size="sm" disabled={pending !== null} onClick={() => decide("reject")}>
+                Reject
+              </Button>
+            </>
           </div>
         </form>
       ) : null}
@@ -252,19 +233,19 @@ export function PushbackThread({ approval, actor }: { approval: Approval; actor:
 
       <div className="border-t border-line pt-4">
         {decision === "rejected" ? (
-          <Endorsement kind="void" meta={`${co.dev.full} \u00b7 ${fmtTime(new Date().toISOString())}`}>
+          <Endorsement kind="void" meta={`You \u00b7 ${fmtTime(new Date().toISOString())}`}>
             Rejected
           </Endorsement>
         ) : decision ? (
           <SignOff
             state="signed"
-            name={co.dev.full}
+            name="You"
             role="Controller"
             time={fmtTime(new Date().toISOString())}
             verb={decision === "approved-safe" ? "Approved \u00b7 verified account" : "Approved"}
           />
         ) : (
-          <SignOff state="awaiting" name={co.dev.full} role="Your sign-off" time={`Sent ${fmtTime(bill.receivedAt)}`} />
+          <SignOff state="awaiting" name="your approval" role="Approver" time={`Sent ${fmtTime(bill.receivedAt)}`} />
         )}
       </div>
     </div>

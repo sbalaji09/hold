@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { Amount, AccountLine, Cite, StatusMark } from "@/components/callback";
 import { BackgroundCheckPanel } from "@/components/BackgroundCheckPanel";
 import { ConfirmSupplier, OnboardingRecord } from "@/components/ConfirmSupplier";
-import { getPersona } from "@/lib/persona";
 import { capital, languageName } from "@/lib/company";
 import { LearnedRules } from "@/components/LearnedRules";
 import { getCompany, getSupplier, listBankAccountsForSupplier, listBillsForSupplier, listCallsForSupplier, listChecksForSupplier } from "@/lib/data";
@@ -33,12 +32,11 @@ export default async function SupplierPage({
   const supplier = await getSupplier(key);
   if (!supplier) notFound();
 
-  const [bankAccounts, bills, calls, checks, persona] = await Promise.all([
+  const [bankAccounts, bills, calls, checks] = await Promise.all([
     listBankAccountsForSupplier(key),
     listBillsForSupplier(key),
     listCallsForSupplier(key),
     listChecksForSupplier(key),
-    getPersona(),
   ]);
   const co = await getCompany();
   const isNew = supplier.status === "new";
@@ -54,7 +52,7 @@ export default async function SupplierPage({
       </div>
 
       {isNew ? (
-        <ConfirmSupplier supplier={supplier} bills={bills} lastCheck={checks[0] ?? null} actor={persona} />
+        <ConfirmSupplier supplier={supplier} bills={bills} lastCheck={checks[0] ?? null} />
       ) : (
       <div className="grid gap-5 md:grid-cols-2">
         <article className="cb-doc p-4">
@@ -94,7 +92,7 @@ export default async function SupplierPage({
                   state={b.status === "active" ? "verified" : "new"}
                   note={`${b.status === "active" ? "Active" : "Retired"} \u00b7 added ${shortDate(b.addedAt)}`}
                 />
-                <Cite>{b.verifiedBy === "onboarding" ? "Verified at onboarding" : `Verified by call + ${co.dev.name}`}</Cite>
+                <Cite>{b.verifiedBy === "onboarding" ? "Verified at onboarding" : "Verified by call, you approved"}</Cite>
               </div>
             ))
           )}

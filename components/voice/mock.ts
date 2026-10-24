@@ -111,7 +111,7 @@ const SCRIPTS: Record<Exclude<Scenario, "phone">, Step[]> = {
       CLOSING_LINE,
     ),
   ],
-  // hold checks a vague answer with Maya; the mock gives her 20 seconds to look before it moves on.
+  // hold checks a vague answer with the approver; the mock gives them 20 seconds to look before it moves on.
   ask: [
     ...opening.slice(0, 4),
     { at: 9, event: { type: "question", ...Q_TOTAL } },
@@ -147,7 +147,7 @@ const SCRIPTS: Record<Exclude<Scenario, "phone">, Step[]> = {
       status: "handed_off",
       result: {
         outcome: "handed_off",
-        summary: "The line dropped after the first question. Maya needs to call Stagecraft back on (415) 555-0142.",
+        summary: "The line dropped after the first question. Someone needs to call Stagecraft back on (415) 555-0142.",
         evidence: [{ ...Q1, answer: A1, matches: true }],
       },
     },
@@ -167,7 +167,7 @@ function snapshot(scenario: Scenario, s: number): LiveCall {
   if (takeoverAtS !== null && t >= takeoverAtS - start) {
     const at = takeoverAtS - start;
     played.push({ at, event: { type: "status", value: "ended" } });
-    played.push({ at: at + 0.5, status: "handed_off", result: { outcome: "handed_off", summary: "Maya took over the call.", evidence: [] } });
+    played.push({ at: at + 0.5, status: "handed_off", result: { outcome: "handed_off", summary: "Dev took over the call.", evidence: [] } });
   }
 
   const ms = (at: number) => T0 + (start + at) * 1000;

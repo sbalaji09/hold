@@ -4,7 +4,6 @@ import { ConvexError } from "convex/values";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button, CheckRow, Line, StatusMark } from "@/components/callback";
 import { CALLBACK_PROMISE } from "@/shared/contract";
-import { PERSON_NAME } from "@/lib/playbook";
 import { useCompany } from "@/lib/useCompany";
 import { usePhoneLine, useReportCall, useSupplierName, useTacticNames, type CallVerdict, type InboundCallDoc } from "./api";
 import { AGENT, formatElapsed, formatPhone, formatWhen, parseTime, type TranscriptRow } from "./format";
@@ -20,7 +19,7 @@ function who(call: InboundCallDoc): string {
   return call.claimed_identity ? `Says ${call.claimed_identity}` : "Unknown caller";
 }
 
-type Actor = "maya" | "dev";
+
 
 /** How long after a call ends hold is still expected to be screening it. */
 const SCREENING_MS = 3 * 60_000;
@@ -36,7 +35,7 @@ function screenState(call: InboundCallDoc, now: number): Screen {
 }
 
 /** The Phone line screen for `/phone`: the company's number, live incoming calls, past calls. `callId` opens that call. */
-export function PhoneLineScreen({ actor = "maya", callId }: { actor?: Actor; callId?: string }) {
+export function PhoneLineScreen({ callId }: { callId?: string }) {
   const line = usePhoneLine();
   const co = useCompany();
 
@@ -74,7 +73,7 @@ export function PhoneLineScreen({ actor = "maya", callId }: { actor?: Actor; cal
       ))}
 
       <div className="hv-phone">
-        <PastCalls calls={line.past} number={number} actor={actor} callId={callId} />
+        <PastCalls calls={line.past} number={number} callId={callId} />
         <section className="cb-doc hv-pad hv-rule">
           <div className="cb-caps">Rule</div>
           <p className="hv-statement">
@@ -105,7 +104,7 @@ function ActiveCall({ call }: { call: InboundCallDoc }) {
   );
 }
 
-function PastCalls({ calls, number, actor, callId }: { calls: InboundCallDoc[]; number: string | null; actor: Actor; callId?: string }) {
+function PastCalls({ calls, number, callId }: { calls: InboundCallDoc[]; number: string | null; callId?: string }) {
   const co = useCompany();
   // The open call is tracked by call_id so links from the Activity log (/phone?call=in_...) land on it.
   const [openId, setOpenId] = useState<string | null>(callId ?? null);
@@ -171,7 +170,7 @@ function PastCalls({ calls, number, actor, callId }: { calls: InboundCallDoc[]; 
             {open.triggered_call_id ? <CheckCall call={open} /> : <p className="hv-small">None needed.</p>}
           </div>
         </div>
-        <Verdict key={`verdict-${open._id}`} call={open} screen={screenState(open, now)} actor={actor} />
+        <Verdict key={`verdict-${open._id}`} call={open} screen={screenState(open, now)} />
         <Transcript key={open._id} rows={rows(open)} otherName="Caller" live={false} empty="No transcript was saved for this call." />
         {open.recording_url && (
           <div className="hv-pad">
@@ -206,7 +205,7 @@ function CheckCall({ call }: { call: InboundCallDoc }) {
 }
 
 /** hold's playbook verdict on a past call, and the person's say on it. */
-function Verdict({ call, screen, actor }: { call: InboundCallDoc; screen: Screen; actor: Actor }) {
+function Verdict({ call, screen }: { call: InboundCallDoc; screen: Screen }) {
   const tactics = useTacticNames();
   const fraud = call.fraud;
   let body: ReactNode;
@@ -239,7 +238,7 @@ function Verdict({ call, screen, actor }: { call: InboundCallDoc; screen: Screen
     <div className="hv-pad hv-verdict" aria-label="Playbook check" role="group">
       <div className="cb-caps">Playbook</div>
       {body}
-      {screen === "screening" ? null : <Report call={call} flagged={screen === "flag"} actor={actor} />}
+      {screen === "screening" ? null : <Report call={call} flagged={screen === "flag"} />}
     </div>
   );
 }
@@ -259,7 +258,7 @@ const REPORT: Record<CallVerdict, { button: string; confirm: string; explain: st
   },
 };
 
-function Report({ call, flagged, actor }: { call: InboundCallDoc; flagged: boolean; actor: Actor }) {
+function Report({ call, flagged }: { call: InboundCallDoc; flagged: boolean }) {
   const report = useReportCall();
   const verdict: CallVerdict = flagged ? "not_scam" : "scam";
   const words = REPORT[verdict];
@@ -295,7 +294,7 @@ function Report({ call, flagged, actor }: { call: InboundCallDoc; flagged: boole
     setStep("sending");
     setError(null);
     try {
-      const r = await report(call.call_id, verdict, actor);
+      const r = await report(call.call_id, verdict);
       setDone(
         r.key
           ? `${AGENT} is learning from this call.`
@@ -319,9 +318,7 @@ function Report({ call, flagged, actor }: { call: InboundCallDoc; flagged: boole
 
   return (
     <div className="hv-report hv-confirm" role="group" aria-label={words.button} onKeyDown={(e) => e.key === "Escape" && cancel()}>
-      <p className="hv-small">
-        {words.explain} As <span className="hv-person">{PERSON_NAME[actor]}</span>.
-      </p>
+      <p className="hv-small">{words.explain}</p>
       {error && (
         <p className="hv-error" role="alert">
           {error}

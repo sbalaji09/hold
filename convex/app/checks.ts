@@ -73,9 +73,9 @@ export interface RunChecksInput {
   pastPaidAmounts: number[];
   amountCents: number;
   styleMatch?: { matches: boolean; reasons: string[] };
-  /** Rules Maya or Dev saved for this supplier (plan-agent.md addendum §1). Never relaxes a hard
+  /** Rules the approver saved for this supplier (plan-agent.md addendum §1). Never relaxes a hard
    * limit: a rule naming this account's last four only passes a bank-change request when the
-   * account was already verified by a confirmed call plus Dev (verifiedBy call+dev); the rule alone
+   * account was already verified by a confirmed call plus the approver (verifiedBy call+dev); the rule alone
    * never passes it. Any rule for the supplier also surfaces as its own info check. Omit for suppliers with no saved rules. */
   learnedRules?: LearnedRuleInput[];
   /** hold's playbook check (lib/fraudTechniques.ts techniqueCheck), built by the caller from
@@ -107,7 +107,7 @@ export function runChecks(input: RunChecksInput): Check[] {
       id: "bank-account",
       label: "New bank account",
       state: "pass",
-      evidence: `${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4} was verified by call and ${co.dev.name}'s approval. Saved rule: ${accountRule.text}`,
+      evidence: `${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4} was verified by call and your approval. Saved rule: ${accountRule.text}`,
       cite: ruleCite(accountRule, supplier.key),
     };
   } else if (NEW_ACCOUNT_RE.test(email.body)) {
@@ -128,7 +128,7 @@ export function runChecks(input: RunChecksInput): Check[] {
         id: "bank-account",
         label: "New bank account",
         state: "pass",
-        evidence: `${us} verified the ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4} account by call; ${co.dev.name} approved the change.`,
+        evidence: `${us} verified the ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4} account by call; you approved the change.`,
         cite: { kind: "supplier", ref: supplier.key },
       };
     } else {
@@ -267,13 +267,13 @@ export function decide(checks: Check[], amountCents: number, company?: Company):
   return amountCents >= (company ?? companyFor(undefined)).approvalLimitCents ? "ask_dev" : "pay";
 }
 
-export type EscalationRouting = { routedTo: "maya" | "dev"; reason: string };
+export type EscalationRouting = { routedTo: "dev"; reason: string };
 
 /**
- * Who an escalation goes to and why in plain words (plan-agent.md addendum §2: "Sources
- * disagree…", never a score). A failed check, a bank change or a big payment always goes to
- * Dev; a call that got no answer or dropped goes to Maya, since there's nothing to approve yet,
- * only a retry to arrange.
+ * Why an escalation needs you, in plain words (plan-agent.md addendum §2: "Sources
+ * disagree…", never a score). A failed check, a bank change or a big payment always needs
+ * your decision; a call that got no answer or dropped also needs you, since there's nothing
+ * to approve yet, only a retry to arrange.
  */
 export function routeEscalation(
   checks: Check[],
@@ -282,7 +282,7 @@ export function routeEscalation(
 ): EscalationRouting {
   const co = options.company ?? companyFor(undefined);
   if (options.callOutcome === "handed_off") {
-    return { routedTo: "maya", reason: "The check call got no answer and the retry didn't connect either." };
+    return { routedTo: "dev", reason: "The check call got no answer and the retry didn't connect either." };
   }
   const bankFlag = checks.find((c) => c.id === "bank-account" && c.state === "flag");
   if (bankFlag) return { routedTo: "dev", reason: `Bank change: ${bankFlag.evidence}` };
@@ -291,12 +291,12 @@ export function routeEscalation(
     return { routedTo: "dev", reason: otherFlags.map((c) => c.evidence).join(" ") };
   }
   if (options.callOutcome === "not_confirmed") {
-    return { routedTo: "dev", reason: `The check call didn't confirm this ${co.bill.one}, so it's held until ${co.dev.name} decides.` };
+    return { routedTo: "dev", reason: `The check call didn't confirm this ${co.bill.one}, so it's held until you decide.` };
   }
   if (amountCents < co.approvalLimitCents) {
-    return { routedTo: "dev", reason: `This ${co.bill.one} needs ${co.dev.name}'s decision before anything is paid.` };
+    return { routedTo: "dev", reason: `This ${co.bill.one} needs your decision before anything is paid.` };
   }
-  return { routedTo: "dev", reason: `${fmtMoney(amountCents)} is over hold's ${wholeDollars(co.approvalLimitCents)} limit, so it needs ${co.dev.name}'s approval.` };
+  return { routedTo: "dev", reason: `${fmtMoney(amountCents)} is over hold's ${wholeDollars(co.approvalLimitCents)} limit, so it needs your approval.` };
 }
 
 /** Matches lib/types.ts's Check shape, for schema.ts and any caller storing runChecks's output. */

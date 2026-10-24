@@ -62,7 +62,7 @@ export default defineSchema({
             foglineContact: v.string(),
           }),
         ),
-        confirmedBy: v.optional(v.union(v.literal("maya"), v.literal("dev"))),
+        confirmedBy: v.optional(v.literal("dev")),
         confirmedAt: v.optional(v.string()),
       }),
     ),
@@ -143,12 +143,12 @@ export default defineSchema({
         supplierKey: v.optional(v.string()),
         kindKey: v.optional(v.string()),
         kindName: v.string(),
-        route: v.union(v.literal("bill"), v.literal("to_maya"), v.literal("file")),
+        route: v.union(v.literal("bill"), v.literal("to_dev"), v.literal("file")),
         why: v.string(),
         quote: v.optional(v.string()),
         status: v.union(v.literal("open"), v.literal("done"), v.literal("filed")),
-        correctedRoute: v.optional(v.union(v.literal("bill"), v.literal("to_maya"), v.literal("file"))),
-        correctedBy: v.optional(v.union(v.literal("maya"), v.literal("dev"))),
+        correctedRoute: v.optional(v.union(v.literal("bill"), v.literal("to_dev"), v.literal("file"))),
+        correctedBy: v.optional(v.literal("dev")),
       }),
     ),
   })
@@ -256,7 +256,7 @@ export default defineSchema({
         ask_id: v.string(),
         verdict: v.union(v.literal("matches"), v.literal("no_match"), v.literal("follow_up"), v.literal("no_reply")),
         follow_up: v.optional(v.string()),
-        by: v.optional(v.union(v.literal("maya"), v.literal("dev"))),
+        by: v.optional(v.literal("dev")),
       }),
     ),
   ).index("by_call", ["call_id"]),
@@ -274,7 +274,7 @@ export default defineSchema({
         source: v.optional(callEventSource),
         answer: v.string(),
         matches: v.boolean(),
-        decided_by: v.optional(v.union(v.literal("maya"), v.literal("dev"))),
+        decided_by: v.optional(v.literal("dev")),
       }),
     ),
     summary: v.string(),
@@ -343,7 +343,7 @@ export default defineSchema({
       v.literal("rejected"),
     ),
     recommendation: v.string(),
-    routedTo: v.optional(v.union(v.literal("maya"), v.literal("dev"))),
+    routedTo: v.optional(v.literal("dev")),
     reason: v.optional(v.string()),
     thread: v.array(
       v.object({
@@ -359,7 +359,7 @@ export default defineSchema({
 
   activity: defineTable({
     key: v.string(),
-    actor: v.union(v.literal("callback"), v.literal("maya"), v.literal("dev")),
+    actor: v.union(v.literal("callback"), v.literal("dev")),
     what: v.string(),
     why: v.string(),
     refKind: v.string(),
@@ -389,7 +389,7 @@ export default defineSchema({
     key: v.string(),
     supplierKey: v.string(),
     text: v.string(),
-    createdBy: v.union(v.literal("maya"), v.literal("dev")),
+    createdBy: v.literal("dev"),
     sourceKind: v.string(),
     sourceKey: v.string(),
     createdAt: v.string(),
@@ -453,7 +453,7 @@ export default defineSchema({
     name: v.string(),
     job: v.optional(v.union(v.literal("fraud"), v.literal("triage"))),
     // Triage only: where emails of this kind go.
-    route: v.optional(v.union(v.literal("bill"), v.literal("to_maya"), v.literal("file"))),
+    route: v.optional(v.union(v.literal("bill"), v.literal("to_dev"), v.literal("file"))),
     // Where hold looks for it. Absent = email (rows from before the phone line used the playbook).
     channel: v.optional(v.union(v.literal("email"), v.literal("phone"), v.literal("both"))),
     howItWorks: v.string(),
@@ -488,7 +488,7 @@ export default defineSchema({
     key: v.string(),
     kind: v.string(),
     text: v.string(),
-    expected: v.union(v.literal("bill"), v.literal("to_maya"), v.literal("file")),
+    expected: v.union(v.literal("bill"), v.literal("to_dev"), v.literal("file")),
     source: v.union(v.literal("seed"), v.literal("corrected")),
     caughtLastRun: v.optional(v.boolean()),
     lastRunAt: v.optional(v.string()),
@@ -503,7 +503,7 @@ export default defineSchema({
       kind: v.union(v.literal("missed_scam"), v.literal("false_alarm"), v.literal("taught"), v.literal("corrected")),
       billKey: v.optional(v.string()),
       text: v.string(), // the scam email or call transcript, or what the person described
-      by: v.union(v.literal("callback"), v.literal("maya"), v.literal("dev")),
+      by: v.union(v.literal("callback"), v.literal("dev")),
       // Phone triggers: the inbound call or Practice call it came from.
       channel: v.optional(v.union(v.literal("email"), v.literal("phone"))),
       callId: v.optional(v.string()),
@@ -523,7 +523,7 @@ export default defineSchema({
     proposal: v.optional(
       v.object({
         action: v.union(v.literal("add"), v.literal("refine")),
-        route: v.optional(v.union(v.literal("bill"), v.literal("to_maya"), v.literal("file"))),
+        route: v.optional(v.union(v.literal("bill"), v.literal("to_dev"), v.literal("file"))),
         channel: v.optional(v.union(v.literal("email"), v.literal("phone"), v.literal("both"))),
         targetKey: v.optional(v.string()),
         name: v.string(),
@@ -552,7 +552,7 @@ export default defineSchema({
     ),
     summary: v.optional(v.string()), // plain words for the Practice screen and the Activity log
     techniqueKey: v.optional(v.string()), // the playbook row it created, once promoted
-    decidedBy: v.optional(v.union(v.literal("callback"), v.literal("maya"), v.literal("dev"))),
+    decidedBy: v.optional(v.union(v.literal("callback"), v.literal("dev"))),
     createdAt: v.string(),
   })
     .index("by_key", ["key"])

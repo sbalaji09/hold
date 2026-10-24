@@ -239,7 +239,7 @@ export const getRequest = query({
   },
 });
 
-/** True once Maya pressed "End call and take over". The voice server subscribes to this. */
+/** True once the approver pressed "End call and take over". The voice server subscribes to this. */
 export const takeoverRequested = query({
   args: { secret, call_id: v.string() },
   handler: async (ctx, args) => {

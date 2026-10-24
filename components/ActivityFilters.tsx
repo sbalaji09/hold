@@ -4,15 +4,13 @@ import * as React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { cx } from "@/components/callback/cx";
 import type { ActivityActor } from "@/lib/types";
-import { useCompany } from "@/lib/useCompany";
+
+const ACTORS: Array<{ value: ActivityActor; label: string }> = [
+  { value: "callback", label: "hold" },
+  { value: "dev", label: "You" },
+];
 
 export function ActivityFilters(): React.ReactElement {
-  const co = useCompany();
-  const ACTORS: Array<{ value: ActivityActor; label: string }> = [
-    { value: "callback", label: "hold" },
-    { value: "maya", label: co.maya.name },
-    { value: "dev", label: co.dev.name },
-  ];
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

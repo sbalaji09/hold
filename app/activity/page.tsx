@@ -4,7 +4,6 @@ import { ActivityFilters } from "@/components/ActivityFilters";
 import { LogEntry } from "@/components/callback";
 import { listActivityWithLinks } from "@/lib/activity";
 import type { ActivityActor } from "@/lib/types";
-import { getCompany } from "@/lib/data";
 
 function fmtTime(iso: string): string {
   return new Date(iso).toLocaleString("en-US", {
@@ -21,8 +20,8 @@ export default async function ActivityPage({
   searchParams: Promise<{ q?: string; actor?: string }>;
 }): Promise<React.ReactElement> {
   const { q, actor } = await searchParams;
-  const [all, co] = await Promise.all([listActivityWithLinks(), getCompany()]);
-  const ACTOR_NAME: Record<ActivityActor, string> = { callback: "hold", maya: co.maya.name, dev: co.dev.name };
+  const all = await listActivityWithLinks();
+  const ACTOR_NAME: Record<ActivityActor, string> = { callback: "hold", dev: "You" };
   const query = (q ?? "").trim().toLowerCase();
   const actorFilter = actor as ActivityActor | undefined;
 
@@ -39,7 +38,7 @@ export default async function ActivityPage({
         <div className="pt-head-text">
           <h1 className="cb-display">Activity log</h1>
           <p className="pt-sub">
-            Every action by hold, {co.maya.name} and {co.dev.name}: who, when, what, why.
+            Every action by hold and you: who, when, what, why.
           </p>
         </div>
       </header>

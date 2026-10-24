@@ -10,7 +10,7 @@ const CALL_ID = "in_CA123";
 
 function setup(script: string[], routes: ConstructorParameters<typeof FakeLLM>[0] = {}, phonePlaybook: PhoneTactic[] = []) {
   const store = new MemoryStore({ suppliers: [STAGE, BAYVIEW], records: STAGE_RECORDS, phonePlaybook });
-  // The simulated line only needs a request for persona mode; scripted mode ignores it.
+  // The simulated line only needs a request for live-role mode; scripted mode ignores it.
   const transport = new SimulatedTransport({ request: stageRequest(), script });
   const llm = new FakeLLM(routes);
   const run = () => runInboundCall({ store, transport, call_id: CALL_ID, caller_number: "+15105550199", llm });

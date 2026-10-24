@@ -1,4 +1,4 @@
-// Rules Maya or Dev saved for a supplier (plan-agent.md addendum §1), each cited back to the
+// Rules you saved for a supplier (plan-agent.md addendum §1), each cited back to the
 // record it came from. Server component: listRules already returns plain data, no client state.
 import * as React from "react";
 import { Cite } from "@/components/callback";
@@ -23,7 +23,7 @@ function sourceHref(sourceKind: string, sourceKey: string): string | undefined {
 }
 
 export async function LearnedRules({ supplierKey }: { supplierKey: string }): Promise<React.ReactElement | null> {
-  const [rules, co] = await Promise.all([listRules(supplierKey), getCompany()]);
+  const rules = await listRules(supplierKey);
   if (rules.length === 0) return null;
 
   return (
@@ -37,7 +37,7 @@ export async function LearnedRules({ supplierKey }: { supplierKey: string }): Pr
           <div key={rule.key} className="border-t border-line px-4 py-3 first:border-0">
             <p className="font-mono text-[13px] leading-5 text-ink">{rule.text}</p>
             <div className="mt-2 flex items-center gap-2 text-[11px] text-ink-muted">
-              <span>{co[rule.createdBy === "dev" ? "dev" : "maya"].full}</span>
+              <span>You</span>
               <Cite href={sourceHref(rule.sourceKind, rule.sourceKey)}>{sourceLabel(rule.sourceKind, rule.sourceKey)}</Cite>
             </div>
           </div>

@@ -25,7 +25,7 @@ export function WatchOnlyToggle({ watchOnly }: WatchOnlyToggleProps): React.Reac
     setPending(true);
     setError(null);
     try {
-      await setWatchOnly({ watchOnly: !watchOnly, actor: "maya" });
+      await setWatchOnly({ watchOnly: !watchOnly, actor: "dev" });
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't change Watch only.");

@@ -23,7 +23,7 @@ export interface DialerDeps {
   twilio: TwilioApi;
   publicBaseUrl: string;
   fromNumber: string;
-  mayaNumber?: string;
+  takeoverPhoneNumber?: string;
   amd: boolean;
   ringTimeoutS: number;
   prepare: (deps: PrepareOutboundDeps) => Promise<PreparedCall>;
@@ -219,7 +219,7 @@ export class Dialer {
       }
       if (c.takeover) {
         // Pressed after answer but before the conversation started: onTakeover already moved the call.
-        await this.handOff(c, "Maya took over as the call connected.");
+        await this.handOff(c, "You took over as the call connected.");
         return;
       }
       await this.d.run({ store: c.store, transport, request: c.request, prepared, llm: this.d.llm, search: this.d.search });
@@ -266,19 +266,19 @@ export class Dialer {
       c.transport.markTakeover();
       const sid = c.callSid!;
       try {
-        if (this.d.mayaNumber) await this.d.twilio.redirect(sid, dialTwiml(this.d.mayaNumber, this.d.fromNumber));
+        if (this.d.takeoverPhoneNumber) await this.d.twilio.redirect(sid, dialTwiml(this.d.takeoverPhoneNumber, this.d.fromNumber));
         else await this.d.twilio.hangup(sid);
       } catch (err) {
         log.error("takeover: Twilio update failed", { callId: id, err: String(err) });
       }
-      log.info("takeover", { callId: id, transferredTo: this.d.mayaNumber ? "maya" : null });
+      log.info("takeover", { callId: id, transferredTo: this.d.takeoverPhoneNumber ? "dev" : null });
       return fireCallLayer(); // the conversation layer writes handed_off with what it heard
     }
     if (c.callSid) {
       // Still ringing: cancel the call; nobody else will write the result.
       c.settled = true;
       await this.d.twilio.hangup(c.callSid).catch(() => undefined);
-      await this.handOff(c, "Maya took over before the call was answered.");
+      await this.handOff(c, "You took over before the call was answered.");
       this.cleanup(c);
     }
     // Otherwise we are mid-dial; begin() re-checks c.takeover once Twilio returns the sid.
@@ -320,7 +320,7 @@ export class Dialer {
 
 /**
  * The store the conversation layer sees for one call:
- *   - takeover callbacks fire only after the dialer has redirected the call to Maya, so the
+ *   - takeover callbacks fire only after the dialer has redirected the call to the approver, so the
  *     conversation layer's own hangup can never race the transfer;
  *   - after voicemail is detected (async AMD, mid-conversation), its writes are dropped, because
  *     the attempt has already been reported as no answer.

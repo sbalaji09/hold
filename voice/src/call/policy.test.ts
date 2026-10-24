@@ -148,9 +148,9 @@ describe("matchSupplier", () => {
 });
 
 describe("SimulatedTransport", () => {
-  it("plays a Claude persona that knows the real records only when it is the real supplier", async () => {
+  it("plays a Claude-voiced supplier that knows the real records only when it is the real supplier", async () => {
     const llm = new FakeLLM({ stream: { "phone call": "Yes, it was eighteen thousand four hundred. <hangup>" } });
-    const real = new SimulatedTransport({ request: stageRequest(), persona: "real", llm, supplierName: "Stagecraft Rigging Co.", records: STAGE_RECORDS });
+    const real = new SimulatedTransport({ request: stageRequest(), role: "real", llm, supplierName: "Stagecraft Rigging Co.", records: STAGE_RECORDS });
     await real.say("Hello there.");
     expect((await real.listen({ timeoutMs: 1000 }))?.text).toBe("Yes, it was eighteen thousand four hundred.");
     expect(await real.listen({ timeoutMs: 1000 })).toBeNull(); // then it hung up
@@ -158,7 +158,7 @@ describe("SimulatedTransport", () => {
     expect(llm.streamCalls[0]!.system).toContain("#4471");
     expect(llm.streamCalls[0]!.system).toContain("never changed your bank");
 
-    const scammer = new SimulatedTransport({ request: stageRequest(), persona: "scammer", llm, records: STAGE_RECORDS });
+    const scammer = new SimulatedTransport({ request: stageRequest(), role: "scammer", llm, records: STAGE_RECORDS });
     await scammer.say("Hello there.");
     await scammer.listen({ timeoutMs: 1000 });
     expect(llm.streamCalls[1]!.system).not.toContain("#4471");

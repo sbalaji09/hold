@@ -8,10 +8,10 @@ import { Button } from "@/components/callback";
 import { COMPANIES, type CompanyKey } from "@/lib/company";
 import { SWITCH_OFF_REASON, useTemplateLoader } from "./TemplateSwitch";
 
-export function WorkspaceSwitcher({ current, actor }: { current: CompanyKey; actor: "maya" | "dev" }) {
+export function WorkspaceSwitcher({ current }: { current: CompanyKey }) {
   const [open, setOpen] = React.useState(false);
   const [picked, setPicked] = React.useState<CompanyKey | null>(null);
-  const { allowed, pending, error, run } = useTemplateLoader(actor);
+  const { allowed, pending, error, run } = useTemplateLoader();
   const boxRef = React.useRef<HTMLDivElement>(null);
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const co = COMPANIES[current];

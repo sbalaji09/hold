@@ -204,7 +204,7 @@ export const recordUnknownSender = internalMutation({
     const billKey = freshKey("bill_in");
     const emailKey = freshKey("email_in");
     // ponytail: no real supplier row to point at, so the bill carries a sentinel supplierKey
-    // instead of a schema change. The Inbox/bill page show it as unmatched; Maya re-files it by
+    // instead of a schema change. The Inbox/bill page show it as unmatched; you re-file it by
     // hand. Upgrade to a real "unmatched sender" queue if this gets common.
     const supplierKey = `unknown:${args.fromDomain || "no-domain"}`;
     await ctx.db.insert("emails", {
@@ -236,7 +236,7 @@ export const recordUnknownSender = internalMutation({
     await ctx.db.insert("activity", activity(
       "callback",
       "Flagged an email from an unrecognized sender",
-      flagged ? flagged.evidence : `No ${co.payee.one} record matches ${args.fromDomain || "this sender"}. ${co.maya.name} needs to review it by hand.`,
+      flagged ? flagged.evidence : `No ${co.payee.one} record matches ${args.fromDomain || "this sender"}. You need to review it by hand.`,
       "bill",
       billKey,
     ));
@@ -257,7 +257,7 @@ export const startBill = internalMutation({
     amountCents: v.number(),
     invoiceNo: v.string(),
     messageId: v.optional(v.string()),
-    // Maya said a message hold sorted away is a bill: the bill reuses that email row.
+    // You said a message hold sorted away is a bill: the bill reuses that email row.
     existingEmailKey: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<{ billKey: string; supplierKey: string; status: Doc<"bills">["status"] }> => {
@@ -351,14 +351,14 @@ export const settleBill = internalMutation({
         billKey,
         kind: "big_payment",
         status: "pending",
-        recommendation: `Every check passed. This is ${money}, over hold's ${limit} limit, so it needs ${co.dev.name}'s approval.`,
+        recommendation: `Every check passed. This is ${money}, over hold's ${limit} limit, so it needs your approval.`,
         routedTo: route.routedTo,
         reason: route.reason,
         thread: [],
       });
       await ctx.db.insert("activity", activity(
         "callback",
-        `Asked ${co.dev.name} to approve ${money} for ${args.supplier.name} (#${args.invoiceNo})`,
+        `Asked you to approve ${money} for ${args.supplier.name} (#${args.invoiceNo})`,
         `Safe, but over the ${limit} limit hold can pay on its own.`,
         "bill",
         billKey,
@@ -390,7 +390,7 @@ export const settleBill = internalMutation({
   },
 });
 
-/** A supplier email that isn't a bill: kept as a message for Maya, or filed on the supplier. */
+/** A supplier email that isn't a bill: kept as a message for you, or filed on the supplier. */
 export const recordMessage = internalMutation({
   args: {
     from: v.string(),
@@ -403,7 +403,7 @@ export const recordMessage = internalMutation({
     triage: v.object({
       kindKey: v.optional(v.string()),
       kindName: v.string(),
-      route: v.union(v.literal("to_maya"), v.literal("file")),
+      route: v.union(v.literal("to_dev"), v.literal("file")),
       why: v.string(),
       quote: v.optional(v.string()),
     }),
@@ -427,7 +427,7 @@ export const recordMessage = internalMutation({
       "callback",
       args.triage.route === "file"
         ? `Filed an email from ${args.supplier.name} (${args.triage.kindName})`
-        : `Sent an email from ${args.supplier.name} to ${co.maya.name} (${args.triage.kindName})`,
+        : `Sent an email from ${args.supplier.name} to you (${args.triage.kindName})`,
       args.triage.why,
       "email",
       emailKey,
@@ -447,7 +447,7 @@ export const ingestEmail = action({
 });
 
 /**
- * Maya says a message hold sorted away is a bill: run it through the bill checks, reusing the
+ * You say a message hold sorted away is a bill: run it through the bill checks, reusing the
  * email row. Internal, so the bill path can't be skipped from outside.
  */
 export const fileAsBill = internalAction({
@@ -470,8 +470,8 @@ export const emailForBill = internalQuery({
 
 /**
  * An email from a domain no supplier uses. A look-alike of a known supplier, or one the fraud
- * playbook flags, goes to Maya as before; a bill from a genuine newcomer starts onboarding a New
- * supplier (convex/app/onboarding.ts); anything else is a message for Maya.
+ * playbook flags, goes to you as before; a bill from a genuine newcomer starts onboarding a New
+ * supplier (convex/app/onboarding.ts); anything else is a message for you.
  */
 async function fromUnknownDomain(ctx: ActionCtx, args: IngestArgs, fromAddress: string, fromDomain: string): Promise<IngestResult> {
   const unknown = (checks?: Check[]) =>
@@ -525,7 +525,7 @@ async function fromUnknownDomain(ctx: ActionCtx, args: IngestArgs, fromAddress: 
       receivedAt: args.receivedAt,
       messageId: args.messageId,
       supplier: { key: `unknown:${fromDomain}`, name: read.value.companyName || fromDomain },
-      triage: { kindName: "From an unknown sender", route: "to_maya", why: `${fromDomain} isn't a ${co.payee.one} ${co.name} knows. ${read.value.whatFor}`.trim() },
+      triage: { kindName: "From an unknown sender", route: "to_dev", why: `${fromDomain} isn't a ${co.payee.one} ${co.name} knows. ${read.value.whatFor}`.trim() },
     });
   }
   return ctx.runMutation(internal.app.onboarding.onboardFromEmail, {

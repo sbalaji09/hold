@@ -6,8 +6,6 @@ import type { BillStatus } from "@/components/callback";
 export type Improvement = Doc<"improvements">;
 export type FraudTechnique = Doc<"fraudTechniques">;
 
-export const PERSON_NAME = { maya: "Maya Lin", dev: "Dev Okafor" } as const;
-
 /** What a bill is called on screen, given whatever names are known for it. */
 export function billRef(billKey: string | undefined, names: Record<string, string>): string {
   if (!billKey) return "a bill";
@@ -41,7 +39,7 @@ export function triggerTitle(trigger: Improvement["trigger"], names: Record<stri
   const email = trigger.emailKey;
   if (isPracticeEmail(email)) return `Practice email sorted wrong: ${names[email] ?? "a practice email"}`;
   if (email || trigger.kind === "corrected") {
-    const who = trigger.by === "callback" ? "hold" : PERSON_NAME[trigger.by].split(" ")[0];
+    const who = trigger.by === "callback" ? "hold" : "You";
     return `${who} corrected an email: ${(email && names[email]) || firstLine(trigger.text)}`;
   }
   const call = trigger.callId;
@@ -57,7 +55,7 @@ export function triggerTitle(trigger: Improvement["trigger"], names: Record<stri
 /** Who raised it: hold itself (a Practice run, a false alarm) or a person. */
 export function triggerBy(trigger: Improvement["trigger"]): { person: string | null; text: string } {
   if (trigger.by !== "callback") {
-    return { person: PERSON_NAME[trigger.by], text: trigger.kind === "taught" ? "Taught by" : trigger.kind === "corrected" ? "Corrected by" : "Reported by" };
+    return { person: "You", text: trigger.kind === "taught" ? "Taught by" : trigger.kind === "corrected" ? "Corrected by" : "Reported by" };
   }
   // hold only raises a call or an email on its own when a Practice run got it wrong.
   return { person: null, text: trigger.kind === "missed_scam" || trigger.callId || trigger.emailKey ? "Found in a Practice run" : "Found by hold" };
@@ -88,15 +86,14 @@ export const IMPROVEMENT_MARK: Record<Improvement["status"], ImprovementMark> = 
   proposing: { mark: "checking", label: "Learning" },
   replaying: { mark: "checking", label: "Replaying" },
   promoted: { mark: "paid", label: "Live" },
-  needs_approval: { mark: "needs-you", label: "Waiting for Dev" },
+  needs_approval: { mark: "needs-you", label: "Waiting for your approval" },
   rejected: { mark: null, label: "Rejected" },
   declined: { mark: null, label: "Declined" },
   reverted: { mark: null, label: "Reverted" },
 };
 
-/** The mark for one change. A triage change that waits waits for Maya: it's her inbox. */
+/** The mark for one change, settled or waiting on your approval. */
 export function improvementMark(impr: Pick<Improvement, "status" | "job">): ImprovementMark {
-  if (impr.status === "needs_approval" && impr.job === "triage") return { mark: "needs-you", label: "Waiting for Maya" };
   return IMPROVEMENT_MARK[impr.status];
 }
 
@@ -118,7 +115,7 @@ export function techniqueSource(
   if (t.sourceKind === "seed") return { text: "Starting playbook", person: null, link: null };
   if (t.sourceKind === "taught") {
     const by = improvements.find((i) => i.key === t.improvementKey)?.trigger.by;
-    return by && by !== "callback" ? { text: "Taught by", person: PERSON_NAME[by], link: null } : { text: "Taught to hold", person: null, link: null };
+    return by && by !== "callback" ? { text: "Taught by", person: "You", link: null } : { text: "Taught to hold", person: null, link: null };
   }
   const ref = t.sourceRef;
   const link = recordLink(ref);
@@ -126,7 +123,7 @@ export function techniqueSource(
   if (t.sourceKind === "corrected") {
     const by = improvements.find((i) => i.key === t.improvementKey)?.trigger.by;
     const what = names[ref ?? ""] ? `Learned from \u201c${names[ref!]}\u201d, corrected by` : "Learned from an email corrected by";
-    return by && by !== "callback" ? { text: what, person: PERSON_NAME[by], link } : { text: "Learned from a corrected email", person: null, link };
+    return by && by !== "callback" ? { text: what, person: "You", link } : { text: "Learned from a corrected email", person: null, link };
   }
   if (isPracticeCall(ref)) return { text: `Learned from the Practice call \u201c${names[ref] ?? "a scripted call"}\u201d`, person: null, link };
   if (isInboundCall(ref)) {

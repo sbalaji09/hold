@@ -1,5 +1,5 @@
 "use client";
-// A New supplier's page: what hold found about them, the background check, and Maya's (or Dev's)
+// A New supplier's page: what hold found about them, the background check, and your
 // confirmation - a trusted number that didn't come from their email, plus Fogline's own facts
 // about the engagement, which is what the check call asks about (convex/app/onboarding.ts).
 import * as React from "react";
@@ -12,12 +12,12 @@ import { Amount, Button, StatusMark } from "@/components/callback";
 import { BackgroundCheckPanel } from "@/components/BackgroundCheckPanel";
 import { TIME_ZONE, formatPhone } from "@/components/voice/format";
 import { STATUS_TO_MARK } from "@/lib/inbox";
-import { PERSON_NAME } from "@/lib/playbook";
+
 import { useCompany } from "@/lib/useCompany";
 import type { Company } from "@/lib/company";
 import type { BackgroundCheck, Bill, Supplier } from "@/lib/types";
 
-type Persona = keyof typeof PERSON_NAME;
+
 type Note = NonNullable<NonNullable<Supplier["onboarding"]>["note"]>;
 
 const whenFmt = new Intl.DateTimeFormat("en-US", { timeZone: TIME_ZONE, month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -56,7 +56,7 @@ export function OnboardingRecord({ supplier }: { supplier: Supplier }): React.Re
         {o.confirmedBy ? (
           <>
             <dt className="cb-caps pt-1">Confirmed by</dt>
-            <dd className="m-0 font-serif text-[17px]/[24px] italic text-signatory">{co[o.confirmedBy].full}</dd>
+            <dd className="m-0 font-serif text-[17px]/[24px] italic text-signatory">You</dd>
           </>
         ) : null}
       </dl>
@@ -116,10 +116,10 @@ interface ConfirmSupplierProps {
   supplier: Supplier;
   bills: Bill[];
   lastCheck: BackgroundCheck | null;
-  actor: Persona;
+
 }
 
-export function ConfirmSupplier({ supplier, bills, lastCheck, actor }: ConfirmSupplierProps): React.ReactElement {
+export function ConfirmSupplier({ supplier, bills, lastCheck }: ConfirmSupplierProps): React.ReactElement {
   const co = useCompany();
   const router = useRouter();
   const confirm = useMutation(api.app.onboarding.confirmNewSupplier);
@@ -153,7 +153,7 @@ export function ConfirmSupplier({ supplier, bills, lastCheck, actor }: ConfirmSu
     setError(null);
     setPending(true);
     try {
-      const res = await confirm({ supplierKey: supplier.key, trustedPhone: phone, contactName, note, actor });
+      const res = await confirm({ supplierKey: supplier.key, trustedPhone: phone, contactName, note, actor: "dev" });
       setCalls(res.calls);
       router.refresh();
     } catch (err) {
@@ -174,7 +174,7 @@ export function ConfirmSupplier({ supplier, bills, lastCheck, actor }: ConfirmSu
         </h2>
         <p className="m-0 max-w-[68ch] font-mono text-[13px]/[21px] text-ink">
           {confirmed
-            ? `${supplier.name} stays New until hold reaches them on the trusted number and they confirm the ${co.bill.one}. Then they're Trusted, and ${co.dev.name} approves the first payment.`
+            ? `${supplier.name} stays New until hold reaches them on the trusted number and they confirm the ${co.bill.one}. Then they're Trusted, and you approve the first payment.`
             : `${co.name} has never paid ${supplier.name}. Nothing is paid until you confirm who they are and hold reaches them on a number that didn't come from their email.`}
         </p>
       </div>
@@ -243,7 +243,6 @@ export function ConfirmSupplier({ supplier, bills, lastCheck, actor }: ConfirmSu
           <form onSubmit={onSubmit} className="cb-doc min-w-0" aria-labelledby="confirm-form-head" noValidate>
             <div className="cb-doc-head">
               <span id="confirm-form-head">Your confirmation</span>
-              <small>Signing as {co[actor].full}</small>
             </div>
             <div className="flex flex-col gap-4 p-4">
               <div className="flex flex-col gap-1.5">

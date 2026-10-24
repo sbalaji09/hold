@@ -31,7 +31,6 @@ import {
 } from "./format";
 import { Transcript, type SourceHref } from "./Transcript";
 import { AskPerson, openAsk } from "./AskPerson";
-import { person } from "@/lib/company";
 import { useCompany } from "@/lib/useCompany";
 import "./voice.css";
 
@@ -78,8 +77,6 @@ export function useNow(enabled: boolean): number {
 
 export interface LiveCallScreenProps {
   callId: string;
-  /** Who is signed in, for answering hold's questions mid-call. */
-  actor?: "maya" | "dev";
   /** Link for a question's source record (`record_id`), once the app has record pages. */
   sourceHref?: SourceHref;
 }
@@ -87,7 +84,6 @@ export interface LiveCallScreenProps {
 /** The Live call screen for `/calls/[callId]`. */
 export function LiveCallScreen({
   callId,
-  actor = "maya",
   sourceHref,
 }: LiveCallScreenProps) {
   const call = useLiveCall(callId);
@@ -117,7 +113,6 @@ export function LiveCallScreen({
     <LiveCallView
       call={call}
       request={call.request}
-      actor={actor}
       sourceHref={sourceHref}
     />
   );
@@ -126,16 +121,14 @@ export function LiveCallScreen({
 function LiveCallView({
   call,
   request,
-  actor,
   sourceHref,
 }: {
   call: LiveCall;
   request: CallRequestDoc;
-  actor: "maya" | "dev";
   sourceHref?: SourceHref;
 }) {
-  const { record, maya } = useCompany();
-  const view = callView(call, maya.name);
+  const { record } = useCompany();
+  const view = callView(call);
   const { startMs, endMs } = callTimes(call);
   const now = useNow(startMs !== null && endMs === null);
   const supplierName = call.supplier?.name || request.supplier_id;
@@ -191,7 +184,6 @@ function LiveCallView({
               key={ask.ask_id}
               ask={ask}
               callId={request.call_id}
-              actor={actor}
             />
           )}
           <Transcript
@@ -264,7 +256,6 @@ function Takeover({
   view: CallView;
   takeoverRequested: boolean;
 }) {
-  const HANDOFF_TO = useCompany().maya.name;
   const requestTakeover = useRequestTakeover();
   const [step, setStep] = useState<"idle" | "confirm" | "sending">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -280,7 +271,7 @@ function Takeover({
         <Button
           locked={
             takeoverRequested
-              ? `${HANDOFF_TO} has this call now.`
+              ? "You have this call now."
               : "The call has ended. There is nothing to take over."
           }
         >
@@ -323,7 +314,7 @@ function Takeover({
       aria-label="Confirm take over"
     >
       <p className="hv-small">
-        {AGENT} hangs up and the call goes to {HANDOFF_TO}.
+        {AGENT} hangs up and the call comes to you.
       </p>
       <div className="hv-confirm-buttons">
         <Button
@@ -386,9 +377,7 @@ function Result({ result }: { result: CallResultDoc }) {
                   ) : (
                     "Doesn't match the records."
                   )}
-                  {item.decided_by && (
-                    <DecidedBy who={item.decided_by} matches={item.matches} />
-                  )}
+                  {item.decided_by && <DecidedBy matches={item.matches} />}
                 </>
               }
               quote={item.matches ? undefined : item.answer}
@@ -406,20 +395,12 @@ function Result({ result }: { result: CallResultDoc }) {
   );
 }
 
-/** A person judged this answer during the call; hold's own judgment didn't decide it. */
-function DecidedBy({
-  who,
-  matches,
-}: {
-  who: "maya" | "dev";
-  matches: boolean;
-}) {
+/** The approver judged this answer during the call; hold's own judgment didn't decide it. */
+function DecidedBy({ matches }: { matches: boolean }) {
   return (
     <span className="hv-small">
       {" "}
-      Judged {matches ? "a match" : "not a match"} by{" "}
-      <span className="hv-person">{person(useCompany(), who).full}</span> during
-      the call.
+      Judged {matches ? "a match" : "not a match"} by you during the call.
     </span>
   );
 }

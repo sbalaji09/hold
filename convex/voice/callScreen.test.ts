@@ -121,7 +121,7 @@ describe("hold learns phone tactics", () => {
       { action: "add", channel: "phone", targetKey: "", name: "Gift card request", howItWorks: "The caller asks for payment in gift cards.", signals: ["gift cards"], example: "Can you pay this one with gift cards?", rationale: "Gift cards are a classic untraceable payment." },
     ];
 
-    await t.mutation(api.app.techniques.reportCall, { callId: "in_CA1", verdict: "scam", actor: "maya" });
+    await t.mutation(api.app.techniques.reportCall, { callId: "in_CA1", verdict: "scam", actor: "dev" });
     await t.finishAllScheduledFunctions(vi.runAllTimers);
 
     const impr = (await t.run((ctx) => ctx.db.query("improvements").collect()))[0]!;
@@ -148,6 +148,6 @@ describe("hold learns phone tactics", () => {
 
   test("Callback can't report a call on its own", async () => {
     const { t } = await setup("Hello?");
-    await expect(t.mutation(api.app.techniques.reportCall, { callId: "in_CA1", verdict: "scam", actor: "callback" })).rejects.toThrow("Maya or Dev");
+    await expect(t.mutation(api.app.techniques.reportCall, { callId: "in_CA1", verdict: "scam", actor: "callback" })).rejects.toThrow("Callback can't");
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 // A supplier email hold sorted as a message, not a bill: the email, how hold sorted it and why, and
-// what Maya (or Dev) can do: mark it done, or say it was sorted wrong so hold moves it and learns.
+// what you can do: mark it done, or say it was sorted wrong so hold moves it and learns.
 // Live, so a message corrected to a bill links to the bill as soon as the bill checks create it.
 import * as React from "react";
 import Link from "next/link";
@@ -10,27 +10,22 @@ import { Button, Cite, LogEntry, StatusMark } from "@/components/callback";
 import { LoadBoundary, errorText } from "@/components/Playbook";
 import { RouteCorrection, capitalise } from "@/components/RouteCorrection";
 import { MESSAGE_MARK } from "@/lib/inbox";
-import { PERSON_NAME } from "@/lib/playbook";
 import { ROUTE_WORDS, type Route } from "@/lib/triage";
 import { useCompany } from "@/lib/useCompany";
 import type { Company } from "@/lib/company";
 
-type Actor = "maya" | "dev";
-const ROUTES: Route[] = ["bill", "to_maya", "file"];
+const ROUTES: Route[] = ["bill", "to_dev", "file"];
 
 function formatDateTime(iso: string): string {
   const d = new Date(iso);
   return `${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })} · ${d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}`;
 }
 
-function Person({ name }: { name: string }): React.ReactElement {
-  return <span className="font-serif text-[15px] italic text-signatory">{name}</span>;
-}
 
 function consequence(r: Route, supplier: string, co: Company): string {
   if (r === "bill") return "hold runs it through the full bill checks, like any new bill. Nothing is paid unless they pass.";
   if (r === "file") return `hold files it on ${supplier}'s record and it leaves the inbox.`;
-  return `It stays in ${co.maya.name}'s inbox as a message until someone marks it done.`;
+  return "It stays in your inbox as a message until someone marks it done.";
 }
 
 /** The bill the bill checks made from this email, once they have. */
@@ -39,9 +34,9 @@ function useBillFor(emailKey: string, look: boolean) {
   return bills?.find((b) => b.emailKey === emailKey) ?? null;
 }
 
-function View({ emailKey, actor }: { emailKey: string; actor: Actor }): React.ReactElement {
+function View({ emailKey }: { emailKey: string }): React.ReactElement {
   const co = useCompany();
-  const ACTOR_NAME = { callback: "hold", maya: co.maya.full, dev: co.dev.full } as const;
+  const ACTOR_NAME = { callback: "hold", dev: "you" } as const;
   const data = useQuery(api.app.triage.getMessage, { emailKey });
   const activity = useQuery(api.app.queries.listActivity, {});
   const resolve = useMutation(api.app.triage.resolveMessage);
@@ -96,7 +91,7 @@ function View({ emailKey, actor }: { emailKey: string; actor: Actor }): React.Re
   const timeline = [...entries].reverse();
   // Stored since triage recorded it; the Activity log covers corrections made before that.
   const correctedBy = t.correctedBy ?? entries.find((e) => e.actor !== "callback" && e.what.startsWith("said this email is"))?.actor;
-  const corrector = correctedBy === "maya" || correctedBy === "dev" ? correctedBy : null;
+  const corrector = correctedBy === "dev" ? correctedBy : null;
   const toBill = t.correctedRoute === "bill";
   const paragraphs = m.body.split(/\n+/).filter((l) => l.trim().length > 0);
 
@@ -104,7 +99,7 @@ function View({ emailKey, actor }: { emailKey: string; actor: Actor }): React.Re
     setDoneError(null);
     setMarking(true);
     try {
-      await resolve({ emailKey, actor });
+      await resolve({ emailKey, actor: "dev" });
     } catch (err) {
       setDoneError(errorText(err, "hold couldn't mark it done just now. Try again."));
     } finally {
@@ -113,7 +108,7 @@ function View({ emailKey, actor }: { emailKey: string; actor: Actor }): React.Re
   }
 
   async function move(r: Route): Promise<React.ReactNode> {
-    const res = await correct({ emailKey, route: r, actor });
+    const res = await correct({ emailKey, route: r, actor: "dev" });
     const learning = res.key ? (
       <>
         hold is learning from the correction.
@@ -198,7 +193,7 @@ function View({ emailKey, actor }: { emailKey: string; actor: Actor }): React.Re
             <p className="mt-3 border-t border-dashed border-line pt-3 font-mono text-[12px]/[18px] text-ink-muted">
               {t.correctedRoute ? (
                 <>
-                  hold had it as {ROUTE_WORDS[t.route]}. {corrector ? <Person name={PERSON_NAME[corrector]} /> : "A person"} said it&rsquo;s {ROUTE_WORDS[t.correctedRoute]}.
+                  hold had it as {ROUTE_WORDS[t.route]}. {corrector ? "You" : "A person"} said it&rsquo;s {ROUTE_WORDS[t.correctedRoute]}.
                 </>
               ) : (
                 <>{capitalise(ROUTE_WORDS[t.route])}.</>
@@ -242,10 +237,10 @@ function View({ emailKey, actor }: { emailKey: string; actor: Actor }): React.Re
   );
 }
 
-export function MessageView({ emailKey, actor }: { emailKey: string; actor: Actor }): React.ReactElement {
+export function MessageView({ emailKey }: { emailKey: string }): React.ReactElement {
   return (
     <LoadBoundary what="this message">
-      <View emailKey={emailKey} actor={actor} />
+      <View emailKey={emailKey} />
     </LoadBoundary>
   );
 }

@@ -22,7 +22,7 @@ export interface VoiceStore {
   /** Atomically queued -> dialing and attempt += 1. Returns null if someone else claimed it. */
   claimRequest(call_id: string): Promise<CallRequest | null>;
   getRequest(call_id: string): Promise<CallRequest | null>;
-  /** Fires when Maya presses "End call and take over". */
+  /** Fires when the approver presses "End call and take over". */
   watchTakeover(call_id: string, cb: () => void): () => void;
   /** Fires once with the first person's reply to a mid-call question (ask_person event). */
   watchPersonAnswer(call_id: string, ask_id: string, cb: (answer: PersonAnswerEvent) => void): () => void;

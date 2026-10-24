@@ -1,4 +1,4 @@
-// Pure rules for what Callback, Maya and Dev can each do. No data access,
+// Pure rules for what Callback and the approver can each do. No data access,
 // no side effects — callers pass in the records they already have.
 
 import { companyFor, wholeDollars, type Company } from "./company";
@@ -6,7 +6,7 @@ import type { Bill } from "./types";
 
 const FOGLINE = companyFor(undefined);
 
-export type Actor = "callback" | "maya" | "dev";
+export type Actor = "callback" | "dev";
 
 export interface PolicyResult {
   allowed: boolean;
@@ -44,7 +44,7 @@ export function canPay(bill: Bill, watchOnly = false, co: Company = FOGLINE): Po
   if (flagged) return denied(`Callback can't pay this ${co.bill.one}. ${flagged.label} didn't check out.`);
   if (bill.amountCents >= co.approvalLimitCents) {
     const Bills = co.bill.many.charAt(0).toUpperCase() + co.bill.many.slice(1);
-    return denied(`Callback can't pay this on its own. ${Bills} of ${wholeDollars(co.approvalLimitCents)} or more need ${co.dev.name}'s approval.`);
+    return denied(`Callback can't pay this on its own. ${Bills} of ${wholeDollars(co.approvalLimitCents)} or more need your approval.`);
   }
   return allowed();
 }
@@ -63,20 +63,20 @@ export function canCall(bill: Bill): PolicyResult {
   return allowed();
 }
 
-/** Nobody can approve a request they made themselves, and Callback can't sign at all. */
+/** Callback can't approve its own requests; nobody else is blocked from signing off. */
 export function canApprove(approver: Actor, requestedBy: Actor, co: Company = FOGLINE): PolicyResult {
-  if (approver === "callback") return denied(`Callback can't approve its own requests. ${co.maya.name} or ${co.dev.name} has to sign off.`);
-  if (approver === requestedBy) return denied(`${co[approver].name} can't approve a request they made themselves.`);
+  if (approver === "callback") return denied("Callback can't approve its own requests. It needs your approval.");
+  if (approver === requestedBy) return denied("You can't approve a request you made yourself.");
   return allowed();
 }
 
-/** Releasing a held payment needs a person, and a bank change on it needs Dev plus a confirmed call. */
+/** Releasing a held payment needs a person, and a bank change on it needs your approval plus a confirmed call. */
 export function canRelease(bill: Bill, releaser: Actor, co: Company = FOGLINE): PolicyResult {
   if (bill.status !== "Held") return denied(`This ${co.bill.one} isn't held.`);
-  if (releaser === "callback") return denied(`Callback can't release a held payment. ${co.dev.name} has to approve it.`);
+  if (releaser === "callback") return denied("Callback can't release a held payment. It needs your approval.");
   const bankFlagged = bill.checks.find((c) => c.id === "bank-account")?.state === "flag";
   if (bankFlagged) {
-    if (releaser !== "dev") return denied(`This release needs ${co.dev.name}'s approval: the bank details on this ${co.bill.one} changed.`);
+    if (releaser !== "dev") return denied(`This release needs your approval: the bank details on this ${co.bill.one} changed.`);
     if (bill.call?.outcome !== "confirmed") {
       return denied(`Callback can't change bank details without a confirmed call. Call the ${co.payee.one} on the number on file first.`);
     }

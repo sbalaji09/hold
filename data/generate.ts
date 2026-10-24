@@ -248,7 +248,7 @@ for (const s of SUPPLIERS) {
 
 // Legit, dev+call-verified bank changes (so "wrongly held" can be measured).
 // sup_perimeter_pro and sup_horizon_artists switched banks for real business
-// reasons; Maya/Dev verified both with a call + Dev sign-off.
+// reasons; both verified with a call and your sign-off.
 function addVerifiedBankChange(supplierKey: string, newBank: string, newLast4: string, addedAt: string) {
   const old = bankAccounts.find((b) => b.supplierKey === supplierKey && b.status === "active")!;
   old.status = "retired";
@@ -382,7 +382,7 @@ function makeRecurringBills(
     // last week's worth of bills ride as "Scheduled"; everything older is Paid.
     const daysUntilDue = Math.round((due.getTime() - TODAY.getTime()) / 86400000);
     const isUpcoming = receivedAt > addDays(TODAY, -7) && due >= TODAY;
-    const overBoss = amountCents > 1000000; // > $10,000 needs Dev
+    const overBoss = amountCents > 1000000; // > $10,000 needs your approval
     const status: Bill["status"] = isUpcoming ? "Scheduled" : overBoss ? "Needs you" : "Paid";
 
     const emailKey = `email_${billKey.replace("bill_", "")}`;
@@ -523,14 +523,14 @@ makeRecurringBills(supplierByKey.get("sup_sf_fence")!, 6);
       septInvoiceDone = true;
       // Past verification call that mentions invoice #4471 — the amount was
       // above Stagecraft's usual range, so Callback confirmed it by phone
-      // before Dev signed off and it was paid.
+      // before sign-off and it was paid.
       calls.push({
         key: "call_4471_verify",
         supplierKey: s.key,
         billKey,
         direction: "out",
         startedAt: iso(addDays(receivedAt, 2)),
-        summary: "Confirmed total and scope on September invoice #4471 (main-stage truss) before payment; supplier verified, Dev approved.",
+        summary: "Confirmed total and scope on September invoice #4471 (main-stage truss) before payment; supplier verified, you approved.",
         transcript: [
           { speaker: "callback", text: "Hi, this is an automated assistant calling for Fogline's accounts team. This call is recorded. Can you confirm the total on your September invoice, number 4471?", ts: 0 },
           { speaker: "supplier", text: "Yes, that's invoice 4471 for the main-stage truss build, total is $18,400.", ts: 6 },
@@ -662,7 +662,7 @@ makeRecurringBills(supplierByKey.get("sup_sf_fence")!, 6);
     billKey,
     direction: "out",
     startedAt: iso(addDays(receivedAt, 0.3)),
-    summary: "Tried the number on file to confirm the bank-change request; no answer, retried once, handed off to Maya.",
+    summary: "Tried the number on file to confirm the bank-change request; no answer, retried once, handed off to you.",
     transcript: [
       { speaker: "callback", text: "Hi, this is an automated assistant calling for Fogline's accounts team, about a bank-change request on invoice " + invoiceNo + ". This call is recorded.", ts: 0 },
     ],
@@ -811,7 +811,7 @@ makeRecurringBills(supplierByKey.get("sup_sf_fence")!, 6);
     billKey,
     direction: "out",
     startedAt: iso(addDays(receivedAt, 0.4)),
-    summary: "Called the number on file about the bank-change request; supplier confirmed it wasn't theirs, flagged a look-alike domain, handed to Maya to block the sender.",
+    summary: "Called the number on file about the bank-change request; supplier confirmed it wasn't theirs, flagged a look-alike domain, handed to you to block the sender.",
     transcript: [
       { speaker: "callback", text: "Hi, this is an automated assistant calling for Fogline's accounts team about a bank-change request on invoice " + invoiceNo + ". This call is recorded.", ts: 0 },
       { speaker: "supplier", text: "That's not from us — our domain is bayfrontwaste.com, no hyphen, no .co. Please don't pay that.", ts: 7 },
@@ -828,7 +828,7 @@ makeRecurringBills(supplierByKey.get("sup_sf_fence")!, 6);
 }
 
 // ---------- legit, verified bank changes (false-positive guard) ----------
-// Perimeter Pro Staffing: real bank change (new ownership), verified by call + Dev.
+// Perimeter Pro Staffing: real bank change (new ownership), verified by call + your approval.
 {
   const s = supplierByKey.get("sup_perimeter_pro")!;
   const receivedAt = addDays(TODAY, -45);
@@ -854,7 +854,7 @@ makeRecurringBills(supplierByKey.get("sup_sf_fence")!, 6);
     billKey,
     direction: "out",
     startedAt: iso(addDays(receivedAt, 1)),
-    summary: "Verified the new US Bank account after Perimeter Pro's ownership change; supplier confirmed details, Dev approved the change.",
+    summary: "Verified the new US Bank account after Perimeter Pro's ownership change; supplier confirmed details, you approved the change.",
     transcript: [
       { speaker: "callback", text: "Hi, this is an automated assistant calling for Fogline's accounts team to confirm a bank-change request. This call is recorded. Can you confirm the new account details?", ts: 0 },
       { speaker: "supplier", text: "Yes, we were acquired last month and moved everything to US Bank, account ending 5509.", ts: 7 },
@@ -885,7 +885,7 @@ makeRecurringBills(supplierByKey.get("sup_sf_fence")!, 6);
   });
 }
 
-// Horizon Artist Management: real bank change (switched banks), verified by call + Dev.
+// Horizon Artist Management: real bank change (switched banks), verified by call + your approval.
 {
   const s = supplierByKey.get("sup_horizon_artists")!;
   const receivedAt = addDays(TODAY, -70);
@@ -911,7 +911,7 @@ makeRecurringBills(supplierByKey.get("sup_sf_fence")!, 6);
     billKey,
     direction: "out",
     startedAt: iso(addDays(receivedAt, 1)),
-    summary: "Verified Horizon's new Bank of America account by phone before Dev approved the change.",
+    summary: "Verified Horizon's new Bank of America account by phone before you approved the change.",
     transcript: [
       { speaker: "callback", text: "Hi, this is an automated assistant calling for Fogline's accounts team to confirm a bank-change request. This call is recorded.", ts: 0 },
       { speaker: "supplier", text: "Yes, that's right, we moved to Bank of America this quarter, ending 6621.", ts: 6 },
@@ -942,7 +942,7 @@ makeRecurringBills(supplierByKey.get("sup_sf_fence")!, 6);
   });
 }
 
-// SF Fence & Barricade Co.: real bank change (switched to a business bank account), verified by call + Dev.
+// SF Fence & Barricade Co.: real bank change (switched to a business bank account), verified by call + your approval.
 {
   const s = supplierByKey.get("sup_sf_fence")!;
   const receivedAt = addDays(TODAY, -30);
@@ -968,7 +968,7 @@ makeRecurringBills(supplierByKey.get("sup_sf_fence")!, 6);
     billKey,
     direction: "out",
     startedAt: iso(addDays(receivedAt, 1)),
-    summary: "Verified SF Fence's new Silicon Valley Bank account by phone before Dev approved the change.",
+    summary: "Verified SF Fence's new Silicon Valley Bank account by phone before you approved the change.",
     transcript: [
       { speaker: "callback", text: "Hi, this is an automated assistant calling for Fogline's accounts team to confirm a bank-change request. This call is recorded.", ts: 0 },
       { speaker: "supplier", text: "Yep, that's us — we opened a new business account at SVB, ending 3384.", ts: 5 },
