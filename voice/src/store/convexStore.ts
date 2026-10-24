@@ -15,7 +15,7 @@ export class ConvexStore implements VoiceStore {
   ) {}
 
   static fromEnv(env: NodeJS.ProcessEnv = process.env): ConvexStore {
-    const url = env.CONVEX_URL;
+    const url = env.CONVEX_URL?.replace(/\/+$/, ""); // "//api/query" fails with an empty error
     const secret = env.VOICE_SERVER_SECRET;
     if (!url || !secret) throw new Error("CONVEX_URL and VOICE_SERVER_SECRET must be set");
     return new ConvexStore(new ConvexClient(url), secret);

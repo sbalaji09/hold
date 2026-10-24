@@ -18,7 +18,8 @@ const schema = z.object({
   ANTHROPIC_API_KEY: z.string().min(1),
   MOSS_PROJECT_ID: z.string().min(1),
   MOSS_PROJECT_KEY: z.string().min(1),
-  CONVEX_URL: z.string().url(),
+  // A trailing slash makes the Convex client call "//api/query", which fails with an empty error.
+  CONVEX_URL: z.string().url().transform((u) => u.replace(/\/+$/, "")),
   VOICE_SERVER_SECRET: z.string().min(16, "use at least 16 random characters"),
   PUBLIC_BASE_URL: z
     .string()

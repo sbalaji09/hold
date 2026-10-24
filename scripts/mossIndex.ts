@@ -8,7 +8,7 @@ import type { SupplierRecord } from "../shared/contract.js";
 import { MossSearch } from "../shared/mossSearch.js";
 import { SUPPLIER_INDEX } from "../shared/search.js";
 
-const url = process.env.CONVEX_URL;
+const url = process.env.CONVEX_URL?.replace(/\/+$/, ""); // "//api/query" fails with an empty error
 const secret = process.env.VOICE_SERVER_SECRET;
 if (!url || !secret) throw new Error("CONVEX_URL and VOICE_SERVER_SECRET must be set");
 
