@@ -1,111 +1,219 @@
+// Today: the first screen. What is waiting on the signed-in person, then one section per part of
+// the job (calls, bills in progress, payments, suppliers, what hold did). Every row opens the record
+// it is about; there are no totals or charts.
 import * as React from "react";
 import Link from "next/link";
-import { TryAScam } from "@/components/TryAScam";
-import { InboxRow, StatusMark } from "@/components/callback";
-import { getCompany, listApprovals, listBills, listMessages, type Message } from "@/lib/data";
+import { Amount, LogEntry, StatusMark } from "@/components/callback";
+import { LiveNow } from "@/components/LiveNow";
+import { listActivityWithLinks } from "@/lib/activity";
 import { capital } from "@/lib/company";
-import { INBOX_FILTERS, MESSAGE_MARK, STATUS_TO_MARK, UNSETTLED_STATUS, emailPreview, inboxItems, parseView, shortDate, type InboxView } from "@/lib/inbox";
+import { getCompany, getSettings, listApprovals, listBills, listMessages, listPayments, listPlaybookApprovals, listSuppliers } from "@/lib/data";
+import { STATUS_TO_MARK, shortDate } from "@/lib/inbox";
+import { getPersona } from "@/lib/persona";
+import { WATCH_ONLY_REASON } from "@/lib/policy";
+import type { ApprovalKind, Bill } from "@/lib/types";
 
-const EMPTY: Record<string, string> = {
-  messages: "No messages from suppliers. hold sorts every supplier email, and anything for Maya lands here.",
-  filed: "Nothing filed yet. Emails hold files, and messages marked done, show up here.",
+export const metadata = { title: "Today · hold" };
+
+const KIND_LABEL: Record<ApprovalKind, string> = {
+  big_payment: "Over the limit",
+  held_payment: "Held",
+  bank_change: "Bank change",
 };
 
-/** A supplier email that isn't a bill: same ledger row as a bill, marked Message where the amount goes. */
-function MessageRow({ m }: { m: Message }): React.ReactElement {
-  const t = m.triage!;
-  const mark = MESSAGE_MARK[t.status];
+const SHOWN = 5;
+
+function Section({ title, href, more, children }: { title: string; href: string; more: string; children: React.ReactNode }) {
   return (
-    <Link href={`/messages/${encodeURIComponent(m.key)}`} className={"cb-ledger-row" + (t.status === "open" ? " cb-ledger-unread" : "")}>
-      <span className="cb-dot" aria-label={t.status === "open" ? "Unread" : undefined} />
-      <span className="cb-from">{m.supplierName}</span>
-      <span className="cb-subj">
-        <b>{m.subject}</b>
-        {" — " + emailPreview(m.body)}
+    <section className="cb-doc" aria-label={title}>
+      <div className="cb-doc-head">
+        <span>{title}</span>
+        <small>
+          <Link href={href} className="underline underline-offset-4">
+            {more}
+          </Link>
+        </small>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/** One thing to look at: what it is, hold's words about it, and its mark or amount. */
+function Row({ href, title, line, right }: { href: string; title: string; line?: React.ReactNode; right?: React.ReactNode }) {
+  return (
+    <Link href={href} className="pt-dash-row">
+      <span className="pt-dash-text">
+        <span className="pt-dash-title">{title}</span>
+        {line ? <span className="pt-dash-line">{line}</span> : null}
       </span>
-      <span className="cb-r cb-caps">Message</span>
-      <span>
-        <StatusMark status={mark.status}>{mark.label}</StatusMark>
-      </span>
-      <span className="cb-when cb-r">{shortDate(m.receivedAt)}</span>
+      {right ? <span className="pt-dash-right">{right}</span> : null}
     </Link>
   );
 }
 
-export default async function InboxPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ status?: string }>;
-}): Promise<React.ReactElement> {
-  const view = parseView((await searchParams).status);
-  const [bills, approvals, messages, co] = await Promise.all([listBills(), listApprovals(), listMessages(), getCompany()]);
-  const routed = new Map(approvals.map((a) => [a.bill.key, a.routedTo]));
-  const rows = inboxItems(bills, messages, view);
-  const count = (v: InboxView | undefined) => inboxItems(bills, messages, v).length;
-  const settled = messages.done.length + messages.filed.length;
+function Empty({ children }: { children: React.ReactNode }) {
+  return <p className="pt-dash-empty">{children}</p>;
+}
+
+function billTitle(b: Bill): string {
+  // Intake writes "unknown" when it couldn't read an invoice number from the email.
+  return b.invoiceNo && b.invoiceNo !== "unknown" ? `${b.supplier.name} · ${b.invoiceNo}` : b.supplier.name;
+}
+
+export default async function TodayPage(): Promise<React.ReactElement> {
+  const [persona, co, bills, approvals, messages, payments, suppliers, changes, settings, activity] = await Promise.all([
+    getPersona(),
+    getCompany(),
+    listBills(),
+    listApprovals(),
+    listMessages(),
+    listPayments(),
+    listSuppliers(),
+    listPlaybookApprovals(),
+    getSettings(),
+    listActivityWithLinks(),
+  ]);
+  const me = co[persona];
+  const other = co[persona === "dev" ? "maya" : "dev"];
+
+  // ---- waiting on you ----
+  const mine = approvals.filter((a) => (a.routedTo ?? "dev") === persona);
+  const toConfirm = persona === "maya" ? suppliers.filter((s) => s.status === "new" && s.onboarding && !s.onboarding.confirmedBy) : [];
+  const myChanges = changes.filter((c) => persona === "dev" || c.job === "triage");
+  const myMessages = persona === "maya" ? messages.open : [];
+  const waiting = mine.length + toConfirm.length + myChanges.length + myMessages.length;
+  const waitingKeys = new Set(mine.map((a) => a.billKey));
+
+  // ---- the rest of the job ----
+  const working = bills.filter((b) => (b.status === "Checking" || b.status === "Calling" || b.status === "Held" || b.status === "Needs you") && !waitingKeys.has(b.key));
+  const paidKeys = new Set(payments.filter((p) => p.status === "sent" || p.status === "pending").map((p) => p.billKey));
+  const toPay = bills.filter((b) => b.status === "Scheduled" && !paidKeys.has(b.key)).sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+  const sent = payments.filter((p) => p.status === "sent").sort((a, b) => b.paidAt.localeCompare(a.paidAt));
+  const review = suppliers.filter((s) => s.status === "new" || s.status === "under_review");
+  const recent = [...activity].sort((a, b) => b.at.localeCompare(a.at)).slice(0, SHOWN);
+  const actorName = { callback: "hold", maya: co.maya.name, dev: co.dev.name } as const;
 
   return (
     <div>
       <header className="pt-head">
         <div className="pt-head-text">
-          <h1 className="cb-display">{view === "filed" ? "Done and filed" : "Inbox"}</h1>
+          <h1 className="cb-display">Today</h1>
           <p className="pt-sub">
-            {view === "filed" ? `${capital(co.payee).one} emails hold filed, and messages marked done · newest first` : `${co.inbox} · newest first`}
+            Signed in as {me.full}, {me.role.toLowerCase()}. {waiting === 0 ? "Nothing is waiting on you." : `${waiting} waiting on you.`}
           </p>
         </div>
-        {co.key === "fogline" ? <TryAScam /> : null}
       </header>
 
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <nav className="pt-filters" aria-label="Filter the inbox">
-          {INBOX_FILTERS.map((f) => {
-            const on = view === f.view;
-            return (
-              <Link
-                key={f.label}
-                href={f.view ? `/?status=${encodeURIComponent(f.view)}` : "/"}
-                aria-current={on ? "true" : undefined}
-                className={"pt-filter" + (on ? " on" : "")}
-              >
-                {f.label}
-                <span className="pt-count">{count(f.view)}</span>
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
-
-      <div className="pt-scroll"><div className="cb-ledger pt-ledger">
-        <div className="cb-ledger-head">
-          <span />
-          <span>{capital(co.payee).one}</span>
-          <span>Subject</span>
-          <span className="cb-r">Amount</span>
-          <span>Status</span>
-          <span className="cb-r">In</span>
+      <section className="cb-doc pt-dash-you" aria-labelledby="waiting-head">
+        <div className="cb-doc-head">
+          <span id="waiting-head">Waiting on you</span>
+          <small>{me.full}</small>
         </div>
-        {rows.length === 0 ? (
-          <div className="pt-empty">{(view && EMPTY[view]) ?? `Nothing here. hold has no ${co.bill.many} in this state.`}</div>
+        {waiting === 0 ? (
+          <Empty>Nothing is waiting on you. hold puts anything that needs {me.name} here, and everything else goes to {other.name} or happens on its own.</Empty>
         ) : (
-          rows.map((row) =>
-            row.kind === "message" ? (
-              <MessageRow key={row.message.key} m={row.message} />
-            ) : (
-              <InboxRow
-                key={row.bill.key}
-                href={`/bills/${row.bill.key}`}
-                from={row.bill.supplier.name}
-                subject={row.bill.email.subject}
-                preview={emailPreview(row.bill.email.body)}
-                cents={row.bill.amountCents}
-                status={STATUS_TO_MARK[row.bill.status]}
-                unread={UNSETTLED_STATUS[row.bill.status]}
-                time={shortDate(row.bill.receivedAt)}
+          <>
+            {mine.map((a) => (
+              <Row
+                key={a.key}
+                href={persona === "dev" ? "/approvals" : `/bills/${a.billKey}`}
+                title={`${KIND_LABEL[a.kind]}: ${billTitle(a.bill)}`}
+                line={a.reason ?? a.recommendation}
+                right={<Amount cents={a.bill.amountCents} />}
               />
-            ),
-          )
+            ))}
+            {myChanges.map((c) => (
+              <Row
+                key={c.key}
+                href="/approvals"
+                title={`Change to how hold ${c.job === "triage" ? "sorts email" : "checks"}: ${c.name}`}
+                line="It makes hold less strict, so it waits for a person before it goes live."
+              />
+            ))}
+            {toConfirm.map((s) => (
+              <Row
+                key={s.key}
+                href={`/suppliers/${s.key}`}
+                title={`Confirm a new ${co.payee.one}: ${s.name}`}
+                line="hold won't call them until a person confirms their number and what was agreed."
+                right={<StatusMark status="needs-you" />}
+              />
+            ))}
+            {myMessages.map((m) => (
+              <Row
+                key={m.key}
+                href={`/messages/${encodeURIComponent(m.key)}`}
+                title={`Message from ${m.supplierName}: ${m.subject}`}
+                line={m.triage?.why}
+                right={<span className="cb-when">{shortDate(m.receivedAt)}</span>}
+              />
+            ))}
+          </>
         )}
-      </div></div>
+      </section>
+
+      <div className="pt-dash-grid">
+        <Section title="On the line" href="/phone" more="Phone line">
+          <LiveNow />
+        </Section>
+
+        <Section title={`${capital(co.bill).many} hold is working on`} href="/inbox" more="Inbox">
+          {working.length === 0 ? (
+            <Empty>No {co.bill.many} are being checked or held right now.</Empty>
+          ) : (
+            working
+              .slice(0, SHOWN)
+              .map((b) => <Row key={b.key} href={`/bills/${b.key}`} title={billTitle(b)} line={b.email.subject} right={<StatusMark status={STATUS_TO_MARK[b.status]} />} />)
+          )}
+        </Section>
+
+        <Section title="Payments" href="/payments" more="Payments">
+          {settings.watchOnly ? <p className="pt-dash-note">{WATCH_ONLY_REASON}</p> : null}
+          {toPay.length === 0 && sent.length === 0 ? <Empty>Nothing scheduled and nothing sent yet.</Empty> : null}
+          {toPay.slice(0, SHOWN).map((b) => (
+            <Row key={b.key} href={`/bills/${b.key}`} title={billTitle(b)} line={`Scheduled · due ${shortDate(b.dueDate)} · to ${b.bankAccount.bank} ··${b.bankAccount.last4}`} right={<Amount cents={b.amountCents} />} />
+          ))}
+          {sent[0] ? (
+            <Row
+              href={`/bills/${sent[0].billKey}`}
+              title={`Last sent: ${billTitle(sent[0].bill)}`}
+              line={`${shortDate(sent[0].paidAt)}${sent[0].transferId ? ` · ${sent[0].transferId}` : ""}`}
+              right={<Amount cents={sent[0].amountCents} />}
+            />
+          ) : null}
+        </Section>
+
+        <Section title={capital(co.payee).many} href="/suppliers" more={`All ${co.payee.many}`}>
+          {review.length === 0 ? (
+            <Empty>Every {co.payee.one} is trusted. New ones show here until their first confirmed call.</Empty>
+          ) : (
+            review.slice(0, SHOWN).map((s) => (
+              <Row
+                key={s.key}
+                href={`/suppliers/${s.key}`}
+                title={s.name}
+                line={s.status === "new" ? "New: hold calls them before any bank change or large bill." : "Under review."}
+                right={<span className="cb-caps">{s.status === "new" ? "New" : "Under review"}</span>}
+              />
+            ))
+          )}
+        </Section>
+
+        <Section title="What happened last" href="/activity" more="Activity log">
+          {recent.length === 0 ? (
+            <Empty>Nothing yet.</Empty>
+          ) : (
+            recent.map((entry) => (
+              <Link key={entry.key} href={entry.href} className="block hover:bg-surface-hover">
+                <LogEntry actor={actorName[entry.actor]} agent={entry.actor === "callback"} time={shortDate(entry.at)}>
+                  {entry.what}
+                </LogEntry>
+              </Link>
+            ))
+          )}
+        </Section>
+      </div>
     </div>
   );
 }

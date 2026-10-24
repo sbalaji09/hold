@@ -73,7 +73,7 @@ export default async function BillPage({
       <div className="col-span-full flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-[min(100%,360px)] flex-1 basis-0">
           <div className="font-sans text-[10.5px] font-semibold uppercase tracking-[.09em] text-ink-muted">
-            <Link href="/">Inbox</Link> / {bill.supplier.name}
+            <Link href="/inbox">Inbox</Link> / {bill.supplier.name}
             {bill.invoiceNo !== "unknown" ? ` / ${co.record === "invoice" ? "INV-" : "#"}${bill.invoiceNo}` : ""}
           </div>
           <h1 className="font-serif text-[24px]/[30px] text-ink">{bill.email.subject}</h1>

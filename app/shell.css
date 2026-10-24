@@ -152,3 +152,17 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
 .pt-graph-pop { position: absolute; top: var(--space-4); right: var(--space-4); z-index: 5; width: min(340px, calc(100% - 2 * var(--space-4))); max-height: calc(100% - 2 * var(--space-4)); overflow-y: auto; padding: var(--space-4); background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow-pop); display: flex; flex-direction: column; gap: var(--space-3); align-items: flex-start; }
 .pt-graph-facts { display: grid; grid-template-columns: max-content 1fr; gap: var(--space-2) var(--space-3); margin: 0; align-items: baseline; }
 .pt-graph-facts dd { margin: 0; }
+
+/* Today (app/page.tsx): waiting-on-you first, then one document per part of the job. */
+.pt-dash-you { border-left: 3px solid var(--signatory); }
+.pt-dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: var(--space-4); align-items: start; }
+.pt-dash-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--line); color: var(--ink); text-decoration: none; }
+.cb-doc-head + .pt-dash-row, .cb-doc-head + .pt-dash-note + .pt-dash-row { border-top: 0; }
+.pt-dash-row:hover { background: var(--surface-hover); }
+.pt-dash-row:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+.pt-dash-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.pt-dash-title { font: 600 14px/20px var(--font-sans); overflow-wrap: anywhere; }
+.pt-dash-line { font: 400 12.5px/18px var(--font-mono); color: var(--ink-muted); overflow-wrap: anywhere; }
+.pt-dash-right { flex: none; display: flex; align-items: center; }
+.pt-dash-empty { margin: 0; padding: var(--space-4); font: 400 13px/20px var(--font-sans); color: var(--ink-muted); }
+.pt-dash-note { margin: 0; padding: var(--space-3) var(--space-4) 0; font: 400 12.5px/18px var(--font-mono); color: var(--ink); }

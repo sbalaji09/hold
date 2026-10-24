@@ -18,7 +18,8 @@ export async function Sidebar(): Promise<React.ReactElement> {
   ]);
   const open = bills.filter((b) => UNSETTLED_STATUS[b.status]).length + messages.open.length;
   const items: NavItem[] = [
-    { href: "/", label: "Inbox", icon: "inbox", badge: open },
+    { href: "/", label: "Today", icon: "today" },
+    { href: "/inbox", label: "Inbox", icon: "inbox", badge: open },
     { href: "/approvals", label: "Approvals", icon: "approvals", badge: approvals.length + changes, tone: "you" },
     { href: "/payments", label: "Payments", icon: "payments" },
     { href: "/suppliers", label: capital(co.payee).many, icon: "suppliers" },

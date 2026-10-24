@@ -312,7 +312,7 @@ function PracticeEmails({ emails }: { emails: PracticeEmail[] | undefined }): Re
           ) : emails.length === 0 ? (
             <div className="p-6 text-[13px] text-ink-muted">
               No practice emails yet. Seed the workspace for the starting set, or correct a message hold sorted wrong from the{" "}
-              <Link href="/?status=messages" className="text-ink underline underline-offset-4">
+              <Link href="/inbox?status=messages" className="text-ink underline underline-offset-4">
                 Inbox
               </Link>
               .

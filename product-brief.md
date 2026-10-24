@@ -28,7 +28,7 @@ Two people at a company open Callback, and Callback itself does the job of a thi
 
 ## The app, screen by screen
 
-The app opens straight into the work, like Gmail or Linear. There's no landing page or stats page. A sidebar on the left links every screen below.
+The app opens on **Today**: what is waiting on the signed-in person, then one section per part of the job, each row opening its record. There's still no landing page or stats page: no totals, charts or counters. A sidebar on the left links every screen below.
 
 | Screen | What you see | What you can do |
 | --- | --- | --- |
@@ -104,14 +104,14 @@ Tables are shared by 2–3 teams and it will be loud. Make the live transcript l
 
 | Time | What we do | What the judge sees | Say |
 | --- | --- | --- | --- |
-| Before | App on Fogline's Inbox as Maya. The scam email is drafted on a teammate's phone, from the stage builder's address. | A real-looking inbox, most bills Paid or Scheduled | |
+| Before | App on **Today** as Maya: what's waiting on her, then calls, bills, payments, suppliers and what hold did last. The scam email is drafted on a teammate's phone, from the stage builder's address. | A real-looking inbox, most bills Paid or Scheduled | |
 | 0:00–0:15 | Teammate presses Send at the first word, so the email lands while we talk | The Inbox | The hook (below) |
-| 0:15–0:35 | The bill pops in as Checking, then Calling. Open it. | Two flags with their evidence: a bank account never paid before, and writing that doesn't match the supplier's past emails | "hold has paid Stagecraft eleven times, always to the same account. This one asks for a new one, and it doesn't write like Rosa. So it's calling her." |
+| 0:15–0:35 | The bill pops into "Bills hold is working on" as Checking, then Calling. Open it. | Two flags with their evidence: a bank account never paid before, and writing that doesn't match the supplier's past emails | "hold has paid Stagecraft eleven times, always to the same account. This one asks for a new one, and it doesn't write like Rosa. So it's calling her." |
 | 0:35–1:05 | The live call opens on its own. The teammate playing Rosa answers on speaker and gives a rounded total: "Around eighteen thousand, I think." | hold says it's an automated assistant, asks for the total on September's invoice #4471 with the record beside the question. Then it says "One moment, I'm just checking that with the team," and a card appears for Maya: the question, Rosa's words and the $18,400.00 on file. | "hold isn't sure, so it asks Maya instead of guessing." |
 | 1:05–1:35 | Maya clicks **Matches**. hold thanks Rosa and asks the bank question. | "We never changed our bank." Status: **Held**. The result shows Maya judged the first answer. | Nothing. Let the call play. |
 | 1:35–2:10 | Switch to Dev, open Approvals. Dev types: "Release it, we'll miss the stage build." | hold replies with the call clip and the evidence, and offers to pay the old, verified account. Dev approves that. | "The boss can push back. hold answers with what it heard and a safe way to pay." |
 | 2:10–2:25 | Payments: Run payments | The transfer to the verified account, with its test-bank transfer ID | "Real money movement, in a test bank." |
-| 2:25–2:40 | Activity log | Every step of the last two minutes, with who, when and why | The close (below) |
+| 2:25–2:40 | Back to Today | "What happened last" lists every step of the last two minutes, with who and why | The close (below) |
 | 2:40–3:00 | Slack. Absorbs a slow email or a long call. | | |
 
 **If it runs long:** cut Payments first (end on Dev's approval), then the Activity log (say the close over Approvals). Never cut the call. Maya must click within 20 seconds of the card appearing, or hold counts the answer as not matching on its own; the call still ends Held, just without the human moment.

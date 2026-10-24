@@ -8,9 +8,9 @@ import { makeFunctionReference } from "convex/server";
 import { PrefetchKind } from "next/dist/client/components/router-reducer/router-reducer-types";
 import { refreshTabs } from "@/lib/refresh";
 import { api } from "@/convex/_generated/api";
-import { Inbox, CircleCheck, Landmark, Building2, Phone, ScrollText } from "lucide-react";
+import { LayoutGrid, Inbox, CircleCheck, Landmark, Building2, Phone, ScrollText } from "lucide-react";
 
-const ICONS = { inbox: Inbox, approvals: CircleCheck, payments: Landmark, suppliers: Building2, phone: Phone, activity: ScrollText };
+const ICONS = { today: LayoutGrid, inbox: Inbox, approvals: CircleCheck, payments: Landmark, suppliers: Building2, phone: Phone, activity: ScrollText };
 
 export interface NavItem {
   href: string;
@@ -104,7 +104,8 @@ export function NavLinks({ items, renderedAt }: { items: NavItem[]; renderedAt: 
     <nav className="pt-navlist" aria-label="Main">
       {items.map(({ href, label, icon, badge, tone }) => {
         const Icon = ICONS[icon];
-        const on = href === "/" ? path === "/" || path.startsWith("/bills") || path.startsWith("/messages") : path === href || path.startsWith(href + "/");
+        const on =
+          href === "/" ? path === "/" : href === "/inbox" ? path === "/inbox" || path.startsWith("/bills") || path.startsWith("/messages") : path === href || path.startsWith(href + "/");
         return (
           <Link key={href} href={href} prefetch className={"pt-navitem" + (on ? " on" : "")} aria-current={on ? "page" : undefined}>
             <span className="pt-line">

@@ -310,11 +310,17 @@ function recommendation(bill: Bill): string {
   return `Pay ${fmtMoney(bill.amountCents)} to ${bill.bankAccount.bank} \u00b7\u00b7${bill.bankAccount.last4}. All checks passed; this is over Callback's $10,000 limit, so Dev needs to approve it.`;
 }
 
-/** Playbook changes waiting for a person's sign-off, shown on Approvals. Convex only. */
-export async function countPlaybookApprovals(): Promise<number> {
-  if (!CONVEX_URL) return 0;
+/** Playbook changes waiting for a person's sign-off (shown on Approvals). Fraud changes need Dev; inbox ones, Maya or Dev. Convex only. */
+export async function listPlaybookApprovals(): Promise<Array<{ key: string; job: "fraud" | "triage"; name: string }>> {
+  if (!CONVEX_URL) return [];
   const { improvements } = await fetchQuery(api.app.techniques.list, {}, convexOpts());
-  return improvements.filter((i) => i.status === "needs_approval").length;
+  return improvements
+    .filter((i) => i.status === "needs_approval")
+    .map((i) => ({ key: i.key, job: i.job ?? "fraud", name: i.proposal?.name ?? "A change to the playbook" }));
+}
+
+export async function countPlaybookApprovals(): Promise<number> {
+  return (await listPlaybookApprovals()).length;
 }
 
 export async function listApprovals(): Promise<Approval[]> {

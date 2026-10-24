@@ -66,7 +66,7 @@ function View({ emailKey, actor }: { emailKey: string; actor: Actor }): React.Re
     return (
       <div className="flex flex-col gap-4">
         <div className="cb-caps">
-          <Link href="/">Inbox</Link> / Message
+          <Link href="/inbox">Inbox</Link> / Message
         </div>
         <div className="cb-doc flex flex-col items-start gap-3 p-5">
           {bill ? (
@@ -80,8 +80,8 @@ function View({ emailKey, actor }: { emailKey: string; actor: Actor }): React.Re
             <>
               <p className="font-mono text-[13px]/[20px] text-ink">hold has no message with this link.</p>
               <div className="flex flex-wrap gap-2">
-                <Link href="/" className="cb-btn cb-btn-secondary">Back to the Inbox</Link>
-                <Link href="/?status=filed" className="cb-btn cb-btn-secondary">Done and filed</Link>
+                <Link href="/inbox" className="cb-btn cb-btn-secondary">Back to the Inbox</Link>
+                <Link href="/inbox?status=filed" className="cb-btn cb-btn-secondary">Done and filed</Link>
               </div>
             </>
           )}
@@ -130,7 +130,7 @@ function View({ emailKey, actor }: { emailKey: string; actor: Actor }): React.Re
       <div className="col-span-full flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-[min(100%,360px)] flex-1 basis-0">
           <div className="cb-caps">
-            <Link href="/">Inbox</Link> / {m.supplierName} / Message
+            <Link href="/inbox">Inbox</Link> / {m.supplierName} / Message
           </div>
           <h1 className="font-serif text-[24px]/[30px] text-ink">{m.subject}</h1>
         </div>
