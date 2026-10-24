@@ -49,5 +49,6 @@ for (const p of targets) {
 }
 if (failed.length) {
   console.error(`Not indexed: ${failed.join(", ")}. Re-run with those ids.`);
+  console.error("Persistent 429s usually mean the Moss plan's index limit is reached (free plan: 3 per project).");
   process.exit(1);
 }
