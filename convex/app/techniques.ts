@@ -14,8 +14,9 @@ import {
   SEED_PRACTICE_CALLS,
   type Technique,
   type TechniqueAssessment,
-  type TriggerKind,
 } from "../../lib/fraudTechniques.js";
+import type { JobKey, TriggerKind } from "../../lib/loop.js";
+import { SEED_EMAIL_KINDS, SEED_PRACTICE_EMAILS } from "../../lib/triage.js";
 import { addBillToPracticeSet } from "./practice.js";
 
 export const ASSESS_MODEL = "claude-sonnet-5-5";
@@ -103,20 +104,26 @@ const toTechnique = (r: Doc<"fraudTechniques">): Technique => ({
   key: r.key,
   name: r.name,
   channel: r.channel,
+  job: r.job,
+  route: r.route,
   howItWorks: r.howItWorks,
   signals: r.signals,
   example: r.example,
 });
 
-export async function loadPlaybook(ctx: QueryCtx): Promise<Technique[]> {
+/** One job's active playbook. The fraud check must never see triage's email kinds, and vice versa. */
+export async function loadPlaybook(ctx: QueryCtx, job: JobKey): Promise<Technique[]> {
   const rows = await ctx.db
     .query("fraudTechniques")
     .withIndex("by_status", (q) => q.eq("status", "active"))
     .collect();
-  return rows.map(toTechnique);
+  return rows.filter((r) => (r.job ?? "fraud") === job).map(toTechnique);
 }
 
-export const activePlaybook = internalQuery({ args: {}, handler: (ctx) => loadPlaybook(ctx) });
+export const activePlaybook = internalQuery({
+  args: { job: v.optional(v.union(v.literal("fraud"), v.literal("triage"))) },
+  handler: (ctx, { job }) => loadPlaybook(ctx, job ?? "fraud"),
+});
 
 /** Idempotent: adds any seed technique not already in the playbook by name. */
 export async function insertSeedPlaybook(ctx: MutationCtx): Promise<number> {
@@ -127,6 +134,16 @@ export async function insertSeedPlaybook(ctx: MutationCtx): Promise<number> {
     if (existing.has(t.name)) continue;
     await ctx.db.insert("fraudTechniques", { key: `tech_${crypto.randomUUID()}`, ...t, status: "active", sourceKind: "seed", createdAt: now });
     added++;
+  }
+  for (const k of SEED_EMAIL_KINDS) {
+    if (existing.has(k.name)) continue;
+    await ctx.db.insert("fraudTechniques", { key: `kind_${crypto.randomUUID()}`, ...k, job: "triage", status: "active", sourceKind: "seed", createdAt: now });
+    added++;
+  }
+  const practiceEmails = new Set((await ctx.db.query("practiceEmails").collect()).map((e) => e.text));
+  for (const e of SEED_PRACTICE_EMAILS) {
+    if (practiceEmails.has(e.text)) continue;
+    await ctx.db.insert("practiceEmails", { key: `pmail_${crypto.randomUUID()}`, ...e, source: "seed" });
   }
   // The phone line's regression suite.
   const calls = new Set((await ctx.db.query("practiceCalls").collect()).map((c) => c.kind));
@@ -146,7 +163,8 @@ export const list = query({
     const techniques = await ctx.db.query("fraudTechniques").order("desc").collect();
     const improvements = await ctx.db.query("improvements").order("desc").take(50);
     const practiceCalls = await ctx.db.query("practiceCalls").collect();
-    return { techniques, improvements, practiceCalls };
+    const practiceEmails = await ctx.db.query("practiceEmails").collect();
+    return { techniques, improvements, practiceCalls, practiceEmails };
   },
 });
 
@@ -168,21 +186,33 @@ async function log(ctx: MutationCtx, who: "callback" | "maya" | "dev", what: str
  */
 export async function openImprovement(
   ctx: MutationCtx,
-  trigger: { kind: TriggerKind; billKey?: string; callId?: string; channel?: "email" | "phone"; text: string; by: "callback" | "maya" | "dev" },
+  trigger: {
+    kind: TriggerKind;
+    billKey?: string;
+    callId?: string;
+    emailKey?: string;
+    channel?: "email" | "phone";
+    expected?: string;
+    text: string;
+    by: "callback" | "maya" | "dev";
+  },
+  job: JobKey = "fraud",
 ): Promise<{ key: string } | null> {
-  if (trigger.billKey || trigger.callId) {
+  if (trigger.billKey || trigger.callId || trigger.emailKey) {
     const earlier = trigger.billKey
       ? await ctx.db
           .query("improvements")
           .withIndex("by_bill", (q) => q.eq("trigger.billKey", trigger.billKey))
           .collect()
-      : (await ctx.db.query("improvements").collect()).filter((e) => e.trigger.callId === trigger.callId);
+      : (await ctx.db.query("improvements").collect()).filter(
+          (e) => (trigger.callId && e.trigger.callId === trigger.callId) || (trigger.emailKey && e.trigger.emailKey === trigger.emailKey),
+        );
     const inFlight = earlier.some((e) => e.status === "proposing" || e.status === "replaying" || e.status === "needs_approval");
     const learnedAlready = trigger.by === "callback" && earlier.some((e) => e.status !== "reverted" && e.status !== "declined");
     if (inFlight || learnedAlready) return null;
   }
   const key = `impr_${crypto.randomUUID()}`;
-  await ctx.db.insert("improvements", { key, trigger, status: "proposing", createdAt: new Date().toISOString() });
+  await ctx.db.insert("improvements", { key, job, trigger, status: "proposing", createdAt: new Date().toISOString() });
   await ctx.scheduler.runAfter(0, internal.app.improve.run, { key });
   return { key };
 }
@@ -239,13 +269,13 @@ export const recordCallRun = internalMutation({
 
 /** A person describes a new technique (from an advisory, the news, a call they got). */
 export const teach = mutation({
-  args: { description: v.string(), actor },
-  handler: async (ctx, { description, actor: who }) => {
-    const person = requirePerson(who, "teach itself a technique");
+  args: { description: v.string(), actor, job: v.optional(v.union(v.literal("fraud"), v.literal("triage"))) },
+  handler: async (ctx, { description, actor: who, job }) => {
+    const person = requirePerson(who, "teach itself something");
     const text = description.trim();
-    if (text.length < 20) throw new ConvexError("Describe the technique in a sentence or two so hold can learn it.");
-    const opened = await openImprovement(ctx, { kind: "taught", text, by: person });
-    await log(ctx, person, "taught hold a new fraud technique", text.slice(0, 200), "improvement", opened!.key);
+    if (text.length < 20) throw new ConvexError("Describe it in a sentence or two so hold can learn it.");
+    const opened = await openImprovement(ctx, { kind: "taught", text, by: person }, job ?? "fraud");
+    await log(ctx, person, job === "triage" ? "taught hold a new kind of supplier email" : "taught hold a new fraud technique", text.slice(0, 200), "improvement", opened!.key);
     return opened!;
   },
 });
@@ -326,18 +356,22 @@ export const reportCall = mutation({
 export const decideImprovement = mutation({
   args: { key: v.string(), decision: v.union(v.literal("approve"), v.literal("decline")), actor },
   handler: async (ctx, { key, decision, actor: who }) => {
-    if (who !== "dev") throw new ConvexError("Only Dev can approve a change that makes hold less strict.");
     const row = await ctx.db
       .query("improvements")
       .withIndex("by_key", (q) => q.eq("key", key))
       .unique();
     if (!row || row.status !== "needs_approval") throw new ConvexError("This change isn't waiting for approval.");
+    // Fraud: only Dev may loosen it. Triage: it's Maya's inbox, so Maya (or Dev) decides.
+    const triage = row.job === "triage";
+    if (who === "callback" || (!triage && who !== "dev")) {
+      throw new ConvexError(triage ? "Maya or Dev has to approve a change to how hold sorts email." : "Only Dev can approve a change that makes hold less strict.");
+    }
     if (decision === "decline") {
-      await ctx.db.patch(row._id, { status: "declined", decidedBy: "dev" });
-      await log(ctx, "dev", "declined a playbook change", row.summary ?? "", "improvement", key);
+      await ctx.db.patch(row._id, { status: "declined", decidedBy: who });
+      await log(ctx, who, "declined a playbook change", row.summary ?? "", "improvement", key);
       return;
     }
-    await promoteImprovement(ctx, key, "dev");
+    await promoteImprovement(ctx, key, who);
   },
 });
 
@@ -345,7 +379,7 @@ export const decideImprovement = mutation({
  * Puts a replayed proposal into the playbook: a new row (a refinement supersedes, and retires, the
  * row it refines), so it applies to the very next email and can be reverted.
  */
-export async function promoteImprovement(ctx: MutationCtx, key: string, by: "callback" | "dev"): Promise<void> {
+export async function promoteImprovement(ctx: MutationCtx, key: string, by: "callback" | "maya" | "dev"): Promise<void> {
   const row = await ctx.db
     .query("improvements")
     .withIndex("by_key", (q) => q.eq("key", key))
@@ -364,13 +398,15 @@ export async function promoteImprovement(ctx: MutationCtx, key: string, by: "cal
   await ctx.db.insert("fraudTechniques", {
     key: techniqueKey,
     name: p.name,
+    job: row.job,
     channel: p.channel,
+    route: p.route,
     howItWorks: p.howItWorks,
     signals: p.signals,
     example: p.example,
     status: "active",
     sourceKind: row.trigger.kind,
-    sourceRef: row.trigger.billKey ?? row.trigger.callId,
+    sourceRef: row.trigger.billKey ?? row.trigger.callId ?? row.trigger.emailKey,
     supersedes: refined?.key,
     improvementKey: key,
     createdAt: new Date().toISOString(),
@@ -379,7 +415,13 @@ export async function promoteImprovement(ctx: MutationCtx, key: string, by: "cal
   await log(
     ctx,
     by,
-    refined ? `refined the fraud technique "${p.name}"` : `learned a new fraud technique: "${p.name}"`,
+    row.job === "triage"
+      ? refined
+        ? `refined how it sorts "${p.name}" emails`
+        : `learned a new kind of supplier email: "${p.name}"`
+      : refined
+        ? `refined the fraud technique "${p.name}"`
+        : `learned a new fraud technique: "${p.name}"`,
     row.summary ?? p.rationale,
     row.trigger.billKey ? "bill" : "technique",
     row.trigger.billKey ?? techniqueKey,

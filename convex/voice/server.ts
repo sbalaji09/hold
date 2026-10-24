@@ -371,7 +371,7 @@ export const phonePlaybook = query({
   args: { secret },
   handler: async (ctx, args) => {
     assertVoiceSecret(args.secret);
-    return forChannel(await loadPlaybook(ctx), "phone").map((t) => ({ name: t.name, signals: t.signals }));
+    return forChannel(await loadPlaybook(ctx, "fraud"), "phone").map((t) => ({ name: t.name, signals: t.signals }));
   },
 });
 

@@ -193,7 +193,8 @@ function TeachForm({ actor }: { actor: Actor }): React.ReactElement {
 // ---------- improvements log ----------
 
 function ReplayTable({ cases, names }: { cases: NonNullable<Improvement["replay"]>["cases"]; names: Record<string, string> }) {
-  const word = (v: "flag" | "pass") => (v === "flag" ? "Flag" : "Pass");
+  // Fraud cases are flag/pass; triage cases are routes.
+  const word = (v: string) => ({ flag: "Flag", pass: "Pass", bill: "Bill", to_maya: "To Maya", file: "File" })[v] ?? v;
   return (
     <div className="mt-2 overflow-x-auto rounded-sm border border-line">
       <table className="w-full min-w-[520px] border-collapse text-left">

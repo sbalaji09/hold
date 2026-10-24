@@ -1,6 +1,8 @@
 // hold's fraud playbook and the pure rules of its self-improvement loop. No data access: Convex
 // functions (convex/app/techniques.ts, convex/app/improve.ts) load the rows and apply the results.
 
+import type { JobKey } from "./loop";
+import type { Route } from "./triage";
 import type { Check } from "./types";
 
 export type Channel = "email" | "phone" | "both";
@@ -10,6 +12,10 @@ export interface Technique {
   name: string;
   /** Where hold looks for it. Absent = email. */
   channel?: Channel;
+  /** Which job's playbook the row belongs to (lib/loop.ts). Absent = fraud. */
+  job?: JobKey;
+  /** Triage only: where emails of this kind go. */
+  route?: Route;
   howItWorks: string;
   signals: string[];
   example: string;
@@ -217,54 +223,3 @@ export function techniqueCheck(a: TechniqueAssessment, playbook: Technique[], em
 }
 
 const sentence = (s: string) => (/[.!?]$/.test(s.trim()) ? s.trim() : `${s.trim()}.`);
-
-// ---------- replay scoring (Hone: promote only what fixes the case and breaks nothing) ----------
-
-export type Verdict = "flag" | "pass";
-
-export interface ReplayCase {
-  label: string;
-  billKey?: string;
-  expected: Verdict;
-  before: Verdict;
-  after: Verdict;
-  /** The case that triggered this improvement. */
-  trigger?: boolean;
-}
-
-export interface ReplayScore {
-  fixed: boolean;
-  /** Cases the old playbook got right and the new one gets wrong. */
-  regressions: ReplayCase[];
-}
-
-export function scoreReplay(cases: ReplayCase[]): ReplayScore {
-  const trigger = cases.find((c) => c.trigger);
-  return {
-    fixed: trigger ? trigger.after === trigger.expected : false,
-    regressions: cases.filter((c) => !c.trigger && c.before === c.expected && c.after !== c.expected),
-  };
-}
-
-export type TriggerKind = "missed_scam" | "false_alarm" | "taught";
-
-/**
- * What happens to a proposal after replay. Tightening (from a miss or a person teaching hold) goes
- * live on its own; loosening (from a false alarm) always waits for Dev, because a looser playbook
- * is how a scam gets paid.
- */
-export function promotion(kind: TriggerKind, score: ReplayScore): "promote" | "needs_approval" | "retry" {
-  if (!score.fixed || score.regressions.length > 0) return "retry";
-  return kind === "false_alarm" ? "needs_approval" : "promote";
-}
-
-/** One line for the Practice screen and the Activity log. */
-export function replaySummary(cases: ReplayCase[], score: ReplayScore): string {
-  const others = cases.filter((c) => !c.trigger).length;
-  const fixedPart = score.fixed ? "handles the new case" : "still gets the new case wrong";
-  const regressPart =
-    score.regressions.length === 0
-      ? "no regressions"
-      : `${score.regressions.length} regression${score.regressions.length === 1 ? "" : "s"} (${score.regressions.map((r) => r.label).join(", ")})`;
-  return `Replayed on ${others} past case${others === 1 ? "" : "s"} plus the new one: ${fixedPart}, ${regressPart}.`;
-}

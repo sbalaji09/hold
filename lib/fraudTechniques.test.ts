@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { promotion, replaySummary, scoreReplay, SEED_PLAYBOOK, techniqueCheck, type ReplayCase, type Technique } from "./fraudTechniques";
+import { SEED_PLAYBOOK, techniqueCheck, type Technique } from "./fraudTechniques";
+import { promotion, replaySummary, scoreReplay, type ReplayCase } from "./loop";
 
 const PORTAL: Technique = { key: "tech_portal", name: "Payment link or portal", howItWorks: "", signals: [], example: "" };
 const none = { suspicious: false, name: "", quote: "", why: "" };
@@ -36,12 +37,11 @@ describe("replay gate", () => {
   test("promotes a tightening change that fixes the case with no regressions", () => {
     const score = scoreReplay([c("trigger", "flag", "pass", "flag", true), c("scam", "flag", "flag", "flag"), c("bill", "pass", "pass", "pass")]);
     expect(score).toEqual({ fixed: true, regressions: [] });
-    expect(promotion("missed_scam", score)).toBe("promote");
-    expect(promotion("taught", score)).toBe("promote");
+    expect(promotion(score, false)).toBe("promote");
   });
 
-  test("a loosening change (false alarm) always waits for Dev", () => {
-    expect(promotion("false_alarm", scoreReplay([c("trigger", "pass", "flag", "pass", true)]))).toBe("needs_approval");
+  test("a loosening change always waits for a person", () => {
+    expect(promotion(scoreReplay([c("trigger", "pass", "flag", "pass", true)]), true)).toBe("needs_approval");
   });
 
   test("breaking a case the old playbook got right is a regression; one it already got wrong isn't", () => {
@@ -51,14 +51,14 @@ describe("replay gate", () => {
       c("paid bill B", "pass", "flag", "flag"), // was already wrong: not this change's fault
     ]);
     expect(score.regressions.map((r) => r.label)).toEqual(["paid bill A"]);
-    expect(promotion("missed_scam", score)).toBe("retry");
+    expect(promotion(score, false)).toBe("retry");
     expect(replaySummary([c("trigger", "flag", "pass", "flag", true), c("paid bill A", "pass", "pass", "flag")], score)).toBe(
       "Replayed on 1 past case plus the new one: handles the new case, 1 regression (paid bill A).",
     );
   });
 
   test("not fixing the case means no promotion, even with no regressions", () => {
-    expect(promotion("missed_scam", scoreReplay([c("trigger", "flag", "pass", "pass", true)]))).toBe("retry");
+    expect(promotion(scoreReplay([c("trigger", "flag", "pass", "pass", true)]), false)).toBe("retry");
   });
 });
 

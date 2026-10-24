@@ -7,10 +7,12 @@
 import { v } from "convex/values";
 import { api, internal } from "../_generated/api.js";
 import type { Doc } from "../_generated/dataModel.js";
-import { action, internalMutation, internalQuery, type QueryCtx } from "../_generated/server.js";
+import { action, internalAction, internalMutation, internalQuery, type ActionCtx, type QueryCtx } from "../_generated/server.js";
 import { checkValidator, decide, routeEscalation, runChecks, type CheckBankAccount, type Decision, type LearnedRuleInput } from "./checks.js";
 import { forChannel, techniqueCheck } from "../../lib/fraudTechniques.js";
 import { anthropic, assessEmail } from "./techniques.js";
+import { judgeEmail, toKinds } from "./triage.js";
+import { routeEmail } from "../../lib/triage.js";
 
 // ---------- parsing (pure, unit-tested in intake.test.ts) ----------
 
@@ -220,23 +222,35 @@ export const finalizeIntake = internalMutation({
     checks: v.array(checkValidator),
     decision: v.union(v.literal("pay"), v.literal("ask_dev"), v.literal("call")),
     messageId: v.optional(v.string()),
+    // Maya said a message hold sorted away is a bill: the bill reuses that email row.
+    existingEmailKey: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<{ billKey: string; supplierKey: string; status: Doc<"bills">["status"] }> => {
     const billKey = freshKey("bill_in");
-    const emailKey = freshKey("email_in");
     const status: Doc<"bills">["status"] = args.decision === "pay" ? "Scheduled" : args.decision === "ask_dev" ? "Needs you" : "Calling";
 
-    await ctx.db.insert("emails", {
-      key: emailKey,
-      billKey,
-      fromAddress: parseSenderAddress(args.from),
-      fromDomain: args.fromDomain,
-      subject: args.subject,
-      body: args.body,
-      receivedAt: args.receivedAt,
-      direction: "in",
-      messageId: args.messageId,
-    });
+    const existing = args.existingEmailKey
+      ? await ctx.db
+          .query("emails")
+          .withIndex("by_key", (q) => q.eq("key", args.existingEmailKey!))
+          .unique()
+      : null;
+    const emailKey = existing?.key ?? freshKey("email_in");
+    if (existing) {
+      await ctx.db.patch(existing._id, { billKey, ...(existing.triage ? { triage: { ...existing.triage, status: "done" as const } } : {}) });
+    } else {
+      await ctx.db.insert("emails", {
+        key: emailKey,
+        billKey,
+        fromAddress: parseSenderAddress(args.from),
+        fromDomain: args.fromDomain,
+        subject: args.subject,
+        body: args.body,
+        receivedAt: args.receivedAt,
+        direction: "in",
+        messageId: args.messageId,
+      });
+    }
     await ctx.db.insert("bills", {
       key: billKey,
       supplierKey: args.supplier.key,
@@ -309,21 +323,96 @@ export const finalizeIntake = internalMutation({
   },
 });
 
+/** A supplier email that isn't a bill: kept as a message for Maya, or filed on the supplier. */
+export const recordMessage = internalMutation({
+  args: {
+    from: v.string(),
+    fromDomain: v.string(),
+    subject: v.string(),
+    body: v.string(),
+    receivedAt: v.string(),
+    messageId: v.optional(v.string()),
+    supplier: v.object({ key: v.string(), name: v.string() }),
+    triage: v.object({
+      kindKey: v.optional(v.string()),
+      kindName: v.string(),
+      route: v.union(v.literal("to_maya"), v.literal("file")),
+      why: v.string(),
+      quote: v.optional(v.string()),
+    }),
+  },
+  handler: async (ctx, args): Promise<{ billKey: string; emailKey: string; supplierKey: string; status: string }> => {
+    const emailKey = freshKey("email_in");
+    await ctx.db.insert("emails", {
+      key: emailKey,
+      billKey: null,
+      fromAddress: parseSenderAddress(args.from),
+      fromDomain: args.fromDomain,
+      subject: args.subject,
+      body: args.body,
+      receivedAt: args.receivedAt,
+      direction: "in",
+      messageId: args.messageId,
+      triage: { ...args.triage, supplierKey: args.supplier.key, status: args.triage.route === "file" ? "filed" : "open" },
+    });
+    await ctx.db.insert("activity", activity(
+      "callback",
+      args.triage.route === "file"
+        ? `Filed an email from ${args.supplier.name} (${args.triage.kindName})`
+        : `Sent an email from ${args.supplier.name} to Maya (${args.triage.kindName})`,
+      args.triage.why,
+      "email",
+      emailKey,
+    ));
+    return { billKey: "", emailKey, supplierKey: args.supplier.key, status: args.triage.route === "file" ? "Filed" : "Needs you" };
+  },
+});
+
 // ---------- entry point ----------
+
+type IngestArgs = { from: string; subject: string; body: string; receivedAt: string; messageId?: string };
+type IngestResult = { billKey: string; supplierKey: string; status: string; emailKey?: string };
 
 export const ingestEmail = action({
   args: { from: v.string(), subject: v.string(), body: v.string(), receivedAt: v.string(), messageId: v.optional(v.string()) },
-  handler: async (ctx, args): Promise<{ billKey: string; supplierKey: string; status: string }> => {
+  handler: (ctx, args): Promise<IngestResult> => ingest(ctx, args),
+});
+
+/**
+ * Maya says a message hold sorted away is a bill: run it through the bill checks, reusing the
+ * email row. Internal, so the bill path can't be skipped from outside.
+ */
+export const fileAsBill = internalAction({
+  args: { emailKey: v.string() },
+  handler: async (ctx, { emailKey }): Promise<IngestResult | null> => {
+    const email = await ctx.runQuery(internal.app.intake.emailForBill, { emailKey });
+    if (!email || email.billKey) return null;
+    return ingest(ctx, { from: email.fromAddress, subject: email.subject, body: email.body, receivedAt: email.receivedAt }, { existingEmailKey: emailKey });
+  },
+});
+
+export const emailForBill = internalQuery({
+  args: { emailKey: v.string() },
+  handler: (ctx, { emailKey }) =>
+    ctx.db
+      .query("emails")
+      .withIndex("by_key", (q) => q.eq("key", emailKey))
+      .unique(),
+});
+
+async function ingest(ctx: ActionCtx, args: IngestArgs, opts: { existingEmailKey?: string } = {}): Promise<IngestResult> {
     const fromDomain = parseSenderDomain(args.from);
     const fromAddress = parseSenderAddress(args.from);
 
-    const duplicate = await ctx.runQuery(internal.app.intake.findDuplicateEmail, {
-      messageId: args.messageId,
-      fromAddress,
-      subject: args.subject,
-      body: args.body,
-    });
-    if (duplicate) return duplicate;
+    if (!opts.existingEmailKey) {
+      const duplicate = await ctx.runQuery(internal.app.intake.findDuplicateEmail, {
+        messageId: args.messageId,
+        fromAddress,
+        subject: args.subject,
+        body: args.body,
+      });
+      if (duplicate) return duplicate;
+    }
 
     const context: IntakeContext | null = await ctx.runQuery(internal.app.intake.gatherIntakeContext, {
       fromDomain,
@@ -346,7 +435,10 @@ export const ingestEmail = action({
 
     // The two Claude checks run side by side, so neither adds to the other's wait.
     const playbook = forChannel(await ctx.runQuery(internal.app.techniques.activePlaybook, {}), "email");
-    const [style, technique] = await Promise.allSettled([
+    const emailKinds = toKinds(await ctx.runQuery(internal.app.techniques.activePlaybook, { job: "triage" }));
+    // The three Claude checks run side by side, so none adds to another's wait. A message being
+    // converted to a bill has already been sorted, so it skips triage.
+    const [style, technique, triaged] = await Promise.allSettled([
       ctx.runAction(api.voice.styleMatch.styleMatch, { supplier_id: context.supplier.key, email_text: args.body }),
       assessEmail(
         anthropic(),
@@ -360,8 +452,11 @@ export const ingestEmail = action({
         },
         playbook,
       ),
+      opts.existingEmailKey
+        ? Promise.resolve(null)
+        : judgeEmail(anthropic(), { fromAddress, subject: args.subject, body: args.body, supplierName: context.supplier.name }, emailKinds),
     ]);
-    // Either can fail (no ANTHROPIC_API_KEY, Moss down). Skip that one check rather than blocking
+    // Any can fail (no ANTHROPIC_API_KEY, Moss down). Skip that one check rather than blocking
     // intake; the bill still shows it as an info check so it's never silently omitted.
     let styleMatch: { matches: boolean; reasons: string[] } | undefined;
     let styleMatchError: string | undefined;
@@ -402,6 +497,28 @@ export const ingestEmail = action({
         cite: { kind: "email", ref: fromAddress },
       });
     }
+    // Inbox triage (job #2): an email that isn't a bill never becomes one. Anything a fraud check
+    // flags still goes through the bill checks and a check call; if triage fails, intake carries
+    // on as before.
+    if (triaged.status === "fulfilled" && triaged.value) {
+      const fraudFlagged = checks.some((c) => ["fraud-technique", "bank-account", "domain"].includes(c.id) && c.state === "flag");
+      const sorted = routeEmail(triaged.value, emailKinds, { hasAmount: parseAmountCents(args.body) !== null, fraudFlagged });
+      if (sorted.route !== "bill") {
+        return await ctx.runMutation(internal.app.intake.recordMessage, {
+          from: args.from,
+          fromDomain,
+          subject: args.subject,
+          body: args.body,
+          receivedAt: args.receivedAt,
+          messageId: args.messageId,
+          supplier: { key: context.supplier.key, name: context.supplier.name },
+          triage: { kindKey: sorted.kindKey, kindName: sorted.kindName, route: sorted.route, why: sorted.why, quote: triaged.value.quote || undefined },
+        });
+      }
+    } else if (triaged.status === "rejected") {
+      console.warn(`triage failed for ${context.supplier.key}:`, triaged.reason);
+    }
+
     let decision: Decision = decide(checks, amountCents);
     // New-supplier addendum (plan-agent.md addendum §3): a bank change or a bill of $5,000+ from
     // a supplier Callback hasn't confirmed by call yet always gets a call, even if every check
@@ -424,6 +541,6 @@ export const ingestEmail = action({
       checks,
       decision,
       messageId: args.messageId,
+      existingEmailKey: opts.existingEmailKey,
     });
-  },
-});
+}

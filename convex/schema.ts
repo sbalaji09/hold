@@ -114,6 +114,20 @@ export default defineSchema({
     // The webhook payload's provider message id, when it has one. Used to dedupe a resent
     // inbound-email webhook (convex/app/intake.ts) without creating a second bill.
     messageId: v.optional(v.string()),
+    // Inbox triage (convex/app/triage.ts): what kind of email this is and where hold sent it.
+    // Absent on bills from before triage, and on emails that became bills.
+    triage: v.optional(
+      v.object({
+        supplierKey: v.optional(v.string()),
+        kindKey: v.optional(v.string()),
+        kindName: v.string(),
+        route: v.union(v.literal("bill"), v.literal("to_maya"), v.literal("file")),
+        why: v.string(),
+        quote: v.optional(v.string()),
+        status: v.union(v.literal("open"), v.literal("done"), v.literal("filed")),
+        correctedRoute: v.optional(v.union(v.literal("bill"), v.literal("to_maya"), v.literal("file"))),
+      }),
+    ),
   })
     .index("by_key", ["key"])
     .index("by_bill", ["billKey"])
@@ -363,12 +377,17 @@ export default defineSchema({
     watchOnly: v.boolean(),
   }).index("by_key", ["key"]),
 
-  // hold's fraud playbook: the techniques it checks every incoming bill against. Rows are never
-  // edited in place: a refinement is a new row that supersedes the old one, so any change can
-  // be reverted. See convex/app/techniques.ts.
+  // hold's playbooks, one per job of its loop: fraud techniques (job absent or "fraud") and the
+  // kinds of supplier email it sorts (job "triage"). The table predates the second job, hence the
+  // name. Rows are never edited in place: a refinement is a new row that supersedes the old one,
+  // so any change can be reverted. See convex/app/techniques.ts and convex/app/triage.ts.
+  // ponytail: rename to playbookEntries once a data migration is worth the churn.
   fraudTechniques: defineTable({
     key: v.string(),
     name: v.string(),
+    job: v.optional(v.union(v.literal("fraud"), v.literal("triage"))),
+    // Triage only: where emails of this kind go.
+    route: v.optional(v.union(v.literal("bill"), v.literal("to_maya"), v.literal("file"))),
     // Where hold looks for it. Absent = email (rows from before the phone line used the playbook).
     channel: v.optional(v.union(v.literal("email"), v.literal("phone"), v.literal("both"))),
     howItWorks: v.string(),
@@ -376,7 +395,7 @@ export default defineSchema({
     example: v.string(),
     status: v.union(v.literal("active"), v.literal("retired")),
     // Where hold learned it: the seed playbook, a missed scam, a false alarm, or a person teaching it.
-    sourceKind: v.union(v.literal("seed"), v.literal("missed_scam"), v.literal("false_alarm"), v.literal("taught")),
+    sourceKind: v.union(v.literal("seed"), v.literal("missed_scam"), v.literal("false_alarm"), v.literal("taught"), v.literal("corrected")),
     sourceRef: v.optional(v.string()),
     supersedes: v.optional(v.string()),
     improvementKey: v.optional(v.string()),
@@ -397,18 +416,34 @@ export default defineSchema({
     lastRunAt: v.optional(v.string()),
   }).index("by_key", ["key"]),
 
+  // Practice for inbox triage: supplier emails with the route a person says is right. Triage
+  // playbook changes replay against these.
+  practiceEmails: defineTable({
+    key: v.string(),
+    kind: v.string(),
+    text: v.string(),
+    expected: v.union(v.literal("bill"), v.literal("to_maya"), v.literal("file")),
+    source: v.union(v.literal("seed"), v.literal("corrected")),
+    caughtLastRun: v.optional(v.boolean()),
+    lastRunAt: v.optional(v.string()),
+  }).index("by_key", ["key"]),
+
   // Self-improvement log (Hone's loop): what triggered a change, the change hold proposed, how it
   // replayed against past cases, and whether it was promoted. See convex/app/improve.ts.
   improvements: defineTable({
     key: v.string(),
+    job: v.optional(v.union(v.literal("fraud"), v.literal("triage"))), // absent = fraud
     trigger: v.object({
-      kind: v.union(v.literal("missed_scam"), v.literal("false_alarm"), v.literal("taught")),
+      kind: v.union(v.literal("missed_scam"), v.literal("false_alarm"), v.literal("taught"), v.literal("corrected")),
       billKey: v.optional(v.string()),
       text: v.string(), // the scam email or call transcript, or what the person described
       by: v.union(v.literal("callback"), v.literal("maya"), v.literal("dev")),
       // Phone triggers: the inbound call or Practice call it came from.
       channel: v.optional(v.union(v.literal("email"), v.literal("phone"))),
       callId: v.optional(v.string()),
+      // Triage corrections: the email, and the route a person said was right.
+      emailKey: v.optional(v.string()),
+      expected: v.optional(v.string()),
     }),
     status: v.union(
       v.literal("proposing"),
@@ -422,6 +457,7 @@ export default defineSchema({
     proposal: v.optional(
       v.object({
         action: v.union(v.literal("add"), v.literal("refine")),
+        route: v.optional(v.union(v.literal("bill"), v.literal("to_maya"), v.literal("file"))),
         channel: v.optional(v.union(v.literal("email"), v.literal("phone"), v.literal("both"))),
         targetKey: v.optional(v.string()),
         name: v.string(),
@@ -440,9 +476,10 @@ export default defineSchema({
           v.object({
             label: v.string(),
             billKey: v.optional(v.string()),
-            expected: v.union(v.literal("flag"), v.literal("pass")),
-            before: v.union(v.literal("flag"), v.literal("pass")),
-            after: v.union(v.literal("flag"), v.literal("pass")),
+            // "flag" | "pass" for fraud, a route for triage.
+            expected: v.string(),
+            before: v.string(),
+            after: v.string(),
           }),
         ),
       }),

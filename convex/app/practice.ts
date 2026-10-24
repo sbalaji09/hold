@@ -18,6 +18,9 @@ import { decide, runChecks } from "./checks.js";
 import { internal } from "../_generated/api.js";
 import { forChannel, techniqueCheck } from "../../lib/fraudTechniques.js";
 import { anthropic, assessCall, assessEmail } from "./techniques.js";
+import { judgeEmail, toKinds } from "./triage.js";
+import { routeEmail } from "../../lib/triage.js";
+import { parseAmountCents } from "./intake.js";
 
 const MODEL = "claude-sonnet-5-5";
 
@@ -215,7 +218,9 @@ const recordRunRef = makeFunctionReference<"mutation", { results: Array<{ key: s
  * every miss becomes something hold learns from (convex/app/improve.ts). */
 export const runSet = action({
   args: {},
-  handler: async (ctx): Promise<{ ran: number; caught: number; missed: number; calls: { ran: number; right: number; wrong: number } }> => {
+  handler: async (
+    ctx,
+  ): Promise<{ ran: number; caught: number; missed: number; calls: { ran: number; right: number; wrong: number }; emails: { ran: number; right: number; wrong: number } }> => {
     const rows = await ctx.runQuery(gatherForRunRef, {});
     const playbook = await ctx.runQuery(internal.app.techniques.activePlaybook, {});
     const emailPlaybook = forChannel(playbook, "email");
@@ -263,7 +268,30 @@ export const runSet = action({
     if (ranCalls.length) await ctx.runMutation(internal.app.techniques.recordCallRun, { results: ranCalls });
     const caught = results.filter((r) => r.caught).length;
     const right = ranCalls.filter((r) => r.correct).length;
-    return { ran: results.length, caught, missed: results.length - caught, calls: { ran: ranCalls.length, right, wrong: ranCalls.length - right } };
+
+    // Inbox triage's practice emails (job #2): each judged right if it lands where a person said.
+    const kinds = toKinds(await ctx.runQuery(internal.app.techniques.activePlaybook, { job: "triage" }));
+    const mails = await ctx.runQuery(internal.app.triage.practiceEmailsForRun, {});
+    const mailResults = (
+      await Promise.all(
+        mails.map(async (m) =>
+          judgeEmail(anthropic(), { fromAddress: "supplier", subject: "", body: m.text, supplierName: "a Fogline supplier" }, kinds).then(
+            (j) => ({ key: m.key, correct: routeEmail(j, kinds, { hasAmount: parseAmountCents(m.text) !== null, fraudFlagged: false }).route === m.expected }),
+            () => null,
+          ),
+        ),
+      )
+    ).filter((r): r is { key: string; correct: boolean } => r !== null);
+    if (mailResults.length) await ctx.runMutation(internal.app.triage.recordEmailRun, { results: mailResults });
+    const mailRight = mailResults.filter((r) => r.correct).length;
+
+    return {
+      ran: results.length,
+      caught,
+      missed: results.length - caught,
+      calls: { ran: ranCalls.length, right, wrong: ranCalls.length - right },
+      emails: { ran: mailResults.length, right: mailRight, wrong: mailResults.length - mailRight },
+    };
   },
 });
 

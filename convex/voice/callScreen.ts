@@ -18,7 +18,7 @@ export const callForScreen = internalQuery({
       .query("inboundCalls")
       .withIndex("by_key", (q) => q.eq("call_id", call_id))
       .unique();
-    return call ? { call, playbook: forChannel(await loadPlaybook(ctx), "phone") } : null;
+    return call ? { call, playbook: forChannel(await loadPlaybook(ctx, "fraud"), "phone") } : null;
   },
 });
 
