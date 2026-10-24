@@ -6,6 +6,7 @@ import {
   isE164,
   mediaToken,
   streamTwiml,
+  staleBaseUrlHint,
   validTwilioSignature,
   verifyMediaToken,
 } from "./twilio.js";
@@ -26,6 +27,16 @@ describe("Twilio signature", () => {
     expect(validTwilioSignature(TOKEN, BASE, path, { ...params, CallStatus: "completed" }, sig)).toBe(false);
     expect(validTwilioSignature(TOKEN, BASE, "/twilio/status?callId=call_2", params, sig)).toBe(false);
     expect(validTwilioSignature(TOKEN, BASE, path, params, undefined)).toBe(false);
+  });
+
+  test("names the stale PUBLIC_BASE_URL when ngrok's URL changed under a running server", () => {
+    // Real failure: ngrok restarted with a new URL, Twilio signed that one, the server still had the old one.
+    const fresh = "6f72-73-93-176-12.ngrok-free.app";
+    const signedForFresh = twilio.getExpectedTwilioSignature(TOKEN, `https://${fresh}${path}`, params);
+    expect(validTwilioSignature(TOKEN, BASE, path, params, signedForFresh)).toBe(false);
+    expect(staleBaseUrlHint(BASE, fresh)).toMatch(/https:\/\/6f72-73-93-176-12\.ngrok-free\.app.*PUBLIC_BASE_URL/);
+    expect(staleBaseUrlHint(BASE, "abc123.ngrok-free.app")).toBeUndefined();
+    expect(staleBaseUrlHint(BASE, undefined)).toBeUndefined();
   });
 });
 

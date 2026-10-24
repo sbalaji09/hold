@@ -12,6 +12,7 @@ import {
   hangupTwiml,
   mediaToken,
   streamTwiml,
+  staleBaseUrlHint,
   validTwilioSignature,
   verifyMediaToken,
   type StatusKind,
@@ -64,7 +65,8 @@ export function createVoiceServer(d: ServerDeps): Server {
     const params = Object.fromEntries(new URLSearchParams(await readBody(req)));
     const sig = req.headers["x-twilio-signature"];
     if (!validTwilioSignature(d.authToken, d.publicBaseUrl, req.url ?? "", params, typeof sig === "string" ? sig : undefined)) {
-      log.warn("rejected webhook with bad Twilio signature", { path: url.pathname });
+      const hint = staleBaseUrlHint(d.publicBaseUrl, req.headers["x-forwarded-host"]?.toString() ?? req.headers.host);
+      log.warn("rejected webhook with bad Twilio signature", { path: url.pathname, ...(hint && { hint }) });
       return res.writeHead(403).end();
     }
     const callSid = params.CallSid ?? "";

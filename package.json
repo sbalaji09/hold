@@ -6,7 +6,7 @@
     "dev": "next dev",
     "convex:dev": "convex dev",
     "seed": "convex run seed:seed \"$(cat data/fogline.json)\"",
-    "voice:dev": "tsx watch --env-file=.env voice/src/main.ts",
+    "voice:dev": "tsx watch --include .env --env-file=.env voice/src/main.ts",
     "voice:start": "tsx --env-file=.env voice/src/main.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

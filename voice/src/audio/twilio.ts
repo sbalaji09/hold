@@ -115,6 +115,17 @@ export function validTwilioSignature(
 }
 
 /**
+ * The usual cause of bad signatures in development: ngrok restarted with a new URL while the
+ * server kept the old PUBLIC_BASE_URL. Twilio signs the URL it called, so every webhook fails.
+ */
+export function staleBaseUrlHint(publicBaseUrl: string, host: string | undefined): string | undefined {
+  if (!host) return undefined;
+  const called = `https://${host}`;
+  if (called === publicBaseUrl) return undefined;
+  return `Twilio called ${called} but PUBLIC_BASE_URL is ${publicBaseUrl}. Set PUBLIC_BASE_URL to the current ngrok URL, restart the voice server, then run scripts/twilioWebhook.ts.`;
+}
+
+/**
  * Per-call media token: the TwiML we return (to a signature-checked webhook) carries it as a
  * <Parameter>, and the media websocket refuses any stream without a valid one.
  */
