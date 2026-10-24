@@ -2,3 +2,4 @@
 @import "tailwindcss";
 @import "../design/callback/tailwind-theme.css";
 @import "../design/callback/components/bundle.css";
+@import "./shell.css";

@@ -19,7 +19,7 @@ export default async function PaymentsPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="cb-display text-ink">Payments</h1>
-          <p className="mt-1 text-[13px] text-ink-muted">This week&rsquo;s run \u00b7 Increase sandbox (test bank)</p>
+          <p className="mt-1 text-[13px] text-ink-muted">This week&rsquo;s run · Increase sandbox (test bank)</p>
         </div>
         <RunPayments billKeys={eligible.map((i) => i.bill.key)} total={total} lockedReason={lockedReason} />
       </div>

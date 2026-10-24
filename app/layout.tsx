@@ -13,11 +13,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="flex bg-paper text-ink">
+      <body>
         <ConvexClientProvider>
-          <Sidebar />
-          <AutoOpenLiveCall />
-          <main className="flex-1">{children}</main>
+          <div className="pt-app">
+            <Sidebar />
+            <AutoOpenLiveCall />
+            <main className="pt-main">{children}</main>
+          </div>
         </ConvexClientProvider>
       </body>
     </html>

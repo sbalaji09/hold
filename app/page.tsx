@@ -16,38 +16,32 @@ export default async function InboxPage({
   const rows = activeStatus ? bills.filter((b) => b.status === activeStatus) : bills;
 
   return (
-    <div className="flex flex-col gap-4 p-6">
-      <div className="flex items-end justify-between">
-        <div>
-          <h1 className="font-serif text-[30px]/[36px] text-ink">Inbox</h1>
-          <p className="font-mono text-[12px] text-ink-muted">bills@fogline.fm · newest first</p>
+    <div>
+      <header className="pt-head">
+        <div className="pt-head-text">
+          <h1 className="cb-display">Inbox</h1>
+          <p className="pt-sub">bills@fogline.fm · newest first</p>
         </div>
-      </div>
+        <div className="pt-actions">
+          <Link href="/practice" className="cb-btn cb-btn-secondary">Try a scam</Link>
+        </div>
+      </header>
 
-      <div className="flex gap-1" role="tablist">
+      <nav className="pt-filters" aria-label="Filter by status">
         {INBOX_FILTERS.map((f) => {
           const href = f.status ? `/?status=${encodeURIComponent(f.status)}` : "/";
           const on = activeStatus === f.status;
           const count = f.status ? bills.filter((b) => b.status === f.status).length : bills.length;
           return (
-            <Link
-              key={f.label}
-              href={href}
-              role="tab"
-              aria-selected={on}
-              className={
-                "flex items-center gap-1.5 rounded-sm px-2.5 py-1.5 text-[13px] font-sans " +
-                (on ? "bg-surface-sunk text-ink" : "text-ink-muted hover:bg-surface-hover")
-              }
-            >
+            <Link key={f.label} href={href} aria-current={on ? "true" : undefined} className={"pt-filter" + (on ? " on" : "")}>
               {f.label}
-              <span className="rounded-xs bg-surface-sunk px-1 font-mono text-[11px] text-ink-muted">{count}</span>
+              <span className="pt-count">{count}</span>
             </Link>
           );
         })}
-      </div>
+      </nav>
 
-      <div className="cb-ledger">
+      <div className="pt-scroll"><div className="cb-ledger pt-ledger">
         <div className="cb-ledger-head">
           <span />
           <span>Supplier</span>
@@ -57,7 +51,7 @@ export default async function InboxPage({
           <span className="cb-r">In</span>
         </div>
         {rows.length === 0 ? (
-          <div className="p-6 text-[13px] text-ink-muted">Nothing here. Callback has no bills in this state.</div>
+          <div className="pt-empty">Nothing here. hold has no bills in this state.</div>
         ) : (
           rows.map((bill) => (
             <InboxRow
@@ -73,7 +67,7 @@ export default async function InboxPage({
             />
           ))
         )}
-      </div>
+      </div></div>
     </div>
   );
 }

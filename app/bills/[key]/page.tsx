@@ -61,7 +61,7 @@ export default async function BillPage({
   const amount = "$" + (bill.amountCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
-    <div className="grid gap-5 p-6" style={{ gridTemplateColumns: "1fr var(--evidence-width)" }}>
+    <div className="grid gap-5" style={{ gridTemplateColumns: "1fr var(--evidence-width)" }}>
       <div className="col-span-2 flex items-end justify-between gap-4">
         <div>
           <div className="font-sans text-[10.5px] font-semibold uppercase tracking-[.09em] text-ink-muted">
@@ -89,7 +89,7 @@ export default async function BillPage({
         </div>
       </div>
 
-      <article className="cb-doc relative p-5">
+      <article className="cb-doc relative self-start p-5">
         <div className="grid grid-cols-[64px_1fr] gap-y-0.5 border-b border-dashed border-line pb-3 font-mono text-[12px]/[18px] text-ink-muted">
           <span>From</span>
           <b className="font-normal text-ink">

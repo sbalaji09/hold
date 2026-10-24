@@ -41,7 +41,7 @@ export default async function ApprovalsPage() {
               <article key={approval.key} className="cb-doc">
                 <div className="cb-doc-head">
                   <span>
-                    {bill.supplier.name} \u00b7 Invoice {bill.invoiceNo}
+                    {bill.supplier.name} · Invoice {bill.invoiceNo}
                   </span>
                   <small>{KIND_LABEL[approval.kind]}</small>
                 </div>
