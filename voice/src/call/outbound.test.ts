@@ -231,6 +231,33 @@ describe("runOutboundCall", () => {
     expect(fullDisclosure).toBeLessThan(firstQuestion);
   });
 
+  it("a \"Yeah.\" that cuts off a question is not the answer: hold asks it again", async () => {
+    // Rosa's call: "Yeah." to the intro landed on the question, and hold thanked her and moved on.
+    const { store, transport, run } = setup([
+      "Hi.",
+      "<interrupt>Yeah.",
+      "It was eighteen thousand four hundred dollars.",
+      "Yes, we switched banks last week.",
+    ]);
+    await run();
+    const evidence = store.results.get("call_123")!.evidence;
+    expect(evidence.map((e) => e.answer)).toEqual(["It was eighteen thousand four hundred dollars.", "Yes, we switched banks last week."]);
+    const yeah = transport.log.findIndex((l) => l.speaker === "supplier" && l.text === "Yeah.");
+    expect(transport.log[yeah + 1]).toEqual({ speaker: "callback", text: INVOICE_Q.ask }); // asked again, no "Thanks"
+  });
+
+  it("\"Sure.\" to a history question waits for the real answer", async () => {
+    const { store, run } = setup(["Sure.", "It was eighteen thousand four hundred dollars.", "Yes, we switched banks last week."]);
+    await run();
+    expect(store.results.get("call_123")!.evidence[0]!.answer).toBe("It was eighteen thousand four hundred dollars.");
+  });
+
+  it("a bare \"Yes.\" still answers the bank question", async () => {
+    const { store, run } = setup(["It was eighteen thousand four hundred dollars.", "Yes."]);
+    await run();
+    expect(store.results.get("call_123")!.evidence[1]!.answer).toBe("Yes.");
+  });
+
   it("never doubles the full stop after a supplier name ending in a period", async () => {
     const { store, run } = setup(["It was eighteen thousand four hundred dollars.", "Yes, we switched banks last week."]);
     await run();

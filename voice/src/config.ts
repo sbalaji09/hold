@@ -58,6 +58,8 @@ const schema = z.object({
   VAD_MARGIN_DB: num(12),
   /** Absolute floor in dBFS; quieter frames are never speech. */
   VAD_MIN_DBFS: num(-45),
+  /** Speech this long cuts Callback off; shorter ("yeah", "mm-hm") is a listener's backchannel. */
+  BARGE_IN_SPEECH_MS: num(600),
   /** Barge in on an STT partial with at least this many words, even if the VAD did not fire. */
   BARGE_IN_MIN_WORDS: num(2),
   /** During the opening line, only a transcript this long interrupts (a pickup "Hello?" must not). */
@@ -90,6 +92,7 @@ export interface AudioTuning {
   vadMinSpeechMs: number;
   vadMarginDb: number;
   vadMinDbfs: number;
+  bargeInSpeechMs: number;
   bargeInMinWords: number;
   openingBargeInMinWords: number;
 }
@@ -100,6 +103,7 @@ export const DEFAULT_TUNING: AudioTuning = {
   vadMinSpeechMs: 200,
   vadMarginDb: 12,
   vadMinDbfs: -45,
+  bargeInSpeechMs: 600,
   bargeInMinWords: 2,
   openingBargeInMinWords: 3,
 };
@@ -111,6 +115,7 @@ export function tuningFrom(c: Config): AudioTuning {
     vadMinSpeechMs: c.VAD_MIN_SPEECH_MS,
     vadMarginDb: c.VAD_MARGIN_DB,
     vadMinDbfs: c.VAD_MIN_DBFS,
+    bargeInSpeechMs: c.BARGE_IN_SPEECH_MS,
     bargeInMinWords: c.BARGE_IN_MIN_WORDS,
     openingBargeInMinWords: c.OPENING_BARGE_IN_MIN_WORDS,
   };

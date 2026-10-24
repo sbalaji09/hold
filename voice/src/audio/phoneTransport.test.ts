@@ -149,8 +149,8 @@ describe("barge-in", () => {
     h.feed(QUIET, 50);
     const { p, ctx } = await speaking(h);
     await vi.advanceTimersByTimeAsync(550); // 0.55 s of playback
-    h.feed(SPEECH, 9);
-    expect(h.twilio.some((m) => m.event === "clear")).toBe(false); // 180 ms is not enough
+    h.feed(SPEECH, 29);
+    expect(h.twilio.some((m) => m.event === "clear")).toBe(false); // 580 ms is not enough
     h.feed(SPEECH, 1);
     expect(h.twilio.at(-1)).toEqual({ event: "clear", streamSid: "MZ1" });
     expect(h.cancelled).toContain(ctx);
@@ -172,6 +172,19 @@ describe("barge-in", () => {
     expect(h.twilio.some((m) => m.event === "clear")).toBe(false);
     h.sttSink().partial("sorry who");
     expect((await p).interrupted).toBe(true);
+  });
+
+  test("a backchannel \"Yeah.\" over a question does not cut it off", async () => {
+    const h = setup();
+    h.feed(QUIET, 50);
+    const { p, ctx } = await speaking(h);
+    h.feed(SPEECH, 20); // 400 ms of "Yeah."
+    h.feed(QUIET, 20);
+    h.sttSink().final("Yeah.");
+    expect(h.twilio.some((m) => m.event === "clear")).toBe(false);
+    h.ttsSink().done(ctx);
+    h.ackAll();
+    expect((await p).interrupted).toBe(false);
   });
 
   test("a short noise does not interrupt", async () => {
@@ -207,7 +220,7 @@ describe("barge-in", () => {
     const h = setup();
     h.feed(QUIET, 50);
     const { p } = await speaking(h);
-    h.feed(SPEECH, 10);
+    h.feed(SPEECH, 30);
     await p;
     h.sttSink().final("Sorry, who is this?");
     h.feed(QUIET, 20); // caller stops: VAD offset -> finalize

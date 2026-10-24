@@ -88,6 +88,11 @@ export function isGoodbye(text: string): boolean {
   );
 }
 
+/** "Yeah.", "Okay, sure.", "Mm-hm": a listener's acknowledgement, with no answer in it. */
+export function isBackchannel(text: string): boolean {
+  return /^\W*(?:(?:yeah|yes|yep|yup|ok(?:ay)?|sure|right|alright|all right|mm-?hm+|uh-?huh|go ahead|of course|s[íi]|claro|vale|aj[áa])\W*)+$/i.test(text);
+}
+
 /** Intent of one supplier turn during an outbound check call. "answer" is the default. */
 export type TurnIntent = "later" | "wrong_person" | "who" | "greeting" | "repeat" | "wait" | "clarify" | "answer";
 

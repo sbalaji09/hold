@@ -18,6 +18,7 @@ import { MODELS, type LLM } from "./llm.js";
 import {
   classifyTurn,
   guardStream,
+  isBackchannel,
   isBankAnswerDenial,
   isBankDenial,
   leaksSomething,
@@ -435,8 +436,10 @@ async function askOne(
   L: Lines,
 ): Promise<AskOutcome> {
   await session.emit({ call_id: session.call_id, type: "question", ask: question.ask, source: question.source });
-  if (!(await session.say(question.ask))) return "ended";
+  const said = await session.say(question.ask);
+  if (!said) return "ended";
   convo.asked++;
+  let heardInFull = !said.interrupted;
 
   let reprompted = false;
   let timeoutMs: number = OUTBOUND_LIMITS.answerTimeoutMs;
@@ -453,6 +456,13 @@ async function askOne(
       await session.say(L.sorryRepeat(question.ask));
       continue;
     }
+    // "Yeah" said over a cut-off question, or to "Can you tell me...?", is not the answer.
+    // Only a fully heard yes/no (bank) question takes a bare yes.
+    if (isBackchannel(u.text) && (!heardInFull || question.kind !== "bank_change")) {
+      if (heardInFull) timeoutMs = OUTBOUND_LIMITS.waitTimeoutMs; // "Sure." then they look it up
+      else heardInFull = !(await session.say(question.ask))?.interrupted;
+      continue;
+    }
     switch (classifyTurn(u.text)) {
       case "later":
         await session.say(L.later);
@@ -465,7 +475,7 @@ async function askOne(
         continue;
       case "greeting":
       case "repeat":
-        await session.say(question.ask);
+        heardInFull = !(await session.say(question.ask))?.interrupted;
         continue;
       case "wait":
         await session.say(L.takeYourTime);

@@ -5,7 +5,8 @@
 //     send STT "finalize" right away instead of waiting for server-side silence detection.
 //   - A turn ends endOfTurnMs after the last final transcript, unless the caller is still talking.
 // Barge-in (while say() is playing):
-//   - VAD onset (sustained speech) or an STT partial with enough words cuts playback at once:
+//   - bargeInSpeechMs of sustained speech, or an STT partial with enough words, cuts playback at once
+//     (a one-word "yeah" or "mm-hm" over Callback is listening, not interrupting):
 //     Twilio "clear" drops buffered audio, the Cartesia context is cancelled (late chunks dropped),
 //     and say() resolves interrupted=true with the text the caller most likely heard, estimated
 //     from Twilio playback marks and Cartesia word timestamps.
@@ -144,12 +145,14 @@ export class PhoneTransport implements CallTransport {
     if (ev === "onset") {
       this.lastActivityAt = this.now();
       this.turnStartS ??= Math.max(0, this.elapsed() - this.o.tuning.vadMinSpeechMs / 1000);
-      // A pickup "Hello?" over the opening line is voice too; there only the transcript decides.
-      if (this.active && !this.active.opening) this.bargeIn("vad");
     } else if (ev === "offset") {
       this.turnEndS = Math.max(0, this.elapsed() - this.o.tuning.finalizeSilenceMs / 1000);
       this.stt.finalize();
       if (this.turnText.trim()) this.armEot();
+    }
+    // A pickup "Hello?" over the opening line is voice too; there only the transcript decides.
+    if (this.active && !this.active.opening && this.vad.speaking && this.vad.speechMs >= this.o.tuning.bargeInSpeechMs) {
+      this.bargeIn("vad");
     }
   }
 
