@@ -363,8 +363,8 @@ describe("convex-only", () => {
   test("liveCall, activeCall and phoneLine", async () => {
     vi.stubEnv("TWILIO_PHONE_NUMBER", "+14155550100");
     const t = convexTest(schema, modules);
+    await t.run((ctx) => ctx.db.insert("callRequests", { ...baseRequest, status: "queued", attempt: 0 }));
     expect((await t.query(api.voice.ui.activeCall, {}))?.call_id).toBe("call_1"); // queued counts: the screen opens as soon as the call is requested
-    expect(await t.query(api.voice.ui.activeCall, {})).toBeNull();
     await t.mutation(api.voice.server.claimRequest, { secret: SECRET, call_id: "call_1" });
     expect((await t.query(api.voice.ui.activeCall, {}))?.call_id).toBe("call_1");
 
