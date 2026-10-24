@@ -488,7 +488,7 @@ async function fromUnknownDomain(ctx: ActionCtx, args: IngestArgs, fromAddress: 
 
   const imitates = lookalikeOf(fromDomain, await ctx.runQuery(internal.app.onboarding.knownSuppliers, {}));
   if (imitates) {
-    return unknown([
+    const flagged = await unknown([
       {
         id: "domain",
         label: "Look-alike domain",
@@ -498,6 +498,8 @@ async function fromUnknownDomain(ctx: ActionCtx, args: IngestArgs, fromAddress: 
         cite,
       },
     ]);
+    await ctx.scheduler.runAfter(0, internal.app.background.copycatOnBill, { billKey: flagged.billKey, domain: fromDomain, knownDomain: imitates.domain, fromAddress });
+    return flagged;
   }
   if (!fromDomain) return unknown();
 
@@ -671,6 +673,9 @@ async function ingest(ctx: ActionCtx, args: IngestArgs, opts: { existingEmailKey
       existingEmailKey: opts.existingEmailKey,
     });
     const show = (checks: Check[]) => ctx.runMutation(internal.app.intake.addChecks, { billKey: started.billKey, checks });
+    if (fromDomain && fromDomain !== context.supplier.domain) {
+      await ctx.scheduler.runAfter(0, internal.app.background.copycatOnBill, { billKey: started.billKey, domain: fromDomain, knownDomain: context.supplier.domain, fromAddress });
+    }
     const checks = runChecks(checkInput); // bank, domain, rush, amount, learned rule: lookups, not models
     await show(checks);
     const style = early?.style ?? (await styleResult());

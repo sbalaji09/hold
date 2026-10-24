@@ -13,7 +13,7 @@
 // confirms, does that (see lib/policy.ts's "Nobody but a person moves trust" rule).
 import { v } from "convex/values";
 import { api, internal } from "../_generated/api.js";
-import { action, internalMutation, mutation, query } from "../_generated/server.js";
+import { action, internalAction, internalMutation, mutation, query, type ActionCtx } from "../_generated/server.js";
 import type { BackgroundCheck } from "../../lib/types.js";
 import { isValidDomain } from "./suppliers.js";
 
@@ -157,19 +157,22 @@ export async function backgroundLocal(domain: string, businessName?: string): Pr
     findings.push({ label: "Site reachable", state: "flag", evidence: `${domain} didn't respond to a fetch.`, sourceUrl: homepageUrl });
   }
 
-  const ageDays = await domainAgeDays(domain);
-  if (ageDays != null) {
-    findings.push({
-      label: "Domain age",
-      state: ageDays < 90 ? "flag" : "pass",
-      evidence: ageDays < 90 ? `Registered only ${ageDays} days ago.` : `Registered ${ageDays} days ago.`,
-      sourceUrl: `https://rdap.org/domain/${domain}`,
-    });
-  } else {
-    findings.push({ label: "Domain age", state: "info", evidence: "RDAP had no registration record for this domain.", sourceUrl: `https://rdap.org/domain/${domain}` });
-  }
+  findings.push(await ageFinding(domain, "Domain age"));
 
   return { findings, suggestedPhone };
+}
+
+/** Under 90 days old is a flag: a scammer's look-alike domain is usually days old. */
+export async function ageFinding(domain: string, label: string): Promise<Finding> {
+  const ageDays = await domainAgeDays(domain);
+  const sourceUrl = `https://rdap.org/domain/${domain}`;
+  if (ageDays == null) return { label, state: "info", evidence: `RDAP had no registration record for ${domain}.`, sourceUrl };
+  return {
+    label,
+    state: ageDays < 90 ? "flag" : "pass",
+    evidence: ageDays < 90 ? `${domain} was registered only ${ageDays} days ago.` : `${domain} was registered ${ageDays} days ago.`,
+    sourceUrl,
+  };
 }
 
 export async function copycatLocal(domain: string, knownDomain: string): Promise<{ findings: Finding[] }> {
@@ -183,6 +186,7 @@ export async function copycatLocal(domain: string, knownDomain: string): Promise
     state: domainSim > 0.7 ? "flag" : "pass",
     evidence: `"${domain}" is ${(domainSim * 100).toFixed(0)}% similar to the known domain "${knownDomain}" by edit distance.`,
   });
+  findings.push(await ageFinding(domain, "Sender domain age"));
 
   const [htmlA, htmlB] = await Promise.all([fetchText(`https://${domain}`), fetchText(`https://${knownDomain}`)]);
   if (htmlA && htmlB) {
@@ -311,31 +315,51 @@ export const runCopycatCheck = action({
   handler: async (ctx, { billKey }): Promise<{ key: string; via: string; findings: Finding[] }> => {
     const bill = await ctx.runQuery(api.app.queries.getBill, { key: billKey });
     if (!bill) throw new Error(`Unknown bill ${billKey}`);
-    const domain = bill.email.fromDomain;
-    const knownDomain = bill.supplier.domain;
-    const token = process.env.APIFY_TOKEN;
-    let result: { findings: Finding[] };
-    let via: string;
-    if (token) {
-      try {
-        result = await runApifyActor("copycat", { domain, knownDomain }, token);
-        via = "the Apify actor";
-      } catch (err) {
-        result = await copycatLocal(domain, knownDomain);
-        via = `local heuristics (Apify run failed: ${err instanceof Error ? err.message : String(err)})`;
-      }
-    } else {
+    return runCopycat(ctx, billKey, bill.email.fromDomain, bill.supplier.domain);
+  },
+});
+
+async function runCopycat(ctx: ActionCtx, billKey: string, domain: string, knownDomain: string): Promise<{ key: string; via: string; findings: Finding[] }> {
+  const token = process.env.APIFY_TOKEN;
+  let result: { findings: Finding[] };
+  let via: string;
+  if (token) {
+    try {
+      result = await runApifyActor("copycat", { domain, knownDomain }, token);
+      via = "the Apify actor";
+    } catch (err) {
       result = await copycatLocal(domain, knownDomain);
-      via = "local heuristics (APIFY_TOKEN isn't set)";
+      via = `local heuristics (Apify run failed: ${err instanceof Error ? err.message : String(err)})`;
     }
-    const findings = [...result.findings, { label: "Check method", state: "info" as const, evidence: `Ran via ${via}.` }];
-    const { key } = await ctx.runMutation(internal.app.background.recordCheck, {
-      kind: "copycat",
+  } else {
+    result = await copycatLocal(domain, knownDomain);
+    via = "local heuristics (APIFY_TOKEN isn't set)";
+  }
+  const findings = [...result.findings, { label: "Check method", state: "info" as const, evidence: `Ran via ${via}.` }];
+  const { key } = await ctx.runMutation(internal.app.background.recordCheck, { kind: "copycat", billKey, domain, findings });
+  return { key, via, findings };
+}
+
+/** Intake schedules this for a bill from a domain other than the supplier's (or a look-alike of
+ * one): the copycat check runs without holding up the bill, then lands on it as one more check.
+ * The domain check has already flagged the bill, so this adds evidence, not a decision. */
+export const copycatOnBill = internalAction({
+  args: { billKey: v.string(), domain: v.string(), knownDomain: v.string(), fromAddress: v.string() },
+  handler: async (ctx, { billKey, domain, knownDomain, fromAddress }): Promise<void> => {
+    const { findings } = await runCopycat(ctx, billKey, domain, knownDomain);
+    const flags = findings.filter((f) => f.state === "flag");
+    await ctx.runMutation(internal.app.intake.addChecks, {
       billKey,
-      domain,
-      findings,
+      checks: [
+        {
+          id: "copycat",
+          label: "Copycat check",
+          state: flags.length > 0 ? "flag" : "pass",
+          evidence: flags.length > 0 ? flags.map((f) => f.evidence).join(" ") : `The copycat check against ${knownDomain} flagged nothing about ${domain}.`,
+          cite: { kind: "email", ref: fromAddress },
+        },
+      ],
     });
-    return { key, via, findings };
   },
 });
 

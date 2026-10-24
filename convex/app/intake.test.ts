@@ -2,7 +2,7 @@
 // risk: at-least-once delivery), and an unknown-sender bill breaking hydrateBill (and so
 // listBills/listApprovals) because it has no real supplier/bank account row.
 import { convexTest } from "convex-test";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { api } from "../_generated/api.js";
 import schema from "../schema.js";
 import { modules } from "../test.setup.js";
@@ -120,6 +120,29 @@ describe("unknown sender bills", () => {
 
     const approvals = await t.query(api.app.queries.listApprovals, {});
     expect(approvals.some((a) => a.billKey === billKey)).toBe(true);
+  });
+
+  test("a look-alike sender's bill gets a copycat check without anyone clicking", async () => {
+    const { t } = harness();
+    await t.run((ctx) => ctx.db.insert("suppliers", SUPPLIER));
+    vi.stubGlobal("fetch", async () => new Response("", { status: 404 })); // no network, no APIFY_TOKEN
+    vi.useFakeTimers();
+    try {
+      const { billKey } = await t.action(api.app.intake.ingestEmail, {
+        from: "Rosa <rosa@stagecraft-rigging.com>",
+        subject: "New bank details",
+        body: "Please pay invoice #4471 for $9,000.00 to our new account.",
+        receivedAt: "2026-09-03T00:00:00.000Z",
+      });
+      await t.finishAllScheduledFunctions(vi.runAllTimers);
+      const bill = await t.run((ctx) => ctx.db.query("bills").withIndex("by_key", (q) => q.eq("key", billKey)).unique());
+      const copycat = bill?.checks?.find((c) => c.id === "copycat");
+      expect(copycat?.state).toBe("flag");
+      expect(copycat?.evidence).toContain("stagecraftrigging.com");
+    } finally {
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+    }
   });
 });
 

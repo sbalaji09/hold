@@ -200,6 +200,18 @@ async function runCopycat(domain: string, knownDomain: string): Promise<{ findin
     state: domainSim > 0.7 ? "flag" : "pass",
     evidence: `"${domain}" is ${(domainSim * 100).toFixed(0)}% similar to the known domain "${knownDomain}" by edit distance.`,
   });
+  const ageDays = await domainAgeDays(domain);
+  const rdapUrl = `https://rdap.org/domain/${domain}`;
+  findings.push(
+    ageDays == null
+      ? { label: "Sender domain age", state: "info", evidence: `RDAP had no registration record for ${domain}.`, sourceUrl: rdapUrl }
+      : {
+          label: "Sender domain age",
+          state: ageDays < 90 ? "flag" : "pass",
+          evidence: ageDays < 90 ? `${domain} was registered only ${ageDays} days ago.` : `${domain} was registered ${ageDays} days ago.`,
+          sourceUrl: rdapUrl,
+        },
+  );
 
   const [htmlA, htmlB] = await Promise.all([fetchText(`https://${domain}`), fetchText(`https://${knownDomain}`)]);
   if (htmlA && htmlB) {
