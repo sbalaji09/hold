@@ -3,7 +3,6 @@ import Link from "next/link";
 import { ConvexError } from "convex/values";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button, CheckRow, Line, StatusMark } from "@/components/callback";
-import { CALLBACK_PROMISE } from "@/shared/contract";
 import { useCompany } from "@/lib/useCompany";
 import { usePhoneLine, useReportCall, useSupplierName, useTacticNames, type CallVerdict, type InboundCallDoc } from "./api";
 import { AGENT, formatElapsed, formatPhone, formatWhen, parseTime, type TranscriptRow } from "./format";
@@ -74,13 +73,6 @@ export function PhoneLineScreen({ callId }: { callId?: string }) {
 
       <div className="hv-phone">
         <PastCalls calls={line.past} number={number} callId={callId} />
-        <section className="cb-doc hv-pad hv-rule">
-          <div className="cb-caps">Rule</div>
-          <p className="hv-statement">
-            {AGENT} never changes bank details from an incoming call. It says &ldquo;{CALLBACK_PROMISE.replace(/\.$/, "")}&rdquo; and starts an
-            outgoing check call to the number on file.
-          </p>
-        </section>
       </div>
     </main>
   );
