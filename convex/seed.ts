@@ -41,6 +41,7 @@ export const seedArgs = {
         language: v.optional(v.string()),
         phoneMenu: v.optional(v.string()),
         timeZone: v.optional(v.string()),
+        status: v.optional(v.union(v.literal("new"), v.literal("trusted"), v.literal("under_review"))),
         // The company's own file on the payee (an employee's HR record, a seller's escrow file).
         // Same shape as suppliers.onboarding; the schema checks it on insert.
         onboarding: v.optional(v.any()),
@@ -157,6 +158,7 @@ export async function runSeed(ctx: MutationCtx, args: SeedArgs): Promise<void> {
     "activity",
     "practiceScams",
     "learnedRules",
+    "blockedAccounts",
     "backgroundChecks",
     ...(args.keepPlaybooks ? [] : playbookTables),
   ] as const;

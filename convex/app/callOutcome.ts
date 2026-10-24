@@ -5,6 +5,7 @@ import { v } from "convex/values";
 import { internalMutation } from "../_generated/server.js";
 import { decideCallOutcome, sentence } from "../../lib/callOutcome.js";
 import { getCompany } from "./company.js";
+import { sweepScamAccount } from "./incident.js";
 import { hydrateBill } from "./queries.js";
 import { addBillToPracticeSet } from "./practice.js";
 import { openImprovement } from "./techniques.js";
@@ -74,6 +75,8 @@ export const applyCallResult = internalMutation({
       } catch (err) {
         console.warn(`couldn't keep ${row.key} as a test case`, err);
       }
+      // Then go looking for the same scam elsewhere: block the account, hold every bill using it.
+      await sweepScamAccount(ctx, row, bill.supplier.name, bill.email.body);
     }
 
     // The real supplier confirmed a bill hold's playbook flagged: a false alarm to learn from.

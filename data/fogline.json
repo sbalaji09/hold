@@ -249,6 +249,29 @@
       "contactEmail": "rick@sffencebarricade.com",
       "trustedPhone": "+14155550124",
       "phoneLastCheckedAt": "2026-08-26"
+    },
+    {
+      "key": "sup_coastline",
+      "name": "Coastline Staging Supply",
+      "category": "stage",
+      "domain": "coastlinestaging.com",
+      "contactName": "Jamie Holt",
+      "contactEmail": "jamie@coastlinestaging.com",
+      "trustedPhone": "+14155550125",
+      "phoneLastCheckedAt": "2026-10-16",
+      "status": "new",
+      "onboarding": {
+        "source": "manual",
+        "emailPhones": [],
+        "note": {
+          "hiredFor": "Extra crowd barriers and stage skirting for the second stage",
+          "agreed": "$4,600 flat, half on delivery",
+          "dates": "Delivery Oct 28, pickup Nov 9",
+          "foglineContact": "Maya Lin"
+        },
+        "confirmedBy": "maya",
+        "confirmedAt": "2026-10-16T17:20:00.000Z"
+      }
     }
   ],
   "bankAccounts": [
@@ -587,6 +610,18 @@
       "status": "active",
       "verifiedBy": "call+dev",
       "addedAt": "2026-09-22"
+    },
+    {
+      "key": "bank_coastline",
+      "supplierKey": "sup_coastline",
+      "bank": "Mercury",
+      "last4": "8817",
+      "routingLast4": "0417",
+      "routingNumber": "177930417",
+      "accountNumber": "1686988817",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2026-10-16"
     }
   ],
   "bills": [
@@ -2513,6 +2548,19 @@
       "status": "Paid",
       "emailKey": "email_4147",
       "planted": false
+    },
+    {
+      "key": "bill_cs1042",
+      "supplierKey": "sup_coastline",
+      "invoiceNo": "CS-1042",
+      "amountCents": 460000,
+      "currency": "USD",
+      "dueDate": "2026-10-30",
+      "receivedAt": "2026-10-20T18:05:00.000Z",
+      "bankAccountKey": "bank_coastline",
+      "status": "Scheduled",
+      "emailKey": "email_cs1042",
+      "planted": true
     }
   ],
   "emails": [
@@ -4024,6 +4072,16 @@
       "subject": "Invoice #4147 — new business account on file",
       "body": "Hey,\n\nJust a heads up, we opened a business account at Silicon Valley Bank, ending 3384, and moved payouts there. Invoice #4147 for fencing & barricade rental, $2,150.00, due 2026-10-14, should route there going forward.\n\nThanks,\nRick Alvarado\nSF Fence & Barricade Co.",
       "receivedAt": "2026-09-23T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_cs1042",
+      "billKey": "bill_cs1042",
+      "fromAddress": "jamie@coastlinestaging.com",
+      "fromDomain": "coastlinestaging.com",
+      "subject": "Invoice #CS-1042 — barriers and stage skirting",
+      "body": "Hi Maya,\n\nThanks again for bringing us on for the festival. Attached is invoice #CS-1042 for crowd barriers and stage skirting, $4,600.00, due 2026-10-30.\n\nPlease remit to Mercury, account ending 8817.\n\nBest,\nJamie Holt\nCoastline Staging Supply",
+      "receivedAt": "2026-10-20T18:05:00.000Z",
       "direction": "in"
     }
   ],

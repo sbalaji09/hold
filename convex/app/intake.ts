@@ -8,7 +8,18 @@ import { v } from "convex/values";
 import { api, internal } from "../_generated/api.js";
 import type { Doc } from "../_generated/dataModel.js";
 import { action, internalAction, internalMutation, internalQuery, type ActionCtx, type QueryCtx } from "../_generated/server.js";
-import { checkValidator, decide, routeEscalation, runChecks, type CheckBankAccount, type Decision, type LearnedRuleInput } from "./checks.js";
+import {
+  blockedAccountCheck,
+  checkValidator,
+  decide,
+  routeEscalation,
+  runChecks,
+  sameAccount,
+  type BlockedAccountInput,
+  type CheckBankAccount,
+  type Decision,
+  type LearnedRuleInput,
+} from "./checks.js";
 import { forChannel, techniqueCheck } from "../../lib/fraudTechniques.js";
 import { anthropic, assessEmail } from "./techniques.js";
 import { judgeEmail, toKinds } from "./triage.js";
@@ -98,6 +109,7 @@ interface IntakeContext {
   pastPaidBankAccounts: CheckBankAccount[];
   pastPaidAmounts: number[];
   learnedRules: LearnedRuleInput[];
+  blockedAccounts: BlockedAccountInput[];
 }
 
 export const gatherIntakeContext = internalQuery({
@@ -145,6 +157,8 @@ export const gatherIntakeContext = internalQuery({
       }),
       pastPaidAmounts: paidBills.map((b) => b.amountCents),
       learnedRules: ruleRows.map((r) => ({ text: r.text, sourceKind: r.sourceKind, sourceKey: r.sourceKey })),
+      // ponytail: whole table; it only grows by one row per caught scam.
+      blockedAccounts: (await ctx.db.query("blockedAccounts").collect()).map(({ bank, last4, sourceBillKey, impersonated }) => ({ bank, last4, sourceBillKey, impersonated })),
     };
   },
 });
@@ -597,6 +611,12 @@ async function ingest(ctx: ActionCtx, args: IngestArgs, opts: { existingEmailKey
       fraudTechnique,
       company: co,
     });
+    // An account a check call already proved is a scammer's, whichever payee the email claims to be.
+    const asked = parseBankDetails(args.body);
+    const paysBlocked = context.blockedAccounts.find((b) => sameAccount(b, context.currentBankAccount));
+    const asksBlocked = asked ? context.blockedAccounts.find((b) => sameAccount(b, asked)) : undefined;
+    if (paysBlocked) checks.push(blockedAccountCheck(paysBlocked, "pays", co));
+    else if (asksBlocked) checks.push(blockedAccountCheck(asksBlocked, "asks to pay", co));
     if (styleMatchError) {
       checks.push({
         id: "writing-style",

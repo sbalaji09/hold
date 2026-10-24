@@ -374,6 +374,18 @@ export default defineSchema({
     .index("by_key", ["key"])
     .index("by_supplier", ["supplierKey"]),
 
+  // Accounts a check call proved belong to a scammer (convex/app/incident.ts). Any unpaid bill that
+  // pays or asks for one is held, and intake flags any later email asking for one.
+  blockedAccounts: defineTable({
+    key: v.string(),
+    bank: v.string(),
+    last4: v.string(),
+    // The bill whose check call caught it, and the payee it impersonated.
+    sourceBillKey: v.string(),
+    impersonated: v.string(),
+    blockedAt: v.string(),
+  }).index("by_last4", ["last4"]),
+
   // Apify background / copycat check results, one row per run.
   backgroundChecks: defineTable({
     key: v.string(),

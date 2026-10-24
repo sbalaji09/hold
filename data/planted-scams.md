@@ -41,6 +41,22 @@ Expected flow: Checking → Calling (Callback phones the trusted number on
 file, **not** any number in the email) → supplier says "we never changed our
 bank" → **Held**.
 
+### The same scammer's second front (seeded, caught only by the live call)
+
+- **Supplier:** `sup_coastline`, Coastline Staging Supply, status `new`, onboarded
+  by Maya on Oct 16. Its account on file is **Mercury ··8817**, the same account
+  the live scam asks for.
+- **Bill:** `bill_cs1042` (invoice #CS-1042), $4,600.00, due 2026-10-30,
+  **Scheduled**. A first bill under $5,000 from a confirmed new supplier passes
+  every check, so nothing flags it on its own. `planted: true` keeps it out of
+  Moss history and playbook replays; it is deliberately not in `plantedScams`,
+  because no single-bill check can catch it.
+- **Expected flow:** when Rosa's call comes back not confirmed, hold blocks
+  Mercury ··8817 (`blockedAccounts`), holds `bill_cs1042` with a "Blocked
+  account" flag citing the Stagecraft bill, marks Coastline `under_review`, and
+  routes it to Dev (only Dev can release it). Any later email that pays or asks
+  for Mercury ··8817 gets the same flag at intake.
+
 ## Seeded scams (in `fogline.json`, `plantedScams` array)
 
 | key | bill | supplier | kind | checks that should fire | status |

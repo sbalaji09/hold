@@ -1040,18 +1040,87 @@ makeRecurringBills(supplierByKey.get("sup_sf_fence")!, 6);
   }
 }
 
+// ---------- the scammer's second front (answer key: data/planted-scams.md) ----------
+// A new supplier Maya onboarded last week whose account on file is the same Mercury ..8817 the
+// live demo scam asks for. Its first bill is small and passes every check, so it's Scheduled for
+// Friday; only the Stagecraft check call exposes it. Fixed values, no rng, so nothing above shifts.
+const COASTLINE = {
+  key: "sup_coastline",
+  name: "Coastline Staging Supply",
+  category: "stage" as Category,
+  domain: "coastlinestaging.com",
+  contactName: "Jamie Holt",
+  contactEmail: "jamie@coastlinestaging.com",
+  trustedPhone: "+14155550125",
+  phoneLastCheckedAt: "2026-10-16",
+  status: "new" as const,
+  onboarding: {
+    source: "manual" as const,
+    emailPhones: [],
+    note: {
+      hiredFor: "Extra crowd barriers and stage skirting for the second stage",
+      agreed: "$4,600 flat, half on delivery",
+      dates: "Delivery Oct 28, pickup Nov 9",
+      foglineContact: "Maya Lin",
+    },
+    confirmedBy: "maya" as const,
+    confirmedAt: "2026-10-16T17:20:00.000Z",
+  },
+};
+{
+  const bankKey = "bank_coastline";
+  bankAccounts.push({
+    key: bankKey,
+    supplierKey: COASTLINE.key,
+    bank: "Mercury",
+    last4: "8817",
+    routingLast4: "0417",
+    routingNumber: fakeRoutingNumber(bankKey, "0417"),
+    accountNumber: fakeAccountNumber(bankKey, "8817"),
+    status: "active",
+    verifiedBy: "onboarding",
+    addedAt: "2026-10-16",
+  });
+  emails.push({
+    key: "email_cs1042",
+    billKey: "bill_cs1042",
+    fromAddress: COASTLINE.contactEmail,
+    fromDomain: COASTLINE.domain,
+    subject: "Invoice #CS-1042 — barriers and stage skirting",
+    body: `Hi Maya,\n\nThanks again for bringing us on for the festival. Attached is invoice #CS-1042 for crowd barriers and stage skirting, $4,600.00, due 2026-10-30.\n\nPlease remit to Mercury, account ending 8817.\n\nBest,\nJamie Holt\nCoastline Staging Supply`,
+    receivedAt: "2026-10-20T18:05:00.000Z",
+    direction: "in",
+  });
+  bills.push({
+    key: "bill_cs1042",
+    supplierKey: COASTLINE.key,
+    invoiceNo: "CS-1042",
+    amountCents: 460000,
+    currency: "USD",
+    dueDate: "2026-10-30",
+    receivedAt: "2026-10-20T18:05:00.000Z",
+    bankAccountKey: bankKey,
+    status: "Scheduled",
+    emailKey: "email_cs1042",
+    planted: true,
+  });
+}
+
 // ---------- write output ----------
 const out = {
-  suppliers: SUPPLIERS.map((s) => ({
-    key: s.key,
-    name: s.name,
-    category: s.category,
-    domain: s.domain,
-    contactName: s.contactName,
-    contactEmail: s.contactEmail,
-    trustedPhone: trustedPhone(s),
-    phoneLastCheckedAt: isoDate(addDays(TODAY, -randInt(10, 60))),
-  })),
+  suppliers: [
+    ...SUPPLIERS.map((s) => ({
+      key: s.key,
+      name: s.name,
+      category: s.category,
+      domain: s.domain,
+      contactName: s.contactName,
+      contactEmail: s.contactEmail,
+      trustedPhone: trustedPhone(s),
+      phoneLastCheckedAt: isoDate(addDays(TODAY, -randInt(10, 60))),
+    })),
+    COASTLINE,
+  ],
   bankAccounts,
   bills,
   emails,

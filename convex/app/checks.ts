@@ -258,6 +258,27 @@ export function runChecks(input: RunChecksInput): Check[] {
   return checks;
 }
 
+export interface BlockedAccountInput extends CheckBankAccount {
+  sourceBillKey: string;
+  impersonated: string;
+}
+
+// ponytail: an email only gives bank name + last 4, so two real accounts can collide; match on
+// full account numbers once intake reads them.
+export const sameAccount = (a: CheckBankAccount, b: CheckBankAccount) =>
+  a.last4 === b.last4 && a.bank.trim().toLowerCase() === b.bank.trim().toLowerCase();
+
+/** The flag on a bill that pays (or asks to pay) an account a check call proved is a scammer's. */
+export function blockedAccountCheck(blocked: BlockedAccountInput, how: "pays" | "asks to pay", co: Company = companyFor(undefined)): Check {
+  return {
+    id: "blocked-account",
+    label: "Blocked account",
+    state: "flag",
+    evidence: `This ${co.bill.one} ${how} ${blocked.bank} ··${blocked.last4}. hold blocked that account after the real ${blocked.impersonated} said on a check call it isn't theirs.`,
+    cite: { kind: "bill", ref: blocked.sourceBillKey },
+  };
+}
+
 export type Decision = "pay" | "ask_dev" | "call";
 
 /** Server-side limits (plan-agent.md step 4): safe + under the company's limit pays, safe + over

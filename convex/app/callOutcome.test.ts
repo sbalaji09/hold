@@ -214,3 +214,62 @@ describe("a check call's result moves its bill", () => {
     expect(await h.activity()).toHaveLength(1);
   });
 });
+
+describe("a caught scam: hold goes looking for the same account elsewhere", () => {
+  const SCAM_BODY = "We switched banks. Please pay invoice #4502 to our new account: Mercury, account ending 8817.";
+  // Another payee whose account on file is the scammer's (the seed's Coastline Staging), plus
+  // controls: a normal bill, and an already-paid bill to the same account.
+  const seedFront = (h: ReturnType<typeof harness>) =>
+    h.t.run(async (ctx) => {
+      await ctx.db.insert("suppliers", { ...SUPPLIER, key: "sup_coast", name: "Coastline Staging Supply", domain: "coastlinestaging.com", status: "new" });
+      await ctx.db.insert("bankAccounts", { ...BANK, key: "bank_coast", supplierKey: "sup_coast" });
+      await ctx.db.insert("bankAccounts", { ...BANK, key: "bank_chase", bank: "Chase", last4: "2210" });
+      const base = { currency: "USD" as const, dueDate: "2026-10-30", receivedAt: "2026-10-20T18:05:00.000Z", planted: false, checks: [] };
+      for (const [key, supplierKey, bankAccountKey, status] of [
+        ["bill_cs1042", "sup_coast", "bank_coast", "Scheduled"],
+        ["bill_normal", "sup_stage", "bank_chase", "Scheduled"],
+        ["bill_paid", "sup_coast", "bank_coast", "Paid"],
+      ] as const) {
+        await ctx.db.insert("emails", { ...EMAIL, key: `email_${key}`, billKey: key, body: "Invoice attached." });
+        await ctx.db.insert("bills", { ...base, key, supplierKey, bankAccountKey, status, invoiceNo: key, amountCents: 460_000, emailKey: `email_${key}` });
+      }
+    });
+  const billByKey = (h: ReturnType<typeof harness>, key: string) =>
+    h.t.run((ctx) => ctx.db.query("bills").withIndex("by_key", (q) => q.eq("key", key)).unique());
+
+  test("blocks the account and holds the other unpaid bill that pays it, for Dev", async () => {
+    const h = harness();
+    await h.seed();
+    await h.t.run(async (ctx) => {
+      const email = await ctx.db.query("emails").first();
+      await ctx.db.patch(email!._id, { body: SCAM_BODY });
+    });
+    await seedFront(h);
+    await h.finish("call_1", DENIAL);
+
+    const blocked = await h.t.run((ctx) => ctx.db.query("blockedAccounts").collect());
+    expect(blocked).toMatchObject([{ bank: "Mercury", last4: "8817", sourceBillKey: "bill_in_1", impersonated: "Stagecraft Rigging Co." }]);
+
+    const front = await billByKey(h, "bill_cs1042");
+    expect(front!.status).toBe("Held");
+    expect(front!.checks!.find((c) => c.id === "blocked-account")).toMatchObject({ state: "flag", cite: { kind: "bill", ref: "bill_in_1" } });
+    expect((await billByKey(h, "bill_normal"))!.status).toBe("Scheduled");
+    expect((await billByKey(h, "bill_paid"))!.status).toBe("Paid");
+
+    const coast = await h.t.run((ctx) => ctx.db.query("suppliers").withIndex("by_key", (q) => q.eq("key", "sup_coast")).unique());
+    expect(coast!.status).toBe("under_review");
+    expect((await h.approvals()).find((a) => a.billKey === "bill_cs1042")).toMatchObject({ kind: "held_payment", routedTo: "dev", status: "pending" });
+    expect((await h.activity()).map((a) => a.what)).toEqual(
+      expect.arrayContaining(["blocked Mercury ··8817", "held this bill: it pays a blocked account", "found Mercury ··8817 on 1 more bill and held it"]),
+    );
+  });
+
+  test("an email that names no account blocks nothing", async () => {
+    const h = harness();
+    await h.seed();
+    await seedFront(h);
+    await h.finish("call_1", DENIAL);
+    expect(await h.t.run((ctx) => ctx.db.query("blockedAccounts").collect())).toHaveLength(0);
+    expect((await billByKey(h, "bill_cs1042"))!.status).toBe("Scheduled");
+  });
+});

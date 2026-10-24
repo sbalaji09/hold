@@ -74,6 +74,9 @@ export function canApprove(approver: Actor, requestedBy: Actor, co: Company = FO
 export function canRelease(bill: Bill, releaser: Actor, co: Company = FOGLINE): PolicyResult {
   if (bill.status !== "Held") return denied(`This ${co.bill.one} isn't held.`);
   if (releaser === "callback") return denied(`Callback can't release a held payment. ${co.dev.name} has to approve it.`);
+  if (releaser !== "dev" && bill.checks.some((c) => c.id === "blocked-account" && c.state === "flag")) {
+    return denied(`This ${co.bill.one} pays an account hold blocked after a scam. Only ${co.dev.name} can release it.`);
+  }
   const bankFlagged = bill.checks.find((c) => c.id === "bank-account")?.state === "flag";
   if (bankFlagged) {
     if (releaser !== "dev") return denied(`This release needs ${co.dev.name}'s approval: the bank details on this ${co.bill.one} changed.`);
