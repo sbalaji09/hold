@@ -1,0 +1,127 @@
+// Voice <-> app interface contract (see plan-voice.md "Interface contract").
+// Plain TS types shared by Convex functions, the voice server and the web screens.
+// Change these only together with the app person.
+
+export type NumberSource = "on_file" | "background_check";
+
+/** "live" dials a real phone. "simulated" runs Practice against a Claude-played supplier. */
+export type CallMode = "live" | "simulated";
+
+/**
+ * Lifecycle of a call request. The app writes "queued"; voice moves it on.
+ * queued -> dialing -> in_progress -> done
+ *        \-> retry_scheduled -> queued (one retry) -> ... -> handed_off
+ * Matches callRequests.status in convex/schema.ts (the app person's schema).
+ */
+export type CallRequestStatus =
+  | "queued"
+  | "dialing"
+  | "in_progress"
+  | "retry_scheduled"
+  | "done"
+  | "handed_off";
+
+export interface CallRequest {
+  call_id: string;
+  bill_id: string;
+  supplier_id: string;
+  to_number: string; // E.164. Never a number taken from the email.
+  number_source: NumberSource;
+  reason: string[];
+  status: CallRequestStatus;
+  mode?: CallMode; // default "live"
+  attempt: number; // dial attempts made so far
+}
+
+export type SourceKind = "invoice" | "email" | "call" | "payment";
+
+export interface Source {
+  kind: SourceKind;
+  ref: string; // human label, e.g. "#4471"
+  record_id?: string; // id of the underlying record, so the UI can open it
+}
+
+export type CallStatusValue =
+  | "ringing"
+  | "in_progress"
+  | "no_answer"
+  | "retry_scheduled"
+  | "dropped"
+  | "ended";
+
+export type Speaker = "callback" | "supplier" | "caller";
+
+export type CallEvent =
+  | { call_id: string; type: "status"; value: CallStatusValue; retry_at?: string; retry_at_ms?: number }
+  | { call_id: string; type: "segment"; speaker: Speaker; text: string; ts: number; end_ts?: number }
+  | { call_id: string; type: "question"; ask: string; source: Source };
+
+export type CallOutcome = "confirmed" | "not_confirmed" | "handed_off";
+
+export interface Evidence {
+  ask: string;
+  source?: Source;
+  answer: string;
+  matches: boolean;
+}
+
+export interface Clip {
+  start_s: number;
+  end_s: number;
+}
+
+export interface CallResult {
+  call_id: string;
+  outcome: CallOutcome;
+  evidence: Evidence[];
+  summary: string;
+  recording_url?: string;
+  clip?: Clip;
+}
+
+export interface StyleMatchResult {
+  matches: boolean;
+  score: number; // 0..1
+  compared_with: number; // how many past emails it was compared against
+  reasons: string[]; // plain-words evidence for the bill page
+}
+
+/** A supplier record as voice sees it, normalised from the app's tables. Indexed in Moss. */
+export interface SupplierRecord {
+  id: string; // stable id, e.g. Convex _id
+  supplier_id: string;
+  kind: SourceKind;
+  ref: string; // "#4471", "Email 12 Sep", "Call 3 Aug"
+  date: string; // ISO date
+  text: string; // full searchable text
+  amount_cents?: number;
+}
+
+export interface SupplierProfile {
+  supplier_id: string;
+  name: string;
+  phone_on_file: string; // E.164
+  aliases: string[]; // names a caller might use ("Stagecraft", "the stage people")
+}
+
+export interface InboundCallRecord {
+  call_id: string; // "in_<twilio sid>"
+  caller_number: string;
+  claimed_identity: string; // "Dev from Fogline", "Rosa at Stagecraft Rigging"; "Unknown caller" if never said
+  claimed_supplier_id?: string;
+  requested: string; // what they asked for, plain words
+  asked_bank_change: boolean;
+  transcript: { speaker: Speaker; text: string; ts: number }[];
+  triggered_call_id?: string; // callRequests row created to the number on file
+}
+
+export const DISCLOSURE =
+  "Hi, this is an automated assistant calling for Fogline's accounts team. This call is recorded.";
+
+export const INBOUND_GREETING =
+  "Hi, you've reached Fogline's accounts team. I'm an automated assistant, and this call is recorded. How can I help?";
+
+export const CALLBACK_PROMISE = "We'll call you back on the number we have.";
+
+/** Max dial attempts before handing off to Maya (first try + one retry). */
+export const MAX_ATTEMPTS = 2;
