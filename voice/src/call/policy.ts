@@ -21,7 +21,8 @@ const DENIAL_PATTERNS: RegExp[] = [
   /\b(?:wasn'?t|was not|not) (?:us|from us)\b/i,
   /\b(?:didn'?t|did not|never) send\b/i,
   // Spanish: "nunca cambiamos de banco", "no hemos cambiado nada", "es la misma cuenta", "eso no fui yo"
-  /\b(?:nunca|no)\b[^.?!]{0,30}\b(?:cambi|actualic|mov|ped|solicit|envi|mand)\w*[^.?!]{0,30}\b(?:banco|cuenta|datos|nada|instrucciones|eso|correo)/i,
+  // The negation must govern a change verb: "no se demore con el cambio de cuenta" is not a denial.
+  /\b(?:nunca|no)\s+(?:(?:he|hemos|ha|han|le|les|lo|la|me|nos|se|yo|nosotros)\s+){0,2}(?:cambi(?:é|e|amos|ado|ó|aron)|actualic[ée]|actualiz(?:ado|amos|ó)|ped(?:í|i|imos|ido)|solicit(?:é|e|amos|ado)|envi(?:é|e|amos|ado)|mand(?:é|e|amos|ado))(?![a-zñáéíóú])/i,
   /\bmism[ao] (?:cuenta|banco)\b/i,
   /\bno (?:fui|fuimos|era|éramos|somos|soy) (?:yo|nosotros)\b|\beso no (?:es|fue|vino) (?:de )?(?:mí|mi|nosotros)\b/i,
 ];

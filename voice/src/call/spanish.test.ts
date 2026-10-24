@@ -14,6 +14,10 @@ describe("Spanish code rules", () => {
     expect(isBankAnswerDenial("No, para nada.")).toBe(true);
     expect(isBankAnswerDenial("No hay problema, sí la cambié.")).toBe(false);
     expect(isBankDenial("Sí, la cambié la semana pasada al Chime.")).toBe(false);
+    // A scammer pushing the change, heard on a simulated call: "cambio" is a noun here, not a denial.
+    expect(isBankDenial("Lo que sí le pido es que no se demore con el cambio de cuenta.")).toBe(false);
+    expect(isBankDenial("No, nunca cambié mi cuenta.")).toBe(true);
+    expect(isBankDenial("No lo envié yo.")).toBe(true);
   });
 
   it("sorts what the payee says the same way as in English", () => {

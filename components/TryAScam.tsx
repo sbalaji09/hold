@@ -4,6 +4,8 @@ import { useAction } from "convex/react";
 import { makeFunctionReference } from "convex/server";
 import Link from "next/link";
 import { Button } from "@/components/callback";
+import { useCompany } from "@/lib/useCompany";
+import type { CompanyKey } from "@/lib/company";
 
 // convex/app/intake.ts's ingestEmail is a public action: { from, subject,
 // body, receivedAt } -> { billKey, supplierKey, status, emailKey? }. An email triage sorts as
@@ -17,14 +19,25 @@ const ingestEmailRef = makeFunctionReference<
 >("app/intake:ingestEmail");
 
 const inv = () => String(5000 + Math.floor(Math.random() * 4000));
-// Fogline presets. Each lands through the real intake with a fresh invoice number.
-const PRESETS = [
-  { label: "Normal bill", from: "rosa@stagecraftrigging.com", subject: "Invoice", body: () => `Hi,\n\nInvoice #${inv()} attached, rigging, $1,850.00. Let us know if you need anything else.\n\nBest,\nRosa\nStagecraft Rigging Co.` },
-  { label: "Bank change", from: "diego@cascadetalentgroup.com", subject: "Urgent: invoice", body: () => `Hi,\n\nOur artist's manager needs this paid before tomorrow's set or they're pulling out — invoice #${inv()}, artist deposit, $5,400.00. Please use our new account, we moved banks last week: First Republic, acct ending 7743.\n\nBest,\nDiego Fuentes\nCascade Talent Group` },
-];
+// Presets per company template. Each lands through the real intake with a fresh number.
+const PRESETS: Record<CompanyKey, Array<{ label: string; from: string; subject: string; body: () => string }>> = {
+  fogline: [
+    { label: "Normal bill", from: "rosa@stagecraftrigging.com", subject: "Invoice", body: () => `Hi,\n\nInvoice #${inv()} attached, rigging, $1,850.00. Let us know if you need anything else.\n\nBest,\nRosa\nStagecraft Rigging Co.` },
+    { label: "Bank change", from: "diego@cascadetalentgroup.com", subject: "Urgent: invoice", body: () => `Hi,\n\nOur artist's manager needs this paid before tomorrow's set or they're pulling out — invoice #${inv()}, artist deposit, $5,400.00. Please use our new account, we moved banks last week: First Republic, acct ending 7743.\n\nBest,\nDiego Fuentes\nCascade Talent Group` },
+  ],
+  bayline: [
+    { label: "Normal payoff", from: "payoffs@pacifichomeloans.com", subject: "Payoff statement", body: () => `Bayline Title,\n\nPayoff statement for escrow 26-${inv()}. Total payoff $312,480.55, good through November 6. Wire to the account on file with your office.\n\nPayoff department\nPacific Home Loans` },
+    { label: "Wire change", from: "marcia.delgado.home@gmail.com", subject: "Updated wire instructions for my proceeds", body: () => `Hi Lena,\n\nMy bank flagged my account, so please use these updated wire instructions for my proceeds of $612,450.18 on escrow 26-1188 instead of the Chase account. I'm at work all day so email is best. Please confirm today.\n\nMarcia Delgado` },
+  ],
+  harbor: [
+    { label: "Normal timesheet", from: "maria.gutierrez@harborhealth.org", subject: "Timesheet", body: () => `Hi payroll,\n\nMy hours for the period: 80 regular. Net pay should be about $1,718.40 as usual.\n\nThanks,\nMaría` },
+    { label: "Direct deposit change", from: "maria.gutierrez.hh@gmail.com", subject: "Cambio de depósito directo / direct deposit change", body: () => `Hola,\n\nPlease update my direct deposit to my new account at Chime before Friday's paycheck of $1,718.40. Por favor cambie mi depósito directo a mi nueva cuenta. I can't get to the portal, email me back here. Urgent.\n\nMaría Gutiérrez` },
+  ],
+};
 
 export function TryAScam(): React.ReactElement {
   const ingest = useAction(ingestEmailRef);
+  const co = useCompany();
   const [open, setOpen] = React.useState(false);
   const [from, setFrom] = React.useState("");
   const [subject, setSubject] = React.useState("");
@@ -51,17 +64,17 @@ export function TryAScam(): React.ReactElement {
   }
 
   if (!open) {
-    return <Button onClick={() => setOpen(true)}>Send a bill</Button>;
+    return <Button onClick={() => setOpen(true)}>Send a {co.bill.one}</Button>;
   }
 
   return (
     <form onSubmit={onSubmit} className="cb-doc flex flex-col gap-3 p-4">
       <div className="cb-doc-head">
-        <span>Send a bill</span>
+        <span>Send a {co.bill.one}</span>
         <small>Lands in the real inbox</small>
       </div>
       <div className="flex gap-2">
-        {PRESETS.map((p) => (
+        {PRESETS[co.key].map((p) => (
           <Button key={p.label} size="sm" type="button" onClick={() => { setFrom(p.from); setSubject(p.subject); setBody(p.body()); }}>
             {p.label}
           </Button>
@@ -108,7 +121,7 @@ export function TryAScam(): React.ReactElement {
             </>
           ) : (
             <>
-              Sent. It isn&rsquo;t a bill: hold {result.status === "Filed" ? "filed it on the supplier record" : "sent it to Maya as a message"}.{" "}
+              Sent. It isn&rsquo;t a bill: hold {result.status === "Filed" ? "filed it on the supplier record" : `sent it to ${co.maya.name} as a message`}.{" "}
               {result.emailKey ? (
                 <Link href={`/messages/${encodeURIComponent(result.emailKey)}`} className="text-ink underline underline-offset-4">
                   Open the message

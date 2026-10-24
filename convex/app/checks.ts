@@ -9,7 +9,7 @@ import type { Check, Cite } from "../../lib/types.js";
 
 // Supplier "new bank", an employee's "update my direct deposit", a closing party's "updated wire instructions".
 const NEW_ACCOUNT_RE =
-  /new (?:bank|account|routing)|updated account|moved banks|switched (?:to a new )?bank|changed bank|direct deposit|(?:new|updated|revised|corrected) wir(?:e|ing) instructions/i;
+  /new (?:bank|account|routing)|updated account|moved banks|switched (?:to a new )?bank|changed bank|direct deposit|(?:new|updated|revised|corrected) wir(?:e|ing) instructions|dep[óo]sito directo|nueva cuenta|cambi(?:é|e|amos) de banco/i;
 const RUSH_RE = /\b(urgent|asap|as soon as possible|today|expedite|right away|immediately|same[- ]day|before (?:tomorrow|close of business))\b/i;
 
 function matchingLine(body: string, re: RegExp): string | undefined {
