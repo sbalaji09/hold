@@ -14,7 +14,7 @@ import {
 import { BillActions } from "@/components/BillActions";
 import { AddToPractice } from "@/components/AddToPractice";
 import { CopycatPanel } from "@/components/CopycatPanel";
-import { getBill, listActivity, listChecksForBill } from "@/lib/data";
+import { getBill, getSettings, listActivity, listChecksForBill } from "@/lib/data";
 import { canCall, canHold, canPay } from "@/lib/policy";
 import { CALL_LINE_STATE, CHECK_RESULT, citeLabel, whyChecks, whyText } from "@/lib/bill";
 import { routeEscalation } from "@/convex/app/checks";
@@ -41,6 +41,7 @@ export default async function BillPage({
   if (!bill) notFound();
 
   const copycatChecks = bill.email.fromDomain !== bill.supplier.domain ? await listChecksForBill(key) : [];
+  const settings = await getSettings();
 
   const activity = await listActivity();
   const timeline = activity
@@ -49,7 +50,7 @@ export default async function BillPage({
 
   const bankFlagged = bill.checks.find((c) => c.id === "bank-account")?.state === "flag";
   const failCount = bill.checks.filter((c) => c.state === "flag").length;
-  const pay = canPay(bill);
+  const pay = canPay(bill, settings.watchOnly);
   const hold = canHold(bill);
   const call = canCall(bill);
 

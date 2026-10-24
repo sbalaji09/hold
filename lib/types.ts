@@ -159,3 +159,7 @@ export interface BackgroundCheck {
   findings: Array<{ label: string; state: "pass" | "flag" | "info"; evidence: string; sourceUrl?: string }>;
   suggestedPhone?: string;
 }
+
+export interface Settings {
+  watchOnly: boolean;
+}

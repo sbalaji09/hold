@@ -17,6 +17,7 @@ import type {
   DataBillStatus,
   Email,
   Payment,
+  Settings,
   Supplier,
 } from "../../lib/types.js";
 
@@ -357,4 +358,19 @@ export const listSupplierSummaries = query({
       .map((s) => ({ ...toSupplier(s), openItems: openBySupplier.get(s.key) ?? 0 }))
       .sort((a, b) => a.name.localeCompare(b.name));
   },
+});
+
+/** The global Watch only setting, read wherever payBill/decideApproval enforce it (and by
+ * the Payments page toggle). Absent row (no one has flipped it yet) means off. */
+export async function getWatchOnlySetting(ctx: QueryCtx): Promise<boolean> {
+  const row = await ctx.db
+    .query("settings")
+    .withIndex("by_key", (q) => q.eq("key", "global"))
+    .unique();
+  return row?.watchOnly ?? false;
+}
+
+export const getSettings = query({
+  args: {},
+  handler: async (ctx): Promise<Settings> => ({ watchOnly: await getWatchOnlySetting(ctx) }),
 });

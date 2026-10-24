@@ -43,10 +43,10 @@ export interface RunEligibility {
 /** Callback can run a payment itself only if it hasn't gone out yet and it
  * passes the same pay policy as the bill page. Anything blocked explains why
  * instead of silently dropping out of the run. */
-export async function runEligibility(items: RunItem[]): Promise<RunEligibility> {
+export async function runEligibility(items: RunItem[], watchOnly = false): Promise<RunEligibility> {
   const pending = items.filter((i) => i.payment?.status !== "Paid");
-  const eligible = pending.filter((i) => canPay(i.bill).allowed);
+  const eligible = pending.filter((i) => canPay(i.bill, watchOnly).allowed);
   if (eligible.length > 0) return { eligible };
-  const reason = pending.map((i) => canPay(i.bill).reason).find((r) => r);
+  const reason = pending.map((i) => canPay(i.bill, watchOnly).reason).find((r) => r);
   return { eligible, lockedReason: reason ?? "Nothing due. Every bill this week is already paid." };
 }

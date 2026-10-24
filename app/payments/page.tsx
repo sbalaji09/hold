@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { listRun, runEligibility } from "@/lib/payments";
+import { getSettings } from "@/lib/data";
 import { STATUS_TO_MARK } from "@/lib/inbox";
 import { Amount, AccountLine, StatusMark } from "@/components/callback";
 import { RunPayments } from "@/components/RunPayments";
+import { WatchOnlyToggle } from "@/components/WatchOnlyToggle";
 import type { DataBillStatus } from "@/lib/types";
 
 export const metadata = { title: "Payments · hold" };
@@ -11,7 +13,8 @@ const COLS = "120px minmax(140px,1fr) 110px 230px 120px 130px";
 
 export default async function PaymentsPage() {
   const items = await listRun();
-  const { eligible, lockedReason } = await runEligibility(items);
+  const settings = await getSettings();
+  const { eligible, lockedReason } = await runEligibility(items, settings.watchOnly);
   const total = eligible.reduce((sum, i) => sum + i.bill.amountCents, 0);
 
   return (
@@ -21,7 +24,10 @@ export default async function PaymentsPage() {
           <h1 className="cb-display text-ink">Payments</h1>
           <p className="mt-1 text-[13px] text-ink-muted">This week&rsquo;s run · Increase sandbox (test bank)</p>
         </div>
-        <RunPayments billKeys={eligible.map((i) => i.bill.key)} total={total} lockedReason={lockedReason} />
+        <div className="flex flex-col items-end gap-3">
+          <WatchOnlyToggle watchOnly={settings.watchOnly} />
+          <RunPayments billKeys={eligible.map((i) => i.bill.key)} total={total} lockedReason={lockedReason} />
+        </div>
       </div>
 
       <div className="cb-doc overflow-hidden">

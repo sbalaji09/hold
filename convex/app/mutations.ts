@@ -9,8 +9,8 @@ import type { Doc } from "../_generated/dataModel.js";
 import { internalMutation, mutation, type MutationCtx } from "../_generated/server.js";
 import type { Actor } from "../../lib/policy.js";
 import type { Bill } from "../../lib/types.js";
-import { canApprove, canCall, canHold, canPay, canRelease } from "../../lib/policy.js";
-import { hydrateBill } from "./queries.js";
+import { canApprove, canCall, canHold, canMoveMoney, canPay, canRelease } from "../../lib/policy.js";
+import { getWatchOnlySetting, hydrateBill } from "./queries.js";
 import { routeEscalation } from "./checks.js";
 
 const actorValidator = v.union(v.literal("callback"), v.literal("maya"), v.literal("dev"));
@@ -59,7 +59,8 @@ export const payBill = mutation({
   handler: async (ctx, { billKey }) => {
     const row = await requireBillRow(ctx, billKey);
     const bill = await hydrateBill(ctx, row);
-    const result = canPay(bill);
+    const watchOnly = await getWatchOnlySetting(ctx);
+    const result = canPay(bill, watchOnly);
     if (!result.allowed) return refuse(ctx, "maya", "pay", result.reason!, billKey);
     await ctx.db.patch(row._id, { status: "Scheduled" });
     await logActivity(ctx, "callback", "scheduled payment", "Amount was under $10,000 and every check passed.", "bill", billKey);
@@ -80,7 +81,7 @@ export const holdBill = mutation({
   },
 });
 
-/** Shared by holdBill and applyCallOutcome's not_confirmed branch: moves the bill to Held and
+/** Moves the bill to Held and
  * opens (or reuses) the pending approval Dev needs to release it. Never checks policy itself —
  * callers that need canHold's refusal path call it first. */
 async function holdRow(ctx: MutationCtx, row: Doc<"bills">, bill: Bill, reason?: string): Promise<void> {
@@ -107,69 +108,6 @@ async function holdRow(ctx: MutationCtx, row: Doc<"bills">, bill: Bill, reason?:
     });
   }
   await logActivity(ctx, "callback", "held this bill", why || "A check on this bill didn't pass.", "bill", billKey);
-}
-
-/**
- * Moves a bill off a finished check call (plan-agent.md step 4): not_confirmed holds it (reusing
- * holdRow), handed_off and confirmed both route a pending approval to a person — confirmed still
- * needs Dev's sign-off before Callback pays, it never releases money on its own. A plain async fn
- * (not a registered mutation): writeResult calls it directly so the write stays in the same
- * transaction as the call result. Idempotent and only acts while the bill is still
- * Calling/Checking, so a result delivered twice or after a human already acted is a no-op.
- */
-export async function applyCallOutcome(
-  ctx: MutationCtx,
-  billKey: string,
-  outcome: "confirmed" | "not_confirmed" | "handed_off",
-): Promise<void> {
-  const row = await ctx.db
-    .query("bills")
-    .withIndex("by_key", (q) => q.eq("key", billKey))
-    .unique();
-  if (!row || (row.status !== "Calling" && row.status !== "Checking")) return;
-  const existingApproval = await ctx.db
-    .query("approvals")
-    .withIndex("by_bill", (q) => q.eq("billKey", billKey))
-    .filter((q) => q.eq(q.field("status"), "pending"))
-    .first();
-  if (existingApproval) return;
-
-  const bill = await hydrateBill(ctx, row);
-  if (outcome === "not_confirmed") {
-    await holdRow(ctx, row, bill);
-    return;
-  }
-  if (outcome === "handed_off") {
-    const route = routeEscalation(bill.checks, bill.amountCents, { callOutcome: "handed_off" });
-    await ctx.db.patch(row._id, { status: "Needs you" });
-    await ctx.db.insert("approvals", {
-      key: `appr_${crypto.randomUUID()}`,
-      billKey,
-      kind: "held_payment",
-      status: "pending",
-      recommendation: "The check call got no answer and the retry didn't connect either. Maya needs to follow up.",
-      routedTo: route.routedTo,
-      reason: route.reason,
-      thread: [],
-    });
-    await logActivity(ctx, "callback", "couldn't reach the supplier by phone", route.reason, "bill", billKey);
-    return;
-  }
-  // confirmed: still needs Dev's sign-off before Callback pays it — a confirmed call never
-  // releases money on its own.
-  const route = routeEscalation(bill.checks, bill.amountCents);
-  await ctx.db.patch(row._id, { status: "Needs you" });
-  await ctx.db.insert("approvals", {
-    key: `appr_${crypto.randomUUID()}`,
-    billKey,
-    kind: "big_payment",
-    status: "pending",
-    recommendation: "The supplier confirmed this bill on the call. Dev still needs to sign off before Callback pays it.",
-    routedTo: route.routedTo,
-    reason: route.reason,
-    thread: [],
-  });
-  await logActivity(ctx, "callback", "confirmed this bill by call", "The supplier confirmed it; Dev still needs to approve payment.", "bill", billKey);
 }
 
 /**
@@ -262,6 +200,8 @@ export const decideApproval = mutation({
     const bill = await hydrateBill(ctx, row);
 
     if (decision === "approve") {
+      const moneyCheck = canMoveMoney(await getWatchOnlySetting(ctx));
+      if (!moneyCheck.allowed) return refuse(ctx, actor, "approve", moneyCheck.reason!, billKey);
       if (payToBankAccountKey !== undefined) {
         const target = await ctx.db
           .query("bankAccounts")
@@ -301,6 +241,29 @@ export const decideApproval = mutation({
       await ctx.db.patch(approvalRow._id, { status: "rejected" });
       await logActivity(ctx, actor, "rejected this bill", "Rejected; payment withheld.", "bill", billKey);
     }
+  },
+});
+
+/** Maya or Dev flips the global Watch only setting from the Payments page. On: Callback still
+ * checks, flags and calls, but payBill/runPayments/decideApproval-approve refuse to move money
+ * (lib/policy.ts's canMoveMoney). Logged to activity either way. */
+export const setWatchOnly = mutation({
+  args: { watchOnly: v.boolean(), actor: v.union(v.literal("maya"), v.literal("dev")) },
+  handler: async (ctx, { watchOnly, actor }) => {
+    const row = await ctx.db
+      .query("settings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .unique();
+    if (row) await ctx.db.patch(row._id, { watchOnly });
+    else await ctx.db.insert("settings", { key: "global", watchOnly });
+    await logActivity(
+      ctx,
+      actor,
+      watchOnly ? "turned Watch only on" : "turned Watch only off",
+      watchOnly ? "Callback will flag and call but won't move money." : "Callback can move money again.",
+      "settings",
+      "global",
+    );
   },
 });
 

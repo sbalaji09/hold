@@ -23,6 +23,7 @@ import type {
   Email,
   LearnedRule,
   Payment,
+  Settings,
   Supplier,
 } from "./types";
 
@@ -429,4 +430,13 @@ export async function listRules(supplierKey: string): Promise<LearnedRule[]> {
     return fetchQuery(api.app.rules.listRules, { supplierKey }, convexOpts());
   }
   return [];
+}
+
+/** The global Watch only setting (Payments page toggle). The JSON fixture has no settings
+ * table, so the fallback always reports it off and read-only. */
+export async function getSettings(): Promise<Settings> {
+  if (CONVEX_URL) {
+    return fetchQuery(api.app.queries.getSettings, {}, convexOpts());
+  }
+  return { watchOnly: false };
 }

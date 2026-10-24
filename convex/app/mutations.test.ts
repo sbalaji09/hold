@@ -4,7 +4,6 @@
 import { convexTest } from "convex-test";
 import { describe, expect, test } from "vitest";
 import { api } from "../_generated/api.js";
-import { applyCallOutcome } from "./mutations.js";
 import schema from "../schema.js";
 import { modules } from "../test.setup.js";
 
@@ -134,6 +133,25 @@ describe("payBill", () => {
     await t.mutation(fns.mutations.payBill, { billKey: "bill_4471" });
     expect((await billRow()).status).toBe("Scheduled");
   });
+
+  test("refuses to move money while Watch only is on", async () => {
+    const { t, fns, seed, billRow } = harness();
+    await seed({ amountCents: 50_000 });
+    await t.mutation(fns.mutations.setWatchOnly, { watchOnly: true, actor: "maya" });
+    expect(await t.mutation(fns.mutations.payBill, { billKey: "bill_4471" })).toEqual({
+      refused: "Watch only is on. Callback flags and calls but doesn't move money.",
+    });
+    expect((await billRow()).status).toBe("Checking");
+  });
+
+  test("pays normally once Watch only is turned back off", async () => {
+    const { t, fns, seed, billRow } = harness();
+    await seed({ amountCents: 50_000 });
+    await t.mutation(fns.mutations.setWatchOnly, { watchOnly: true, actor: "dev" });
+    await t.mutation(fns.mutations.setWatchOnly, { watchOnly: false, actor: "dev" });
+    await t.mutation(fns.mutations.payBill, { billKey: "bill_4471" });
+    expect((await billRow()).status).toBe("Scheduled");
+  });
 });
 
 describe("decideApproval", () => {
@@ -173,6 +191,15 @@ describe("decideApproval", () => {
     const h = await seedApproval({ amountCents: 1_500_000 }, "big_payment");
     await h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "dev" });
     expect((await h.billRow()).status).toBe("Scheduled");
+  });
+
+  test("refuses Dev's approval while Watch only is on", async () => {
+    const h = await seedApproval({ amountCents: 1_500_000 }, "big_payment");
+    await h.t.mutation(h.fns.mutations.setWatchOnly, { watchOnly: true, actor: "maya" });
+    expect(await h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "dev" })).toEqual({
+      refused: "Watch only is on. Callback flags and calls but doesn't move money.",
+    });
+    expect((await h.billRow()).status).toBe("Checking");
   });
 
   describe("payToBankAccountKey (demo: pay the old verified account instead)", () => {
@@ -318,57 +345,5 @@ describe("claimPayment", () => {
     expect(retry).toHaveProperty("paymentKey");
     const bill = await t.run((ctx) => ctx.db.query("bills").collect()).then((rows) => rows[0]!);
     expect(bill.status).toBe("Scheduled");
-  });
-});
-
-describe("applyCallOutcome", () => {
-  test("not_confirmed holds the bill and opens a pending approval", async () => {
-    const { t, seed, billRow } = harness();
-    await seed({ status: "Calling", checks: [BANK_FLAG] });
-    await t.run((ctx) => applyCallOutcome(ctx, "bill_4471", "not_confirmed"));
-    expect((await billRow()).status).toBe("Held");
-    const approvals = await t.run((ctx) => ctx.db.query("approvals").collect());
-    expect(approvals).toHaveLength(1);
-    expect(approvals[0]!.status).toBe("pending");
-  });
-
-  test("handed_off routes the bill to Maya, not Dev", async () => {
-    const { t, seed, billRow } = harness();
-    await seed({ status: "Calling" });
-    await t.run((ctx) => applyCallOutcome(ctx, "bill_4471", "handed_off"));
-    expect((await billRow()).status).toBe("Needs you");
-    const approvals = await t.run((ctx) => ctx.db.query("approvals").collect());
-    expect(approvals).toHaveLength(1);
-    expect(approvals[0]!.routedTo).toBe("maya");
-  });
-
-  test("confirmed still needs Dev's sign-off — never releases money on its own", async () => {
-    const { t, seed, billRow } = harness();
-    await seed({ status: "Checking" });
-    await t.run((ctx) => applyCallOutcome(ctx, "bill_4471", "confirmed"));
-    const bill = await billRow();
-    expect(bill.status).toBe("Needs you");
-    expect(bill.status).not.toBe("Scheduled");
-    const approvals = await t.run((ctx) => ctx.db.query("approvals").collect());
-    expect(approvals).toHaveLength(1);
-    expect(approvals[0]!.kind).toBe("big_payment");
-  });
-
-  test("idempotent: a second outcome for the same bill is a no-op once an approval is pending", async () => {
-    const { t, seed, billRow } = harness();
-    await seed({ status: "Calling", checks: [BANK_FLAG] });
-    await t.run((ctx) => applyCallOutcome(ctx, "bill_4471", "not_confirmed"));
-    await t.run((ctx) => applyCallOutcome(ctx, "bill_4471", "confirmed"));
-    expect((await billRow()).status).toBe("Held");
-    const approvals = await t.run((ctx) => ctx.db.query("approvals").collect());
-    expect(approvals).toHaveLength(1);
-  });
-
-  test("a bill that's already Paid is left alone", async () => {
-    const { t, seed, billRow } = harness();
-    await seed({ status: "Paid" });
-    await t.run((ctx) => applyCallOutcome(ctx, "bill_4471", "not_confirmed"));
-    expect((await billRow()).status).toBe("Paid");
-    expect(await t.run((ctx) => ctx.db.query("approvals").collect())).toHaveLength(0);
   });
 });

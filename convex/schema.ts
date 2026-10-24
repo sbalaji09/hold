@@ -345,4 +345,11 @@ export default defineSchema({
     .index("by_key", ["key"])
     .index("by_supplier", ["supplierKey"])
     .index("by_bill", ["billKey"]),
+
+  // Global toggles (currently just Watch only). Single row keyed "global"; the JSON
+  // fallback (lib/data.ts) has no table to read, so it always reports this off.
+  settings: defineTable({
+    key: v.string(),
+    watchOnly: v.boolean(),
+  }).index("by_key", ["key"]),
 });

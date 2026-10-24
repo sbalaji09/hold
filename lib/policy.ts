@@ -20,9 +20,19 @@ function denied(reason: string): PolicyResult {
   return { allowed: false, reason };
 }
 
+export const WATCH_ONLY_REASON = "Watch only is on. Callback flags and calls but doesn't move money.";
+
+/** Whether anything is allowed to move money right now, independent of the bill at hand. */
+export function canMoveMoney(watchOnly: boolean): PolicyResult {
+  if (watchOnly) return denied(WATCH_ONLY_REASON);
+  return allowed();
+}
+
 /** Callback can pay under $10k safe bills only. */
-export function canPay(bill: Bill): PolicyResult {
+export function canPay(bill: Bill, watchOnly = false): PolicyResult {
   if (bill.status === "Paid") return denied("Already paid. There's nothing left to send.");
+  const moneyCheck = canMoveMoney(watchOnly);
+  if (!moneyCheck.allowed) return moneyCheck;
   const flagged = bill.checks.find((c) => c.state === "flag");
   if (flagged) return denied(`Callback can't pay this bill. ${flagged.label} didn't check out.`);
   if (bill.amountCents >= TEN_THOUSAND_CENTS) {
