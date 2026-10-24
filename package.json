@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:all": "concurrently --names convex,web,voice --prefix-colors blue,green,magenta --kill-others-on-fail \"convex dev\" \"next dev\" \"pnpm voice:dev\"",
+    "demo:all": "concurrently --names convex,web,voice --prefix-colors blue,green,magenta --kill-others-on-fail \"convex dev\" \"next build && next start\" \"pnpm voice:start\"",
     "convex:dev": "convex dev",
     "seed": "convex run seed:seed \"$(cat data/fogline.json)\"",
     "seed:bayline": "convex run seed:seed \"$(cat data/bayline.json)\"",

@@ -47,7 +47,11 @@ h1, h2, h3, p { margin: 0; }
 
 /* Every page starts at the same left edge, close to the sidebar; pages add no padding of their own. */
 .pt-main { position: relative; overflow-y: auto; padding: var(--space-8) var(--space-5) var(--space-4); min-width: 0; }
-.pt-main > div:not(.grid) { display: flex; flex-direction: column; gap: var(--space-4); }
+.pt-main > .pt-page > div:not(.grid) { display: flex; flex-direction: column; gap: var(--space-4); }
+/* Each page fades in when it arrives (app/template.tsx): quick enough to read as one clean step. */
+.pt-page { animation: pt-page-in 160ms ease-out both; }
+@keyframes pt-page-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .pt-page { animation: none; } }
 .pt-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: var(--space-3) var(--space-5); padding-bottom: var(--space-2); }
 .pt-head-text { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .pt-head h1 { text-wrap: balance; }
@@ -194,7 +198,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
 /* Laptop and up: Today fills the window exactly, 3 sections by 2, and nothing scrolls. Smaller
    screens stack the sections and scroll as usual. */
 @media (min-width: 1100px) and (min-height: 620px) {
-  .pt-main:has(> .pt-today) { overflow: hidden; }
+  .pt-main:has(> .pt-page > .pt-today) { overflow: hidden; }
   .pt-today { height: calc(100dvh - var(--space-8) - var(--space-4)); min-height: 0; }
   .pt-today .pt-dash-grid { flex: 1; min-height: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); align-items: stretch; }
 }

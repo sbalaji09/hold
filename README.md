@@ -97,6 +97,7 @@ pnpm dev:all
 ```
 
 This starts Convex, the app and the voice server together, with labelled output.
+For the demo, run `pnpm demo:all` instead: the same three, but the app is a production build, so every tab opens instantly (the dev server renders each page the first time you open it, about half a second).
 The voice server opens its ngrok tunnel on `NGROK_DOMAIN` and, with `TWILIO_POINT_WEBHOOK=true`, points Fogline's number at itself.
 Check `https://<NGROK_DOMAIN>/healthz` returns `{"ok":true,...}`.
 Saving voice code or `.env` restarts the voice server, so don't edit them during a call.

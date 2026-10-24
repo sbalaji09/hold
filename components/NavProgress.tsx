@@ -13,7 +13,8 @@ export function NavProgress(): React.ReactElement | null {
   // Any same-site link to another page starts it; the route changing ends it.
   React.useEffect(() => {
     const onClick = (e: MouseEvent) => {
-      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      // Capture phase, and no defaultPrevented check: Next's <Link> cancels the click to route it itself.
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       const a = (e.target as Element | null)?.closest?.("a");
       if (!a || a.target || a.hasAttribute("download")) return;
       const url = new URL(a.href, location.href);
@@ -21,11 +22,13 @@ export function NavProgress(): React.ReactElement | null {
       if (url.pathname === location.pathname && url.search === location.search) return;
       setPending(true);
     };
-    document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
   }, []);
 
-  React.useEffect(() => setPending(false), [pathname, search]);
+  // Compare the query as text: useSearchParams() hands back a new object on every render.
+  const query = search.toString();
+  React.useEffect(() => setPending(false), [pathname, query]);
 
   return pending ? <div className="pt-progress" role="progressbar" aria-label="Opening page" /> : null;
 }
