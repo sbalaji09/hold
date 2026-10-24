@@ -82,7 +82,7 @@ function findContactUrl(html: string, baseUrl: string): string | undefined {
 
 async function fetchText(url: string): Promise<string | null> {
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000), headers: { "User-Agent": "hold-supplier-verifier/0.1" } }); // rdap.org 403s without a User-Agent
     if (!res.ok) return null;
     return await res.text();
   } catch {
