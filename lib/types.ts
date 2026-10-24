@@ -21,6 +21,10 @@ export interface BankAccount {
   bank: string;
   last4: string;
   routingLast4: string;
+  // Full sandbox routing/account numbers, read server-side only (convex/app/increase.ts).
+  // Never populated on anything returned to the client; AccountLine only ever shows last4.
+  routingNumber?: string;
+  accountNumber?: string;
   status: "active" | "retired";
   verifiedBy: "onboarding" | "call+dev";
   addedAt: string;

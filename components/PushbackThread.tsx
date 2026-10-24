@@ -1,8 +1,11 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
+import { ConvexError } from "convex/values";
+import { useAction, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { Button, SignOff, Endorsement, Cite } from "@/components/callback";
-import { citeLabel } from "@/lib/bill";
 import type { Approval } from "@/lib/types";
 
 interface ThreadMsg {
@@ -18,11 +21,12 @@ function fmtTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
-/** Dev's sign-off, reply thread and pushback for one approval. All state is
- * local to the browser tab for now — there's no Convex mutation yet, so a
- * refresh forgets it. Swapping these setState calls for Convex mutations is
- * the only change needed once the schema lands. */
+/** Dev's sign-off, reply thread and pushback for one approval. */
 export function PushbackThread({ approval }: { approval: Approval }): React.ReactElement {
+  const router = useRouter();
+  const convexConfigured = Boolean(process.env.NEXT_PUBLIC_CONVEX_URL);
+  const reply = useAction(api.app.pushback.reply);
+  const decideApproval = useMutation(api.app.mutations.decideApproval);
   const bill = approval.bill;
   const acct = bill.bankAccount;
   const [decision, setDecision] = React.useState<Decision>(null);
@@ -30,24 +34,57 @@ export function PushbackThread({ approval }: { approval: Approval }): React.Reac
     approval.thread.map((m) => ({ from: m.from === "dev" ? "dev" : "callback", text: m.text, at: m.at })),
   );
   const [draft, setDraft] = React.useState("");
+  const [pending, setPending] = React.useState<"reply" | "approve" | "approve-safe" | "reject" | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+  const [safeAlternative, setSafeAlternative] = React.useState<{ bankAccountKey: string } | null>(null);
 
   const lastFromCallback = thread.length > 0 && thread[thread.length - 1].from === "callback";
 
-  function send(e: React.FormEvent<HTMLFormElement>) {
+  async function send(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const text = draft.trim();
     if (!text) return;
-    const now = new Date().toISOString();
-    const flagged = bill.checks.find((c) => c.state === "flag");
-    const evidence = bill.call?.summary ?? flagged?.evidence ?? "Every check on this bill has been reviewed.";
-    const cite = bill.call
-      ? citeLabel({ kind: "call", ref: bill.call.key }, bill)
-      : flagged
-        ? citeLabel(flagged.cite, bill)
-        : undefined;
-    const reply = `${evidence} Callback can pay the verified ${acct.bank} \u00b7\u00b7${acct.last4} account today.`;
-    setThread((t) => [...t, { from: "dev", text, at: now }, { from: "callback", text: reply, at: now, cite }]);
-    setDraft("");
+    if (!convexConfigured) {
+      setError("Convex isn't connected. This action needs the backend.");
+      return;
+    }
+    setError(null);
+    setPending("reply");
+    try {
+      const result = await reply({ billKey: bill.key, text });
+      const now = new Date().toISOString();
+      const cite = result.clip ? `Call \u00b7 ${result.clip.start_s}s-${result.clip.end_s}s` : undefined;
+      setThread((t) => [...t, { from: "dev", text, at: now }, { from: "callback", text: result.text, at: new Date().toISOString(), cite }]);
+      setSafeAlternative(result.safeAlternative);
+      setDraft("");
+    } catch (err) {
+      setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : err instanceof Error ? err.message : "Callback couldn't reply just now.");
+    } finally {
+      setPending(null);
+    }
+  }
+
+  async function decide(kind: "approve" | "approve-safe" | "reject", payToBankAccountKey?: string) {
+    if (!convexConfigured) {
+      setError("Convex isn't connected. This action needs the backend.");
+      return;
+    }
+    setError(null);
+    setPending(kind);
+    try {
+      await decideApproval({
+        billKey: bill.key,
+        decision: kind === "reject" ? "reject" : "approve",
+        actor: "dev",
+        payToBankAccountKey,
+      });
+      setDecision(kind === "reject" ? "rejected" : kind === "approve-safe" ? "approved-safe" : "approved");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : err instanceof Error ? err.message : "Callback couldn't record that decision.");
+    } finally {
+      setPending(null);
+    }
   }
 
   return (
@@ -81,12 +118,8 @@ export function PushbackThread({ approval }: { approval: Approval }): React.Reac
         </div>
       ) : null}
 
-      {decision === null && lastFromCallback ? (
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => setDecision("approved-safe")}
-        >
+      {decision === null && lastFromCallback && safeAlternative ? (
+        <Button variant="primary" size="sm" disabled={pending !== null} onClick={() => decide("approve-safe", safeAlternative.bankAccountKey)}>
           {`Approve \u00b7 pay ${acct.bank} \u00b7\u00b7${acct.last4} instead`}
         </Button>
       ) : null}
@@ -105,18 +138,20 @@ export function PushbackThread({ approval }: { approval: Approval }): React.Reac
             className="resize-none rounded-sm border border-line-control bg-surface p-2 text-[13px] text-ink"
           />
           <div className="flex items-center gap-2">
-            <Button variant="secondary" size="sm" type="submit">
-              Send
+            <Button variant="secondary" size="sm" type="submit" disabled={pending !== null}>
+              {pending === "reply" ? "Sending…" : "Send"}
             </Button>
-            <Button variant="primary" size="sm" onClick={() => setDecision("approved")}>
+            <Button variant="primary" size="sm" disabled={pending !== null} onClick={() => decide("approve")}>
               Approve
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => setDecision("rejected")}>
+            <Button variant="secondary" size="sm" disabled={pending !== null} onClick={() => decide("reject")}>
               Reject
             </Button>
           </div>
         </form>
       ) : null}
+
+      {error ? <p className="font-mono text-[12px] text-hold-solid">{error}</p> : null}
 
       <div className="border-t border-line pt-4">
         {decision === "rejected" ? (

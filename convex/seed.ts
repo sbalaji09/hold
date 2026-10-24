@@ -40,6 +40,8 @@ export const seed = internalMutation({
         bank: v.string(),
         last4: v.string(),
         routingLast4: v.string(),
+        routingNumber: v.optional(v.string()),
+        accountNumber: v.optional(v.string()),
         status: v.union(v.literal("active"), v.literal("retired")),
         verifiedBy: v.union(v.literal("onboarding"), v.literal("call+dev")),
         addedAt: v.string(),

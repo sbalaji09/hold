@@ -50,6 +50,11 @@ export default defineSchema({
     bank: v.string(),
     last4: v.string(),
     routingLast4: v.string(),
+    // Full sandbox routing/account numbers, needed to send an Increase ACH transfer. Optional:
+    // older rows (or any source without them) stay valid; never rendered in the UI, only read
+    // server-side by convex/app/increase.ts's runPayments action.
+    routingNumber: v.optional(v.string()),
+    accountNumber: v.optional(v.string()),
     status: v.union(v.literal("active"), v.literal("retired")),
     verifiedBy: v.union(v.literal("onboarding"), v.literal("call+dev")),
     addedAt: v.string(),
@@ -57,6 +62,8 @@ export default defineSchema({
     .index("by_key", ["key"])
     .index("by_supplier", ["supplierKey"]),
 
+  // `checks` is additive: written by checks.ts (intake) once step-2 evaluation runs. Optional so
+  // rows written before that logic lands (or by seed) stay valid.
   bills: defineTable({
     key: v.string(),
     supplierKey: v.string(),
@@ -69,6 +76,21 @@ export default defineSchema({
     status: billStatus,
     emailKey: v.string(),
     planted: v.boolean(),
+    checks: v.optional(
+      v.array(
+        v.object({
+          id: v.string(),
+          label: v.string(),
+          state: v.union(v.literal("pass"), v.literal("flag"), v.literal("info")),
+          evidence: v.string(),
+          quote: v.optional(v.string()),
+          cite: v.object({
+            kind: v.union(v.literal("email"), v.literal("bill"), v.literal("supplier"), v.literal("call"), v.literal("payment")),
+            ref: v.string(),
+          }),
+        }),
+      ),
+    ),
   })
     .index("by_key", ["key"])
     .index("by_supplier", ["supplierKey"])

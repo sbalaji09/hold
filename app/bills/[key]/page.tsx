@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import {
   Amount,
   AccountLine,
-  Button,
   CheckRow,
   Cite,
   Endorsement,
@@ -12,6 +11,7 @@ import {
   LogEntry,
   SignOff,
 } from "@/components/callback";
+import { BillActions } from "@/components/BillActions";
 import { getBill, listActivity } from "@/lib/data";
 import { canCall, canHold, canPay } from "@/lib/policy";
 import { CALL_LINE_STATE, CHECK_RESULT, citeLabel, whyChecks, whyText } from "@/lib/bill";
@@ -76,31 +76,7 @@ export default async function BillPage({
               ) : null}
             </div>
           </details>
-          {call.allowed ? (
-            <Button variant="secondary" icon="phone">
-              Call supplier
-            </Button>
-          ) : (
-            <Button variant="secondary" icon="phone" locked={call.reason}>
-              Call supplier
-            </Button>
-          )}
-          {hold.allowed ? (
-            <Button variant="hold" icon="hold">
-              Hold
-            </Button>
-          ) : (
-            <Button variant="hold" icon="hold" locked={hold.reason}>
-              Hold
-            </Button>
-          )}
-          {pay.allowed ? (
-            <Button variant="primary">{"Pay " + amount}</Button>
-          ) : (
-            <Button variant="primary" locked={pay.reason}>
-              {"Pay " + amount}
-            </Button>
-          )}
+          <BillActions billKey={bill.key} amount={amount} pay={pay} hold={hold} call={call} />
         </div>
       </div>
 

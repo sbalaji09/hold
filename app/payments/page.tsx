@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { listRun, runEligibility } from "@/lib/payments";
 import { STATUS_TO_MARK } from "@/lib/inbox";
-import { Amount, AccountLine, Button, StatusMark } from "@/components/callback";
+import { Amount, AccountLine, StatusMark } from "@/components/callback";
+import { RunPayments } from "@/components/RunPayments";
 import type { DataBillStatus } from "@/lib/types";
 
 export const metadata = { title: "Payments · hold" };
@@ -20,18 +21,7 @@ export default async function PaymentsPage() {
           <h1 className="cb-display text-ink">Payments</h1>
           <p className="mt-1 text-[13px] text-ink-muted">This week&rsquo;s run \u00b7 Increase sandbox (test bank)</p>
         </div>
-        {/* Wiring to the Increase sandbox lands with Convex; until then, an
-            eligible run just shows what would go out. */}
-        {lockedReason ? (
-          <Button variant="primary" locked={lockedReason}>
-            Run payments
-          </Button>
-        ) : (
-          <Button variant="primary">
-            {"Run payments \u00b7 "}
-            <Amount cents={total} />
-          </Button>
-        )}
+        <RunPayments billKeys={eligible.map((i) => i.bill.key)} total={total} lockedReason={lockedReason} />
       </div>
 
       <div className="cb-doc overflow-hidden">

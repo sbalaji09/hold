@@ -137,12 +137,29 @@ function invoiceBody(s: SupplierDef, invoiceNo: string, amountDollars: string, i
 }
 
 // ---------- bank accounts ----------
+// routingNumber/accountNumber are pretend sandbox digits (never real routing/account numbers):
+// derived deterministically from each account's own key (not the shared rng stream, so adding
+// them never shifts any other generated field) so they always END WITH the existing
+// routingLast4/last4 the rest of the app already displays.
+function keyDigits(seed: string, n: number): string {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  const local = mulberry32(h || 1);
+  let out = "";
+  for (let i = 0; i < n; i++) out += Math.floor(local() * 10);
+  return out;
+}
+const fakeRoutingNumber = (key: string, routingLast4: string) => `${keyDigits(`${key}:routing`, 5)}${routingLast4}`;
+const fakeAccountNumber = (key: string, last4: string) => `${keyDigits(`${key}:account`, 6)}${last4}`;
+
 interface BankAccount {
   key: string;
   supplierKey: string;
   bank: string;
   last4: string;
   routingLast4: string;
+  routingNumber: string;
+  accountNumber: string;
   status: "active" | "retired";
   verifiedBy: "onboarding" | "call+dev";
   addedAt: string;
@@ -161,12 +178,15 @@ for (const s of SUPPLIERS) {
     bank = "Chase";
     last4 = "2210";
   }
+  const routingLast4 = String(randInt(1000, 9999));
   const acct: BankAccount = {
     key,
     supplierKey: s.key,
     bank,
     last4,
-    routingLast4: String(randInt(1000, 9999)),
+    routingLast4,
+    routingNumber: fakeRoutingNumber(key, routingLast4),
+    accountNumber: fakeAccountNumber(key, last4),
     status: "active",
     verifiedBy: "onboarding",
     addedAt: isoDate(new Date("2024-11-05T10:00:00-08:00")),
@@ -182,12 +202,15 @@ function addVerifiedBankChange(supplierKey: string, newBank: string, newLast4: s
   const old = bankAccounts.find((b) => b.supplierKey === supplierKey && b.status === "active")!;
   old.status = "retired";
   const key = `bank_${supplierKey.replace("sup_", "")}_2`;
+  const routingLast4 = String(randInt(1000, 9999));
   bankAccounts.push({
     key,
     supplierKey,
     bank: newBank,
     last4: newLast4,
-    routingLast4: String(randInt(1000, 9999)),
+    routingLast4,
+    routingNumber: fakeRoutingNumber(key, routingLast4),
+    accountNumber: fakeAccountNumber(key, newLast4),
     status: "active",
     verifiedBy: "call+dev",
     addedAt,

@@ -258,6 +258,8 @@
       "bank": "Chase",
       "last4": "2210",
       "routingLast4": "9527",
+      "routingNumber": "008139527",
+      "accountNumber": "4321982210",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -268,6 +270,8 @@
       "bank": "Chase",
       "last4": "5629",
       "routingLast4": "6595",
+      "routingNumber": "896966595",
+      "accountNumber": "7397845629",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -278,6 +282,8 @@
       "bank": "Bank of America",
       "last4": "4474",
       "routingLast4": "5529",
+      "routingNumber": "164805529",
+      "accountNumber": "7329444474",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -288,6 +294,8 @@
       "bank": "Silicon Valley Bank",
       "last4": "3312",
       "routingLast4": "5547",
+      "routingNumber": "726975547",
+      "accountNumber": "7562643312",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -298,6 +306,8 @@
       "bank": "Chase",
       "last4": "3928",
       "routingLast4": "5312",
+      "routingNumber": "961805312",
+      "accountNumber": "2464973928",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -308,6 +318,8 @@
       "bank": "Mercury",
       "last4": "9099",
       "routingLast4": "7623",
+      "routingNumber": "595457623",
+      "accountNumber": "7978909099",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -318,6 +330,8 @@
       "bank": "First Republic",
       "last4": "2801",
       "routingLast4": "7063",
+      "routingNumber": "021967063",
+      "accountNumber": "9724092801",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -328,6 +342,8 @@
       "bank": "First Republic",
       "last4": "5879",
       "routingLast4": "3661",
+      "routingNumber": "124783661",
+      "accountNumber": "0615905879",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -338,6 +354,8 @@
       "bank": "US Bank",
       "last4": "9149",
       "routingLast4": "1548",
+      "routingNumber": "531651548",
+      "accountNumber": "8606749149",
       "status": "retired",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -348,6 +366,8 @@
       "bank": "US Bank",
       "last4": "8735",
       "routingLast4": "6514",
+      "routingNumber": "667096514",
+      "accountNumber": "0180428735",
       "status": "retired",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -358,6 +378,8 @@
       "bank": "First Republic",
       "last4": "4668",
       "routingLast4": "3163",
+      "routingNumber": "921943163",
+      "accountNumber": "9767254668",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -368,6 +390,8 @@
       "bank": "First Republic",
       "last4": "6174",
       "routingLast4": "3846",
+      "routingNumber": "271453846",
+      "accountNumber": "5665446174",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -378,6 +402,8 @@
       "bank": "Chase",
       "last4": "4534",
       "routingLast4": "8844",
+      "routingNumber": "668008844",
+      "accountNumber": "3282994534",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -388,6 +414,8 @@
       "bank": "Mercury",
       "last4": "6467",
       "routingLast4": "5683",
+      "routingNumber": "816345683",
+      "accountNumber": "8971716467",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -398,6 +426,8 @@
       "bank": "Silicon Valley Bank",
       "last4": "1740",
       "routingLast4": "1138",
+      "routingNumber": "073691138",
+      "accountNumber": "5757871740",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -408,6 +438,8 @@
       "bank": "US Bank",
       "last4": "5653",
       "routingLast4": "1230",
+      "routingNumber": "831771230",
+      "accountNumber": "8887415653",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -418,6 +450,8 @@
       "bank": "US Bank",
       "last4": "9180",
       "routingLast4": "1496",
+      "routingNumber": "245951496",
+      "accountNumber": "0453779180",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -428,6 +462,8 @@
       "bank": "Bank of America",
       "last4": "3765",
       "routingLast4": "6502",
+      "routingNumber": "240436502",
+      "accountNumber": "5262313765",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -438,6 +474,8 @@
       "bank": "Wells Fargo",
       "last4": "6632",
       "routingLast4": "5768",
+      "routingNumber": "608575768",
+      "accountNumber": "0346816632",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -448,6 +486,8 @@
       "bank": "Wells Fargo",
       "last4": "7221",
       "routingLast4": "1613",
+      "routingNumber": "355311613",
+      "accountNumber": "0647817221",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -458,6 +498,8 @@
       "bank": "US Bank",
       "last4": "5187",
       "routingLast4": "9635",
+      "routingNumber": "728809635",
+      "accountNumber": "8505885187",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -468,6 +510,8 @@
       "bank": "Silicon Valley Bank",
       "last4": "2671",
       "routingLast4": "5005",
+      "routingNumber": "257695005",
+      "accountNumber": "6074812671",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -478,6 +522,8 @@
       "bank": "Chase",
       "last4": "7306",
       "routingLast4": "9685",
+      "routingNumber": "298009685",
+      "accountNumber": "2760727306",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -488,6 +534,8 @@
       "bank": "Bank of America",
       "last4": "2518",
       "routingLast4": "4086",
+      "routingNumber": "179764086",
+      "accountNumber": "1027712518",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -498,6 +546,8 @@
       "bank": "US Bank",
       "last4": "6560",
       "routingLast4": "3857",
+      "routingNumber": "832543857",
+      "accountNumber": "0971606560",
       "status": "active",
       "verifiedBy": "onboarding",
       "addedAt": "2024-11-05"
@@ -508,6 +558,8 @@
       "bank": "US Bank",
       "last4": "5509",
       "routingLast4": "8406",
+      "routingNumber": "457928406",
+      "accountNumber": "4489885509",
       "status": "active",
       "verifiedBy": "call+dev",
       "addedAt": "2026-09-06"
@@ -518,6 +570,8 @@
       "bank": "Bank of America",
       "last4": "6621",
       "routingLast4": "8380",
+      "routingNumber": "217198380",
+      "accountNumber": "2087906621",
       "status": "active",
       "verifiedBy": "call+dev",
       "addedAt": "2026-08-11"

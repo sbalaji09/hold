@@ -1,9 +1,14 @@
-// Reads data/fogline.json and shapes it into the types in lib/types.ts.
-// This is the only module that touches the raw fixture; swapping to Convex
-// queries later should only change the bodies of these functions.
+// Data source switch: when NEXT_PUBLIC_CONVEX_URL (or CONVEX_URL) is set, every
+// exported function below reads through Convex's hydrated queries
+// (convex/app/queries.ts, which already map rows onto these lib/types.ts shapes).
+// With neither set, it falls back to data/fogline.json so the app still runs with
+// nothing configured. Exported names/return types never change either way, so
+// screens don't know or care which source answered.
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { fetchQuery } from "convex/nextjs";
+import { api } from "../convex/_generated/api";
 import type {
   ActivityEntry,
   Approval,
@@ -17,6 +22,12 @@ import type {
   Payment,
   Supplier,
 } from "./types";
+
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL;
+
+function convexOpts() {
+  return CONVEX_URL ? { url: CONVEX_URL } : undefined;
+}
 
 const TEN_THOUSAND_CENTS = 1_000_000;
 
@@ -198,6 +209,9 @@ async function hydrateBill(raw: RawFogline["bills"][number], d: RawFogline): Pro
 }
 
 export async function listBills(filter?: BillListFilter): Promise<Bill[]> {
+  if (CONVEX_URL) {
+    return fetchQuery(api.app.queries.listBills, { status: filter?.status }, convexOpts());
+  }
   const d = await load();
   const raws = filter?.status ? d.bills.filter((b) => b.status === filter.status) : d.bills;
   const bills = await Promise.all(raws.map((raw) => hydrateBill(raw, d)));
@@ -205,6 +219,9 @@ export async function listBills(filter?: BillListFilter): Promise<Bill[]> {
 }
 
 export async function getBill(key: string): Promise<Bill | null> {
+  if (CONVEX_URL) {
+    return fetchQuery(api.app.queries.getBill, { key }, convexOpts());
+  }
   const d = await load();
   const raw = d.bills.find((b) => b.key === key);
   if (!raw) return null;
@@ -212,8 +229,50 @@ export async function getBill(key: string): Promise<Bill | null> {
 }
 
 export async function getSupplier(key: string): Promise<Supplier | null> {
+  if (CONVEX_URL) {
+    return fetchQuery(api.app.queries.getSupplier, { key }, convexOpts());
+  }
   const d = await load();
   return d.suppliers.find((s) => s.key === key) ?? null;
+}
+
+export async function listSuppliers(): Promise<Supplier[]> {
+  if (CONVEX_URL) {
+    return fetchQuery(api.app.queries.listSuppliers, {}, convexOpts());
+  }
+  const d = await load();
+  return [...d.suppliers].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export async function listBankAccountsForSupplier(key: string): Promise<BankAccount[]> {
+  if (CONVEX_URL) {
+    // ponytail: no public Convex query exposes raw bank accounts by supplier; derive
+    // the set from the supplier's bills (every active account is referenced by at
+    // least one). Add a dedicated query if an account with zero bills ever matters.
+    const bills = await listBillsForSupplier(key);
+    const byKey = new Map(bills.map((b) => [b.bankAccount.key, b.bankAccount]));
+    return [...byKey.values()].sort((a, b) => (a.addedAt < b.addedAt ? -1 : 1));
+  }
+  const d = await load();
+  return d.bankAccounts
+    .filter((b) => b.supplierKey === key)
+    .sort((a, b) => (a.addedAt < b.addedAt ? -1 : 1));
+}
+
+export async function listBillsForSupplier(key: string): Promise<Bill[]> {
+  const bills = await listBills();
+  return bills.filter((b) => b.supplier.key === key);
+}
+
+export async function listCallsForSupplier(key: string): Promise<Call[]> {
+  if (CONVEX_URL) {
+    // ponytail: same gap as listBankAccountsForSupplier — derived from bills' calls.
+    const bills = await listBillsForSupplier(key);
+    const byKey = new Map(bills.filter((b) => b.call).map((b) => [b.call!.key, b.call!]));
+    return [...byKey.values()].sort((a, b) => (a.startedAt < b.startedAt ? 1 : -1));
+  }
+  const d = await load();
+  return d.calls.filter((c) => c.supplierKey === key).sort((a, b) => (a.startedAt < b.startedAt ? 1 : -1));
 }
 
 function isApprovable(bill: RawFogline["bills"][number]): boolean {
@@ -236,6 +295,9 @@ function recommendation(bill: Bill): string {
 }
 
 export async function listApprovals(): Promise<Approval[]> {
+  if (CONVEX_URL) {
+    return fetchQuery(api.app.queries.listApprovals, {}, convexOpts());
+  }
   const d = await load();
   const raws = d.bills.filter(isApprovable);
   const bills = await Promise.all(raws.map((raw) => hydrateBill(raw, d)));
@@ -253,6 +315,9 @@ export async function listApprovals(): Promise<Approval[]> {
 }
 
 export async function listPayments(): Promise<Array<Payment & { bill: Bill }>> {
+  if (CONVEX_URL) {
+    return fetchQuery(api.app.queries.listPayments, {}, convexOpts());
+  }
   const d = await load();
   const out = await Promise.all(
     d.payments.map(async (payment) => {
@@ -266,6 +331,9 @@ export async function listPayments(): Promise<Array<Payment & { bill: Bill }>> {
 }
 
 export async function listActivity(): Promise<ActivityEntry[]> {
+  if (CONVEX_URL) {
+    return fetchQuery(api.app.queries.listActivity, {}, convexOpts());
+  }
   const d = await load();
   const entries: ActivityEntry[] = [];
 

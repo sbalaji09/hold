@@ -8,6 +8,15 @@
  * @module
  */
 
+import type * as app_checks from "../app/checks.js";
+import type * as app_increase from "../app/increase.js";
+import type * as app_intake from "../app/intake.js";
+import type * as app_mutations from "../app/mutations.js";
+import type * as app_practice from "../app/practice.js";
+import type * as app_pushback from "../app/pushback.js";
+import type * as app_queries from "../app/queries.js";
+import type * as app_suppliers from "../app/suppliers.js";
+import type * as http from "../http.js";
 import type * as seed from "../seed.js";
 import type * as voice_records from "../voice/records.js";
 import type * as voice_rules from "../voice/rules.js";
@@ -22,6 +31,15 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "app/checks": typeof app_checks;
+  "app/increase": typeof app_increase;
+  "app/intake": typeof app_intake;
+  "app/mutations": typeof app_mutations;
+  "app/practice": typeof app_practice;
+  "app/pushback": typeof app_pushback;
+  "app/queries": typeof app_queries;
+  "app/suppliers": typeof app_suppliers;
+  http: typeof http;
   seed: typeof seed;
   "voice/records": typeof voice_records;
   "voice/rules": typeof voice_rules;
