@@ -159,7 +159,6 @@ Raw websockets (the `ws` package) were chosen over the SDK because barge-in need
 - Transcript times are measured from the start of the media stream; the REST recording starts a few hundred milliseconds later at most, so clips can be off by that much.
 - Phone audio is 8 kHz, so names and invoice numbers are sometimes misheard. Questions are written to be answered with amounts and plain words.
 - Answering machine detection can misjudge a person on a noisy speakerphone as a machine; set `TWILIO_AMD=false` for the stage demo if that happens.
-- Recordings of incoming calls stay in Twilio; only outgoing check calls get a recording attached in the app.
 - If the voice server restarts during a live call, that call is cut and its request stays in "dialing" with no result; it needs a manual follow-up. Avoid editing voice code during a demo (`tsx watch` restarts on save).
 - Moss loads its embedding model through onnxruntime, which can crash while Node exits. A clean Ctrl-C can therefore end with exit code 134 after shutdown has finished; calls and data are unaffected.
 - The first Moss warm on a new machine downloads a 46 MB embedding model (about 3 minutes). Start the voice server once before the demo so it is cached.

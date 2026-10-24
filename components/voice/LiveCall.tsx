@@ -287,7 +287,7 @@ function Result({ result }: { result: CallResultDoc }) {
   );
 }
 
-function Recording({ url, clip }: { url: string; clip?: CallResultDoc["clip"] }) {
+export function Recording({ url, clip }: { url: string; clip?: CallResultDoc["clip"] }) {
   const audio = useRef<HTMLAudioElement>(null);
   const stopAt = useRef<number | null>(null);
 

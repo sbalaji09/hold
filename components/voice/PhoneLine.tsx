@@ -7,7 +7,7 @@ import { CALLBACK_PROMISE } from "@/shared/contract";
 import { PERSON_NAME } from "@/lib/playbook";
 import { usePhoneLine, useReportCall, useSupplierName, useTacticNames, type CallVerdict, type InboundCallDoc } from "./api";
 import { AGENT, formatElapsed, formatPhone, formatWhen, parseTime, type TranscriptRow } from "./format";
-import { liveCallPath, useNow } from "./LiveCall";
+import { liveCallPath, Recording, useNow } from "./LiveCall";
 import { Transcript } from "./Transcript";
 import "./voice.css";
 
@@ -170,6 +170,11 @@ function PastCalls({ calls, number, actor, callId }: { calls: InboundCallDoc[]; 
         </div>
         <Verdict key={`verdict-${open._id}`} call={open} screen={screenState(open, now)} actor={actor} />
         <Transcript key={open._id} rows={rows(open)} otherName="Caller" live={false} empty="No transcript was saved for this call." />
+        {open.recording_url && (
+          <div className="hv-pad">
+            <Recording key={open._id} url={open.recording_url} />
+          </div>
+        )}
       </section>
     </div>
   );

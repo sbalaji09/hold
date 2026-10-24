@@ -22,6 +22,7 @@ import type { PhoneTactic, VoiceStore } from "./types.js";
 
 export interface MemoryInboundCall extends InboundCallRecord {
   status: "in_progress" | "ended";
+  recording_url?: string;
 }
 
 export interface MemoryStoreOptions {
@@ -184,10 +185,15 @@ export class MemoryStore implements VoiceStore {
   }
 
   async attachRecording(call_id: string, audio: Uint8Array, contentType: string): Promise<void> {
-    const row = this.mustGet(call_id);
     if (audio.byteLength === 0) throw new Error("empty recording");
     void contentType;
     const url = `memory://recordings/${call_id}/${++this.recordingSeq}`;
+    const inbound = this.inbound.get(call_id);
+    if (inbound && !this.requests.has(call_id)) {
+      inbound.recording_url = url;
+      return;
+    }
+    const row = this.mustGet(call_id);
     row.recording_url = url;
     const result = this.results.get(call_id);
     if (result) result.recording_url = url;
@@ -237,6 +243,7 @@ export class MemoryStore implements VoiceStore {
     this.inbound.set(record.call_id, {
       ...structuredClone(record),
       caller_number: existing?.caller_number ?? record.caller_number,
+      recording_url: existing?.recording_url,
       claimed_identity: record.claimed_identity || UNKNOWN_CALLER,
       status: "ended",
       triggered_call_id,

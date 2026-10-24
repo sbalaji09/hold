@@ -267,6 +267,9 @@ export default defineSchema({
     claimed_supplier_id: v.optional(v.string()),
     asked_bank_change: v.optional(v.boolean()),
     endedAt: v.optional(v.string()),
+    // Twilio's recording of the call, copied into Convex storage once it finishes.
+    recording_storage_id: v.optional(v.id("_storage")),
+    recording_url: v.optional(v.string()),
     // hold's playbook verdict on the call, written after it ends (convex/voice/callScreen.ts).
     fraud: v.optional(
       v.object({

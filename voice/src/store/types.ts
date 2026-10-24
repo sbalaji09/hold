@@ -33,7 +33,7 @@ export interface VoiceStore {
   reportNoAnswer(call_id: string): Promise<{ retry_at_ms: number | null }>;
   /** Writes the result, closes the request (done / handed_off) and emits status "ended". */
   finishCall(result: CallResult): Promise<void>;
-  /** Uploads recording audio (wav/mp3 bytes) and sets recording_url on the result. */
+  /** Uploads recording audio (wav/mp3 bytes) and sets recording_url on the result or inbound call. */
   attachRecording(call_id: string, audio: Uint8Array, contentType: string): Promise<void>;
 
   getSupplierProfile(supplier_id: string): Promise<SupplierProfile | null>;

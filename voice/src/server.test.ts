@@ -168,6 +168,19 @@ describe("webhooks", () => {
     await until(() => Boolean(h!.store.requests.get("call_1")?.recording_url));
     expect(h.tw.downloadRecording).toHaveBeenCalledWith("https://api.twilio.com/2010-04-01/Accounts/AC1/Recordings/RE1");
   });
+
+  test("an incoming call's recording is attached to the inbound call", async () => {
+    h = await setup();
+    await h.store.startInboundCall("in_CA7", "+14155550111");
+    await post(h.port, "/twilio/recording?callId=in_CA7", {
+      CallSid: "CA7",
+      RecordingStatus: "completed",
+      RecordingUrl: "https://api.twilio.com/2010-04-01/Accounts/AC1/Recordings/RE7",
+      RecordingSid: "RE7",
+    });
+    await until(() => Boolean(h!.store.inbound.get("in_CA7")?.recording_url));
+    expect(h.tw.downloadRecording).toHaveBeenCalledWith("https://api.twilio.com/2010-04-01/Accounts/AC1/Recordings/RE7");
+  });
 });
 
 describe("media stream", () => {

@@ -107,11 +107,6 @@ export function createVoiceServer(d: ServerDeps): Server {
     if (url.pathname === "/twilio/recording") {
       res.writeHead(204).end(); // answer fast; Twilio times out webhooks after 15 s
       if (params.RecordingStatus !== "completed" || !params.RecordingUrl || !callId) return;
-      if (callId.startsWith("in_")) {
-        // Inbound records have no call_request to hang a recording on; it stays in Twilio.
-        log.info("inbound recording kept in Twilio", { callId, recordingSid: params.RecordingSid });
-        return;
-      }
       const audio = await d.twilio.downloadRecording(params.RecordingUrl);
       await d.store.attachRecording(callId, audio, "audio/mpeg");
       log.info("recording attached", { callId, bytes: audio.length, durationS: params.RecordingDuration });

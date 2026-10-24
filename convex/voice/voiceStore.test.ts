@@ -52,6 +52,7 @@ interface Harness {
   results(call_id: string): Promise<CallResult[]>;
   events(call_id: string): Promise<CallEvent[]>;
   request(call_id: string): Promise<(CallRequest & { retry_at_ms?: number }) | null>;
+  inboundRecordingUrl(call_id: string): Promise<string | undefined>;
 }
 
 function convexHarness(): Harness {
@@ -112,6 +113,8 @@ function convexHarness(): Harness {
         const r = (await ctx.db.query("callRequests").collect()).find((x) => x.call_id === call_id);
         return r ? { ...toCallRequest(r), retry_at_ms: r.retry_at_ms } : null;
       }),
+    inboundRecordingUrl: (call_id) =>
+      t.run(async (ctx) => (await ctx.db.query("inboundCalls").collect()).find((x) => x.call_id === call_id)?.recording_url),
   };
 }
 
@@ -133,6 +136,7 @@ function memoryHarness(): Harness {
       const r = m.requests.get(call_id);
       return r ? { ...r } : null;
     },
+    inboundRecordingUrl: async (call_id) => m.inbound.get(call_id)?.recording_url,
   };
 }
 
@@ -275,6 +279,20 @@ describe.each([
     expect((await h.results("call_1"))[0]?.recording_url).toBeUndefined();
     await h.store.attachRecording("call_1", new Uint8Array([1, 2, 3]), "audio/wav");
     expect((await h.results("call_1"))[0]?.recording_url).toBeTruthy();
+  });
+
+  test("an incoming call's recording survives the call being closed", async () => {
+    await h.store.startInboundCall("in_CA1", "+19995550000");
+    await h.store.attachRecording("in_CA1", new Uint8Array([1, 2, 3]), "audio/mpeg");
+    await h.store.finishInboundCall({
+      call_id: "in_CA1",
+      caller_number: "+19995550000",
+      claimed_identity: "",
+      requested: "",
+      asked_bank_change: false,
+      transcript: [],
+    });
+    expect(await h.inboundRecordingUrl("in_CA1")).toBeTruthy();
   });
 
   test("inbound bank-change request calls back the number on file, never the caller", async () => {

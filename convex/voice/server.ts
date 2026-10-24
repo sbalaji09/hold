@@ -298,16 +298,26 @@ export const generateUploadUrl = mutation({
 });
 
 /**
- * Links an uploaded recording to the call. Works whether the result row exists yet or not:
- * the request row keeps the storage id, and writeResult copies it onto a later result.
+ * Links an uploaded recording to the call, outgoing or incoming. For an outgoing call it works
+ * whether the result row exists yet or not: the request row keeps the storage id, and
+ * writeResult copies it onto a later result.
  */
 export const attachRecording = mutation({
   args: { secret, call_id: v.string(), storage_id: v.id("_storage") },
   handler: async (ctx, args) => {
     assertVoiceSecret(args.secret);
-    const req = await mustFindRequest(ctx, args.call_id);
     const recording_url = await ctx.storage.getUrl(args.storage_id);
     if (!recording_url) throw new Error("Uploaded recording not found in storage");
+    const req = await findRequest(ctx, args.call_id);
+    if (!req) {
+      // startInboundCall writes the row when the stream opens, before Twilio's recording is done.
+      const inbound = await findInbound(ctx, args.call_id);
+      if (!inbound) throw new Error(`Unknown call ${args.call_id}`);
+      const oldInbound = inbound.recording_storage_id;
+      await ctx.db.patch(inbound._id, { recording_storage_id: args.storage_id, recording_url });
+      if (oldInbound && oldInbound !== args.storage_id) await ctx.storage.delete(oldInbound);
+      return;
+    }
     const old = req.recording_storage_id;
     await ctx.db.patch(req._id, { recording_storage_id: args.storage_id });
     const result = await findResult(ctx, args.call_id);
