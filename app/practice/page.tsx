@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { SendBill } from "@/components/SendBill";
 import Link from "next/link";
 import { useAction, useQuery } from "convex/react";
 import { makeFunctionReference } from "convex/server";
@@ -132,9 +133,7 @@ export default function PracticePage(): React.ReactElement {
           <Button variant="primary" onClick={onRun} disabled={running}>
             {running ? "Running\u2026" : "Run set"}
           </Button>
-          <Link href="/send" className="cb-btn cb-btn-secondary no-underline">
-            Try a scam
-          </Link>
+          <SendBill label="Try a scam" />
         </div>
       </div>
 

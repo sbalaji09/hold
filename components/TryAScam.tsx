@@ -35,8 +35,8 @@ const PRESETS: Record<CompanyKey, Array<{ label: string; from: string; subject: 
   ],
 };
 
-/** The /send page's form. */
-export function TryAScam(): React.ReactElement {
+/** The send-a-bill form (shown in SendBill's modal). */
+export function TryAScam({ onStart, onFail, onDone }: { onStart?: () => void; onFail?: () => void; onDone?: () => void } = {}): React.ReactElement {
   const ingest = useAction(ingestEmailRef);
   const co = useCompany();
   const [from, setFrom] = React.useState("");
@@ -50,13 +50,16 @@ export function TryAScam(): React.ReactElement {
     e.preventDefault();
     setError(null);
     setPending(true);
+    onStart?.();
     try {
       const r = await ingest({ from, subject, body, receivedAt: new Date().toISOString() });
       setResult({ billKey: r.billKey, emailKey: r.emailKey, status: r.status });
       setFrom("");
       setSubject("");
       setBody("");
+      onDone?.();
     } catch (err) {
+      onFail?.();
       setError(err instanceof Error ? err.message : "Couldn't send that scam.");
     } finally {
       setPending(false);
@@ -64,7 +67,7 @@ export function TryAScam(): React.ReactElement {
   }
 
   return (
-    <form onSubmit={onSubmit} className="cb-doc flex max-w-2xl flex-col gap-3 p-4">
+    <form onSubmit={onSubmit} className="flex flex-col gap-3 p-5">
       <div className="flex gap-2">
         {PRESETS[co.key].map((p) => (
           <Button key={p.label} size="sm" type="button" onClick={() => { setFrom(p.from); setSubject(p.subject); setBody(p.body()); }}>
