@@ -32,13 +32,14 @@ export function editDistance(a: string, b: string): number {
   const m = a.length;
   const n = b.length;
   const dp = Array.from({ length: m + 1 }, (_, i) => [i, ...new Array(n).fill(0)]);
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let j = 0; j <= n; j++) dp[0]![j] = j;
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
-      dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] : 1 + Math.min(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1]);
+      // Indexes stay within the (m+1) x (n+1) table built above.
+      dp[i]![j] = a[i - 1] === b[j - 1] ? dp[i - 1]![j - 1]! : 1 + Math.min(dp[i - 1]![j - 1]!, dp[i - 1]![j]!, dp[i]![j - 1]!);
     }
   }
-  return dp[m][n];
+  return dp[m]![n]!;
 }
 
 /** 1 = identical, 0 = nothing in common, by edit distance normalised to the longer string. */
@@ -70,7 +71,7 @@ function stripTags(html: string): string {
 
 function findContactUrl(html: string, baseUrl: string): string | undefined {
   const match = html.match(/<a[^>]+href=["']([^"']+)["'][^>]*>[^<]*contact[^<]*<\/a>/i);
-  if (!match) return undefined;
+  if (!match?.[1]) return undefined;
   try {
     return new URL(match[1], baseUrl).toString();
   } catch {
