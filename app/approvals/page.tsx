@@ -73,12 +73,11 @@ export default async function ApprovalsPage() {
                   </div>
                   <div className="flex w-full flex-col gap-5 md:w-[300px]">
                     <div>
-                      <div className="cb-caps mb-2">Pay to</div>
+                      <div className="cb-caps mb-2">Pay to (account on file)</div>
                       <Amount cents={bill.amountCents} size="lg" />
                       <div className="mt-3">
                         <AccountLine
                           bank={bill.bankAccount.bank}
-                          routing={bill.bankAccount.routingLast4}
                           last4={bill.bankAccount.last4}
                           state="verified"
                           note={`Verified ${bill.bankAccount.verifiedBy === "onboarding" ? "at onboarding" : "by call"} \u00b7 ${shortDate(bill.bankAccount.addedAt)}`}

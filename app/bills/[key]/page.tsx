@@ -119,7 +119,6 @@ export default async function BillPage({
           <Amount cents={bill.amountCents} size="lg" />
           <AccountLine
             bank={bill.bankAccount.bank}
-            routing={"\u00b7\u00b7" + bill.bankAccount.routingLast4}
             last4={bill.bankAccount.last4}
             state={bankFlagged ? "new" : "verified"}
             note={bill.bankAccount.verifiedBy === "call+dev" ? "Verified by call, Dev approved" : "Verified at onboarding"}
