@@ -180,17 +180,43 @@
   padding-left: var(--space-5);
 }
 
-.hv-transcript-done .cb-script {
-  grid-template-columns: 148px minmax(0, 1fr);
-  padding: var(--space-3) 0;
+.hv-transcript-done {
+  padding: var(--space-2) var(--space-5);
 }
 
+/* No timecode column: one column, the source chip under the line it came from. */
+.hv-transcript-done .cb-script {
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 8px;
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--line);
+}
+
+.hv-transcript-done .cb-script:first-child {
+  border-top: 0;
+}
+
+.hv-transcript-done .cb-margin {
+  order: 2;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.hv-transcript-done .cb-margin:not(:has(.cb-cite)),
 .hv-transcript-done .cb-tc {
   display: none;
 }
 
+.hv-transcript-done .cb-cue {
+  font-size: 13px;
+  line-height: 20px;
+  margin-bottom: 4px;
+}
+
+.hv-transcript-done .cb-dialogue,
 .hv-transcript-done .cb-script-callback .cb-dialogue {
-  font: 400 15px/24px var(--font-sans);
+  font: 400 16px/26px var(--font-sans);
+  max-width: 70ch;
 }
 
 /* The venue is loud: the Live call transcript is set large, in the system's own type roles. */
