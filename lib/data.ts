@@ -8,6 +8,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fetchQuery } from "convex/nextjs";
+import type { FunctionReturnType } from "convex/server";
 import { routeEscalation } from "../convex/app/checks";
 import { api } from "../convex/_generated/api";
 import type {
@@ -333,6 +334,15 @@ export async function listApprovals(): Promise<Approval[]> {
       };
     })
     .sort((a, b) => (a.bill.receivedAt < b.bill.receivedAt ? 1 : -1));
+}
+
+export type Messages = FunctionReturnType<typeof api.app.triage.messages>;
+export type Message = Messages["open"][number];
+
+/** Supplier emails hold sorted as messages (convex/app/triage.ts). The JSON fallback has none. */
+export async function listMessages(): Promise<Messages> {
+  if (CONVEX_URL) return fetchQuery(api.app.triage.messages, {}, convexOpts());
+  return { open: [], done: [], filed: [] };
 }
 
 export async function listPayments(): Promise<Array<Payment & { bill: Bill }>> {

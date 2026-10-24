@@ -22,13 +22,28 @@ export function channelLabel(channel: FraudTechnique["channel"]): string {
 /** Call refs: a Practice call key ("pcall_...") or an inbound call id ("in_..."), as convex/app/techniques.ts writes them. */
 export const isPracticeCall = (ref: string | undefined): ref is string => !!ref?.startsWith("pcall_");
 export const isInboundCall = (ref: string | undefined): ref is string => !!ref?.startsWith("in_");
+/** Triage refs: a Practice email ("pmail_...") or a real supplier email ("email_..."). */
+export const isPracticeEmail = (ref: string | undefined): ref is string => !!ref?.startsWith("pmail_");
+export const isEmail = (ref: string | undefined): ref is string => !!ref?.startsWith("email_");
+
+/** The first non-empty line of an email, short enough for a headline. */
+export function firstLine(text: string): string {
+  const line = text.split("\n").map((l) => l.trim()).find(Boolean) ?? "";
+  return line.length > 70 ? `${line.slice(0, 69)}\u2026` : line;
+}
 
 /**
  * The headline for one improvement, e.g. "Missed scam on INV-4502 · Stagecraft Rigging Co.".
  * `names` maps bill keys, inbound call ids (to the caller's number) and Practice call keys (to their kind).
  */
-export function triggerTitle(trigger: Improvement["trigger"], names: Record<string, string>): string {
-  if (trigger.kind === "taught") return "A new technique to learn";
+export function triggerTitle(trigger: Improvement["trigger"], names: Record<string, string>, job: Improvement["job"] = "fraud"): string {
+  if (trigger.kind === "taught") return job === "triage" ? "A new kind of email to learn" : "A new technique to learn";
+  const email = trigger.emailKey;
+  if (isPracticeEmail(email)) return `Practice email sorted wrong: ${names[email] ?? "a practice email"}`;
+  if (email || trigger.kind === "corrected") {
+    const who = trigger.by === "callback" ? "hold" : PERSON_NAME[trigger.by].split(" ")[0];
+    return `${who} corrected an email: ${(email && names[email]) || firstLine(trigger.text)}`;
+  }
   const call = trigger.callId;
   if (isPracticeCall(call)) return `Practice call judged wrong: ${names[call] ?? "a scripted call"}`;
   if (call) {
@@ -41,9 +56,11 @@ export function triggerTitle(trigger: Improvement["trigger"], names: Record<stri
 
 /** Who raised it: hold itself (a Practice run, a false alarm) or a person. */
 export function triggerBy(trigger: Improvement["trigger"]): { person: string | null; text: string } {
-  if (trigger.by !== "callback") return { person: PERSON_NAME[trigger.by], text: trigger.kind === "taught" ? "Taught by" : "Reported by" };
-  // hold only raises a call on its own when a Practice run judged it wrong.
-  return { person: null, text: trigger.kind === "missed_scam" || trigger.callId ? "Found in a Practice run" : "Found by hold" };
+  if (trigger.by !== "callback") {
+    return { person: PERSON_NAME[trigger.by], text: trigger.kind === "taught" ? "Taught by" : trigger.kind === "corrected" ? "Corrected by" : "Reported by" };
+  }
+  // hold only raises a call or an email on its own when a Practice run got it wrong.
+  return { person: null, text: trigger.kind === "missed_scam" || trigger.callId || trigger.emailKey ? "Found in a Practice run" : "Found by hold" };
 }
 
 export interface RecordLink {
@@ -56,6 +73,8 @@ export function recordLink(ref: string | undefined): RecordLink | null {
   if (!ref) return null;
   if (isPracticeCall(ref)) return { href: `#${ref}`, label: "The Practice call" };
   if (isInboundCall(ref)) return { href: `/phone?call=${encodeURIComponent(ref)}`, label: "Open the call" };
+  if (isPracticeEmail(ref)) return { href: `#${ref}`, label: "The Practice email" };
+  if (isEmail(ref)) return { href: `/messages/${encodeURIComponent(ref)}`, label: "Open the email" };
   return { href: `/bills/${encodeURIComponent(ref)}`, label: "Open the bill" };
 }
 
@@ -74,6 +93,12 @@ export const IMPROVEMENT_MARK: Record<Improvement["status"], ImprovementMark> = 
   declined: { mark: null, label: "Declined" },
   reverted: { mark: null, label: "Reverted" },
 };
+
+/** The mark for one change. A triage change that waits waits for Maya: it's her inbox. */
+export function improvementMark(impr: Pick<Improvement, "status" | "job">): ImprovementMark {
+  if (impr.status === "needs_approval" && impr.job === "triage") return { mark: "needs-you", label: "Waiting for Maya" };
+  return IMPROVEMENT_MARK[impr.status];
+}
 
 /** The in-progress line while hold is still working on a change. */
 export function progressLine(impr: Improvement): string | null {
@@ -97,6 +122,12 @@ export function techniqueSource(
   }
   const ref = t.sourceRef;
   const link = recordLink(ref);
+  if (isPracticeEmail(ref)) return { text: `Learned from the Practice email \u201c${names[ref] ?? "a practice email"}\u201d`, person: null, link };
+  if (t.sourceKind === "corrected") {
+    const by = improvements.find((i) => i.key === t.improvementKey)?.trigger.by;
+    const what = names[ref ?? ""] ? `Learned from \u201c${names[ref!]}\u201d, corrected by` : "Learned from an email corrected by";
+    return by && by !== "callback" ? { text: what, person: PERSON_NAME[by], link } : { text: "Learned from a corrected email", person: null, link };
+  }
   if (isPracticeCall(ref)) return { text: `Learned from the Practice call \u201c${names[ref] ?? "a scripted call"}\u201d`, person: null, link };
   if (isInboundCall(ref)) {
     const from = names[ref] ? ` from ${names[ref]}` : "";

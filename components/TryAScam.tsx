@@ -2,16 +2,18 @@
 import * as React from "react";
 import { useAction } from "convex/react";
 import { makeFunctionReference } from "convex/server";
+import Link from "next/link";
 import { Button } from "@/components/callback";
 
 // convex/app/intake.ts's ingestEmail is a public action: { from, subject,
-// body, receivedAt } -> { billKey, supplierKey, status }. Addressed by name
+// body, receivedAt } -> { billKey, supplierKey, status, emailKey? }. An email triage sorts as
+// a message (not a bill) comes back with billKey "" and its emailKey. Addressed by name
 // (not through `api.app...`) because it isn't in the regenerated `api`
 // object yet.
 const ingestEmailRef = makeFunctionReference<
   "action",
   { from: string; subject: string; body: string; receivedAt: string },
-  { billKey: string; supplierKey: string; status: "Scheduled" | "Needs you" | "Calling" }
+  { billKey: string; supplierKey: string; status: string; emailKey?: string }
 >("app/intake:ingestEmail");
 
 export function TryAScam(): React.ReactElement {
@@ -22,7 +24,7 @@ export function TryAScam(): React.ReactElement {
   const [body, setBody] = React.useState("");
   const [pending, setPending] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [result, setResult] = React.useState<{ billKey: string; status: string } | null>(null);
+  const [result, setResult] = React.useState<{ billKey: string; emailKey?: string; status: string } | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -30,7 +32,7 @@ export function TryAScam(): React.ReactElement {
     setPending(true);
     try {
       const r = await ingest({ from, subject, body, receivedAt: new Date().toISOString() });
-      setResult({ billKey: r.billKey, status: r.status });
+      setResult({ billKey: r.billKey, emailKey: r.emailKey, status: r.status });
       setFrom("");
       setSubject("");
       setBody("");
@@ -82,8 +84,24 @@ export function TryAScam(): React.ReactElement {
       </label>
       {error ? <p className="text-[13px] text-hold-solid">{error}</p> : null}
       {result ? (
-        <p className="text-[13px] text-ink-muted">
-          Sent. Landed as bill {result.billKey}, status {result.status}.
+        <p role="status" className="text-[13px] text-ink-muted">
+          {result.billKey ? (
+            <>
+              Sent. Landed as a bill, status {result.status}.{" "}
+              <Link href={`/bills/${encodeURIComponent(result.billKey)}`} className="text-ink underline underline-offset-4">
+                Open the bill
+              </Link>
+            </>
+          ) : (
+            <>
+              Sent. It isn&rsquo;t a bill: hold {result.status === "Filed" ? "filed it on the supplier record" : "sent it to Maya as a message"}.{" "}
+              {result.emailKey ? (
+                <Link href={`/messages/${encodeURIComponent(result.emailKey)}`} className="text-ink underline underline-offset-4">
+                  Open the message
+                </Link>
+              ) : null}
+            </>
+          )}
         </p>
       ) : null}
       <div className="flex gap-2">

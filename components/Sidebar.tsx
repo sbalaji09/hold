@@ -1,13 +1,13 @@
 import * as React from "react";
 import { Guilloche } from "@/components/callback";
 import { NavLinks, type NavItem } from "@/components/NavLinks";
-import { listApprovals, listBills } from "@/lib/data";
+import { listApprovals, listBills, listMessages } from "@/lib/data";
 import { UNSETTLED_STATUS } from "@/lib/inbox";
 import { getPersona, setPersona } from "@/lib/persona";
 
 export async function Sidebar(): Promise<React.ReactElement> {
-  const [approvals, bills, persona] = await Promise.all([listApprovals(), listBills(), getPersona()]);
-  const open = bills.filter((b) => UNSETTLED_STATUS[b.status]).length;
+  const [approvals, bills, messages, persona] = await Promise.all([listApprovals(), listBills(), listMessages(), getPersona()]);
+  const open = bills.filter((b) => UNSETTLED_STATUS[b.status]).length + messages.open.length;
   const items: NavItem[] = [
     { href: "/", label: "Inbox", icon: "inbox", badge: open },
     { href: "/approvals", label: "Approvals", icon: "approvals", badge: approvals.length, tone: "you" },

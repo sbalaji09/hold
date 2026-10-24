@@ -8,6 +8,8 @@ import type { Doc } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/callback";
 import { CallScript } from "@/components/Playbook";
 import { TryAScam } from "@/components/TryAScam";
+import { capitalise } from "@/components/RouteCorrection";
+import { ROUTE_WORDS } from "@/lib/triage";
 
 // convex/app/practice.ts isn't in the regenerated `api` object yet, so its
 // functions are addressed by name.
@@ -29,6 +31,7 @@ interface RunResult {
   caught: number;
   missed: number;
   calls: { ran: number; right: number; wrong: number };
+  emails: { ran: number; right: number; wrong: number };
 }
 
 const runSetRef = makeFunctionReference<"action", Record<string, never>, RunResult>(
@@ -41,10 +44,13 @@ function plural(n: number, one: string, many = `${one}s`): string {
 }
 
 /** What the last Run set did, in the screen's own words. */
-function runLine(r: RunResult, calls: number): string {
-  const scams = `Ran ${plural(r.ran, "scam")}: ${r.caught} caught, ${r.missed} missed.`;
-  if (r.calls.ran > 0) return `${scams} Ran ${plural(r.calls.ran, "call")}: ${r.calls.right} judged right, ${r.calls.wrong} wrong.`;
-  return calls > 0 ? `${scams} The phone calls didn't run. hold couldn't reach Claude; try again in a minute.` : scams;
+function runLine(r: RunResult, calls: number, emails: number): string {
+  const parts = [`Ran ${plural(r.ran, "scam")}: ${r.caught} caught, ${r.missed} missed.`];
+  if (r.calls.ran > 0) parts.push(`Ran ${plural(r.calls.ran, "call")}: ${r.calls.right} judged right, ${r.calls.wrong} wrong.`);
+  else if (calls > 0) parts.push("The phone calls didn't run. hold couldn't reach Claude; try again in a minute.");
+  if (r.emails.ran > 0) parts.push(`Sorted ${plural(r.emails.ran, "email")}: ${r.emails.right} right, ${r.emails.wrong} wrong.`);
+  else if (emails > 0) parts.push("The practice emails didn't run. hold couldn't reach Claude; try again in a minute.");
+  return parts.join(" ");
 }
 
 function shortDate(iso: string | null | undefined): string {
@@ -54,7 +60,9 @@ function shortDate(iso: string | null | undefined): string {
 
 export default function PracticePage(): React.ReactElement {
   const scams = useQuery(listRef, {});
-  const calls = useQuery(api.app.techniques.list, {})?.practiceCalls;
+  const lists = useQuery(api.app.techniques.list, {});
+  const calls = lists?.practiceCalls;
+  const emails = lists?.practiceEmails;
   const [result, setResult] = React.useState<RunResult | null>(null);
   const runSet = useAction(runSetRef);
   const generateSet = useAction(generateSetRef);
@@ -68,6 +76,9 @@ export default function PracticePage(): React.ReactElement {
   const right = (calls ?? []).filter((c) => c.caughtLastRun === true).length;
   const wrong = (calls ?? []).filter((c) => c.caughtLastRun === false).length;
   const callsNotRun = (calls ?? []).length - right - wrong;
+  const sortedRight = (emails ?? []).filter((e) => e.caughtLastRun === true).length;
+  const sortedWrong = (emails ?? []).filter((e) => e.caughtLastRun === false).length;
+  const emailsNotRun = (emails ?? []).length - sortedRight - sortedWrong;
 
   async function onRun() {
     setError(null);
@@ -109,6 +120,11 @@ export default function PracticePage(): React.ReactElement {
               ? "Loading…"
               : `${right} right \u00b7 ${wrong} wrong \u00b7 ${callsNotRun} not run \u00b7 ${plural(calls.length, "call")}`}
           </p>
+          <p className="font-mono text-[12px] text-ink-muted">
+            {emails === undefined
+              ? "Loading…"
+              : `${sortedRight} right \u00b7 ${sortedWrong} wrong \u00b7 ${emailsNotRun} not run \u00b7 ${plural(emails.length, "email")}`}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button onClick={onGenerate} disabled={generating}>
@@ -127,7 +143,7 @@ export default function PracticePage(): React.ReactElement {
         </p>
       ) : result ? (
         <p role="status" className="font-mono text-[13px] text-ink">
-          {runLine(result, calls?.length ?? 0)}
+          {runLine(result, calls?.length ?? 0, emails?.length ?? 0)}
         </p>
       ) : null}
 
@@ -174,6 +190,7 @@ export default function PracticePage(): React.ReactElement {
         </div>
       </div>
       <PracticeCalls calls={calls} />
+      <PracticeEmails emails={emails} />
     </div>
   );
 }
@@ -184,17 +201,8 @@ const CALL_COLS = "grid grid-cols-[minmax(0,1.6fr)_110px_90px_140px_90px_20px] i
 
 /** The phone line's Practice set: scripted calls, scam and ordinary, that phone playbook changes replay against. */
 function PracticeCalls({ calls }: { calls: PracticeCall[] | undefined }): React.ReactElement {
-  const [open, setOpen] = React.useState<string | null>(null);
   // "The Practice call" links on a playbook change land here (#pcall_...): open that row.
-  React.useEffect(() => {
-    const fromHash = () => {
-      const key = decodeURIComponent(window.location.hash.slice(1));
-      if (key.startsWith("pcall_")) setOpen(key);
-    };
-    fromHash();
-    window.addEventListener("hashchange", fromHash);
-    return () => window.removeEventListener("hashchange", fromHash);
-  }, []);
+  const [open, setOpen] = useOpenFromHash("pcall_");
   return (
     <section className="flex flex-col gap-2" aria-labelledby="practice-calls-head">
       <div className="flex flex-wrap items-baseline justify-between gap-2 pt-2">
@@ -248,6 +256,92 @@ function PracticeCalls({ calls }: { calls: PracticeCall[] | undefined }): React.
                   </button>
                   <div id={`${c.key}-script`} hidden={!isOpen} className="bg-surface-sunk px-4 py-3">
                     <CallScript text={c.transcript} />
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+type PracticeEmail = Doc<"practiceEmails">;
+
+const EMAIL_COLS = "grid grid-cols-[minmax(0,1.3fr)_minmax(0,1.1fr)_100px_140px_90px_20px] items-center gap-3";
+
+/** Opens the row a "#pcall_..." or "#pmail_..." link points at (from a playbook change). */
+function useOpenFromHash(prefix: string): [string | null, (k: string | null) => void] {
+  const [open, setOpen] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    const fromHash = () => {
+      const key = decodeURIComponent(window.location.hash.slice(1));
+      if (key.startsWith(prefix)) setOpen(key);
+    };
+    fromHash();
+    window.addEventListener("hashchange", fromHash);
+    return () => window.removeEventListener("hashchange", fromHash);
+  }, [prefix]);
+  return [open, setOpen];
+}
+
+/** Inbox triage's Practice set: supplier emails with where a person says each belongs. */
+function PracticeEmails({ emails }: { emails: PracticeEmail[] | undefined }): React.ReactElement {
+  const [open, setOpen] = useOpenFromHash("pmail_");
+  return (
+    <section className="flex flex-col gap-2" aria-labelledby="practice-emails-head">
+      <div className="flex flex-wrap items-baseline justify-between gap-2 pt-2">
+        <h2 id="practice-emails-head" className="font-serif text-[20px]/[26px] text-ink">
+          Practice emails
+        </h2>
+        <p className="pt-small">Each supplier email should be sorted where a person said it belongs.</p>
+      </div>
+      <div className="cb-ledger pt-scroll">
+        <div className="min-w-[720px]">
+          <div className={`${EMAIL_COLS} border-b-[1.5px] border-ink px-4 py-2 font-sans text-[10.5px] font-semibold uppercase tracking-[.09em] text-ink-muted`}>
+            <span>Kind</span>
+            <span>Should go to</span>
+            <span>Source</span>
+            <span>Last run</span>
+            <span>Result</span>
+            <span />
+          </div>
+          {emails === undefined ? (
+            <div className="p-6 text-[13px] text-ink-muted">Loading…</div>
+          ) : emails.length === 0 ? (
+            <div className="p-6 text-[13px] text-ink-muted">
+              No practice emails yet. Seed the workspace for the starting set, or correct a message hold sorted wrong from the{" "}
+              <Link href="/?status=messages" className="text-ink underline underline-offset-4">
+                Inbox
+              </Link>
+              .
+            </div>
+          ) : (
+            emails.map((e) => {
+              const isOpen = open === e.key;
+              return (
+                <div key={e.key} id={e.key} className="scroll-mt-4 border-t border-line">
+                  <button
+                    type="button"
+                    className={`${EMAIL_COLS} w-full cursor-pointer border-0 bg-transparent px-4 py-2.5 text-left text-ink hover:bg-surface-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ink`}
+                    aria-expanded={isOpen}
+                    aria-controls={`${e.key}-text`}
+                    onClick={() => setOpen(isOpen ? null : e.key)}
+                  >
+                    <span className="truncate text-[13px]">{e.kind}</span>
+                    <span className="truncate font-mono text-[12px] text-ink-muted">{capitalise(ROUTE_WORDS[e.expected])}</span>
+                    <span className="font-mono text-[12px] text-ink-muted">{e.source === "seed" ? "Starting set" : "Corrected"}</span>
+                    <span className="font-mono text-[12px] text-ink-muted">{shortDate(e.lastRunAt)}</span>
+                    <span className="font-mono text-[12px] uppercase tracking-wide">
+                      {e.caughtLastRun === undefined ? "Not run" : e.caughtLastRun ? "Right" : "Wrong"}
+                    </span>
+                    <span aria-hidden className={`font-mono text-[12px] text-ink-muted transition-transform motion-reduce:transition-none ${isOpen ? "rotate-90" : ""}`}>
+                      &rsaquo;
+                    </span>
+                  </button>
+                  <div id={`${e.key}-text`} hidden={!isOpen} className="bg-surface-sunk px-4 py-3">
+                    <p className="max-w-[72ch] whitespace-pre-line text-[13.5px]/[21px] text-ink">{e.text}</p>
                   </div>
                 </div>
               );

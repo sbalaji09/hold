@@ -1,6 +1,7 @@
 "use client";
-// Practice screen: "What hold has learned". Teach a technique, the log of playbook changes hold
-// proposed and replayed, and the playbook itself with Revert on what hold learned.
+// Practice screen: "What hold has learned", per job on hold's loop (Fraud, and Inbox triage).
+// Teach it, the log of playbook changes hold proposed and replayed, and the playbook itself with
+// Revert on what hold learned.
 import * as React from "react";
 import { ConvexError } from "convex/values";
 import { useMutation, useQuery } from "convex/react";
@@ -9,11 +10,13 @@ import { api } from "@/convex/_generated/api";
 import { Button, Cite, StatusMark } from "@/components/callback";
 import { G } from "@/components/callback/glyphs";
 import { formatPhone } from "@/components/voice/format";
+import { capitalise } from "@/components/RouteCorrection";
+import { ROUTE_WORDS, type Route } from "@/lib/triage";
 import {
-  IMPROVEMENT_MARK,
   PERSON_NAME,
   channelLabel,
   countWord,
+  improvementMark,
   progressLine,
   recordLink,
   shortDate,
@@ -25,6 +28,8 @@ import {
 } from "@/lib/playbook";
 
 type Actor = "maya" | "dev";
+type Job = "fraud" | "triage";
+const jobOf = (r: { job?: Job }): Job => r.job ?? "fraud";
 
 // Same name-addressed reference app/practice/page.tsx uses for the Practice set.
 const practiceListRef = makeFunctionReference<"query", Record<string, never>, Array<{ billKey: string; kind: string }>>("app/practice:list");
@@ -38,18 +43,21 @@ export function errorText(err: unknown, fallback: string): string {
  * Bill key, call id or Practice call key to the name a person knows it by: the invoice for real
  * bills, the kind for Practice scams and calls, the caller's number for calls to the phone line.
  */
-function useRecordNames(practiceCalls: Array<{ key: string; kind: string }>): Record<string, string> {
+function useRecordNames(practiceCalls: Array<{ key: string; kind: string }>, practiceEmails: Array<{ key: string; kind: string }>): Record<string, string> {
   const bills = useQuery(api.app.queries.listBills, {});
   const practice = useQuery(practiceListRef, {});
   const line = useQuery(api.voice.ui.phoneLine, {});
+  const messages = useQuery(api.app.triage.messages, {});
   return React.useMemo(() => {
     const names: Record<string, string> = {};
     for (const p of practice ?? []) names[p.billKey] = `the Practice scam “${p.kind}”`;
     for (const b of bills ?? []) names[b.key] = `INV-${b.invoiceNo} · ${b.supplier.name}`;
     for (const c of line?.past ?? []) names[c.call_id] = formatPhone(c.caller_number);
     for (const c of practiceCalls) names[c.key] = c.kind;
+    for (const e of practiceEmails) names[e.key] = e.kind;
+    for (const m of [...(messages?.open ?? []), ...(messages?.done ?? []), ...(messages?.filed ?? [])]) names[m.key] = m.subject;
     return names;
-  }, [bills, practice, line, practiceCalls]);
+  }, [bills, practice, line, messages, practiceCalls, practiceEmails]);
 }
 
 /**
@@ -89,8 +97,8 @@ export function CallScript({ text, clamp }: { text: string; clamp?: number }): R
   );
 }
 
-function Mark({ status }: { status: Improvement["status"] }): React.ReactElement {
-  const m = IMPROVEMENT_MARK[status];
+function Mark({ impr }: { impr: Improvement }): React.ReactElement {
+  const m = improvementMark(impr);
   if (m.mark) return <StatusMark status={m.mark}>{m.label}</StatusMark>;
   return (
     <span className="cb-mark cb-mark-paid" role="status">
@@ -120,7 +128,27 @@ function Signals({ signals }: { signals: string[] }): React.ReactElement | null 
 
 // ---------- teach ----------
 
-function TeachForm({ actor }: { actor: Actor }): React.ReactElement {
+const TEACH: Record<Job, { head: string; label: string; short: string; placeholder: string; failed: string }> = {
+  fraud: {
+    head: "Teach hold a technique",
+    label:
+      "Paste an FBI or bank advisory, or describe a call or email you got. hold writes it up as a technique, replays it against past cases, and only adds it if nothing regresses.",
+    short: "Describe the technique in a sentence or two so hold can learn it.",
+    placeholder: "A caller said they were from our bank's fraud team and asked us to read back the code they had just texted...",
+    failed: "hold couldn't take that technique just now. Try again in a minute.",
+  },
+  triage: {
+    head: "Teach hold a kind of email",
+    label:
+      "Describe a kind of email suppliers send and where it belongs. hold writes it up as a kind of email, replays it against the practice emails and paid invoices, and only adds it if nothing regresses.",
+    short: "Describe the kind of email in a sentence or two so hold can learn it.",
+    placeholder: "Suppliers send a credit note when an order is cancelled. It isn't a bill to pay; Maya should see it so she can match it to the invoice...",
+    failed: "hold couldn't take that kind of email just now. Try again in a minute.",
+  },
+};
+
+function TeachForm({ actor, job }: { actor: Actor; job: Job }): React.ReactElement {
+  const words = TEACH[job];
   const teach = useMutation(api.app.techniques.teach);
   const [text, setText] = React.useState("");
   const [pending, setPending] = React.useState(false);
@@ -131,18 +159,18 @@ function TeachForm({ actor }: { actor: Actor }): React.ReactElement {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (short) {
-      setError("Describe the technique in a sentence or two so hold can learn it.");
+      setError(words.short);
       return;
     }
     setError(null);
     setDone(false);
     setPending(true);
     try {
-      await teach({ description: text.trim(), actor });
+      await teach({ description: text.trim(), actor, job });
       setText("");
       setDone(true);
     } catch (err) {
-      setError(errorText(err, "hold couldn't take that technique just now. Try again in a minute."));
+      setError(errorText(err, words.failed));
     } finally {
       setPending(false);
     }
@@ -151,13 +179,12 @@ function TeachForm({ actor }: { actor: Actor }): React.ReactElement {
   return (
     <form onSubmit={onSubmit} className="cb-doc">
       <div className="cb-doc-head">
-        <span>Teach hold a technique</span>
+        <span>{words.head}</span>
         <small>As {PERSON_NAME[actor]}</small>
       </div>
       <div className="pt-compose">
         <label htmlFor="teach-text" className="pt-small">
-          Paste an FBI or bank advisory, or describe a call or email you got. hold writes it up as a technique, replays it against
-          past cases, and only adds it if nothing regresses.
+          {words.label}
         </label>
         <textarea
           id="teach-text"
@@ -167,7 +194,7 @@ function TeachForm({ actor }: { actor: Actor }): React.ReactElement {
             setText(e.target.value);
             setDone(false);
           }}
-          placeholder="A caller said they were from our bank's fraud team and asked us to read back the code they had just texted..."
+          placeholder={words.placeholder}
           aria-describedby={error ? "teach-error" : undefined}
           disabled={pending}
         />
@@ -240,7 +267,8 @@ function Decide({ impr, actor }: { impr: Improvement; actor: Actor }): React.Rea
   const [pending, setPending] = React.useState<"approve" | "decline" | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
-  if (actor !== "dev") {
+  const triage = impr.job === "triage";
+  if (!triage && actor !== "dev") {
     return (
       <div className="pt-decide">
         <Button variant="primary" size="sm" locked="Only Dev can approve a change that makes hold less strict.">
@@ -264,7 +292,11 @@ function Decide({ impr, actor }: { impr: Improvement; actor: Actor }): React.Rea
 
   return (
     <div className="pt-decide">
-      <p className="pt-small">This change makes hold less strict, so it waits for you.</p>
+      <p className="pt-small">
+        {triage
+          ? "This change files some email away where no one sees it, so it waits for Maya or Dev."
+          : "This change makes hold less strict, so it waits for you."}
+      </p>
       <div className="flex flex-wrap gap-2">
         <Button variant="primary" size="sm" disabled={pending !== null} onClick={() => go("approve")}>
           {pending === "approve" ? "Approving…" : "Approve change"}
@@ -286,12 +318,14 @@ function ImprovementRow({ impr, actor, names }: { impr: Improvement; actor: Acto
   const by = triggerBy(impr.trigger);
   const p = impr.proposal;
   const progress = progressLine(impr);
-  const link = recordLink(impr.trigger.billKey ?? impr.trigger.callId);
+  const link = recordLink(impr.trigger.billKey ?? impr.trigger.callId ?? impr.trigger.emailKey);
+  const title = triggerTitle(impr.trigger, names, impr.job);
+  const expected = impr.trigger.expected as Route | undefined;
   return (
-    <article id={impr.key} className="scroll-mt-4 border-t border-line px-4 py-4 first:border-0" aria-label={triggerTitle(impr.trigger, names)}>
+    <article id={impr.key} className="scroll-mt-4 border-t border-line px-4 py-4 first:border-0" aria-label={title}>
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
         <div className="min-w-0">
-          <h3 className="pt-strong text-ink">{triggerTitle(impr.trigger, names)}</h3>
+          <h3 className="pt-strong text-ink">{title}</h3>
           <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-ink-muted">
             <span>
               {by.text} {by.person ? <Person name={by.person} /> : null}
@@ -303,11 +337,15 @@ function ImprovementRow({ impr, actor, names }: { impr: Improvement; actor: Acto
             {link ? <Cite href={link.href}>{link.label}</Cite> : null}
           </p>
         </div>
-        <Mark status={impr.status} />
+        <Mark impr={impr} />
       </div>
 
       {impr.trigger.kind === "taught" && impr.trigger.by !== "callback" ? (
         <p className="mt-2 line-clamp-3 font-serif text-[15px]/[22px] italic text-signatory">&ldquo;{impr.trigger.text}&rdquo;</p>
+      ) : null}
+
+      {impr.job === "triage" && impr.trigger.kind === "corrected" && expected && ROUTE_WORDS[expected] ? (
+        <p className="mt-2 font-mono text-[12.5px]/[19px] text-ink">Should be {ROUTE_WORDS[expected]}.</p>
       ) : null}
 
       {impr.trigger.callId ? (
@@ -325,7 +363,8 @@ function ImprovementRow({ impr, actor, names }: { impr: Improvement; actor: Acto
       {p ? (
         <div className="mt-3 rounded-sm bg-surface-sunk px-3 py-2.5">
           <div className="cb-caps">
-            {p.action === "refine" ? "Proposed refinement" : "Proposed technique"} &middot; {channelLabel(p.channel)}
+            {p.action === "refine" ? "Proposed refinement" : impr.job === "triage" ? "Proposed kind of email" : "Proposed technique"} &middot;{" "}
+            {impr.job === "triage" ? capitalise(ROUTE_WORDS[p.route ?? "to_maya"]) : channelLabel(p.channel)}
           </div>
           <p className="mt-1 text-[14px] font-semibold text-ink">{p.name}</p>
           <p className="mt-1 text-[13px]/[20px] text-ink">{p.howItWorks}</p>
@@ -379,7 +418,10 @@ function Revert({ t, actor }: { t: FraudTechnique; actor: Actor }): React.ReactE
   return (
     <div className="flex flex-col items-end gap-1.5" onKeyDown={(e) => e.key === "Escape" && setConfirming(false)}>
       <p className="max-w-[260px] text-right text-[12px]/[17px] text-ink-muted">
-        hold stops using it on new {t.channel === "phone" ? "calls" : t.channel === "both" ? "bills and calls" : "bills"}{t.supersedes ? " and goes back to the version it replaced" : ""}.
+        {t.job === "triage"
+          ? "hold stops sorting new email by it"
+          : `hold stops using it on new ${t.channel === "phone" ? "calls" : t.channel === "both" ? "bills and calls" : "bills"}`}
+        {t.supersedes ? " and goes back to the version it replaced" : ""}.
       </p>
       <div className="flex gap-2">
         <Button size="sm" onClick={() => setConfirming(false)} disabled={pending}>
@@ -414,7 +456,7 @@ function TechniqueRow({
     <article id={t.key} className="grid scroll-mt-4 grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-[minmax(0,1fr)_auto] border-t border-line px-4 py-3.5 first:border-0" aria-label={t.name}>
       <div className="min-w-0">
         <h3 className="pt-strong text-ink">{t.name}</h3>
-        <p className="cb-caps mt-0.5">{channelLabel(t.channel)}</p>
+        <p className="cb-caps mt-0.5">{t.job === "triage" ? capitalise(ROUTE_WORDS[t.route ?? "to_maya"]) : channelLabel(t.channel)}</p>
         <p className="mt-1 text-[13px]/[20px] text-ink">{t.howItWorks}</p>
         <Signals signals={t.signals} />
         <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-ink-muted">
@@ -458,10 +500,39 @@ function techniqueCount(n: number, what: string): string {
   return `${n === 1 ? "one" : countWord(n).toLowerCase()} ${what}${n === 1 ? "" : "s"}`;
 }
 
+const JOBS: Array<{ value: Job; label: string }> = [
+  { value: "fraud", label: "Fraud" },
+  { value: "triage", label: "Inbox" },
+];
+
+/**
+ * A "#impr_..." or "#tech_..." link (from the Activity log, a bill, a message) opens the job tab
+ * it belongs to and scrolls to it, once.
+ */
+function useJobFromHash(rows: Array<{ key: string; job?: Job }> | undefined, job: Job, setJob: (j: Job) => void): void {
+  const [hash, setHash] = React.useState("");
+  React.useEffect(() => {
+    const read = () => setHash(decodeURIComponent(window.location.hash.slice(1)));
+    read();
+    window.addEventListener("hashchange", read);
+    return () => window.removeEventListener("hashchange", read);
+  }, []);
+  React.useEffect(() => {
+    const row = hash ? rows?.find((r) => r.key === hash) : undefined;
+    if (!row) return;
+    if (jobOf(row) !== job) return setJob(jobOf(row));
+    document.getElementById(hash)?.scrollIntoView({ block: "start" });
+    setHash("");
+  }, [rows, hash, job, setJob]);
+}
+
 function Learned({ actor }: { actor: Actor }): React.ReactElement {
   const data = useQuery(api.app.techniques.list, {});
-  const names = useRecordNames(data?.practiceCalls ?? NO_CALLS);
+  const names = useRecordNames(data?.practiceCalls ?? NO_CALLS, data?.practiceEmails ?? NO_CALLS);
+  const [job, setJob] = React.useState<Job>("fraud");
   const [filter, setFilter] = React.useState<ChannelFilter>("all");
+  const rows = React.useMemo(() => (data ? [...data.techniques, ...data.improvements] : undefined), [data]);
+  useJobFromHash(rows, job, setJob);
 
   if (data === undefined) {
     return (
@@ -471,7 +542,9 @@ function Learned({ actor }: { actor: Actor }): React.ReactElement {
     );
   }
 
-  const { techniques, improvements } = data;
+  const triage = job === "triage";
+  const techniques = data.techniques.filter((t) => jobOf(t) === job);
+  const improvements = data.improvements.filter((i) => jobOf(i) === job);
   const active = techniques.filter((t) => t.status === "active");
   const retired = techniques.filter((t) => t.status === "retired");
   const email = active.filter((t) => onChannel(t, "email")).length;
@@ -479,19 +552,31 @@ function Learned({ actor }: { actor: Actor }): React.ReactElement {
   const learned = active.filter((t) => t.sourceKind !== "seed").length;
   const working = improvements.filter((i) => i.status === "proposing" || i.status === "replaying").length;
   const waiting = improvements.filter((i) => i.status === "needs_approval").length;
-  const shown = active.filter((t) => onChannel(t, filter));
+  const shown = triage ? active : active.filter((t) => onChannel(t, filter));
+  const activeIn = (j: Job) => data.techniques.filter((t) => t.status === "active" && jobOf(t) === j).length;
 
   const sentence =
-    `hold checks every incoming bill against ${techniqueCount(email, "email technique")} and every call to the phone line against ${techniqueCount(phone, "phone tactic")}` +
+    (triage
+      ? `hold sorts every email from a known supplier by ${techniqueCount(active.length, "kind")} of email before anything else happens`
+      : `hold checks every incoming bill against ${techniqueCount(email, "email technique")} and every call to the phone line against ${techniqueCount(phone, "phone tactic")}`) +
     (learned ? `. ${countWord(learned)} of them ${learned === 1 ? "was" : "were"} learned here.` : ", all from the starting playbook.") +
     (working ? ` ${countWord(working)} ${working === 1 ? "change is" : "changes are"} replaying now.` : "") +
-    (waiting ? ` ${countWord(waiting)} ${waiting === 1 ? "waits" : "wait"} for Dev.` : "");
+    (waiting ? ` ${countWord(waiting)} ${waiting === 1 ? "waits" : "wait"} for ${triage ? "Maya" : "Dev"}.` : "");
 
   return (
     <>
+      <div className="pt-filters" role="group" aria-label="Which job">
+        {JOBS.map((j) => (
+          <button key={j.value} type="button" className={`pt-filter${job === j.value ? " on" : ""}`} aria-pressed={job === j.value} onClick={() => setJob(j.value)}>
+            {j.label}
+            <span className="pt-count">{activeIn(j.value)}</span>
+          </button>
+        ))}
+      </div>
+
       <p className="pt-sub">{sentence}</p>
 
-      <TeachForm actor={actor} />
+      <TeachForm key={job} actor={actor} job={job} />
 
       <section className="cb-doc" aria-labelledby="changes-head">
         <div className="cb-doc-head">
@@ -500,7 +585,9 @@ function Learned({ actor }: { actor: Actor }): React.ReactElement {
         </div>
         {improvements.length === 0 ? (
           <p className="px-4 py-5 text-[13px] text-ink-muted">
-            Nothing yet. Run the Practice set above, report a scam hold missed from its bill page or the Phone line, or teach it a technique.
+            {triage
+              ? "Nothing yet. Run the Practice set above, tell hold a message was sorted wrong from the Inbox, or teach it a kind of email."
+              : "Nothing yet. Run the Practice set above, report a scam hold missed from its bill page or the Phone line, or teach it a technique."}
           </p>
         ) : (
           <div>
@@ -513,21 +600,25 @@ function Learned({ actor }: { actor: Actor }): React.ReactElement {
 
       <section className="cb-doc" aria-labelledby="playbook-head">
         <div className="cb-doc-head">
-          <span id="playbook-head">The playbook</span>
+          <span id="playbook-head">{triage ? "Kinds of email" : "The playbook"}</span>
           <small>{active.length} active</small>
         </div>
         {active.length === 0 ? (
-          <p className="px-4 py-5 text-[13px] text-ink-muted">The playbook is empty. Seed the workspace to load the starting playbook.</p>
+          <p className="px-4 py-5 text-[13px] text-ink-muted">
+            {triage ? "hold knows no kinds of email yet. Seed the workspace to load the starting set, or teach it one above." : "The playbook is empty. Seed the workspace to load the starting playbook."}
+          </p>
         ) : (
           <>
-            <div className="pt-filters border-b border-line px-4 py-3" role="group" aria-label="Show techniques for">
-              {FILTERS.map((f) => (
-                <button key={f.value} type="button" className={`pt-filter${filter === f.value ? " on" : ""}`} aria-pressed={filter === f.value} onClick={() => setFilter(f.value)}>
-                  {f.label}
-                  <span className="pt-count">{f.value === "all" ? active.length : f.value === "email" ? email : phone}</span>
-                </button>
-              ))}
-            </div>
+            {triage ? null : (
+              <div className="pt-filters border-b border-line px-4 py-3" role="group" aria-label="Show techniques for">
+                {FILTERS.map((f) => (
+                  <button key={f.value} type="button" className={`pt-filter${filter === f.value ? " on" : ""}`} aria-pressed={filter === f.value} onClick={() => setFilter(f.value)}>
+                    {f.label}
+                    <span className="pt-count">{f.value === "all" ? active.length : f.value === "email" ? email : phone}</span>
+                  </button>
+                ))}
+              </div>
+            )}
             {shown.length === 0 ? (
               <p className="px-4 py-5 text-[13px] text-ink-muted">
                 No {filter === "phone" ? "phone tactics" : "email techniques"} yet. Teach hold one above, or seed the workspace.
@@ -544,7 +635,7 @@ function Learned({ actor }: { actor: Actor }): React.ReactElement {
         {retired.length > 0 ? (
           <details className="border-t border-line">
             <summary className="cb-ask cursor-pointer px-4 py-3 text-[13px]">
-              {countWord(retired.length)} retired {retired.length === 1 ? "technique" : "techniques"}
+              {countWord(retired.length)} retired {triage ? (retired.length === 1 ? "kind of email" : "kinds of email") : retired.length === 1 ? "technique" : "techniques"}
             </summary>
             <div className="border-t border-line">
               {retired.map((t) => (
@@ -560,7 +651,8 @@ function Learned({ actor }: { actor: Actor }): React.ReactElement {
 
 const NO_CALLS: Array<{ key: string; kind: string }> = [];
 
-class LoadBoundary extends React.Component<{ children: React.ReactNode }, { failed: boolean }> {
+/** A live query that failed (the backend may be deploying): a written state with a retry. */
+export class LoadBoundary extends React.Component<{ children: React.ReactNode; what?: string }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };
@@ -569,7 +661,7 @@ class LoadBoundary extends React.Component<{ children: React.ReactNode }, { fail
     if (!this.state.failed) return this.props.children;
     return (
       <div className="cb-doc flex flex-wrap items-center justify-between gap-3 p-4" role="alert">
-        <p className="font-mono text-[13px] text-ink">hold couldn&rsquo;t load the playbook. The backend may still be deploying.</p>
+        <p className="font-mono text-[13px] text-ink">hold couldn&rsquo;t load {this.props.what ?? "the playbook"}. The backend may still be deploying.</p>
         <Button size="sm" onClick={() => this.setState({ failed: false })}>
           Try again
         </Button>

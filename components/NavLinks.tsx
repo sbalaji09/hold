@@ -21,7 +21,7 @@ export function NavLinks({ items }: { items: NavItem[] }): React.ReactElement {
     <nav className="pt-navlist" aria-label="Main">
       {items.map(({ href, label, icon, badge, tone }) => {
         const Icon = ICONS[icon];
-        const on = href === "/" ? path === "/" || path.startsWith("/bills") : path === href || path.startsWith(href + "/");
+        const on = href === "/" ? path === "/" || path.startsWith("/bills") || path.startsWith("/messages") : path === href || path.startsWith(href + "/");
         return (
           <Link key={href} href={href} className={"pt-navitem" + (on ? " on" : "")} aria-current={on ? "page" : undefined}>
             <span className="pt-line">
