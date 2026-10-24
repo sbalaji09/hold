@@ -17,7 +17,8 @@ export const requestCall = internalMutation({
   handler: async (ctx, args) => {
     const supplier = await records.getSupplierProfile(ctx, args.supplier_id);
     if (!supplier) throw new Error(`Unknown supplier_id: ${args.supplier_id}`);
-    const call_id = `call_dev_${Date.now().toString(36)}`;
+    // Random suffix: two requests in the same millisecond must not share a call_id.
+    const call_id = `call_dev_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
     await ctx.db.insert("callRequests", {
       call_id,
       bill_id: args.bill_id ?? "dev_test",
