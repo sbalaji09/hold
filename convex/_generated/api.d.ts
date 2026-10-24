@@ -24,6 +24,7 @@ import type * as app_techniques from "../app/techniques.js";
 import type * as http from "../http.js";
 import type * as migrations from "../migrations.js";
 import type * as seed from "../seed.js";
+import type * as voice_callScreen from "../voice/callScreen.js";
 import type * as voice_dev from "../voice/dev.js";
 import type * as voice_records from "../voice/records.js";
 import type * as voice_rules from "../voice/rules.js";
@@ -54,6 +55,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   migrations: typeof migrations;
   seed: typeof seed;
+  "voice/callScreen": typeof voice_callScreen;
   "voice/dev": typeof voice_dev;
   "voice/records": typeof voice_records;
   "voice/rules": typeof voice_rules;

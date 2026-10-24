@@ -56,6 +56,14 @@ export function isBankChangeRequest(text: string): boolean {
 const READBACK =
   /\b(?:what|which|read|tell me|confirm|verify|give me|do you have|look up|check)\b[^.?!]{0,60}\b(?:account|bank|routing|number|amount|balance|invoice|on file|details|address|email|phone|contact|owe|paid|payment|records?)\b/i;
 
+const CALLBACK_SWAP =
+  /\b(?:call|ring|reach|text|phone)\s+(?:me|us|her|him|them)\s+(?:back\s+)?(?:on|at)\s+(?:my|our|this|a|the)?\s*(?:new|other|different|cell|mobile|direct|personal)?\s*(?:number|line|cell|mobile|phone)\b|\b(?:new|different|other|direct|personal)\s+(?:number|line)\s+(?:is|to call|for you)\b|\b(?:don'?t|do not|instead of)\s+(?:use|call|ring)\s+(?:the|our|that)\s+(?:office\s+)?(?:number|line)\b|\b(?:number|line)\s+you\s+have\s+(?:is|for us is)\s+(?:out of date|wrong|old|down|not working)/i;
+
+/** "Call me back on this number instead": a check call must only ever go to the number on file. */
+export function isCallbackSwap(text: string): boolean {
+  return CALLBACK_SWAP.test(text);
+}
+
 /** Caller wants something on file read back or confirmed. */
 export function isReadbackRequest(text: string): boolean {
   return READBACK.test(text);

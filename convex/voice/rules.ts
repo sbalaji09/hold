@@ -40,8 +40,8 @@ export function followUpCallId(inbound_call_id: string): string {
  * Follow-up check call for an inbound bank-change request.
  * Always dials the supplier's phone_on_file, never the caller's number.
  */
-export function followUpRequest(record: InboundCallRecord, supplier: SupplierProfile): CallRequest {
-  const reason = [BANK_CHANGE_REASON];
+export function followUpRequest(record: InboundCallRecord, supplier: SupplierProfile, why = BANK_CHANGE_REASON): CallRequest {
+  const reason = [why];
   if (record.claimed_identity && record.claimed_identity !== UNKNOWN_CALLER) {
     reason.push(`Caller said they were ${record.claimed_identity}`);
   }

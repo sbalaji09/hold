@@ -18,7 +18,7 @@ import {
   TAKEOVER_BEFORE_CONNECT_SUMMARY,
   UNKNOWN_CALLER,
 } from "../../../convex/voice/rules.js";
-import type { VoiceStore } from "./types.js";
+import type { PhoneTactic, VoiceStore } from "./types.js";
 
 export interface MemoryInboundCall extends InboundCallRecord {
   status: "in_progress" | "ended";
@@ -29,6 +29,7 @@ export interface MemoryStoreOptions {
   now?: () => number;
   suppliers?: SupplierProfile[];
   records?: SupplierRecord[];
+  phonePlaybook?: PhoneTactic[];
 }
 
 interface RequestRow extends CallRequest {
@@ -46,6 +47,7 @@ export class MemoryStore implements VoiceStore {
   readonly inbound = new Map<string, MemoryInboundCall>();
   readonly suppliers = new Map<string, SupplierProfile>();
   readonly records: SupplierRecord[] = [];
+  private readonly phonePlaybook: PhoneTactic[];
 
   private readonly retryDelayMs: number;
   private readonly now: () => number;
@@ -59,6 +61,7 @@ export class MemoryStore implements VoiceStore {
     this.now = opts.now ?? (() => Date.now());
     for (const s of opts.suppliers ?? []) this.suppliers.set(s.supplier_id, s);
     this.records.push(...(opts.records ?? []));
+    this.phonePlaybook = opts.phonePlaybook ?? [];
   }
 
   // ---- Test / app-side helpers (not part of VoiceStore) ----
@@ -197,6 +200,10 @@ export class MemoryStore implements VoiceStore {
 
   async listSupplierProfiles(): Promise<SupplierProfile[]> {
     return [...this.suppliers.values()].map((s) => structuredClone(s));
+  }
+
+  async getPhonePlaybook(): Promise<PhoneTactic[]> {
+    return structuredClone(this.phonePlaybook);
   }
 
   async getSupplierRecords(supplier_id: string): Promise<SupplierRecord[]> {

@@ -13,6 +13,8 @@ import { internal } from "../_generated/api.js";
 import type { Doc } from "../_generated/dataModel.js";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server.js";
 import schema from "../schema.js";
+import { forChannel } from "../../lib/fraudTechniques.js";
+import { loadPlaybook } from "../app/techniques.js";
 import * as records from "./records.js";
 import { followUpRequest, formatRetryAt, isClosed, noAnswerHandoff, retryDelayMs, UNKNOWN_CALLER } from "./rules.js";
 
@@ -364,6 +366,15 @@ export const startInboundCall = mutation({
  * Closes the inbound record. On a bank-change request for a known supplier, queues a check call
  * to that supplier's phone_on_file. The caller's number is never dialed. Idempotent.
  */
+/** The playbook's phone tactics, for the receptionist's prompt (names and signals only). */
+export const phonePlaybook = query({
+  args: { secret },
+  handler: async (ctx, args) => {
+    assertVoiceSecret(args.secret);
+    return forChannel(await loadPlaybook(ctx), "phone").map((t) => ({ name: t.name, signals: t.signals }));
+  },
+});
+
 export const finishInboundCall = mutation({
   args: { secret, record: inboundRecord },
   handler: async (ctx, args): Promise<{ triggered_call_id: string | null }> => {
@@ -404,6 +415,8 @@ export const finishInboundCall = mutation({
         caller_number: rec.caller_number,
         receivedAt: new Date().toISOString(),
       });
+    // Screen the finished call against the playbook. Scheduled, so it never delays hanging up.
+    await ctx.scheduler.runAfter(0, internal.voice.callScreen.screen, { call_id: rec.call_id });
     return { triggered_call_id: triggered_call_id ?? null };
   },
 });

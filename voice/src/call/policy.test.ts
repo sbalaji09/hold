@@ -6,6 +6,7 @@ import {
   isBankAnswerDenial,
   isBankChangeRequest,
   isBankDenial,
+  isCallbackSwap,
   leaksSomething,
   looksLikeInjection,
   matchSupplier,
@@ -173,4 +174,22 @@ describe("SimulatedTransport", () => {
     expect(await t.listen({ timeoutMs: 2000 })).toBeNull();
     expect(t.elapsed()).toBeCloseTo(heard.end_s + 2, 5);
   });
+});
+
+describe("isCallbackSwap", () => {
+  it.each([
+    "Our office phones are down, call me on my cell instead.",
+    "Please call us back on this new number, 628 555 0143.",
+    "Don't use the office number, it's not working this week.",
+    "The number you have is out of date.",
+    "My direct line is 415 555 0199, text me there.",
+    "Reach me at my personal mobile.",
+  ])("detects %j", (text) => expect(isCallbackSwap(text)).toBe(true));
+
+  it.each([
+    "Can someone call me back about the invoice?",
+    "You can call the office anytime.",
+    "Just checking you got our invoice.",
+    "Is this the right number for accounts?",
+  ])("leaves ordinary requests alone: %j", (text) => expect(isCallbackSwap(text)).toBe(false));
 });

@@ -252,6 +252,16 @@ export default defineSchema({
     claimed_supplier_id: v.optional(v.string()),
     asked_bank_change: v.optional(v.boolean()),
     endedAt: v.optional(v.string()),
+    // hold's playbook verdict on the call, written after it ends (convex/voice/callScreen.ts).
+    fraud: v.optional(
+      v.object({
+        state: v.union(v.literal("flag"), v.literal("pass")),
+        evidence: v.string(),
+        quote: v.optional(v.string()),
+        techniqueKeys: v.array(v.string()),
+        assessedAt: v.string(),
+      }),
+    ),
   })
     .index("by_key", ["call_id"])
     .index("by_received", ["receivedAt"]),
@@ -359,6 +369,8 @@ export default defineSchema({
   fraudTechniques: defineTable({
     key: v.string(),
     name: v.string(),
+    // Where hold looks for it. Absent = email (rows from before the phone line used the playbook).
+    channel: v.optional(v.union(v.literal("email"), v.literal("phone"), v.literal("both"))),
     howItWorks: v.string(),
     signals: v.array(v.string()),
     example: v.string(),
@@ -373,6 +385,18 @@ export default defineSchema({
     .index("by_key", ["key"])
     .index("by_status", ["status"]),
 
+  // Practice for the phone line: scripted calls, scam and ordinary, that phone playbook changes
+  // replay against. "flag" calls must be caught; "pass" calls must not be.
+  practiceCalls: defineTable({
+    key: v.string(),
+    kind: v.string(),
+    transcript: v.string(),
+    expected: v.union(v.literal("flag"), v.literal("pass")),
+    source: v.union(v.literal("seed"), v.literal("reported")),
+    caughtLastRun: v.optional(v.boolean()),
+    lastRunAt: v.optional(v.string()),
+  }).index("by_key", ["key"]),
+
   // Self-improvement log (Hone's loop): what triggered a change, the change hold proposed, how it
   // replayed against past cases, and whether it was promoted. See convex/app/improve.ts.
   improvements: defineTable({
@@ -380,8 +404,11 @@ export default defineSchema({
     trigger: v.object({
       kind: v.union(v.literal("missed_scam"), v.literal("false_alarm"), v.literal("taught")),
       billKey: v.optional(v.string()),
-      text: v.string(), // the scam email, or what the person described
+      text: v.string(), // the scam email or call transcript, or what the person described
       by: v.union(v.literal("callback"), v.literal("maya"), v.literal("dev")),
+      // Phone triggers: the inbound call or Practice call it came from.
+      channel: v.optional(v.union(v.literal("email"), v.literal("phone"))),
+      callId: v.optional(v.string()),
     }),
     status: v.union(
       v.literal("proposing"),
@@ -395,6 +422,7 @@ export default defineSchema({
     proposal: v.optional(
       v.object({
         action: v.union(v.literal("add"), v.literal("refine")),
+        channel: v.optional(v.union(v.literal("email"), v.literal("phone"), v.literal("both"))),
         targetKey: v.optional(v.string()),
         name: v.string(),
         howItWorks: v.string(),

@@ -9,6 +9,11 @@ import type {
   SupplierRecord,
 } from "../../../shared/contract.js";
 
+export interface PhoneTactic {
+  name: string;
+  signals: string[];
+}
+
 export interface VoiceStore {
   /** Calls back with every request currently in status "queued" (live subscription). */
   watchQueuedRequests(cb: (requests: CallRequest[]) => void): () => void;
@@ -34,6 +39,8 @@ export interface VoiceStore {
   getSupplierProfile(supplier_id: string): Promise<SupplierProfile | null>;
   listSupplierProfiles(): Promise<SupplierProfile[]>;
   getSupplierRecords(supplier_id: string): Promise<SupplierRecord[]>;
+  /** The playbook's phone tactics (names and signals), for the incoming line's prompt. */
+  getPhonePlaybook(): Promise<PhoneTactic[]>;
 
   startInboundCall(call_id: string, caller_number: string): Promise<void>;
   /**

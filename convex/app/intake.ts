@@ -9,7 +9,7 @@ import { api, internal } from "../_generated/api.js";
 import type { Doc } from "../_generated/dataModel.js";
 import { action, internalMutation, internalQuery, type QueryCtx } from "../_generated/server.js";
 import { checkValidator, decide, routeEscalation, runChecks, type CheckBankAccount, type Decision, type LearnedRuleInput } from "./checks.js";
-import { techniqueCheck } from "../../lib/fraudTechniques.js";
+import { forChannel, techniqueCheck } from "../../lib/fraudTechniques.js";
 import { anthropic, assessEmail } from "./techniques.js";
 
 // ---------- parsing (pure, unit-tested in intake.test.ts) ----------
@@ -345,7 +345,7 @@ export const ingestEmail = action({
     const amountCents = parseAmountCents(args.body) ?? 0;
 
     // The two Claude checks run side by side, so neither adds to the other's wait.
-    const playbook = await ctx.runQuery(internal.app.techniques.activePlaybook, {});
+    const playbook = forChannel(await ctx.runQuery(internal.app.techniques.activePlaybook, {}), "email");
     const [style, technique] = await Promise.allSettled([
       ctx.runAction(api.voice.styleMatch.styleMatch, { supplier_id: context.supplier.key, email_text: args.body }),
       assessEmail(

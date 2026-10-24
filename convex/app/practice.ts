@@ -16,8 +16,8 @@ import { action, internalMutation, internalQuery, mutation, query, type Mutation
 //   decide(checks, amountCents) -> "pay" | "ask_dev" | "call"
 import { decide, runChecks } from "./checks.js";
 import { internal } from "../_generated/api.js";
-import { techniqueCheck } from "../../lib/fraudTechniques.js";
-import { anthropic, assessEmail } from "./techniques.js";
+import { forChannel, techniqueCheck } from "../../lib/fraudTechniques.js";
+import { anthropic, assessCall, assessEmail } from "./techniques.js";
 
 const MODEL = "claude-sonnet-5-5";
 
@@ -215,18 +215,19 @@ const recordRunRef = makeFunctionReference<"mutation", { results: Array<{ key: s
  * every miss becomes something hold learns from (convex/app/improve.ts). */
 export const runSet = action({
   args: {},
-  handler: async (ctx): Promise<{ ran: number; caught: number; missed: number }> => {
+  handler: async (ctx): Promise<{ ran: number; caught: number; missed: number; calls: { ran: number; right: number; wrong: number } }> => {
     const rows = await ctx.runQuery(gatherForRunRef, {});
     const playbook = await ctx.runQuery(internal.app.techniques.activePlaybook, {});
+    const emailPlaybook = forChannel(playbook, "email");
     const results = await Promise.all(
       rows.map(async (row) => {
         // Without Claude (no ANTHROPIC_API_KEY) the playbook check is skipped, same as at intake.
         const fraudTechnique = await assessEmail(
           anthropic(),
           { fromAddress: row.email.fromAddress, subject: "", body: row.email.body, supplierName: row.supplier.name, supplierDomain: row.supplier.domain, amountCents: row.amountCents },
-          playbook,
+          emailPlaybook,
         ).then(
-          (a) => techniqueCheck(a, playbook, row.email.fromAddress),
+          (a) => techniqueCheck(a, emailPlaybook, row.email.fromAddress),
           () => undefined,
         );
         const checks = runChecks({
@@ -245,8 +246,24 @@ export const runSet = action({
     await ctx.runMutation(recordRunRef, { results: results.map(({ key, caught }) => ({ key, caught })) });
     const missedBills = results.flatMap((r) => (!r.caught && r.billKey ? [r.billKey] : []));
     if (missedBills.length) await ctx.runMutation(internal.app.techniques.learnFromMisses, { billKeys: missedBills });
+
+    // The phone line's scripted calls, judged against the playbook's phone tactics.
+    const phone = forChannel(playbook, "phone");
+    const calls = await ctx.runQuery(internal.app.techniques.practiceCallsForRun, {});
+    const callResults = await Promise.all(
+      calls.map(async (c) => {
+        const flagged = await assessCall(anthropic(), { transcript: c.transcript, callerNumber: "unknown" }, phone).then(
+          (a) => techniqueCheck(a, phone, "call").state === "flag",
+          () => null, // no Claude: not run, rather than counted wrong
+        );
+        return flagged === null ? null : { key: c.key, correct: flagged === (c.expected === "flag") };
+      }),
+    );
+    const ranCalls = callResults.filter((r): r is { key: string; correct: boolean } => r !== null);
+    if (ranCalls.length) await ctx.runMutation(internal.app.techniques.recordCallRun, { results: ranCalls });
     const caught = results.filter((r) => r.caught).length;
-    return { ran: results.length, caught, missed: results.length - caught };
+    const right = ranCalls.filter((r) => r.correct).length;
+    return { ran: results.length, caught, missed: results.length - caught, calls: { ran: ranCalls.length, right, wrong: ranCalls.length - right } };
   },
 });
 
