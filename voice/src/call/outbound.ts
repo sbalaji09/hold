@@ -302,7 +302,8 @@ async function converse(session: CallSession, prepared: PreparedCall, llm: LLM, 
   }
 
   const n = prepared.questions.length;
-  const intro = `I'm calling to double-check a recent invoice from ${prepared.supplierName}. I have ${n === 1 ? "one quick question" : "a couple of quick questions"}.`;
+  // "Stagecraft Rigging Co." already ends the sentence; don't add a second full stop.
+  const intro = `I'm calling to double-check a recent invoice from ${prepared.supplierName.replace(/\.$/, "")}. I have ${n === 1 ? "one quick question" : "a couple of quick questions"}.`;
   const introSaid = await session.say(intro);
   if (introSaid?.interrupted) {
     const aside = await session.hear(OUTBOUND_LIMITS.asideTimeoutMs);

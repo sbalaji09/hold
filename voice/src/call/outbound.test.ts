@@ -193,6 +193,14 @@ describe("runOutboundCall", () => {
     expect(fullDisclosure).toBeLessThan(firstQuestion);
   });
 
+  it("never doubles the full stop after a supplier name ending in a period", async () => {
+    const { store, run } = setup(["It was eighteen thousand four hundred dollars.", "Yes, we switched banks last week."]);
+    await run();
+    const lines = segments(store.eventsFor("call_123"), "callback");
+    expect(lines.some((l) => l.includes("Stagecraft Rigging Co. I have"))).toBe(true);
+    expect(lines.every((l) => !l.includes(".."))).toBe(true);
+  });
+
   it('ignores a pickup "Hello?" said over the disclosure instead of taking it as the first answer', async () => {
     const { store, run } = setup(["<over>Hello?", "It was eighteen thousand four hundred dollars.", "Yes, we switched banks last week."]);
     const result = await run();
