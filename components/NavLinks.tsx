@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { makeFunctionReference } from "convex/server";
@@ -46,7 +46,16 @@ function useFreshTabs(hrefs: string[], renderedAt: number): void {
       loaded.current = true;
       return;
     }
-    for (const href of hrefs) router.prefetch(href, { kind: PrefetchKind.FULL });
+    // When the browser is idle, so a click or scroll is never stuck behind seven server renders.
+    const warm = () => {
+      for (const href of hrefs) router.prefetch(href, { kind: PrefetchKind.FULL });
+    };
+    if (typeof window.requestIdleCallback !== "function") {
+      const t = setTimeout(warm, 200);
+      return () => clearTimeout(t);
+    }
+    const id = window.requestIdleCallback(warm, { timeout: 2000 });
+    return () => window.cancelIdleCallback(id);
   }, [hrefs, router]);
 
   // A new server render arrived: its data was read after the refresh we asked for.
@@ -75,7 +84,7 @@ function useFreshTabs(hrefs: string[], renderedAt: number): void {
       });
     };
     // Coalesce bursts (a call result writes several rows in a row), then retry until a render lands.
-    const first = setTimeout(refresh, 300);
+    const first = setTimeout(refresh, 600);
     const retry = setInterval(refresh, 1000);
     return () => {
       clearTimeout(first);
@@ -93,6 +102,12 @@ function useWarmTabs(): void {
   useQuery(api.voice.ui.phoneLine, {});
   useQuery(api.app.techniques.list, {});
   useQuery(api.app.triage.messages, {});
+}
+
+/** Marks the tab just clicked, so it highlights at once while its page loads (styled in shell.css). */
+function PendingMark(): React.ReactElement | null {
+  const { pending } = useLinkStatus();
+  return pending ? <span className="pt-pending" hidden /> : null;
 }
 
 export function NavLinks({ items, renderedAt }: { items: NavItem[]; renderedAt: number }): React.ReactElement {
@@ -113,6 +128,7 @@ export function NavLinks({ items, renderedAt }: { items: NavItem[]; renderedAt: 
               {label}
             </span>
             {badge ? <span className={"pt-badge" + (tone === "you" ? " pt-badge-you" : "")}>{badge}</span> : null}
+            <PendingMark />
           </Link>
         );
       })}

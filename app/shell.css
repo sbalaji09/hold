@@ -198,3 +198,11 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
   .pt-today { height: calc(100dvh - var(--space-8) - var(--space-4)); min-height: 0; }
   .pt-today .pt-dash-grid { flex: 1; min-height: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); align-items: stretch; }
 }
+
+/* Navigation feedback (components/NavProgress.tsx, NavLinks.tsx): the clicked tab highlights at
+   once, and a hairline runs along the top while the next page loads. */
+.pt-navitem:has(.pt-pending) { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+.pt-progress { position: fixed; z-index: 50; top: 0; left: var(--sidebar-width); right: 0; height: 2px; background: var(--ink); transform-origin: left; animation: pt-progress 1.2s cubic-bezier(.2, .7, .3, 1) forwards; }
+@keyframes pt-progress { from { transform: scaleX(0); } to { transform: scaleX(.85); } }
+@media (prefers-reduced-motion: reduce) { .pt-progress { animation: none; transform: scaleX(1); opacity: .5; } }
+@media (max-width: 760px) { .pt-progress { left: 0; } }

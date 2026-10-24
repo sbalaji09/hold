@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import type * as React from "react";
+import { Suspense } from "react";
+import { NavProgress } from "@/components/NavProgress";
 import { Sidebar } from "@/components/Sidebar";
 import { AutoOpenLiveCall } from "@/components/voice";
 import { ConvexClientProvider } from "./ConvexClientProvider";
@@ -18,6 +20,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="pt-app">
             <Sidebar />
             <AutoOpenLiveCall />
+            <Suspense fallback={null}>
+              <NavProgress />
+            </Suspense>
             <main className="pt-main">{children}</main>
           </div>
         </ConvexClientProvider>

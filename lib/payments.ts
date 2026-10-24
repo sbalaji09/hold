@@ -19,10 +19,10 @@ export interface RunItem {
 /** This week's payment run: payments made or due within 7 days of now, plus
  * any Held or Needs-you bill that hasn't gone out and is blocking the run. */
 export async function listRun(): Promise<RunItem[]> {
-  const payments = await listPayments();
+  const [payments, bills] = await Promise.all([listPayments(), listBills()]);
   const now = Date.now();
   const recent = payments.filter((p) => Math.abs(now - new Date(p.paidAt).getTime()) <= RUN_WINDOW_MS);
-  const blocked = (await listBills()).filter(
+  const blocked = bills.filter(
     (b) => (b.status === "Held" || b.status === "Needs you") && !payments.some((p) => p.billKey === b.key),
   );
   const items: RunItem[] = [

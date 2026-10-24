@@ -7,6 +7,7 @@
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { cache as perRender } from "react";
 import { fetchQuery } from "convex/nextjs";
 import type { FunctionReturnType } from "convex/server";
 import { routeEscalation } from "../convex/app/checks";
@@ -30,6 +31,9 @@ import type {
 } from "./types";
 
 const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL;
+
+// The reads below are wrapped in React's cache(): within one server render the sidebar and the
+// page share a single Convex fetch per query instead of each making their own.
 
 function convexOpts() {
   return CONVEX_URL ? { url: CONVEX_URL } : undefined;
@@ -220,7 +224,7 @@ async function hydrateBill(raw: RawFogline["bills"][number], d: RawFogline): Pro
   return { ...raw, supplier, bankAccount, email, payment, call, checks };
 }
 
-export async function listBills(filter?: BillListFilter): Promise<Bill[]> {
+export const listBills = perRender(async function listBills(filter?: BillListFilter): Promise<Bill[]> {
   if (CONVEX_URL) {
     return fetchQuery(api.app.queries.listBills, { status: filter?.status }, convexOpts());
   }
@@ -228,7 +232,7 @@ export async function listBills(filter?: BillListFilter): Promise<Bill[]> {
   const raws = filter?.status ? d.bills.filter((b) => b.status === filter.status) : d.bills;
   const bills = await Promise.all(raws.map((raw) => hydrateBill(raw, d)));
   return bills.sort((a, b) => (a.receivedAt < b.receivedAt ? 1 : -1));
-}
+});
 
 export async function getBill(key: string): Promise<Bill | null> {
   if (CONVEX_URL) {
@@ -248,13 +252,13 @@ export async function getSupplier(key: string): Promise<Supplier | null> {
   return d.suppliers.find((s) => s.key === key) ?? null;
 }
 
-export async function listSuppliers(): Promise<Supplier[]> {
+export const listSuppliers = perRender(async function listSuppliers(): Promise<Supplier[]> {
   if (CONVEX_URL) {
     return fetchQuery(api.app.queries.listSuppliers, {}, convexOpts());
   }
   const d = await load();
   return [...d.suppliers].sort((a, b) => a.name.localeCompare(b.name));
-}
+});
 
 /** Supplier rows with an open (not Paid/Scheduled) bill count, for the Suppliers overview. */
 export async function listSupplierSummaries(): Promise<Array<Supplier & { openItems: number }>> {
@@ -311,19 +315,19 @@ function recommendation(bill: Bill): string {
 }
 
 /** Playbook changes waiting for a person's sign-off (shown on Approvals). Fraud changes need Dev; inbox ones, Maya or Dev. Convex only. */
-export async function listPlaybookApprovals(): Promise<Array<{ key: string; job: "fraud" | "triage"; name: string }>> {
+export const listPlaybookApprovals = perRender(async function listPlaybookApprovals(): Promise<Array<{ key: string; job: "fraud" | "triage"; name: string }>> {
   if (!CONVEX_URL) return [];
   const { improvements } = await fetchQuery(api.app.techniques.list, {}, convexOpts());
   return improvements
     .filter((i) => i.status === "needs_approval")
     .map((i) => ({ key: i.key, job: i.job ?? "fraud", name: i.proposal?.name ?? "A change to the playbook" }));
-}
+});
 
 export async function countPlaybookApprovals(): Promise<number> {
   return (await listPlaybookApprovals()).length;
 }
 
-export async function listApprovals(): Promise<Approval[]> {
+export const listApprovals = perRender(async function listApprovals(): Promise<Approval[]> {
   if (CONVEX_URL) {
     return fetchQuery(api.app.queries.listApprovals, {}, convexOpts());
   }
@@ -348,18 +352,18 @@ export async function listApprovals(): Promise<Approval[]> {
       };
     })
     .sort((a, b) => (a.bill.receivedAt < b.bill.receivedAt ? 1 : -1));
-}
+});
 
 export type Messages = FunctionReturnType<typeof api.app.triage.messages>;
 export type Message = Messages["open"][number];
 
 /** Supplier emails hold sorted as messages (convex/app/triage.ts). The JSON fallback has none. */
-export async function listMessages(): Promise<Messages> {
+export const listMessages = perRender(async function listMessages(): Promise<Messages> {
   if (CONVEX_URL) return fetchQuery(api.app.triage.messages, {}, convexOpts());
   return { open: [], done: [], filed: [] };
-}
+});
 
-export async function listPayments(): Promise<Array<Payment & { bill: Bill }>> {
+export const listPayments = perRender(async function listPayments(): Promise<Array<Payment & { bill: Bill }>> {
   if (CONVEX_URL) {
     return fetchQuery(api.app.queries.listPayments, {}, convexOpts());
   }
@@ -373,9 +377,9 @@ export async function listPayments(): Promise<Array<Payment & { bill: Bill }>> {
     }),
   );
   return out.sort((a, b) => (a.paidAt < b.paidAt ? 1 : -1));
-}
+});
 
-export async function listActivity(): Promise<ActivityEntry[]> {
+export const listActivity = perRender(async function listActivity(): Promise<ActivityEntry[]> {
   if (CONVEX_URL) {
     return fetchQuery(api.app.queries.listActivity, {}, convexOpts());
   }
@@ -437,7 +441,7 @@ export async function listActivity(): Promise<ActivityEntry[]> {
   }
 
   return entries.sort((a, b) => (a.at < b.at ? 1 : -1));
-}
+});
 
 export async function listChecksForSupplier(key: string): Promise<BackgroundCheck[]> {
   if (CONVEX_URL) {
@@ -464,15 +468,15 @@ export async function listRules(supplierKey: string): Promise<LearnedRule[]> {
 
 /** The global Watch only setting (Payments page toggle). The JSON fixture has no settings
  * table, so the fallback always reports it off and read-only. */
-export async function getSettings(): Promise<Settings> {
+export const getSettings = perRender(async function getSettings(): Promise<Settings> {
   if (CONVEX_URL) {
     return fetchQuery(api.app.queries.getSettings, {}, convexOpts());
   }
   return { watchOnly: false };
-}
+});
 
 /** Who hold works for (lib/company.ts). The JSON fixture is always Fogline. */
-export async function getCompany(): Promise<Company> {
+export const getCompany = perRender(async function getCompany(): Promise<Company> {
   if (CONVEX_URL) return fetchQuery(api.app.company.current, {}, convexOpts());
   return companyFor(undefined);
-}
+});

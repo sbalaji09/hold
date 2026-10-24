@@ -6,6 +6,8 @@ import { getCompany, listApprovals, listBills, listMessages, type Message } from
 import { capital } from "@/lib/company";
 import { INBOX_FILTERS, MESSAGE_MARK, STATUS_TO_MARK, UNSETTLED_STATUS, emailPreview, inboxItems, parseView, shortDate, type InboxView } from "@/lib/inbox";
 
+export const metadata = { title: "Inbox · hold" };
+
 const EMPTY: Record<string, string> = {
   messages: "No messages from suppliers. hold sorts every supplier email, and anything for Maya lands here.",
   filed: "Nothing filed yet. Emails hold files, and messages marked done, show up here.",
