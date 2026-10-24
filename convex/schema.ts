@@ -21,6 +21,8 @@ const billStatus = v.union(
 const callEventSource = v.object({
   kind: v.string(),
   ref: v.string(),
+  // voice: id of the record the question came from, so the UI can open it.
+  record_id: v.optional(v.string()),
 });
 
 export default defineSchema({
@@ -107,14 +109,31 @@ export default defineSchema({
     to_number: v.string(),
     number_source: v.union(v.literal("on_file"), v.literal("background_check")),
     reason: v.array(v.string()),
-    // voice sets "in_progress" once dialing starts, then "done" when the
-    // call finishes; seed data for historical calls writes "done" directly.
-    status: v.union(v.literal("queued"), v.literal("in_progress"), v.literal("done")),
+    // queued -> dialing -> in_progress -> done. No answer: retry_scheduled ->
+    // queued (one retry) -> handed_off. Seed data for historical calls writes "done".
+    status: v.union(
+      v.literal("queued"),
+      v.literal("dialing"),
+      v.literal("in_progress"),
+      v.literal("retry_scheduled"),
+      v.literal("done"),
+      v.literal("handed_off"),
+    ),
     startedAt: v.optional(v.string()),
+    // --- voice-owned bookkeeping (all optional so seed rows stay valid) ---
+    // "simulated" = Practice: a Claude-played supplier, never dials a phone.
+    mode: v.optional(v.union(v.literal("live"), v.literal("simulated"))),
+    attempt: v.optional(v.number()), // dial attempts made so far (absent = 0)
+    retry_at_ms: v.optional(v.number()),
+    twilio_call_sid: v.optional(v.string()),
+    takeover_requested: v.optional(v.boolean()),
+    // The recording can arrive before the result row exists; it waits here.
+    recording_storage_id: v.optional(v.id("_storage")),
   })
     .index("by_key", ["call_id"])
     .index("by_bill", ["bill_id"])
-    .index("by_supplier", ["supplier_id"]),
+    .index("by_supplier", ["supplier_id"])
+    .index("by_status", ["status"]),
 
   callEvents: defineTable(
     v.union(
@@ -126,16 +145,20 @@ export default defineSchema({
           v.literal("in_progress"),
           v.literal("no_answer"),
           v.literal("retry_scheduled"),
+          v.literal("dropped"),
           v.literal("ended"),
         ),
         retry_at: v.optional(v.string()),
+        retry_at_ms: v.optional(v.number()),
       }),
       v.object({
         call_id: v.string(),
         type: v.literal("segment"),
-        speaker: v.union(v.literal("callback"), v.literal("supplier")),
+        // "caller" = inbound calls, whose live transcript also streams here.
+        speaker: v.union(v.literal("callback"), v.literal("supplier"), v.literal("caller")),
         text: v.string(),
         ts: v.number(),
+        end_ts: v.optional(v.number()),
       }),
       v.object({
         call_id: v.string(),
@@ -162,7 +185,8 @@ export default defineSchema({
       }),
     ),
     summary: v.string(),
-    recording_url: v.string(),
+    recording_url: v.string(), // "" until the recording lands
+    recording_storage_id: v.optional(v.id("_storage")),
     startedAt: v.optional(v.string()),
     clip: v.optional(
       v.object({
@@ -190,7 +214,14 @@ export default defineSchema({
     ),
     triggered_call_id: v.optional(v.string()),
     receivedAt: v.string(),
-  }).index("by_key", ["call_id"]),
+    // --- voice-owned (optional so seed rows stay valid) ---
+    status: v.optional(v.union(v.literal("in_progress"), v.literal("ended"))),
+    claimed_supplier_id: v.optional(v.string()),
+    asked_bank_change: v.optional(v.boolean()),
+    endedAt: v.optional(v.string()),
+  })
+    .index("by_key", ["call_id"])
+    .index("by_received", ["receivedAt"]),
 
   approvals: defineTable({
     key: v.string(),
