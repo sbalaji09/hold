@@ -60,7 +60,7 @@ export default async function ActivityPage({
           ))
         ) : (
           <div className="px-4 py-6 text-[13px] text-ink-muted">
-            No entries match &ldquo;{q}&rdquo;.
+            {query ? <>No entries match &ldquo;{q}&rdquo;.</> : "Nothing has happened yet."}
           </div>
         )}
       </div>

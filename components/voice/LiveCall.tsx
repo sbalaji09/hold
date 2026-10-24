@@ -194,12 +194,12 @@ function LiveCallView({
             live={live}
             sourceHref={sourceHref}
             empty={
-              view.line === "ringing"
+              view.line === "ringing" && request.status !== "queued"
                 ? `Ringing ${formatPhone(request.to_number)}.`
                 : view.line === "connected" && view.active
                 ? "Connected. Waiting for the first words."
                 : view.active
-                ? "Getting ready to call."
+                ? "The transcript appears here once someone answers."
                 : "Nothing was said on this call."
             }
           />
