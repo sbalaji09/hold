@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { getPersona } from "@/lib/persona";
-import { listApprovals } from "@/lib/data";
+import { countPlaybookApprovals, listApprovals } from "@/lib/data";
 import { CHECK_RESULT, citeLabel } from "@/lib/bill";
 import { TEN_THOUSAND_CENTS } from "@/lib/policy";
 import { shortDate } from "@/lib/inbox";
 import { Amount, AccountLine, CheckRow } from "@/components/callback";
 import { PushbackThread } from "@/components/PushbackThread";
+import { PlaybookApprovals } from "@/components/Playbook";
 import type { ApprovalKind, CheckState } from "@/lib/types";
 
 export const metadata = { title: "Approvals · hold" };
@@ -19,7 +20,8 @@ const KIND_LABEL: Record<ApprovalKind, string> = {
 const CHECK_ORDER: Record<CheckState, number> = { flag: 0, info: 1, pass: 2 };
 
 export default async function ApprovalsPage() {
-  const [approvals, persona] = await Promise.all([listApprovals(), getPersona()]);
+  const [approvals, changes, persona] = await Promise.all([listApprovals(), countPlaybookApprovals(), getPersona()]);
+  const waiting = approvals.length + changes;
 
   return (
     <div className="flex flex-col gap-6 p-8">
@@ -27,12 +29,14 @@ export default async function ApprovalsPage() {
         <h1 className="cb-display text-ink">Approvals</h1>
         <p className="mt-1 text-[13px] text-ink-muted">
           {persona === "dev"
-            ? `Signed in as Dev Okafor, controller. ${approvals.length} waiting on your sign-off.`
-            : `Signed in as Maya Lin, bookkeeper. ${approvals.length} waiting on Dev's sign-off; you can read and reply, not approve.`}
+            ? `Signed in as Dev Okafor, controller. ${waiting} waiting on your sign-off.`
+            : `Signed in as Maya Lin, bookkeeper. ${waiting} waiting. Payments need Dev's sign-off; you can read and reply.`}
         </p>
       </div>
 
-      {approvals.length === 0 ? (
+      <PlaybookApprovals actor={persona} />
+
+      {waiting === 0 ? (
         <div className="cb-doc p-6 text-[13px] text-ink-muted">
           Nothing waiting. Callback will ask when a payment is over <Amount cents={TEN_THOUSAND_CENTS} /> or held.
         </div>

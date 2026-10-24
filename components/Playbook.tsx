@@ -682,3 +682,25 @@ export function Playbook({ actor }: { actor: Actor }): React.ReactElement {
     </div>
   );
 }
+
+/**
+ * Approvals screen: playbook changes that make hold less strict wait here for a person (Dev for
+ * fraud, Maya or Dev for inbox sorting). Renders nothing when none are waiting.
+ */
+export function PlaybookApprovals({ actor }: { actor: Actor }): React.ReactElement | null {
+  const data = useQuery(api.app.techniques.list, {});
+  const names = useRecordNames(data?.practiceCalls ?? NO_CALLS, data?.practiceEmails ?? NO_CALLS);
+  const waiting = (data?.improvements ?? []).filter((i) => i.status === "needs_approval");
+  if (waiting.length === 0) return null;
+  return (
+    <section className="cb-doc" aria-labelledby="playbook-approvals-head">
+      <div className="cb-doc-head">
+        <span id="playbook-approvals-head">Changes to how hold checks</span>
+        <small>{waiting.length}</small>
+      </div>
+      {waiting.map((i) => (
+        <ImprovementRow key={i.key} impr={i} actor={actor} names={names} />
+      ))}
+    </section>
+  );
+}

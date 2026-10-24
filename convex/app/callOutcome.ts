@@ -5,6 +5,7 @@ import { v } from "convex/values";
 import { internalMutation } from "../_generated/server.js";
 import { decideCallOutcome, sentence } from "../../lib/callOutcome.js";
 import { hydrateBill } from "./queries.js";
+import { addBillToPracticeSet } from "./practice.js";
 import { openImprovement } from "./techniques.js";
 
 export const applyCallResult = internalMutation({
@@ -63,6 +64,16 @@ export const applyCallResult = internalMutation({
       }
     }
     await log(decision.activity.what, decision.activity.why);
+
+    // The real supplier didn't confirm it: a caught scam joins the cases every playbook change
+    // is replayed against. Best effort, so a bill missing a record never undoes the hold above.
+    if (result.outcome === "not_confirmed" && !row.practice) {
+      try {
+        await addBillToPracticeSet(ctx, row.key, "caught by check call");
+      } catch (err) {
+        console.warn(`couldn't keep ${row.key} as a test case`, err);
+      }
+    }
 
     // The real supplier confirmed a bill hold's playbook flagged: a false alarm to learn from.
     if (result.outcome === "confirmed" && bill.checks.some((c) => c.id === "fraud-technique" && c.state === "flag")) {

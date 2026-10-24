@@ -8,9 +8,9 @@ import { makeFunctionReference } from "convex/server";
 import { PrefetchKind } from "next/dist/client/components/router-reducer/router-reducer-types";
 import { refreshTabs } from "@/lib/refresh";
 import { api } from "@/convex/_generated/api";
-import { Inbox, CircleCheck, Landmark, Building2, Phone, FlaskConical, ScrollText } from "lucide-react";
+import { Inbox, CircleCheck, Landmark, Building2, Phone, ScrollText } from "lucide-react";
 
-const ICONS = { inbox: Inbox, approvals: CircleCheck, payments: Landmark, suppliers: Building2, phone: Phone, practice: FlaskConical, activity: ScrollText };
+const ICONS = { inbox: Inbox, approvals: CircleCheck, payments: Landmark, suppliers: Building2, phone: Phone, activity: ScrollText };
 
 export interface NavItem {
   href: string;
@@ -84,17 +84,14 @@ function useFreshTabs(hrefs: string[], renderedAt: number): void {
   }, [stamp, renderedAt]);
 }
 
-const practiceListRef = makeFunctionReference<"query", Record<string, never>, unknown>("app/practice:list");
-
 /**
- * Tabs that load their data in the browser (Phone line, Practice) would wait for a fresh Convex
+ * Tabs that load their data in the browser (Phone line, Approvals) would wait for a fresh Convex
  * subscription on every visit. Holding the same queries open here keeps their results in the Convex
  * client, so those tabs render at once. All small; listBills (large) stays with its pages.
  */
 function useWarmTabs(): void {
   useQuery(api.voice.ui.phoneLine, {});
   useQuery(api.app.techniques.list, {});
-  useQuery(practiceListRef, {});
   useQuery(api.app.triage.messages, {});
 }
 

@@ -5,7 +5,6 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Cite } from "@/components/callback";
 import { RouteCorrection } from "@/components/RouteCorrection";
 import { ROUTE_WORDS } from "@/lib/triage";
 
@@ -30,7 +29,7 @@ export function NotABill({ billKey, supplier, actor }: { billKey: string; suppli
             Held. The email is {ROUTE_WORDS[r]}.{" "}
             {res.key ? (
               <>
-                hold is learning from it. <Cite href={`/practice#${res.key}`}>See the change</Cite>
+                hold is learning from it.
               </>
             ) : (
               "hold is already learning from it."

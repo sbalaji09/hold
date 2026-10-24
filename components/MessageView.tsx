@@ -113,7 +113,7 @@ function View({ emailKey, actor }: { emailKey: string; actor: Actor }): React.Re
     const res = await correct({ emailKey, route: r, actor });
     const learning = res.key ? (
       <>
-        hold is learning from the correction. <Cite href={`/practice#${res.key}`}>See the change</Cite>
+        hold is learning from the correction.
       </>
     ) : (
       "hold is already learning from this email."

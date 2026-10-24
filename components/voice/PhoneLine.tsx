@@ -246,13 +246,13 @@ const REPORT: Record<CallVerdict, { button: string; confirm: string; explain: st
     button: "Report scam call",
     confirm: "Report it",
     sending: "Reporting",
-    explain: `${AGENT} adds this call to the phone Practice set as a scam, works out what it missed, and replays the fix before it goes live.`,
+    explain: `${AGENT} works out what it missed on this call and tests the fix against past calls before it goes live.`,
   },
   not_scam: {
     button: "Not a scam",
     confirm: "Clear it",
     sending: "Clearing",
-    explain: `${AGENT} adds this call to the phone Practice set as an ordinary call and learns not to flag calls like it. The check call still goes ahead.`,
+    explain: `${AGENT} learns not to flag calls like this one. The check call still goes ahead.`,
   },
 };
 
@@ -268,7 +268,7 @@ function Report({ call, flagged, actor }: { call: InboundCallDoc; flagged: boole
   if (done) {
     return (
       <p className="hv-small" role="status">
-        {done} <Link href="/practice#learned">See Practice</Link>
+        {done}
       </p>
     );
   }
@@ -295,8 +295,8 @@ function Report({ call, flagged, actor }: { call: InboundCallDoc; flagged: boole
       const r = await report(call.call_id, verdict, actor);
       setDone(
         r.key
-          ? `${AGENT} is learning from this call. It's in the phone Practice set now.`
-          : `${AGENT} is already learning from this call. It's in the phone Practice set.`,
+          ? `${AGENT} is learning from this call.`
+          : `${AGENT} is already learning from this call.`,
       );
     } catch (err) {
       setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : "Couldn't send that just now. Try again.");

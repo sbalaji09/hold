@@ -309,6 +309,13 @@ function recommendation(bill: Bill): string {
   return `Pay ${fmtMoney(bill.amountCents)} to ${bill.bankAccount.bank} \u00b7\u00b7${bill.bankAccount.last4}. All checks passed; this is over Callback's $10,000 limit, so Dev needs to approve it.`;
 }
 
+/** Playbook changes waiting for a person's sign-off, shown on Approvals. Convex only. */
+export async function countPlaybookApprovals(): Promise<number> {
+  if (!CONVEX_URL) return 0;
+  const { improvements } = await fetchQuery(api.app.techniques.list, {}, convexOpts());
+  return improvements.filter((i) => i.status === "needs_approval").length;
+}
+
 export async function listApprovals(): Promise<Approval[]> {
   if (CONVEX_URL) {
     return fetchQuery(api.app.queries.listApprovals, {}, convexOpts());

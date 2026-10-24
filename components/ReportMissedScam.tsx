@@ -25,7 +25,7 @@ export function ReportMissedScam({ billKey, actor }: { billKey: string; actor: "
     setPending(true);
     try {
       const r = await report({ billKey, actor });
-      setResult(r.key ? "hold is learning from this bill. It's in the Practice set now." : "hold is already learning from this bill.");
+      setResult(r.key ? "hold is learning from this bill." : "hold is already learning from this bill.");
       setOpen(false);
     } catch (err) {
       setError(errorText(err, "Couldn't report it just now. Try again."));
@@ -37,7 +37,7 @@ export function ReportMissedScam({ billKey, actor }: { billKey: string; actor: "
   if (result) {
     return (
       <p role="status" className="max-w-[220px] font-mono text-[12px]/[18px] text-ink-muted">
-        {result} <a href="/practice#learned" className="text-ink underline underline-offset-4">See Practice</a>
+        {result}
       </p>
     );
   }
@@ -51,7 +51,7 @@ export function ReportMissedScam({ billKey, actor }: { billKey: string; actor: "
         <div id="report-missed" role="dialog" aria-label="Report missed scam" className="absolute right-0 top-full z-10 mt-2 w-80 rounded-md bg-surface p-4 shadow-pop">
           <div className="cb-caps">Report missed scam</div>
           <p className="mt-2 text-[13px]/[20px] text-ink">
-            hold adds this bill to the Practice set, works out what it missed, and replays the fix against past bills before it goes live.
+            hold works out what it missed and tests the fix against past bills before it goes live.
           </p>
           {error ? (
             <p role="alert" className="mt-2 font-mono text-[12px] text-hold">

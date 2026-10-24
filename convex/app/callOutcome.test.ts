@@ -126,6 +126,21 @@ describe("a check call's result moves its bill", () => {
     expect((await h.activity()).map((a) => a.what)).toEqual(["held this bill after the check call"]);
   });
 
+  test("a scam the call caught is kept as a test case for future playbook changes", async () => {
+    const h = harness();
+    await h.seed();
+    await h.finish("call_1", DENIAL);
+    const scams = await h.t.run((ctx) => ctx.db.query("practiceScams").collect());
+    expect(scams).toMatchObject([{ billKey: "bill_in_1", kind: "caught by check call" }]);
+  });
+
+  test("a practice bill's caught scam isn't added again", async () => {
+    const h = harness();
+    await h.seed({ practice: true });
+    await h.finish("call_1", DENIAL);
+    expect(await h.t.run((ctx) => ctx.db.query("practiceScams").collect())).toHaveLength(0);
+  });
+
   test("no answer twice: Needs you, routed to Maya with the reason", async () => {
     const h = harness();
     await h.seed();

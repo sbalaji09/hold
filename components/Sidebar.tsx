@@ -1,20 +1,19 @@
 import * as React from "react";
 import { Guilloche } from "@/components/callback";
 import { NavLinks, type NavItem } from "@/components/NavLinks";
-import { listApprovals, listBills, listMessages } from "@/lib/data";
+import { countPlaybookApprovals, listApprovals, listBills, listMessages } from "@/lib/data";
 import { UNSETTLED_STATUS } from "@/lib/inbox";
 import { getPersona, setPersona } from "@/lib/persona";
 
 export async function Sidebar(): Promise<React.ReactElement> {
-  const [approvals, bills, messages, persona] = await Promise.all([listApprovals(), listBills(), listMessages(), getPersona()]);
+  const [approvals, changes, bills, messages, persona] = await Promise.all([listApprovals(), countPlaybookApprovals(), listBills(), listMessages(), getPersona()]);
   const open = bills.filter((b) => UNSETTLED_STATUS[b.status]).length + messages.open.length;
   const items: NavItem[] = [
     { href: "/", label: "Inbox", icon: "inbox", badge: open },
-    { href: "/approvals", label: "Approvals", icon: "approvals", badge: approvals.length, tone: "you" },
+    { href: "/approvals", label: "Approvals", icon: "approvals", badge: approvals.length + changes, tone: "you" },
     { href: "/payments", label: "Payments", icon: "payments" },
     { href: "/suppliers", label: "Suppliers", icon: "suppliers" },
     { href: "/phone", label: "Phone line", icon: "phone" },
-    { href: "/practice", label: "Practice", icon: "practice" },
     { href: "/activity", label: "Activity log", icon: "activity" },
   ];
 
