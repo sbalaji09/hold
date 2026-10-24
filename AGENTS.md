@@ -4,3 +4,7 @@ UI work follows the Callback design system in `design/callback/`. Use the `callb
 
 - Styles come from `design/callback/tokens.css` (plus `tailwind-theme.css` with Tailwind v4). Never hard-code colours, fonts, radii or shadows.
 - Reuse the system's components (props in `design/callback/components/index.d.ts`) before writing new ones.
+
+# Naming
+
+The app is named **hold** (the brief and design folder still say "Callback"). Use "hold" in code, package name and the wordmark.

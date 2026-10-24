@@ -1,0 +1,5451 @@
+{
+  "suppliers": [
+    {
+      "key": "sup_stage",
+      "name": "Stagecraft Rigging Co.",
+      "category": "stage",
+      "domain": "stagecraftrigging.com",
+      "contactName": "Rosa Quintero",
+      "contactEmail": "rosa@stagecraftrigging.com",
+      "trustedPhone": "+14155550100",
+      "phoneLastCheckedAt": "2026-09-19"
+    },
+    {
+      "key": "sup_bayview_staging",
+      "name": "Bayview Staging Systems",
+      "category": "stage",
+      "domain": "bayviewstaging.com",
+      "contactName": "Nate Ferris",
+      "contactEmail": "nate@bayviewstaging.com",
+      "trustedPhone": "+14155550101",
+      "phoneLastCheckedAt": "2026-09-11"
+    },
+    {
+      "key": "sup_gg_truss",
+      "name": "Golden Gate Truss & Deck",
+      "category": "stage",
+      "domain": "ggtrussdeck.com",
+      "contactName": "Priya Shah",
+      "contactEmail": "priya@ggtrussdeck.com",
+      "trustedPhone": "+14155550102",
+      "phoneLastCheckedAt": "2026-09-10"
+    },
+    {
+      "key": "sup_soundwave",
+      "name": "Soundwave Audio Rentals",
+      "category": "sound",
+      "domain": "soundwaveaudio.com",
+      "contactName": "Marcus Oyelaran",
+      "contactEmail": "marcus@soundwaveaudio.com",
+      "trustedPhone": "+14155550103",
+      "phoneLastCheckedAt": "2026-09-04"
+    },
+    {
+      "key": "sup_pacific_pa",
+      "name": "Pacific Coast PA Co.",
+      "category": "sound",
+      "domain": "pacificcoastpa.com",
+      "contactName": "Lena Brooks",
+      "contactEmail": "lena@pacificcoastpa.com",
+      "trustedPhone": "+14155550104",
+      "phoneLastCheckedAt": "2026-09-08"
+    },
+    {
+      "key": "sup_bassline",
+      "name": "Bass Line Audio",
+      "category": "sound",
+      "domain": "basslineaudio.com",
+      "contactName": "Theo Marsh",
+      "contactEmail": "theo@basslineaudio.com",
+      "trustedPhone": "+14155550105",
+      "phoneLastCheckedAt": "2026-10-01"
+    },
+    {
+      "key": "sup_sfbay_security",
+      "name": "SF Bay Security Services",
+      "category": "security",
+      "domain": "sfbaysecurity.com",
+      "contactName": "Carmen Diaz",
+      "contactEmail": "carmen@sfbaysecurity.com",
+      "trustedPhone": "+14155550106",
+      "phoneLastCheckedAt": "2026-09-04"
+    },
+    {
+      "key": "sup_guardian_gate",
+      "name": "Guardian Gate Security",
+      "category": "security",
+      "domain": "guardiangatesecurity.com",
+      "contactName": "Owen Pratt",
+      "contactEmail": "owen@guardiangatesecurity.com",
+      "trustedPhone": "+14155550107",
+      "phoneLastCheckedAt": "2026-09-28"
+    },
+    {
+      "key": "sup_perimeter_pro",
+      "name": "Perimeter Pro Staffing",
+      "category": "security",
+      "domain": "perimeterprostaffing.com",
+      "contactName": "Yusuf Dembele",
+      "contactEmail": "yusuf@perimeterprostaffing.com",
+      "trustedPhone": "+14155550108",
+      "phoneLastCheckedAt": "2026-09-16"
+    },
+    {
+      "key": "sup_horizon_artists",
+      "name": "Horizon Artist Management",
+      "category": "agency",
+      "domain": "horizonartists.com",
+      "contactName": "Grace Lindqvist",
+      "contactEmail": "grace@horizonartists.com",
+      "trustedPhone": "+14155550109",
+      "phoneLastCheckedAt": "2026-09-04"
+    },
+    {
+      "key": "sup_cascade_talent",
+      "name": "Cascade Talent Group",
+      "category": "agency",
+      "domain": "cascadetalentgroup.com",
+      "contactName": "Diego Fuentes",
+      "contactEmail": "diego@cascadetalentgroup.com",
+      "trustedPhone": "+14155550110",
+      "phoneLastCheckedAt": "2026-09-19"
+    },
+    {
+      "key": "sup_westline_booking",
+      "name": "Westline Booking Agency",
+      "category": "agency",
+      "domain": "westlinebooking.com",
+      "contactName": "Harriet Ngo",
+      "contactEmail": "harriet@westlinebooking.com",
+      "trustedPhone": "+14155550111",
+      "phoneLastCheckedAt": "2026-09-07"
+    },
+    {
+      "key": "sup_nightowl_agency",
+      "name": "Night Owl Artist Agency",
+      "category": "agency",
+      "domain": "nightowlagency.com",
+      "contactName": "Samir Kapoor",
+      "contactEmail": "samir@nightowlagency.com",
+      "trustedPhone": "+14155550112",
+      "phoneLastCheckedAt": "2026-09-06"
+    },
+    {
+      "key": "sup_redwood_artists",
+      "name": "Redwood Artist Collective",
+      "category": "agency",
+      "domain": "redwoodartists.com",
+      "contactName": "Bella Tran",
+      "contactEmail": "bella@redwoodartists.com",
+      "trustedPhone": "+14155550113",
+      "phoneLastCheckedAt": "2026-09-21"
+    },
+    {
+      "key": "sup_mission_tacos",
+      "name": "Mission Street Tacos",
+      "category": "food",
+      "domain": "missionsttacos.com",
+      "contactName": "Alma Reyes",
+      "contactEmail": "alma@missionsttacos.com",
+      "trustedPhone": "+14155550114",
+      "phoneLastCheckedAt": "2026-09-11"
+    },
+    {
+      "key": "sup_dolores_catering",
+      "name": "Dolores Park Catering",
+      "category": "food",
+      "domain": "dolorescatering.com",
+      "contactName": "Will Huang",
+      "contactEmail": "will@dolorescatering.com",
+      "trustedPhone": "+14155550115",
+      "phoneLastCheckedAt": "2026-09-28"
+    },
+    {
+      "key": "sup_baybites",
+      "name": "Bay Bites Food Co.",
+      "category": "food",
+      "domain": "baybitesfood.com",
+      "contactName": "Kiona Mack",
+      "contactEmail": "kiona@baybitesfood.com",
+      "trustedPhone": "+14155550116",
+      "phoneLastCheckedAt": "2026-09-21"
+    },
+    {
+      "key": "sup_sfslice",
+      "name": "SF Slice Pizza Co.",
+      "category": "food",
+      "domain": "sfslicepizza.com",
+      "contactName": "Tony Russo",
+      "contactEmail": "tony@sfslicepizza.com",
+      "trustedPhone": "+14155550117",
+      "phoneLastCheckedAt": "2026-10-11"
+    },
+    {
+      "key": "sup_goldenhour_coffee",
+      "name": "Golden Hour Coffee Cart",
+      "category": "food",
+      "domain": "goldenhourcoffee.com",
+      "contactName": "Mei Lin Zhao",
+      "contactEmail": "meilin@goldenhourcoffee.com",
+      "trustedPhone": "+14155550118",
+      "phoneLastCheckedAt": "2026-09-04"
+    },
+    {
+      "key": "sup_embarcadero_eats",
+      "name": "Embarcadero Eats",
+      "category": "food",
+      "domain": "embarcaderoeats.com",
+      "contactName": "Jonah Petit",
+      "contactEmail": "jonah@embarcaderoeats.com",
+      "trustedPhone": "+14155550119",
+      "phoneLastCheckedAt": "2026-09-26"
+    },
+    {
+      "key": "sup_fogcity_ramen",
+      "name": "Fog City Ramen",
+      "category": "food",
+      "domain": "fogcityramen.com",
+      "contactName": "Haruto Sano",
+      "contactEmail": "haruto@fogcityramen.com",
+      "trustedPhone": "+14155550120",
+      "phoneLastCheckedAt": "2026-10-03"
+    },
+    {
+      "key": "sup_sunset_bbq",
+      "name": "Sunset BBQ Co.",
+      "category": "food",
+      "domain": "sunsetbbqco.com",
+      "contactName": "Dana Okafor",
+      "contactEmail": "dana@sunsetbbqco.com",
+      "trustedPhone": "+14155550121",
+      "phoneLastCheckedAt": "2026-10-07"
+    },
+    {
+      "key": "sup_bayfront_waste",
+      "name": "Bayfront Waste & Recycling",
+      "category": "other",
+      "domain": "bayfrontwaste.com",
+      "contactName": "Ellis Moreno",
+      "contactEmail": "ellis@bayfrontwaste.com",
+      "trustedPhone": "+14155550122",
+      "phoneLastCheckedAt": "2026-09-23"
+    },
+    {
+      "key": "sup_gg_generators",
+      "name": "Golden Gate Generators",
+      "category": "other",
+      "domain": "gggenerators.com",
+      "contactName": "Fatima Noor",
+      "contactEmail": "fatima@gggenerators.com",
+      "trustedPhone": "+14155550123",
+      "phoneLastCheckedAt": "2026-09-30"
+    },
+    {
+      "key": "sup_sf_fence",
+      "name": "SF Fence & Barricade Co.",
+      "category": "other",
+      "domain": "sffencebarricade.com",
+      "contactName": "Rick Alvarado",
+      "contactEmail": "rick@sffencebarricade.com",
+      "trustedPhone": "+14155550124",
+      "phoneLastCheckedAt": "2026-09-20"
+    }
+  ],
+  "bankAccounts": [
+    {
+      "key": "bank_stage",
+      "supplierKey": "sup_stage",
+      "bank": "Chase",
+      "last4": "2210",
+      "routingLast4": "9527",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_bayview_staging",
+      "supplierKey": "sup_bayview_staging",
+      "bank": "Chase",
+      "last4": "5629",
+      "routingLast4": "6595",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_gg_truss",
+      "supplierKey": "sup_gg_truss",
+      "bank": "Bank of America",
+      "last4": "4474",
+      "routingLast4": "5529",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_soundwave",
+      "supplierKey": "sup_soundwave",
+      "bank": "Silicon Valley Bank",
+      "last4": "3312",
+      "routingLast4": "5547",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_pacific_pa",
+      "supplierKey": "sup_pacific_pa",
+      "bank": "Chase",
+      "last4": "3928",
+      "routingLast4": "5312",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_bassline",
+      "supplierKey": "sup_bassline",
+      "bank": "Mercury",
+      "last4": "9099",
+      "routingLast4": "7623",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_sfbay_security",
+      "supplierKey": "sup_sfbay_security",
+      "bank": "First Republic",
+      "last4": "2801",
+      "routingLast4": "7063",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_guardian_gate",
+      "supplierKey": "sup_guardian_gate",
+      "bank": "First Republic",
+      "last4": "5879",
+      "routingLast4": "3661",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_perimeter_pro",
+      "supplierKey": "sup_perimeter_pro",
+      "bank": "US Bank",
+      "last4": "9149",
+      "routingLast4": "1548",
+      "status": "retired",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_horizon_artists",
+      "supplierKey": "sup_horizon_artists",
+      "bank": "US Bank",
+      "last4": "8735",
+      "routingLast4": "6514",
+      "status": "retired",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_cascade_talent",
+      "supplierKey": "sup_cascade_talent",
+      "bank": "First Republic",
+      "last4": "4668",
+      "routingLast4": "3163",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_westline_booking",
+      "supplierKey": "sup_westline_booking",
+      "bank": "First Republic",
+      "last4": "6174",
+      "routingLast4": "3846",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_nightowl_agency",
+      "supplierKey": "sup_nightowl_agency",
+      "bank": "Chase",
+      "last4": "4534",
+      "routingLast4": "8844",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_redwood_artists",
+      "supplierKey": "sup_redwood_artists",
+      "bank": "Mercury",
+      "last4": "6467",
+      "routingLast4": "5683",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_mission_tacos",
+      "supplierKey": "sup_mission_tacos",
+      "bank": "Silicon Valley Bank",
+      "last4": "1740",
+      "routingLast4": "1138",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_dolores_catering",
+      "supplierKey": "sup_dolores_catering",
+      "bank": "US Bank",
+      "last4": "5653",
+      "routingLast4": "1230",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_baybites",
+      "supplierKey": "sup_baybites",
+      "bank": "US Bank",
+      "last4": "9180",
+      "routingLast4": "1496",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_sfslice",
+      "supplierKey": "sup_sfslice",
+      "bank": "Bank of America",
+      "last4": "3765",
+      "routingLast4": "6502",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_goldenhour_coffee",
+      "supplierKey": "sup_goldenhour_coffee",
+      "bank": "Wells Fargo",
+      "last4": "6632",
+      "routingLast4": "5768",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_embarcadero_eats",
+      "supplierKey": "sup_embarcadero_eats",
+      "bank": "Wells Fargo",
+      "last4": "7221",
+      "routingLast4": "1613",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_fogcity_ramen",
+      "supplierKey": "sup_fogcity_ramen",
+      "bank": "US Bank",
+      "last4": "5187",
+      "routingLast4": "9635",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_sunset_bbq",
+      "supplierKey": "sup_sunset_bbq",
+      "bank": "Silicon Valley Bank",
+      "last4": "2671",
+      "routingLast4": "5005",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_bayfront_waste",
+      "supplierKey": "sup_bayfront_waste",
+      "bank": "Chase",
+      "last4": "7306",
+      "routingLast4": "9685",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_gg_generators",
+      "supplierKey": "sup_gg_generators",
+      "bank": "Bank of America",
+      "last4": "2518",
+      "routingLast4": "4086",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_sf_fence",
+      "supplierKey": "sup_sf_fence",
+      "bank": "US Bank",
+      "last4": "6560",
+      "routingLast4": "3857",
+      "status": "active",
+      "verifiedBy": "onboarding",
+      "addedAt": "2024-11-05"
+    },
+    {
+      "key": "bank_perimeter_pro_2",
+      "supplierKey": "sup_perimeter_pro",
+      "bank": "US Bank",
+      "last4": "5509",
+      "routingLast4": "8406",
+      "status": "active",
+      "verifiedBy": "call+dev",
+      "addedAt": "2026-09-06"
+    },
+    {
+      "key": "bank_horizon_artists_2",
+      "supplierKey": "sup_horizon_artists",
+      "bank": "Bank of America",
+      "last4": "6621",
+      "routingLast4": "8380",
+      "status": "active",
+      "verifiedBy": "call+dev",
+      "addedAt": "2026-08-11"
+    }
+  ],
+  "bills": [
+    {
+      "key": "bill_4001",
+      "supplierKey": "sup_bayview_staging",
+      "invoiceNo": "4001",
+      "amountCents": 768092,
+      "currency": "USD",
+      "dueDate": "2026-05-17",
+      "receivedAt": "2026-04-26T16:00:00.000Z",
+      "bankAccountKey": "bank_bayview_staging",
+      "status": "Paid",
+      "emailKey": "email_4001",
+      "planted": false
+    },
+    {
+      "key": "bill_4002",
+      "supplierKey": "sup_bayview_staging",
+      "invoiceNo": "4002",
+      "amountCents": 267253,
+      "currency": "USD",
+      "dueDate": "2026-06-29",
+      "receivedAt": "2026-06-08T16:00:00.000Z",
+      "bankAccountKey": "bank_bayview_staging",
+      "status": "Paid",
+      "emailKey": "email_4002",
+      "planted": false
+    },
+    {
+      "key": "bill_4003",
+      "supplierKey": "sup_bayview_staging",
+      "invoiceNo": "4003",
+      "amountCents": 645887,
+      "currency": "USD",
+      "dueDate": "2026-07-16",
+      "receivedAt": "2026-06-25T16:00:00.000Z",
+      "bankAccountKey": "bank_bayview_staging",
+      "status": "Paid",
+      "emailKey": "email_4003",
+      "planted": false
+    },
+    {
+      "key": "bill_4004",
+      "supplierKey": "sup_bayview_staging",
+      "invoiceNo": "4004",
+      "amountCents": 624194,
+      "currency": "USD",
+      "dueDate": "2026-09-03",
+      "receivedAt": "2026-08-13T16:00:00.000Z",
+      "bankAccountKey": "bank_bayview_staging",
+      "status": "Paid",
+      "emailKey": "email_4004",
+      "planted": false
+    },
+    {
+      "key": "bill_4005",
+      "supplierKey": "sup_bayview_staging",
+      "invoiceNo": "4005",
+      "amountCents": 373518,
+      "currency": "USD",
+      "dueDate": "2026-09-20",
+      "receivedAt": "2026-08-30T16:00:00.000Z",
+      "bankAccountKey": "bank_bayview_staging",
+      "status": "Paid",
+      "emailKey": "email_4005",
+      "planted": false
+    },
+    {
+      "key": "bill_4006",
+      "supplierKey": "sup_bayview_staging",
+      "invoiceNo": "4006",
+      "amountCents": 298166,
+      "currency": "USD",
+      "dueDate": "2026-10-31",
+      "receivedAt": "2026-10-10T16:00:00.000Z",
+      "bankAccountKey": "bank_bayview_staging",
+      "status": "Paid",
+      "emailKey": "email_4006",
+      "planted": false
+    },
+    {
+      "key": "bill_4007",
+      "supplierKey": "sup_gg_truss",
+      "invoiceNo": "4007",
+      "amountCents": 397483,
+      "currency": "USD",
+      "dueDate": "2026-06-10",
+      "receivedAt": "2026-05-20T16:00:00.000Z",
+      "bankAccountKey": "bank_gg_truss",
+      "status": "Paid",
+      "emailKey": "email_4007",
+      "planted": false
+    },
+    {
+      "key": "bill_4008",
+      "supplierKey": "sup_gg_truss",
+      "invoiceNo": "4008",
+      "amountCents": 933146,
+      "currency": "USD",
+      "dueDate": "2026-07-05",
+      "receivedAt": "2026-06-14T16:00:00.000Z",
+      "bankAccountKey": "bank_gg_truss",
+      "status": "Paid",
+      "emailKey": "email_4008",
+      "planted": false
+    },
+    {
+      "key": "bill_4009",
+      "supplierKey": "sup_gg_truss",
+      "invoiceNo": "4009",
+      "amountCents": 822962,
+      "currency": "USD",
+      "dueDate": "2026-08-12",
+      "receivedAt": "2026-07-22T16:00:00.000Z",
+      "bankAccountKey": "bank_gg_truss",
+      "status": "Paid",
+      "emailKey": "email_4009",
+      "planted": false
+    },
+    {
+      "key": "bill_4010",
+      "supplierKey": "sup_gg_truss",
+      "invoiceNo": "4010",
+      "amountCents": 368852,
+      "currency": "USD",
+      "dueDate": "2026-09-09",
+      "receivedAt": "2026-08-19T16:00:00.000Z",
+      "bankAccountKey": "bank_gg_truss",
+      "status": "Paid",
+      "emailKey": "email_4010",
+      "planted": false
+    },
+    {
+      "key": "bill_4011",
+      "supplierKey": "sup_gg_truss",
+      "invoiceNo": "4011",
+      "amountCents": 323472,
+      "currency": "USD",
+      "dueDate": "2026-10-09",
+      "receivedAt": "2026-09-18T16:00:00.000Z",
+      "bankAccountKey": "bank_gg_truss",
+      "status": "Paid",
+      "emailKey": "email_4011",
+      "planted": false
+    },
+    {
+      "key": "bill_4012",
+      "supplierKey": "sup_gg_truss",
+      "invoiceNo": "4012",
+      "amountCents": 341559,
+      "currency": "USD",
+      "dueDate": "2026-10-26",
+      "receivedAt": "2026-10-05T16:00:00.000Z",
+      "bankAccountKey": "bank_gg_truss",
+      "status": "Paid",
+      "emailKey": "email_4012",
+      "planted": false
+    },
+    {
+      "key": "bill_4013",
+      "supplierKey": "sup_soundwave",
+      "invoiceNo": "4013",
+      "amountCents": 731965,
+      "currency": "USD",
+      "dueDate": "2026-05-28",
+      "receivedAt": "2026-05-07T16:00:00.000Z",
+      "bankAccountKey": "bank_soundwave",
+      "status": "Paid",
+      "emailKey": "email_4013",
+      "planted": false
+    },
+    {
+      "key": "bill_4014",
+      "supplierKey": "sup_soundwave",
+      "invoiceNo": "4014",
+      "amountCents": 516565,
+      "currency": "USD",
+      "dueDate": "2026-06-11",
+      "receivedAt": "2026-05-21T16:00:00.000Z",
+      "bankAccountKey": "bank_soundwave",
+      "status": "Paid",
+      "emailKey": "email_4014",
+      "planted": false
+    },
+    {
+      "key": "bill_4015",
+      "supplierKey": "sup_soundwave",
+      "invoiceNo": "4015",
+      "amountCents": 147630,
+      "currency": "USD",
+      "dueDate": "2026-07-26",
+      "receivedAt": "2026-07-05T16:00:00.000Z",
+      "bankAccountKey": "bank_soundwave",
+      "status": "Paid",
+      "emailKey": "email_4015",
+      "planted": false
+    },
+    {
+      "key": "bill_4016",
+      "supplierKey": "sup_soundwave",
+      "invoiceNo": "4016",
+      "amountCents": 611439,
+      "currency": "USD",
+      "dueDate": "2026-08-19",
+      "receivedAt": "2026-07-29T16:00:00.000Z",
+      "bankAccountKey": "bank_soundwave",
+      "status": "Paid",
+      "emailKey": "email_4016",
+      "planted": false
+    },
+    {
+      "key": "bill_4017",
+      "supplierKey": "sup_soundwave",
+      "invoiceNo": "4017",
+      "amountCents": 760665,
+      "currency": "USD",
+      "dueDate": "2026-09-12",
+      "receivedAt": "2026-08-22T16:00:00.000Z",
+      "bankAccountKey": "bank_soundwave",
+      "status": "Paid",
+      "emailKey": "email_4017",
+      "planted": false
+    },
+    {
+      "key": "bill_4018",
+      "supplierKey": "sup_soundwave",
+      "invoiceNo": "4018",
+      "amountCents": 628070,
+      "currency": "USD",
+      "dueDate": "2026-09-21",
+      "receivedAt": "2026-08-31T16:00:00.000Z",
+      "bankAccountKey": "bank_soundwave",
+      "status": "Paid",
+      "emailKey": "email_4018",
+      "planted": false
+    },
+    {
+      "key": "bill_4019",
+      "supplierKey": "sup_soundwave",
+      "invoiceNo": "4019",
+      "amountCents": 542050,
+      "currency": "USD",
+      "dueDate": "2026-11-03",
+      "receivedAt": "2026-10-13T16:00:00.000Z",
+      "bankAccountKey": "bank_soundwave",
+      "status": "Paid",
+      "emailKey": "email_4019",
+      "planted": false
+    },
+    {
+      "key": "bill_4020",
+      "supplierKey": "sup_pacific_pa",
+      "invoiceNo": "4020",
+      "amountCents": 401681,
+      "currency": "USD",
+      "dueDate": "2026-06-08",
+      "receivedAt": "2026-05-18T16:00:00.000Z",
+      "bankAccountKey": "bank_pacific_pa",
+      "status": "Paid",
+      "emailKey": "email_4020",
+      "planted": false
+    },
+    {
+      "key": "bill_4021",
+      "supplierKey": "sup_pacific_pa",
+      "invoiceNo": "4021",
+      "amountCents": 327838,
+      "currency": "USD",
+      "dueDate": "2026-06-15",
+      "receivedAt": "2026-05-25T16:00:00.000Z",
+      "bankAccountKey": "bank_pacific_pa",
+      "status": "Paid",
+      "emailKey": "email_4021",
+      "planted": false
+    },
+    {
+      "key": "bill_4022",
+      "supplierKey": "sup_pacific_pa",
+      "invoiceNo": "4022",
+      "amountCents": 168582,
+      "currency": "USD",
+      "dueDate": "2026-07-09",
+      "receivedAt": "2026-06-18T16:00:00.000Z",
+      "bankAccountKey": "bank_pacific_pa",
+      "status": "Paid",
+      "emailKey": "email_4022",
+      "planted": false
+    },
+    {
+      "key": "bill_4023",
+      "supplierKey": "sup_pacific_pa",
+      "invoiceNo": "4023",
+      "amountCents": 427213,
+      "currency": "USD",
+      "dueDate": "2026-08-09",
+      "receivedAt": "2026-07-19T16:00:00.000Z",
+      "bankAccountKey": "bank_pacific_pa",
+      "status": "Paid",
+      "emailKey": "email_4023",
+      "planted": false
+    },
+    {
+      "key": "bill_4024",
+      "supplierKey": "sup_pacific_pa",
+      "invoiceNo": "4024",
+      "amountCents": 500513,
+      "currency": "USD",
+      "dueDate": "2026-09-14",
+      "receivedAt": "2026-08-24T16:00:00.000Z",
+      "bankAccountKey": "bank_pacific_pa",
+      "status": "Paid",
+      "emailKey": "email_4024",
+      "planted": false
+    },
+    {
+      "key": "bill_4025",
+      "supplierKey": "sup_pacific_pa",
+      "invoiceNo": "4025",
+      "amountCents": 184039,
+      "currency": "USD",
+      "dueDate": "2026-09-20",
+      "receivedAt": "2026-08-30T16:00:00.000Z",
+      "bankAccountKey": "bank_pacific_pa",
+      "status": "Paid",
+      "emailKey": "email_4025",
+      "planted": false
+    },
+    {
+      "key": "bill_4026",
+      "supplierKey": "sup_pacific_pa",
+      "invoiceNo": "4026",
+      "amountCents": 201266,
+      "currency": "USD",
+      "dueDate": "2026-11-06",
+      "receivedAt": "2026-10-16T16:00:00.000Z",
+      "bankAccountKey": "bank_pacific_pa",
+      "status": "Paid",
+      "emailKey": "email_4026",
+      "planted": false
+    },
+    {
+      "key": "bill_4027",
+      "supplierKey": "sup_bassline",
+      "invoiceNo": "4027",
+      "amountCents": 560448,
+      "currency": "USD",
+      "dueDate": "2026-06-03",
+      "receivedAt": "2026-05-13T16:00:00.000Z",
+      "bankAccountKey": "bank_bassline",
+      "status": "Paid",
+      "emailKey": "email_4027",
+      "planted": false
+    },
+    {
+      "key": "bill_4028",
+      "supplierKey": "sup_bassline",
+      "invoiceNo": "4028",
+      "amountCents": 237288,
+      "currency": "USD",
+      "dueDate": "2026-06-26",
+      "receivedAt": "2026-06-05T16:00:00.000Z",
+      "bankAccountKey": "bank_bassline",
+      "status": "Paid",
+      "emailKey": "email_4028",
+      "planted": false
+    },
+    {
+      "key": "bill_4029",
+      "supplierKey": "sup_bassline",
+      "invoiceNo": "4029",
+      "amountCents": 598039,
+      "currency": "USD",
+      "dueDate": "2026-07-08",
+      "receivedAt": "2026-06-17T16:00:00.000Z",
+      "bankAccountKey": "bank_bassline",
+      "status": "Paid",
+      "emailKey": "email_4029",
+      "planted": false
+    },
+    {
+      "key": "bill_4030",
+      "supplierKey": "sup_bassline",
+      "invoiceNo": "4030",
+      "amountCents": 622497,
+      "currency": "USD",
+      "dueDate": "2026-08-07",
+      "receivedAt": "2026-07-17T16:00:00.000Z",
+      "bankAccountKey": "bank_bassline",
+      "status": "Paid",
+      "emailKey": "email_4030",
+      "planted": false
+    },
+    {
+      "key": "bill_4031",
+      "supplierKey": "sup_bassline",
+      "invoiceNo": "4031",
+      "amountCents": 712786,
+      "currency": "USD",
+      "dueDate": "2026-08-28",
+      "receivedAt": "2026-08-07T16:00:00.000Z",
+      "bankAccountKey": "bank_bassline",
+      "status": "Paid",
+      "emailKey": "email_4031",
+      "planted": false
+    },
+    {
+      "key": "bill_4032",
+      "supplierKey": "sup_bassline",
+      "invoiceNo": "4032",
+      "amountCents": 488078,
+      "currency": "USD",
+      "dueDate": "2026-09-24",
+      "receivedAt": "2026-09-03T16:00:00.000Z",
+      "bankAccountKey": "bank_bassline",
+      "status": "Paid",
+      "emailKey": "email_4032",
+      "planted": false
+    },
+    {
+      "key": "bill_4033",
+      "supplierKey": "sup_bassline",
+      "invoiceNo": "4033",
+      "amountCents": 715098,
+      "currency": "USD",
+      "dueDate": "2026-10-20",
+      "receivedAt": "2026-09-29T16:00:00.000Z",
+      "bankAccountKey": "bank_bassline",
+      "status": "Paid",
+      "emailKey": "email_4033",
+      "planted": false
+    },
+    {
+      "key": "bill_4034",
+      "supplierKey": "sup_sfbay_security",
+      "invoiceNo": "4034",
+      "amountCents": 374662,
+      "currency": "USD",
+      "dueDate": "2026-05-21",
+      "receivedAt": "2026-04-30T16:00:00.000Z",
+      "bankAccountKey": "bank_sfbay_security",
+      "status": "Paid",
+      "emailKey": "email_4034",
+      "planted": false
+    },
+    {
+      "key": "bill_4035",
+      "supplierKey": "sup_sfbay_security",
+      "invoiceNo": "4035",
+      "amountCents": 249908,
+      "currency": "USD",
+      "dueDate": "2026-06-27",
+      "receivedAt": "2026-06-06T16:00:00.000Z",
+      "bankAccountKey": "bank_sfbay_security",
+      "status": "Paid",
+      "emailKey": "email_4035",
+      "planted": false
+    },
+    {
+      "key": "bill_4036",
+      "supplierKey": "sup_sfbay_security",
+      "invoiceNo": "4036",
+      "amountCents": 278905,
+      "currency": "USD",
+      "dueDate": "2026-07-25",
+      "receivedAt": "2026-07-04T16:00:00.000Z",
+      "bankAccountKey": "bank_sfbay_security",
+      "status": "Paid",
+      "emailKey": "email_4036",
+      "planted": false
+    },
+    {
+      "key": "bill_4037",
+      "supplierKey": "sup_sfbay_security",
+      "invoiceNo": "4037",
+      "amountCents": 518368,
+      "currency": "USD",
+      "dueDate": "2026-08-29",
+      "receivedAt": "2026-08-08T16:00:00.000Z",
+      "bankAccountKey": "bank_sfbay_security",
+      "status": "Paid",
+      "emailKey": "email_4037",
+      "planted": false
+    },
+    {
+      "key": "bill_4038",
+      "supplierKey": "sup_sfbay_security",
+      "invoiceNo": "4038",
+      "amountCents": 276799,
+      "currency": "USD",
+      "dueDate": "2026-10-05",
+      "receivedAt": "2026-09-14T16:00:00.000Z",
+      "bankAccountKey": "bank_sfbay_security",
+      "status": "Paid",
+      "emailKey": "email_4038",
+      "planted": false
+    },
+    {
+      "key": "bill_4039",
+      "supplierKey": "sup_sfbay_security",
+      "invoiceNo": "4039",
+      "amountCents": 343315,
+      "currency": "USD",
+      "dueDate": "2026-10-18",
+      "receivedAt": "2026-09-27T16:00:00.000Z",
+      "bankAccountKey": "bank_sfbay_security",
+      "status": "Paid",
+      "emailKey": "email_4039",
+      "planted": false
+    },
+    {
+      "key": "bill_4040",
+      "supplierKey": "sup_guardian_gate",
+      "invoiceNo": "4040",
+      "amountCents": 161833,
+      "currency": "USD",
+      "dueDate": "2026-06-05",
+      "receivedAt": "2026-05-15T16:00:00.000Z",
+      "bankAccountKey": "bank_guardian_gate",
+      "status": "Paid",
+      "emailKey": "email_4040",
+      "planted": false
+    },
+    {
+      "key": "bill_4041",
+      "supplierKey": "sup_guardian_gate",
+      "invoiceNo": "4041",
+      "amountCents": 119490,
+      "currency": "USD",
+      "dueDate": "2026-07-06",
+      "receivedAt": "2026-06-15T16:00:00.000Z",
+      "bankAccountKey": "bank_guardian_gate",
+      "status": "Paid",
+      "emailKey": "email_4041",
+      "planted": false
+    },
+    {
+      "key": "bill_4042",
+      "supplierKey": "sup_guardian_gate",
+      "invoiceNo": "4042",
+      "amountCents": 257220,
+      "currency": "USD",
+      "dueDate": "2026-08-10",
+      "receivedAt": "2026-07-20T16:00:00.000Z",
+      "bankAccountKey": "bank_guardian_gate",
+      "status": "Paid",
+      "emailKey": "email_4042",
+      "planted": false
+    },
+    {
+      "key": "bill_4043",
+      "supplierKey": "sup_guardian_gate",
+      "invoiceNo": "4043",
+      "amountCents": 255672,
+      "currency": "USD",
+      "dueDate": "2026-09-04",
+      "receivedAt": "2026-08-14T16:00:00.000Z",
+      "bankAccountKey": "bank_guardian_gate",
+      "status": "Paid",
+      "emailKey": "email_4043",
+      "planted": false
+    },
+    {
+      "key": "bill_4044",
+      "supplierKey": "sup_guardian_gate",
+      "invoiceNo": "4044",
+      "amountCents": 420871,
+      "currency": "USD",
+      "dueDate": "2026-09-26",
+      "receivedAt": "2026-09-05T16:00:00.000Z",
+      "bankAccountKey": "bank_guardian_gate",
+      "status": "Paid",
+      "emailKey": "email_4044",
+      "planted": false
+    },
+    {
+      "key": "bill_4045",
+      "supplierKey": "sup_guardian_gate",
+      "invoiceNo": "4045",
+      "amountCents": 382816,
+      "currency": "USD",
+      "dueDate": "2026-10-29",
+      "receivedAt": "2026-10-08T16:00:00.000Z",
+      "bankAccountKey": "bank_guardian_gate",
+      "status": "Paid",
+      "emailKey": "email_4045",
+      "planted": false
+    },
+    {
+      "key": "bill_4046",
+      "supplierKey": "sup_perimeter_pro",
+      "invoiceNo": "4046",
+      "amountCents": 444719,
+      "currency": "USD",
+      "dueDate": "2026-05-28",
+      "receivedAt": "2026-05-07T16:00:00.000Z",
+      "bankAccountKey": "bank_perimeter_pro",
+      "status": "Paid",
+      "emailKey": "email_4046",
+      "planted": false
+    },
+    {
+      "key": "bill_4047",
+      "supplierKey": "sup_perimeter_pro",
+      "invoiceNo": "4047",
+      "amountCents": 92304,
+      "currency": "USD",
+      "dueDate": "2026-06-28",
+      "receivedAt": "2026-06-07T16:00:00.000Z",
+      "bankAccountKey": "bank_perimeter_pro",
+      "status": "Paid",
+      "emailKey": "email_4047",
+      "planted": false
+    },
+    {
+      "key": "bill_4048",
+      "supplierKey": "sup_perimeter_pro",
+      "invoiceNo": "4048",
+      "amountCents": 310359,
+      "currency": "USD",
+      "dueDate": "2026-07-31",
+      "receivedAt": "2026-07-10T16:00:00.000Z",
+      "bankAccountKey": "bank_perimeter_pro",
+      "status": "Paid",
+      "emailKey": "email_4048",
+      "planted": false
+    },
+    {
+      "key": "bill_4049",
+      "supplierKey": "sup_perimeter_pro",
+      "invoiceNo": "4049",
+      "amountCents": 223584,
+      "currency": "USD",
+      "dueDate": "2026-08-27",
+      "receivedAt": "2026-08-06T16:00:00.000Z",
+      "bankAccountKey": "bank_perimeter_pro",
+      "status": "Paid",
+      "emailKey": "email_4049",
+      "planted": false
+    },
+    {
+      "key": "bill_4050",
+      "supplierKey": "sup_perimeter_pro",
+      "invoiceNo": "4050",
+      "amountCents": 615654,
+      "currency": "USD",
+      "dueDate": "2026-09-29",
+      "receivedAt": "2026-09-08T16:00:00.000Z",
+      "bankAccountKey": "bank_perimeter_pro",
+      "status": "Paid",
+      "emailKey": "email_4050",
+      "planted": false
+    },
+    {
+      "key": "bill_4051",
+      "supplierKey": "sup_perimeter_pro",
+      "invoiceNo": "4051",
+      "amountCents": 523349,
+      "currency": "USD",
+      "dueDate": "2026-10-24",
+      "receivedAt": "2026-10-03T16:00:00.000Z",
+      "bankAccountKey": "bank_perimeter_pro",
+      "status": "Paid",
+      "emailKey": "email_4051",
+      "planted": false
+    },
+    {
+      "key": "bill_4052",
+      "supplierKey": "sup_horizon_artists",
+      "invoiceNo": "4052",
+      "amountCents": 909726,
+      "currency": "USD",
+      "dueDate": "2026-05-17",
+      "receivedAt": "2026-04-26T16:00:00.000Z",
+      "bankAccountKey": "bank_horizon_artists",
+      "status": "Paid",
+      "emailKey": "email_4052",
+      "planted": false
+    },
+    {
+      "key": "bill_4053",
+      "supplierKey": "sup_horizon_artists",
+      "invoiceNo": "4053",
+      "amountCents": 583457,
+      "currency": "USD",
+      "dueDate": "2026-07-26",
+      "receivedAt": "2026-07-05T16:00:00.000Z",
+      "bankAccountKey": "bank_horizon_artists",
+      "status": "Paid",
+      "emailKey": "email_4053",
+      "planted": false
+    },
+    {
+      "key": "bill_4054",
+      "supplierKey": "sup_horizon_artists",
+      "invoiceNo": "4054",
+      "amountCents": 512989,
+      "currency": "USD",
+      "dueDate": "2026-08-23",
+      "receivedAt": "2026-08-02T16:00:00.000Z",
+      "bankAccountKey": "bank_horizon_artists",
+      "status": "Paid",
+      "emailKey": "email_4054",
+      "planted": false
+    },
+    {
+      "key": "bill_4055",
+      "supplierKey": "sup_horizon_artists",
+      "invoiceNo": "4055",
+      "amountCents": 703416,
+      "currency": "USD",
+      "dueDate": "2026-09-30",
+      "receivedAt": "2026-09-09T16:00:00.000Z",
+      "bankAccountKey": "bank_horizon_artists",
+      "status": "Paid",
+      "emailKey": "email_4055",
+      "planted": false
+    },
+    {
+      "key": "bill_4056",
+      "supplierKey": "sup_cascade_talent",
+      "invoiceNo": "4056",
+      "amountCents": 1125830,
+      "currency": "USD",
+      "dueDate": "2026-06-02",
+      "receivedAt": "2026-05-12T16:00:00.000Z",
+      "bankAccountKey": "bank_cascade_talent",
+      "status": "Needs you",
+      "emailKey": "email_4056",
+      "planted": false
+    },
+    {
+      "key": "bill_4057",
+      "supplierKey": "sup_cascade_talent",
+      "invoiceNo": "4057",
+      "amountCents": 295470,
+      "currency": "USD",
+      "dueDate": "2026-07-11",
+      "receivedAt": "2026-06-20T16:00:00.000Z",
+      "bankAccountKey": "bank_cascade_talent",
+      "status": "Paid",
+      "emailKey": "email_4057",
+      "planted": false
+    },
+    {
+      "key": "bill_4058",
+      "supplierKey": "sup_cascade_talent",
+      "invoiceNo": "4058",
+      "amountCents": 772180,
+      "currency": "USD",
+      "dueDate": "2026-09-17",
+      "receivedAt": "2026-08-27T16:00:00.000Z",
+      "bankAccountKey": "bank_cascade_talent",
+      "status": "Paid",
+      "emailKey": "email_4058",
+      "planted": false
+    },
+    {
+      "key": "bill_4059",
+      "supplierKey": "sup_cascade_talent",
+      "invoiceNo": "4059",
+      "amountCents": 675544,
+      "currency": "USD",
+      "dueDate": "2026-10-23",
+      "receivedAt": "2026-10-02T16:00:00.000Z",
+      "bankAccountKey": "bank_cascade_talent",
+      "status": "Paid",
+      "emailKey": "email_4059",
+      "planted": false
+    },
+    {
+      "key": "bill_4060",
+      "supplierKey": "sup_westline_booking",
+      "invoiceNo": "4060",
+      "amountCents": 910005,
+      "currency": "USD",
+      "dueDate": "2026-05-31",
+      "receivedAt": "2026-05-10T16:00:00.000Z",
+      "bankAccountKey": "bank_westline_booking",
+      "status": "Paid",
+      "emailKey": "email_4060",
+      "planted": false
+    },
+    {
+      "key": "bill_4061",
+      "supplierKey": "sup_westline_booking",
+      "invoiceNo": "4061",
+      "amountCents": 1064536,
+      "currency": "USD",
+      "dueDate": "2026-08-04",
+      "receivedAt": "2026-07-14T16:00:00.000Z",
+      "bankAccountKey": "bank_westline_booking",
+      "status": "Needs you",
+      "emailKey": "email_4061",
+      "planted": false
+    },
+    {
+      "key": "bill_4062",
+      "supplierKey": "sup_westline_booking",
+      "invoiceNo": "4062",
+      "amountCents": 880975,
+      "currency": "USD",
+      "dueDate": "2026-08-23",
+      "receivedAt": "2026-08-02T16:00:00.000Z",
+      "bankAccountKey": "bank_westline_booking",
+      "status": "Paid",
+      "emailKey": "email_4062",
+      "planted": false
+    },
+    {
+      "key": "bill_4063",
+      "supplierKey": "sup_westline_booking",
+      "invoiceNo": "4063",
+      "amountCents": 323937,
+      "currency": "USD",
+      "dueDate": "2026-10-07",
+      "receivedAt": "2026-09-16T16:00:00.000Z",
+      "bankAccountKey": "bank_westline_booking",
+      "status": "Paid",
+      "emailKey": "email_4063",
+      "planted": false
+    },
+    {
+      "key": "bill_4064",
+      "supplierKey": "sup_nightowl_agency",
+      "invoiceNo": "4064",
+      "amountCents": 426446,
+      "currency": "USD",
+      "dueDate": "2026-06-02",
+      "receivedAt": "2026-05-12T16:00:00.000Z",
+      "bankAccountKey": "bank_nightowl_agency",
+      "status": "Paid",
+      "emailKey": "email_4064",
+      "planted": false
+    },
+    {
+      "key": "bill_4065",
+      "supplierKey": "sup_nightowl_agency",
+      "invoiceNo": "4065",
+      "amountCents": 823616,
+      "currency": "USD",
+      "dueDate": "2026-07-05",
+      "receivedAt": "2026-06-14T16:00:00.000Z",
+      "bankAccountKey": "bank_nightowl_agency",
+      "status": "Paid",
+      "emailKey": "email_4065",
+      "planted": false
+    },
+    {
+      "key": "bill_4066",
+      "supplierKey": "sup_nightowl_agency",
+      "invoiceNo": "4066",
+      "amountCents": 369258,
+      "currency": "USD",
+      "dueDate": "2026-08-31",
+      "receivedAt": "2026-08-10T16:00:00.000Z",
+      "bankAccountKey": "bank_nightowl_agency",
+      "status": "Paid",
+      "emailKey": "email_4066",
+      "planted": false
+    },
+    {
+      "key": "bill_4067",
+      "supplierKey": "sup_nightowl_agency",
+      "invoiceNo": "4067",
+      "amountCents": 700862,
+      "currency": "USD",
+      "dueDate": "2026-10-02",
+      "receivedAt": "2026-09-11T16:00:00.000Z",
+      "bankAccountKey": "bank_nightowl_agency",
+      "status": "Paid",
+      "emailKey": "email_4067",
+      "planted": false
+    },
+    {
+      "key": "bill_4068",
+      "supplierKey": "sup_redwood_artists",
+      "invoiceNo": "4068",
+      "amountCents": 909755,
+      "currency": "USD",
+      "dueDate": "2026-06-06",
+      "receivedAt": "2026-05-16T16:00:00.000Z",
+      "bankAccountKey": "bank_redwood_artists",
+      "status": "Paid",
+      "emailKey": "email_4068",
+      "planted": false
+    },
+    {
+      "key": "bill_4069",
+      "supplierKey": "sup_redwood_artists",
+      "invoiceNo": "4069",
+      "amountCents": 400225,
+      "currency": "USD",
+      "dueDate": "2026-08-11",
+      "receivedAt": "2026-07-21T16:00:00.000Z",
+      "bankAccountKey": "bank_redwood_artists",
+      "status": "Paid",
+      "emailKey": "email_4069",
+      "planted": false
+    },
+    {
+      "key": "bill_4070",
+      "supplierKey": "sup_redwood_artists",
+      "invoiceNo": "4070",
+      "amountCents": 684605,
+      "currency": "USD",
+      "dueDate": "2026-08-23",
+      "receivedAt": "2026-08-02T16:00:00.000Z",
+      "bankAccountKey": "bank_redwood_artists",
+      "status": "Paid",
+      "emailKey": "email_4070",
+      "planted": false
+    },
+    {
+      "key": "bill_4071",
+      "supplierKey": "sup_redwood_artists",
+      "invoiceNo": "4071",
+      "amountCents": 484339,
+      "currency": "USD",
+      "dueDate": "2026-10-21",
+      "receivedAt": "2026-09-30T16:00:00.000Z",
+      "bankAccountKey": "bank_redwood_artists",
+      "status": "Paid",
+      "emailKey": "email_4071",
+      "planted": false
+    },
+    {
+      "key": "bill_4072",
+      "supplierKey": "sup_mission_tacos",
+      "invoiceNo": "4072",
+      "amountCents": 212258,
+      "currency": "USD",
+      "dueDate": "2026-06-07",
+      "receivedAt": "2026-05-17T16:00:00.000Z",
+      "bankAccountKey": "bank_mission_tacos",
+      "status": "Paid",
+      "emailKey": "email_4072",
+      "planted": false
+    },
+    {
+      "key": "bill_4073",
+      "supplierKey": "sup_mission_tacos",
+      "invoiceNo": "4073",
+      "amountCents": 237228,
+      "currency": "USD",
+      "dueDate": "2026-07-07",
+      "receivedAt": "2026-06-16T16:00:00.000Z",
+      "bankAccountKey": "bank_mission_tacos",
+      "status": "Paid",
+      "emailKey": "email_4073",
+      "planted": false
+    },
+    {
+      "key": "bill_4074",
+      "supplierKey": "sup_mission_tacos",
+      "invoiceNo": "4074",
+      "amountCents": 237767,
+      "currency": "USD",
+      "dueDate": "2026-08-13",
+      "receivedAt": "2026-07-23T16:00:00.000Z",
+      "bankAccountKey": "bank_mission_tacos",
+      "status": "Paid",
+      "emailKey": "email_4074",
+      "planted": false
+    },
+    {
+      "key": "bill_4075",
+      "supplierKey": "sup_mission_tacos",
+      "invoiceNo": "4075",
+      "amountCents": 304699,
+      "currency": "USD",
+      "dueDate": "2026-10-02",
+      "receivedAt": "2026-09-11T16:00:00.000Z",
+      "bankAccountKey": "bank_mission_tacos",
+      "status": "Paid",
+      "emailKey": "email_4075",
+      "planted": false
+    },
+    {
+      "key": "bill_4076",
+      "supplierKey": "sup_mission_tacos",
+      "invoiceNo": "4076",
+      "amountCents": 242493,
+      "currency": "USD",
+      "dueDate": "2026-10-10",
+      "receivedAt": "2026-09-19T16:00:00.000Z",
+      "bankAccountKey": "bank_mission_tacos",
+      "status": "Paid",
+      "emailKey": "email_4076",
+      "planted": false
+    },
+    {
+      "key": "bill_4077",
+      "supplierKey": "sup_dolores_catering",
+      "invoiceNo": "4077",
+      "amountCents": 206815,
+      "currency": "USD",
+      "dueDate": "2026-06-13",
+      "receivedAt": "2026-05-23T16:00:00.000Z",
+      "bankAccountKey": "bank_dolores_catering",
+      "status": "Paid",
+      "emailKey": "email_4077",
+      "planted": false
+    },
+    {
+      "key": "bill_4078",
+      "supplierKey": "sup_dolores_catering",
+      "invoiceNo": "4078",
+      "amountCents": 286325,
+      "currency": "USD",
+      "dueDate": "2026-07-14",
+      "receivedAt": "2026-06-23T16:00:00.000Z",
+      "bankAccountKey": "bank_dolores_catering",
+      "status": "Paid",
+      "emailKey": "email_4078",
+      "planted": false
+    },
+    {
+      "key": "bill_4079",
+      "supplierKey": "sup_dolores_catering",
+      "invoiceNo": "4079",
+      "amountCents": 70527,
+      "currency": "USD",
+      "dueDate": "2026-08-31",
+      "receivedAt": "2026-08-10T16:00:00.000Z",
+      "bankAccountKey": "bank_dolores_catering",
+      "status": "Paid",
+      "emailKey": "email_4079",
+      "planted": false
+    },
+    {
+      "key": "bill_4080",
+      "supplierKey": "sup_dolores_catering",
+      "invoiceNo": "4080",
+      "amountCents": 34854,
+      "currency": "USD",
+      "dueDate": "2026-09-07",
+      "receivedAt": "2026-08-17T16:00:00.000Z",
+      "bankAccountKey": "bank_dolores_catering",
+      "status": "Paid",
+      "emailKey": "email_4080",
+      "planted": false
+    },
+    {
+      "key": "bill_4081",
+      "supplierKey": "sup_dolores_catering",
+      "invoiceNo": "4081",
+      "amountCents": 94652,
+      "currency": "USD",
+      "dueDate": "2026-10-11",
+      "receivedAt": "2026-09-20T16:00:00.000Z",
+      "bankAccountKey": "bank_dolores_catering",
+      "status": "Paid",
+      "emailKey": "email_4081",
+      "planted": false
+    },
+    {
+      "key": "bill_4082",
+      "supplierKey": "sup_baybites",
+      "invoiceNo": "4082",
+      "amountCents": 108549,
+      "currency": "USD",
+      "dueDate": "2026-06-06",
+      "receivedAt": "2026-05-16T16:00:00.000Z",
+      "bankAccountKey": "bank_baybites",
+      "status": "Paid",
+      "emailKey": "email_4082",
+      "planted": false
+    },
+    {
+      "key": "bill_4083",
+      "supplierKey": "sup_baybites",
+      "invoiceNo": "4083",
+      "amountCents": 104648,
+      "currency": "USD",
+      "dueDate": "2026-07-05",
+      "receivedAt": "2026-06-14T16:00:00.000Z",
+      "bankAccountKey": "bank_baybites",
+      "status": "Paid",
+      "emailKey": "email_4083",
+      "planted": false
+    },
+    {
+      "key": "bill_4084",
+      "supplierKey": "sup_baybites",
+      "invoiceNo": "4084",
+      "amountCents": 160796,
+      "currency": "USD",
+      "dueDate": "2026-08-17",
+      "receivedAt": "2026-07-27T16:00:00.000Z",
+      "bankAccountKey": "bank_baybites",
+      "status": "Paid",
+      "emailKey": "email_4084",
+      "planted": false
+    },
+    {
+      "key": "bill_4085",
+      "supplierKey": "sup_baybites",
+      "invoiceNo": "4085",
+      "amountCents": 234151,
+      "currency": "USD",
+      "dueDate": "2026-09-07",
+      "receivedAt": "2026-08-17T16:00:00.000Z",
+      "bankAccountKey": "bank_baybites",
+      "status": "Paid",
+      "emailKey": "email_4085",
+      "planted": false
+    },
+    {
+      "key": "bill_4086",
+      "supplierKey": "sup_baybites",
+      "invoiceNo": "4086",
+      "amountCents": 279613,
+      "currency": "USD",
+      "dueDate": "2026-11-03",
+      "receivedAt": "2026-10-13T16:00:00.000Z",
+      "bankAccountKey": "bank_baybites",
+      "status": "Paid",
+      "emailKey": "email_4086",
+      "planted": false
+    },
+    {
+      "key": "bill_4087",
+      "supplierKey": "sup_sfslice",
+      "invoiceNo": "4087",
+      "amountCents": 172204,
+      "currency": "USD",
+      "dueDate": "2026-06-13",
+      "receivedAt": "2026-05-23T16:00:00.000Z",
+      "bankAccountKey": "bank_sfslice",
+      "status": "Paid",
+      "emailKey": "email_4087",
+      "planted": false
+    },
+    {
+      "key": "bill_4088",
+      "supplierKey": "sup_sfslice",
+      "invoiceNo": "4088",
+      "amountCents": 169882,
+      "currency": "USD",
+      "dueDate": "2026-07-18",
+      "receivedAt": "2026-06-27T16:00:00.000Z",
+      "bankAccountKey": "bank_sfslice",
+      "status": "Paid",
+      "emailKey": "email_4088",
+      "planted": false
+    },
+    {
+      "key": "bill_4089",
+      "supplierKey": "sup_sfslice",
+      "invoiceNo": "4089",
+      "amountCents": 179921,
+      "currency": "USD",
+      "dueDate": "2026-08-10",
+      "receivedAt": "2026-07-20T16:00:00.000Z",
+      "bankAccountKey": "bank_sfslice",
+      "status": "Paid",
+      "emailKey": "email_4089",
+      "planted": false
+    },
+    {
+      "key": "bill_4090",
+      "supplierKey": "sup_sfslice",
+      "invoiceNo": "4090",
+      "amountCents": 54999,
+      "currency": "USD",
+      "dueDate": "2026-09-18",
+      "receivedAt": "2026-08-28T16:00:00.000Z",
+      "bankAccountKey": "bank_sfslice",
+      "status": "Paid",
+      "emailKey": "email_4090",
+      "planted": false
+    },
+    {
+      "key": "bill_4091",
+      "supplierKey": "sup_sfslice",
+      "invoiceNo": "4091",
+      "amountCents": 54087,
+      "currency": "USD",
+      "dueDate": "2026-10-15",
+      "receivedAt": "2026-09-24T16:00:00.000Z",
+      "bankAccountKey": "bank_sfslice",
+      "status": "Paid",
+      "emailKey": "email_4091",
+      "planted": false
+    },
+    {
+      "key": "bill_4092",
+      "supplierKey": "sup_goldenhour_coffee",
+      "invoiceNo": "4092",
+      "amountCents": 294994,
+      "currency": "USD",
+      "dueDate": "2026-05-29",
+      "receivedAt": "2026-05-08T16:00:00.000Z",
+      "bankAccountKey": "bank_goldenhour_coffee",
+      "status": "Paid",
+      "emailKey": "email_4092",
+      "planted": false
+    },
+    {
+      "key": "bill_4093",
+      "supplierKey": "sup_goldenhour_coffee",
+      "invoiceNo": "4093",
+      "amountCents": 273330,
+      "currency": "USD",
+      "dueDate": "2026-07-16",
+      "receivedAt": "2026-06-25T16:00:00.000Z",
+      "bankAccountKey": "bank_goldenhour_coffee",
+      "status": "Paid",
+      "emailKey": "email_4093",
+      "planted": false
+    },
+    {
+      "key": "bill_4094",
+      "supplierKey": "sup_goldenhour_coffee",
+      "invoiceNo": "4094",
+      "amountCents": 72958,
+      "currency": "USD",
+      "dueDate": "2026-08-21",
+      "receivedAt": "2026-07-31T16:00:00.000Z",
+      "bankAccountKey": "bank_goldenhour_coffee",
+      "status": "Paid",
+      "emailKey": "email_4094",
+      "planted": false
+    },
+    {
+      "key": "bill_4095",
+      "supplierKey": "sup_goldenhour_coffee",
+      "invoiceNo": "4095",
+      "amountCents": 172604,
+      "currency": "USD",
+      "dueDate": "2026-09-16",
+      "receivedAt": "2026-08-26T16:00:00.000Z",
+      "bankAccountKey": "bank_goldenhour_coffee",
+      "status": "Paid",
+      "emailKey": "email_4095",
+      "planted": false
+    },
+    {
+      "key": "bill_4096",
+      "supplierKey": "sup_goldenhour_coffee",
+      "invoiceNo": "4096",
+      "amountCents": 211832,
+      "currency": "USD",
+      "dueDate": "2026-11-09",
+      "receivedAt": "2026-10-19T16:00:00.000Z",
+      "bankAccountKey": "bank_goldenhour_coffee",
+      "status": "Scheduled",
+      "emailKey": "email_4096",
+      "planted": false
+    },
+    {
+      "key": "bill_4097",
+      "supplierKey": "sup_embarcadero_eats",
+      "invoiceNo": "4097",
+      "amountCents": 27952,
+      "currency": "USD",
+      "dueDate": "2026-05-30",
+      "receivedAt": "2026-05-09T16:00:00.000Z",
+      "bankAccountKey": "bank_embarcadero_eats",
+      "status": "Paid",
+      "emailKey": "email_4097",
+      "planted": false
+    },
+    {
+      "key": "bill_4098",
+      "supplierKey": "sup_embarcadero_eats",
+      "invoiceNo": "4098",
+      "amountCents": 251290,
+      "currency": "USD",
+      "dueDate": "2026-07-15",
+      "receivedAt": "2026-06-24T16:00:00.000Z",
+      "bankAccountKey": "bank_embarcadero_eats",
+      "status": "Paid",
+      "emailKey": "email_4098",
+      "planted": false
+    },
+    {
+      "key": "bill_4099",
+      "supplierKey": "sup_embarcadero_eats",
+      "invoiceNo": "4099",
+      "amountCents": 207756,
+      "currency": "USD",
+      "dueDate": "2026-08-03",
+      "receivedAt": "2026-07-13T16:00:00.000Z",
+      "bankAccountKey": "bank_embarcadero_eats",
+      "status": "Paid",
+      "emailKey": "email_4099",
+      "planted": false
+    },
+    {
+      "key": "bill_4100",
+      "supplierKey": "sup_embarcadero_eats",
+      "invoiceNo": "4100",
+      "amountCents": 190716,
+      "currency": "USD",
+      "dueDate": "2026-10-02",
+      "receivedAt": "2026-09-11T16:00:00.000Z",
+      "bankAccountKey": "bank_embarcadero_eats",
+      "status": "Paid",
+      "emailKey": "email_4100",
+      "planted": false
+    },
+    {
+      "key": "bill_4101",
+      "supplierKey": "sup_embarcadero_eats",
+      "invoiceNo": "4101",
+      "amountCents": 199391,
+      "currency": "USD",
+      "dueDate": "2026-10-21",
+      "receivedAt": "2026-09-30T16:00:00.000Z",
+      "bankAccountKey": "bank_embarcadero_eats",
+      "status": "Paid",
+      "emailKey": "email_4101",
+      "planted": false
+    },
+    {
+      "key": "bill_4102",
+      "supplierKey": "sup_fogcity_ramen",
+      "invoiceNo": "4102",
+      "amountCents": 313086,
+      "currency": "USD",
+      "dueDate": "2026-06-14",
+      "receivedAt": "2026-05-24T16:00:00.000Z",
+      "bankAccountKey": "bank_fogcity_ramen",
+      "status": "Paid",
+      "emailKey": "email_4102",
+      "planted": false
+    },
+    {
+      "key": "bill_4103",
+      "supplierKey": "sup_fogcity_ramen",
+      "invoiceNo": "4103",
+      "amountCents": 119047,
+      "currency": "USD",
+      "dueDate": "2026-06-29",
+      "receivedAt": "2026-06-08T16:00:00.000Z",
+      "bankAccountKey": "bank_fogcity_ramen",
+      "status": "Paid",
+      "emailKey": "email_4103",
+      "planted": false
+    },
+    {
+      "key": "bill_4104",
+      "supplierKey": "sup_fogcity_ramen",
+      "invoiceNo": "4104",
+      "amountCents": 212950,
+      "currency": "USD",
+      "dueDate": "2026-08-26",
+      "receivedAt": "2026-08-05T16:00:00.000Z",
+      "bankAccountKey": "bank_fogcity_ramen",
+      "status": "Paid",
+      "emailKey": "email_4104",
+      "planted": false
+    },
+    {
+      "key": "bill_4105",
+      "supplierKey": "sup_fogcity_ramen",
+      "invoiceNo": "4105",
+      "amountCents": 30122,
+      "currency": "USD",
+      "dueDate": "2026-09-09",
+      "receivedAt": "2026-08-19T16:00:00.000Z",
+      "bankAccountKey": "bank_fogcity_ramen",
+      "status": "Paid",
+      "emailKey": "email_4105",
+      "planted": false
+    },
+    {
+      "key": "bill_4106",
+      "supplierKey": "sup_fogcity_ramen",
+      "invoiceNo": "4106",
+      "amountCents": 144522,
+      "currency": "USD",
+      "dueDate": "2026-11-05",
+      "receivedAt": "2026-10-15T16:00:00.000Z",
+      "bankAccountKey": "bank_fogcity_ramen",
+      "status": "Paid",
+      "emailKey": "email_4106",
+      "planted": false
+    },
+    {
+      "key": "bill_4107",
+      "supplierKey": "sup_sunset_bbq",
+      "invoiceNo": "4107",
+      "amountCents": 37000,
+      "currency": "USD",
+      "dueDate": "2026-05-23",
+      "receivedAt": "2026-05-02T16:00:00.000Z",
+      "bankAccountKey": "bank_sunset_bbq",
+      "status": "Paid",
+      "emailKey": "email_4107",
+      "planted": false
+    },
+    {
+      "key": "bill_4108",
+      "supplierKey": "sup_sunset_bbq",
+      "invoiceNo": "4108",
+      "amountCents": 310483,
+      "currency": "USD",
+      "dueDate": "2026-06-29",
+      "receivedAt": "2026-06-08T16:00:00.000Z",
+      "bankAccountKey": "bank_sunset_bbq",
+      "status": "Paid",
+      "emailKey": "email_4108",
+      "planted": false
+    },
+    {
+      "key": "bill_4109",
+      "supplierKey": "sup_sunset_bbq",
+      "invoiceNo": "4109",
+      "amountCents": 223517,
+      "currency": "USD",
+      "dueDate": "2026-08-13",
+      "receivedAt": "2026-07-23T16:00:00.000Z",
+      "bankAccountKey": "bank_sunset_bbq",
+      "status": "Paid",
+      "emailKey": "email_4109",
+      "planted": false
+    },
+    {
+      "key": "bill_4110",
+      "supplierKey": "sup_sunset_bbq",
+      "invoiceNo": "4110",
+      "amountCents": 25070,
+      "currency": "USD",
+      "dueDate": "2026-09-05",
+      "receivedAt": "2026-08-15T16:00:00.000Z",
+      "bankAccountKey": "bank_sunset_bbq",
+      "status": "Paid",
+      "emailKey": "email_4110",
+      "planted": false
+    },
+    {
+      "key": "bill_4111",
+      "supplierKey": "sup_sunset_bbq",
+      "invoiceNo": "4111",
+      "amountCents": 140606,
+      "currency": "USD",
+      "dueDate": "2026-11-02",
+      "receivedAt": "2026-10-12T16:00:00.000Z",
+      "bankAccountKey": "bank_sunset_bbq",
+      "status": "Paid",
+      "emailKey": "email_4111",
+      "planted": false
+    },
+    {
+      "key": "bill_4112",
+      "supplierKey": "sup_bayfront_waste",
+      "invoiceNo": "4112",
+      "amountCents": 333302,
+      "currency": "USD",
+      "dueDate": "2026-06-05",
+      "receivedAt": "2026-05-15T16:00:00.000Z",
+      "bankAccountKey": "bank_bayfront_waste",
+      "status": "Paid",
+      "emailKey": "email_4112",
+      "planted": false
+    },
+    {
+      "key": "bill_4113",
+      "supplierKey": "sup_bayfront_waste",
+      "invoiceNo": "4113",
+      "amountCents": 48405,
+      "currency": "USD",
+      "dueDate": "2026-06-16",
+      "receivedAt": "2026-05-26T16:00:00.000Z",
+      "bankAccountKey": "bank_bayfront_waste",
+      "status": "Paid",
+      "emailKey": "email_4113",
+      "planted": false
+    },
+    {
+      "key": "bill_4114",
+      "supplierKey": "sup_bayfront_waste",
+      "invoiceNo": "4114",
+      "amountCents": 188762,
+      "currency": "USD",
+      "dueDate": "2026-07-22",
+      "receivedAt": "2026-07-01T16:00:00.000Z",
+      "bankAccountKey": "bank_bayfront_waste",
+      "status": "Paid",
+      "emailKey": "email_4114",
+      "planted": false
+    },
+    {
+      "key": "bill_4115",
+      "supplierKey": "sup_bayfront_waste",
+      "invoiceNo": "4115",
+      "amountCents": 296285,
+      "currency": "USD",
+      "dueDate": "2026-09-01",
+      "receivedAt": "2026-08-11T16:00:00.000Z",
+      "bankAccountKey": "bank_bayfront_waste",
+      "status": "Paid",
+      "emailKey": "email_4115",
+      "planted": false
+    },
+    {
+      "key": "bill_4116",
+      "supplierKey": "sup_bayfront_waste",
+      "invoiceNo": "4116",
+      "amountCents": 348630,
+      "currency": "USD",
+      "dueDate": "2026-09-26",
+      "receivedAt": "2026-09-05T16:00:00.000Z",
+      "bankAccountKey": "bank_bayfront_waste",
+      "status": "Paid",
+      "emailKey": "email_4116",
+      "planted": false
+    },
+    {
+      "key": "bill_4117",
+      "supplierKey": "sup_bayfront_waste",
+      "invoiceNo": "4117",
+      "amountCents": 159389,
+      "currency": "USD",
+      "dueDate": "2026-10-14",
+      "receivedAt": "2026-09-23T16:00:00.000Z",
+      "bankAccountKey": "bank_bayfront_waste",
+      "status": "Paid",
+      "emailKey": "email_4117",
+      "planted": false
+    },
+    {
+      "key": "bill_4118",
+      "supplierKey": "sup_gg_generators",
+      "invoiceNo": "4118",
+      "amountCents": 135135,
+      "currency": "USD",
+      "dueDate": "2026-05-24",
+      "receivedAt": "2026-05-03T16:00:00.000Z",
+      "bankAccountKey": "bank_gg_generators",
+      "status": "Paid",
+      "emailKey": "email_4118",
+      "planted": false
+    },
+    {
+      "key": "bill_4119",
+      "supplierKey": "sup_gg_generators",
+      "invoiceNo": "4119",
+      "amountCents": 200924,
+      "currency": "USD",
+      "dueDate": "2026-07-01",
+      "receivedAt": "2026-06-10T16:00:00.000Z",
+      "bankAccountKey": "bank_gg_generators",
+      "status": "Paid",
+      "emailKey": "email_4119",
+      "planted": false
+    },
+    {
+      "key": "bill_4120",
+      "supplierKey": "sup_gg_generators",
+      "invoiceNo": "4120",
+      "amountCents": 407820,
+      "currency": "USD",
+      "dueDate": "2026-07-20",
+      "receivedAt": "2026-06-29T16:00:00.000Z",
+      "bankAccountKey": "bank_gg_generators",
+      "status": "Paid",
+      "emailKey": "email_4120",
+      "planted": false
+    },
+    {
+      "key": "bill_4121",
+      "supplierKey": "sup_gg_generators",
+      "invoiceNo": "4121",
+      "amountCents": 81213,
+      "currency": "USD",
+      "dueDate": "2026-09-03",
+      "receivedAt": "2026-08-13T16:00:00.000Z",
+      "bankAccountKey": "bank_gg_generators",
+      "status": "Paid",
+      "emailKey": "email_4121",
+      "planted": false
+    },
+    {
+      "key": "bill_4122",
+      "supplierKey": "sup_gg_generators",
+      "invoiceNo": "4122",
+      "amountCents": 167892,
+      "currency": "USD",
+      "dueDate": "2026-09-27",
+      "receivedAt": "2026-09-06T16:00:00.000Z",
+      "bankAccountKey": "bank_gg_generators",
+      "status": "Paid",
+      "emailKey": "email_4122",
+      "planted": false
+    },
+    {
+      "key": "bill_4123",
+      "supplierKey": "sup_gg_generators",
+      "invoiceNo": "4123",
+      "amountCents": 404287,
+      "currency": "USD",
+      "dueDate": "2026-11-03",
+      "receivedAt": "2026-10-13T16:00:00.000Z",
+      "bankAccountKey": "bank_gg_generators",
+      "status": "Paid",
+      "emailKey": "email_4123",
+      "planted": false
+    },
+    {
+      "key": "bill_4124",
+      "supplierKey": "sup_sf_fence",
+      "invoiceNo": "4124",
+      "amountCents": 209991,
+      "currency": "USD",
+      "dueDate": "2026-05-31",
+      "receivedAt": "2026-05-10T16:00:00.000Z",
+      "bankAccountKey": "bank_sf_fence",
+      "status": "Paid",
+      "emailKey": "email_4124",
+      "planted": false
+    },
+    {
+      "key": "bill_4125",
+      "supplierKey": "sup_sf_fence",
+      "invoiceNo": "4125",
+      "amountCents": 114881,
+      "currency": "USD",
+      "dueDate": "2026-07-03",
+      "receivedAt": "2026-06-12T16:00:00.000Z",
+      "bankAccountKey": "bank_sf_fence",
+      "status": "Paid",
+      "emailKey": "email_4125",
+      "planted": false
+    },
+    {
+      "key": "bill_4126",
+      "supplierKey": "sup_sf_fence",
+      "invoiceNo": "4126",
+      "amountCents": 167322,
+      "currency": "USD",
+      "dueDate": "2026-07-24",
+      "receivedAt": "2026-07-03T16:00:00.000Z",
+      "bankAccountKey": "bank_sf_fence",
+      "status": "Paid",
+      "emailKey": "email_4126",
+      "planted": false
+    },
+    {
+      "key": "bill_4127",
+      "supplierKey": "sup_sf_fence",
+      "invoiceNo": "4127",
+      "amountCents": 321056,
+      "currency": "USD",
+      "dueDate": "2026-08-24",
+      "receivedAt": "2026-08-03T16:00:00.000Z",
+      "bankAccountKey": "bank_sf_fence",
+      "status": "Paid",
+      "emailKey": "email_4127",
+      "planted": false
+    },
+    {
+      "key": "bill_4128",
+      "supplierKey": "sup_sf_fence",
+      "invoiceNo": "4128",
+      "amountCents": 282574,
+      "currency": "USD",
+      "dueDate": "2026-10-02",
+      "receivedAt": "2026-09-11T16:00:00.000Z",
+      "bankAccountKey": "bank_sf_fence",
+      "status": "Paid",
+      "emailKey": "email_4128",
+      "planted": false
+    },
+    {
+      "key": "bill_4129",
+      "supplierKey": "sup_sf_fence",
+      "invoiceNo": "4129",
+      "amountCents": 224121,
+      "currency": "USD",
+      "dueDate": "2026-10-20",
+      "receivedAt": "2026-09-29T16:00:00.000Z",
+      "bankAccountKey": "bank_sf_fence",
+      "status": "Paid",
+      "emailKey": "email_4129",
+      "planted": false
+    },
+    {
+      "key": "bill_4130",
+      "supplierKey": "sup_stage",
+      "invoiceNo": "4130",
+      "amountCents": 312207,
+      "currency": "USD",
+      "dueDate": "2026-05-11",
+      "receivedAt": "2026-04-20T16:00:00.000Z",
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "emailKey": "email_4130",
+      "planted": false
+    },
+    {
+      "key": "bill_4131",
+      "supplierKey": "sup_stage",
+      "invoiceNo": "4131",
+      "amountCents": 386988,
+      "currency": "USD",
+      "dueDate": "2026-05-25",
+      "receivedAt": "2026-05-04T16:00:00.000Z",
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "emailKey": "email_4131",
+      "planted": false
+    },
+    {
+      "key": "bill_4132",
+      "supplierKey": "sup_stage",
+      "invoiceNo": "4132",
+      "amountCents": 334823,
+      "currency": "USD",
+      "dueDate": "2026-06-11",
+      "receivedAt": "2026-05-21T16:00:00.000Z",
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "emailKey": "email_4132",
+      "planted": false
+    },
+    {
+      "key": "bill_4133",
+      "supplierKey": "sup_stage",
+      "invoiceNo": "4133",
+      "amountCents": 251307,
+      "currency": "USD",
+      "dueDate": "2026-06-28",
+      "receivedAt": "2026-06-07T16:00:00.000Z",
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "emailKey": "email_4133",
+      "planted": false
+    },
+    {
+      "key": "bill_4134",
+      "supplierKey": "sup_stage",
+      "invoiceNo": "4134",
+      "amountCents": 651169,
+      "currency": "USD",
+      "dueDate": "2026-07-17",
+      "receivedAt": "2026-06-26T16:00:00.000Z",
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "emailKey": "email_4134",
+      "planted": false
+    },
+    {
+      "key": "bill_4135",
+      "supplierKey": "sup_stage",
+      "invoiceNo": "4135",
+      "amountCents": 788746,
+      "currency": "USD",
+      "dueDate": "2026-08-03",
+      "receivedAt": "2026-07-13T16:00:00.000Z",
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "emailKey": "email_4135",
+      "planted": false
+    },
+    {
+      "key": "bill_4136",
+      "supplierKey": "sup_stage",
+      "invoiceNo": "4136",
+      "amountCents": 256907,
+      "currency": "USD",
+      "dueDate": "2026-08-18",
+      "receivedAt": "2026-07-28T16:00:00.000Z",
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "emailKey": "email_4136",
+      "planted": false
+    },
+    {
+      "key": "bill_4137",
+      "supplierKey": "sup_stage",
+      "invoiceNo": "4137",
+      "amountCents": 228668,
+      "currency": "USD",
+      "dueDate": "2026-09-04",
+      "receivedAt": "2026-08-14T16:00:00.000Z",
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "emailKey": "email_4137",
+      "planted": false
+    },
+    {
+      "key": "bill_4471",
+      "supplierKey": "sup_stage",
+      "invoiceNo": "4471",
+      "amountCents": 1840000,
+      "currency": "USD",
+      "dueDate": "2026-09-22",
+      "receivedAt": "2026-09-01T16:00:00.000Z",
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "emailKey": "email_4471",
+      "planted": false
+    },
+    {
+      "key": "bill_4138",
+      "supplierKey": "sup_stage",
+      "invoiceNo": "4138",
+      "amountCents": 655858,
+      "currency": "USD",
+      "dueDate": "2026-10-08",
+      "receivedAt": "2026-09-17T16:00:00.000Z",
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "emailKey": "email_4138",
+      "planted": false
+    },
+    {
+      "key": "bill_4139",
+      "supplierKey": "sup_stage",
+      "invoiceNo": "4139",
+      "amountCents": 697939,
+      "currency": "USD",
+      "dueDate": "2026-10-28",
+      "receivedAt": "2026-10-07T16:00:00.000Z",
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "emailKey": "email_4139",
+      "planted": false
+    },
+    {
+      "key": "bill_4140",
+      "supplierKey": "sup_gg_truss",
+      "invoiceNo": "4140",
+      "amountCents": 410000,
+      "currency": "USD",
+      "dueDate": "2026-10-22",
+      "receivedAt": "2026-10-20T16:00:00.000Z",
+      "bankAccountKey": "bank_gg_truss",
+      "status": "Held",
+      "emailKey": "email_4140",
+      "planted": true
+    },
+    {
+      "key": "bill_4141",
+      "supplierKey": "sup_fogcity_ramen",
+      "invoiceNo": "4141",
+      "amountCents": 68000,
+      "currency": "USD",
+      "dueDate": "2026-10-28",
+      "receivedAt": "2026-10-18T16:00:00.000Z",
+      "bankAccountKey": "bank_fogcity_ramen",
+      "status": "Needs you",
+      "emailKey": "email_4141",
+      "planted": true
+    },
+    {
+      "key": "bill_4142",
+      "supplierKey": "sup_guardian_gate",
+      "invoiceNo": "4142",
+      "amountCents": 4700000,
+      "currency": "USD",
+      "dueDate": "2026-10-22",
+      "receivedAt": "2026-10-21T16:00:00.000Z",
+      "bankAccountKey": "bank_guardian_gate",
+      "status": "Held",
+      "emailKey": "email_4142",
+      "planted": true
+    },
+    {
+      "key": "bill_4143",
+      "supplierKey": "sup_cascade_talent",
+      "invoiceNo": "4143",
+      "amountCents": 540000,
+      "currency": "USD",
+      "dueDate": "2026-10-23",
+      "receivedAt": "2026-10-22T16:00:00.000Z",
+      "bankAccountKey": "bank_cascade_talent",
+      "status": "Held",
+      "emailKey": "email_4143",
+      "planted": true
+    },
+    {
+      "key": "bill_4144",
+      "supplierKey": "sup_bayfront_waste",
+      "invoiceNo": "4144",
+      "amountCents": 215000,
+      "currency": "USD",
+      "dueDate": "2026-10-31",
+      "receivedAt": "2026-10-17T16:00:00.000Z",
+      "bankAccountKey": "bank_bayfront_waste",
+      "status": "Needs you",
+      "emailKey": "email_4144",
+      "planted": true
+    },
+    {
+      "key": "bill_4145",
+      "supplierKey": "sup_perimeter_pro",
+      "invoiceNo": "4145",
+      "amountCents": 410000,
+      "currency": "USD",
+      "dueDate": "2026-09-29",
+      "receivedAt": "2026-09-08T16:00:00.000Z",
+      "bankAccountKey": "bank_perimeter_pro_2",
+      "status": "Paid",
+      "emailKey": "email_4145",
+      "planted": false
+    },
+    {
+      "key": "bill_4146",
+      "supplierKey": "sup_horizon_artists",
+      "invoiceNo": "4146",
+      "amountCents": 680000,
+      "currency": "USD",
+      "dueDate": "2026-09-04",
+      "receivedAt": "2026-08-14T16:00:00.000Z",
+      "bankAccountKey": "bank_horizon_artists_2",
+      "status": "Paid",
+      "emailKey": "email_4146",
+      "planted": false
+    }
+  ],
+  "emails": [
+    {
+      "key": "email_4001",
+      "billKey": "bill_4001",
+      "fromAddress": "nate@bayviewstaging.com",
+      "fromDomain": "bayviewstaging.com",
+      "subject": "Invoice #4001 — stage deck rental",
+      "body": "Hey Fogline,\n\nInvoice #4001 attached — stage deck rental, $7680.92, due 2026-05-17. Let us know if you need anything else.\n\nCheers,\nNate Ferris\nOps, Bayview Staging Systems",
+      "receivedAt": "2026-04-26T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4002",
+      "billKey": "bill_4002",
+      "fromAddress": "nate@bayviewstaging.com",
+      "fromDomain": "bayviewstaging.com",
+      "subject": "Invoice #4002 — stage deck rental",
+      "body": "Hey Fogline,\n\nInvoice #4002 attached — stage deck rental, $2672.53, due 2026-06-29. Let us know if you need anything else.\n\nCheers,\nNate Ferris\nOps, Bayview Staging Systems",
+      "receivedAt": "2026-06-08T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4003",
+      "billKey": "bill_4003",
+      "fromAddress": "nate@bayviewstaging.com",
+      "fromDomain": "bayviewstaging.com",
+      "subject": "Invoice #4003 — rigging crew labor",
+      "body": "Hey Fogline,\n\nInvoice #4003 attached — rigging crew labor, $6458.87, due 2026-07-16. Let us know if you need anything else.\n\nCheers,\nNate Ferris\nOps, Bayview Staging Systems",
+      "receivedAt": "2026-06-25T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4004",
+      "billKey": "bill_4004",
+      "fromAddress": "nate@bayviewstaging.com",
+      "fromDomain": "bayviewstaging.com",
+      "subject": "Invoice #4004 — main-stage truss rental",
+      "body": "Hey Fogline,\n\nInvoice #4004 attached — main-stage truss rental, $6241.94, due 2026-09-03. Let us know if you need anything else.\n\nCheers,\nNate Ferris\nOps, Bayview Staging Systems",
+      "receivedAt": "2026-08-13T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4005",
+      "billKey": "bill_4005",
+      "fromAddress": "nate@bayviewstaging.com",
+      "fromDomain": "bayviewstaging.com",
+      "subject": "Invoice #4005 — rigging crew labor",
+      "body": "Hey Fogline,\n\nInvoice #4005 attached — rigging crew labor, $3735.18, due 2026-09-20. Let us know if you need anything else.\n\nCheers,\nNate Ferris\nOps, Bayview Staging Systems",
+      "receivedAt": "2026-08-30T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4006",
+      "billKey": "bill_4006",
+      "fromAddress": "nate@bayviewstaging.com",
+      "fromDomain": "bayviewstaging.com",
+      "subject": "Invoice #4006 — stage deck rental",
+      "body": "Hey Fogline,\n\nInvoice #4006 attached — stage deck rental, $2981.66, due 2026-10-31. Let us know if you need anything else.\n\nCheers,\nNate Ferris\nOps, Bayview Staging Systems",
+      "receivedAt": "2026-10-10T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4007",
+      "billKey": "bill_4007",
+      "fromAddress": "priya@ggtrussdeck.com",
+      "fromDomain": "ggtrussdeck.com",
+      "subject": "Invoice #4007 — stage deck rental",
+      "body": "Hello,\n\nPlease find attached invoice #4007 for stage deck rental in the amount of $3974.83, payable by 2026-06-10. Kindly remit to the account on file.\n\nBest regards,\nPriya Shah\nBilling, Golden Gate Truss & Deck",
+      "receivedAt": "2026-05-20T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4008",
+      "billKey": "bill_4008",
+      "fromAddress": "priya@ggtrussdeck.com",
+      "fromDomain": "ggtrussdeck.com",
+      "subject": "Invoice #4008 — rigging crew labor",
+      "body": "Hello,\n\nPlease find attached invoice #4008 for rigging crew labor in the amount of $9331.46, payable by 2026-07-05. Kindly remit to the account on file.\n\nBest regards,\nPriya Shah\nBilling, Golden Gate Truss & Deck",
+      "receivedAt": "2026-06-14T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4009",
+      "billKey": "bill_4009",
+      "fromAddress": "priya@ggtrussdeck.com",
+      "fromDomain": "ggtrussdeck.com",
+      "subject": "Invoice #4009 — rigging crew labor",
+      "body": "Hello,\n\nPlease find attached invoice #4009 for rigging crew labor in the amount of $8229.62, payable by 2026-08-12. Kindly remit to the account on file.\n\nBest regards,\nPriya Shah\nBilling, Golden Gate Truss & Deck",
+      "receivedAt": "2026-07-22T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4010",
+      "billKey": "bill_4010",
+      "fromAddress": "priya@ggtrussdeck.com",
+      "fromDomain": "ggtrussdeck.com",
+      "subject": "Invoice #4010 — main-stage truss rental",
+      "body": "Hello,\n\nPlease find attached invoice #4010 for main-stage truss rental in the amount of $3688.52, payable by 2026-09-09. Kindly remit to the account on file.\n\nBest regards,\nPriya Shah\nBilling, Golden Gate Truss & Deck",
+      "receivedAt": "2026-08-19T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4011",
+      "billKey": "bill_4011",
+      "fromAddress": "priya@ggtrussdeck.com",
+      "fromDomain": "ggtrussdeck.com",
+      "subject": "Invoice #4011 — monthly stage equipment lease",
+      "body": "Hello,\n\nPlease find attached invoice #4011 for monthly stage equipment lease in the amount of $3234.72, payable by 2026-10-09. Kindly remit to the account on file.\n\nBest regards,\nPriya Shah\nBilling, Golden Gate Truss & Deck",
+      "receivedAt": "2026-09-18T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4012",
+      "billKey": "bill_4012",
+      "fromAddress": "priya@ggtrussdeck.com",
+      "fromDomain": "ggtrussdeck.com",
+      "subject": "Invoice #4012 — rigging crew labor",
+      "body": "Hello,\n\nPlease find attached invoice #4012 for rigging crew labor in the amount of $3415.59, payable by 2026-10-26. Kindly remit to the account on file.\n\nBest regards,\nPriya Shah\nBilling, Golden Gate Truss & Deck",
+      "receivedAt": "2026-10-05T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4013",
+      "billKey": "bill_4013",
+      "fromAddress": "marcus@soundwaveaudio.com",
+      "fromDomain": "soundwaveaudio.com",
+      "subject": "Invoice #4013 — monthly audio equipment lease",
+      "body": "Hi there,\n\nHope prep is going well! Attached is invoice #4013 for monthly audio equipment lease, total $7319.65, due 2026-05-28. Thanks for working with us.\n\nThanks much,\nMarcus Oyelaran\nSoundwave Audio Rentals",
+      "receivedAt": "2026-05-07T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4014",
+      "billKey": "bill_4014",
+      "fromAddress": "marcus@soundwaveaudio.com",
+      "fromDomain": "soundwaveaudio.com",
+      "subject": "Invoice #4014 — FOH console rental",
+      "body": "Hi there,\n\nHope prep is going well! Attached is invoice #4014 for FOH console rental, total $5165.65, due 2026-06-11. Thanks for working with us.\n\nThanks much,\nMarcus Oyelaran\nSoundwave Audio Rentals",
+      "receivedAt": "2026-05-21T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4015",
+      "billKey": "bill_4015",
+      "fromAddress": "marcus@soundwaveaudio.com",
+      "fromDomain": "soundwaveaudio.com",
+      "subject": "Invoice #4015 — monitor wedge rental",
+      "body": "Hi there,\n\nHope prep is going well! Attached is invoice #4015 for monitor wedge rental, total $1476.30, due 2026-07-26. Thanks for working with us.\n\nThanks much,\nMarcus Oyelaran\nSoundwave Audio Rentals",
+      "receivedAt": "2026-07-05T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4016",
+      "billKey": "bill_4016",
+      "fromAddress": "marcus@soundwaveaudio.com",
+      "fromDomain": "soundwaveaudio.com",
+      "subject": "Invoice #4016 — PA system rental",
+      "body": "Hi there,\n\nHope prep is going well! Attached is invoice #4016 for PA system rental, total $6114.39, due 2026-08-19. Thanks for working with us.\n\nThanks much,\nMarcus Oyelaran\nSoundwave Audio Rentals",
+      "receivedAt": "2026-07-29T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4017",
+      "billKey": "bill_4017",
+      "fromAddress": "marcus@soundwaveaudio.com",
+      "fromDomain": "soundwaveaudio.com",
+      "subject": "Invoice #4017 — monitor wedge rental",
+      "body": "Hi there,\n\nHope prep is going well! Attached is invoice #4017 for monitor wedge rental, total $7606.65, due 2026-09-12. Thanks for working with us.\n\nThanks much,\nMarcus Oyelaran\nSoundwave Audio Rentals",
+      "receivedAt": "2026-08-22T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4018",
+      "billKey": "bill_4018",
+      "fromAddress": "marcus@soundwaveaudio.com",
+      "fromDomain": "soundwaveaudio.com",
+      "subject": "Invoice #4018 — PA system rental",
+      "body": "Hi there,\n\nHope prep is going well! Attached is invoice #4018 for PA system rental, total $6280.70, due 2026-09-21. Thanks for working with us.\n\nThanks much,\nMarcus Oyelaran\nSoundwave Audio Rentals",
+      "receivedAt": "2026-08-31T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4019",
+      "billKey": "bill_4019",
+      "fromAddress": "marcus@soundwaveaudio.com",
+      "fromDomain": "soundwaveaudio.com",
+      "subject": "Invoice #4019 — monthly audio equipment lease",
+      "body": "Hi there,\n\nHope prep is going well! Attached is invoice #4019 for monthly audio equipment lease, total $5420.50, due 2026-11-03. Thanks for working with us.\n\nThanks much,\nMarcus Oyelaran\nSoundwave Audio Rentals",
+      "receivedAt": "2026-10-13T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4020",
+      "billKey": "bill_4020",
+      "fromAddress": "lena@pacificcoastpa.com",
+      "fromDomain": "pacificcoastpa.com",
+      "subject": "Invoice #4020 — monitor wedge rental",
+      "body": "Hello Fogline team,\n\nPlease find attached invoice #4020 for monitor wedge rental in the amount of $4016.81, payable by 2026-06-08. Kindly remit to the account on file.\n\nRegards,\nLena Brooks\nPacific Coast PA Co.",
+      "receivedAt": "2026-05-18T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4021",
+      "billKey": "bill_4021",
+      "fromAddress": "lena@pacificcoastpa.com",
+      "fromDomain": "pacificcoastpa.com",
+      "subject": "Invoice #4021 — FOH console rental",
+      "body": "Hello Fogline team,\n\nPlease find attached invoice #4021 for FOH console rental in the amount of $3278.38, payable by 2026-06-15. Kindly remit to the account on file.\n\nRegards,\nLena Brooks\nPacific Coast PA Co.",
+      "receivedAt": "2026-05-25T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4022",
+      "billKey": "bill_4022",
+      "fromAddress": "lena@pacificcoastpa.com",
+      "fromDomain": "pacificcoastpa.com",
+      "subject": "Invoice #4022 — PA system rental",
+      "body": "Hello Fogline team,\n\nPlease find attached invoice #4022 for PA system rental in the amount of $1685.82, payable by 2026-07-09. Kindly remit to the account on file.\n\nRegards,\nLena Brooks\nPacific Coast PA Co.",
+      "receivedAt": "2026-06-18T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4023",
+      "billKey": "bill_4023",
+      "fromAddress": "lena@pacificcoastpa.com",
+      "fromDomain": "pacificcoastpa.com",
+      "subject": "Invoice #4023 — monitor wedge rental",
+      "body": "Hello Fogline team,\n\nPlease find attached invoice #4023 for monitor wedge rental in the amount of $4272.13, payable by 2026-08-09. Kindly remit to the account on file.\n\nRegards,\nLena Brooks\nPacific Coast PA Co.",
+      "receivedAt": "2026-07-19T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4024",
+      "billKey": "bill_4024",
+      "fromAddress": "lena@pacificcoastpa.com",
+      "fromDomain": "pacificcoastpa.com",
+      "subject": "Invoice #4024 — monthly audio equipment lease",
+      "body": "Hello Fogline team,\n\nPlease find attached invoice #4024 for monthly audio equipment lease in the amount of $5005.13, payable by 2026-09-14. Kindly remit to the account on file.\n\nRegards,\nLena Brooks\nPacific Coast PA Co.",
+      "receivedAt": "2026-08-24T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4025",
+      "billKey": "bill_4025",
+      "fromAddress": "lena@pacificcoastpa.com",
+      "fromDomain": "pacificcoastpa.com",
+      "subject": "Invoice #4025 — FOH console rental",
+      "body": "Hello Fogline team,\n\nPlease find attached invoice #4025 for FOH console rental in the amount of $1840.39, payable by 2026-09-20. Kindly remit to the account on file.\n\nRegards,\nLena Brooks\nPacific Coast PA Co.",
+      "receivedAt": "2026-08-30T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4026",
+      "billKey": "bill_4026",
+      "fromAddress": "lena@pacificcoastpa.com",
+      "fromDomain": "pacificcoastpa.com",
+      "subject": "Invoice #4026 — FOH console rental",
+      "body": "Hello Fogline team,\n\nPlease find attached invoice #4026 for FOH console rental in the amount of $2012.66, payable by 2026-11-06. Kindly remit to the account on file.\n\nRegards,\nLena Brooks\nPacific Coast PA Co.",
+      "receivedAt": "2026-10-16T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4027",
+      "billKey": "bill_4027",
+      "fromAddress": "theo@basslineaudio.com",
+      "fromDomain": "basslineaudio.com",
+      "subject": "Invoice #4027 — monitor wedge rental",
+      "body": "Hey,\n\nInvoice #4027 attached — monitor wedge rental, $5604.48, due 2026-06-03. Let us know if you need anything else.\n\n— T\nTheo Marsh\nBass Line Audio",
+      "receivedAt": "2026-05-13T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4028",
+      "billKey": "bill_4028",
+      "fromAddress": "theo@basslineaudio.com",
+      "fromDomain": "basslineaudio.com",
+      "subject": "Invoice #4028 — monitor wedge rental",
+      "body": "Hey,\n\nInvoice #4028 attached — monitor wedge rental, $2372.88, due 2026-06-26. Let us know if you need anything else.\n\n— T\nTheo Marsh\nBass Line Audio",
+      "receivedAt": "2026-06-05T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4029",
+      "billKey": "bill_4029",
+      "fromAddress": "theo@basslineaudio.com",
+      "fromDomain": "basslineaudio.com",
+      "subject": "Invoice #4029 — monthly audio equipment lease",
+      "body": "Hey,\n\nInvoice #4029 attached — monthly audio equipment lease, $5980.39, due 2026-07-08. Let us know if you need anything else.\n\n— T\nTheo Marsh\nBass Line Audio",
+      "receivedAt": "2026-06-17T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4030",
+      "billKey": "bill_4030",
+      "fromAddress": "theo@basslineaudio.com",
+      "fromDomain": "basslineaudio.com",
+      "subject": "Invoice #4030 — FOH console rental",
+      "body": "Hey,\n\nInvoice #4030 attached — FOH console rental, $6224.97, due 2026-08-07. Let us know if you need anything else.\n\n— T\nTheo Marsh\nBass Line Audio",
+      "receivedAt": "2026-07-17T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4031",
+      "billKey": "bill_4031",
+      "fromAddress": "theo@basslineaudio.com",
+      "fromDomain": "basslineaudio.com",
+      "subject": "Invoice #4031 — monitor wedge rental",
+      "body": "Hey,\n\nInvoice #4031 attached — monitor wedge rental, $7127.86, due 2026-08-28. Let us know if you need anything else.\n\n— T\nTheo Marsh\nBass Line Audio",
+      "receivedAt": "2026-08-07T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4032",
+      "billKey": "bill_4032",
+      "fromAddress": "theo@basslineaudio.com",
+      "fromDomain": "basslineaudio.com",
+      "subject": "Invoice #4032 — monitor wedge rental",
+      "body": "Hey,\n\nInvoice #4032 attached — monitor wedge rental, $4880.78, due 2026-09-24. Let us know if you need anything else.\n\n— T\nTheo Marsh\nBass Line Audio",
+      "receivedAt": "2026-09-03T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4033",
+      "billKey": "bill_4033",
+      "fromAddress": "theo@basslineaudio.com",
+      "fromDomain": "basslineaudio.com",
+      "subject": "Invoice #4033 — PA system rental",
+      "body": "Hey,\n\nInvoice #4033 attached — PA system rental, $7150.98, due 2026-10-20. Let us know if you need anything else.\n\n— T\nTheo Marsh\nBass Line Audio",
+      "receivedAt": "2026-09-29T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4034",
+      "billKey": "bill_4034",
+      "fromAddress": "carmen@sfbaysecurity.com",
+      "fromDomain": "sfbaysecurity.com",
+      "subject": "Invoice #4034 — perimeter security staffing",
+      "body": "Good afternoon,\n\nPlease find attached invoice #4034 for perimeter security staffing in the amount of $3746.62, payable by 2026-05-21. Kindly remit to the account on file.\n\nRespectfully,\nCarmen Diaz\nSF Bay Security Services, Billing Dept.",
+      "receivedAt": "2026-04-30T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4035",
+      "billKey": "bill_4035",
+      "fromAddress": "carmen@sfbaysecurity.com",
+      "fromDomain": "sfbaysecurity.com",
+      "subject": "Invoice #4035 — event security staffing",
+      "body": "Good afternoon,\n\nPlease find attached invoice #4035 for event security staffing in the amount of $2499.08, payable by 2026-06-27. Kindly remit to the account on file.\n\nRespectfully,\nCarmen Diaz\nSF Bay Security Services, Billing Dept.",
+      "receivedAt": "2026-06-06T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4036",
+      "billKey": "bill_4036",
+      "fromAddress": "carmen@sfbaysecurity.com",
+      "fromDomain": "sfbaysecurity.com",
+      "subject": "Invoice #4036 — perimeter security staffing",
+      "body": "Good afternoon,\n\nPlease find attached invoice #4036 for perimeter security staffing in the amount of $2789.05, payable by 2026-07-25. Kindly remit to the account on file.\n\nRespectfully,\nCarmen Diaz\nSF Bay Security Services, Billing Dept.",
+      "receivedAt": "2026-07-04T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4037",
+      "billKey": "bill_4037",
+      "fromAddress": "carmen@sfbaysecurity.com",
+      "fromDomain": "sfbaysecurity.com",
+      "subject": "Invoice #4037 — overnight security shift",
+      "body": "Good afternoon,\n\nPlease find attached invoice #4037 for overnight security shift in the amount of $5183.68, payable by 2026-08-29. Kindly remit to the account on file.\n\nRespectfully,\nCarmen Diaz\nSF Bay Security Services, Billing Dept.",
+      "receivedAt": "2026-08-08T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4038",
+      "billKey": "bill_4038",
+      "fromAddress": "carmen@sfbaysecurity.com",
+      "fromDomain": "sfbaysecurity.com",
+      "subject": "Invoice #4038 — monthly guard staffing retainer",
+      "body": "Good afternoon,\n\nPlease find attached invoice #4038 for monthly guard staffing retainer in the amount of $2767.99, payable by 2026-10-05. Kindly remit to the account on file.\n\nRespectfully,\nCarmen Diaz\nSF Bay Security Services, Billing Dept.",
+      "receivedAt": "2026-09-14T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4039",
+      "billKey": "bill_4039",
+      "fromAddress": "carmen@sfbaysecurity.com",
+      "fromDomain": "sfbaysecurity.com",
+      "subject": "Invoice #4039 — overnight security shift",
+      "body": "Good afternoon,\n\nPlease find attached invoice #4039 for overnight security shift in the amount of $3433.15, payable by 2026-10-18. Kindly remit to the account on file.\n\nRespectfully,\nCarmen Diaz\nSF Bay Security Services, Billing Dept.",
+      "receivedAt": "2026-09-27T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4040",
+      "billKey": "bill_4040",
+      "fromAddress": "owen@guardiangatesecurity.com",
+      "fromDomain": "guardiangatesecurity.com",
+      "subject": "Invoice #4040 — perimeter security staffing",
+      "body": "Hi,\n\nPlease find attached invoice #4040 for perimeter security staffing in the amount of $1618.33, payable by 2026-06-05. Kindly remit to the account on file.\n\nThank you,\nOwen Pratt\nGuardian Gate Security",
+      "receivedAt": "2026-05-15T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4041",
+      "billKey": "bill_4041",
+      "fromAddress": "owen@guardiangatesecurity.com",
+      "fromDomain": "guardiangatesecurity.com",
+      "subject": "Invoice #4041 — perimeter security staffing",
+      "body": "Hi,\n\nPlease find attached invoice #4041 for perimeter security staffing in the amount of $1194.90, payable by 2026-07-06. Kindly remit to the account on file.\n\nThank you,\nOwen Pratt\nGuardian Gate Security",
+      "receivedAt": "2026-06-15T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4042",
+      "billKey": "bill_4042",
+      "fromAddress": "owen@guardiangatesecurity.com",
+      "fromDomain": "guardiangatesecurity.com",
+      "subject": "Invoice #4042 — overnight security shift",
+      "body": "Hi,\n\nPlease find attached invoice #4042 for overnight security shift in the amount of $2572.20, payable by 2026-08-10. Kindly remit to the account on file.\n\nThank you,\nOwen Pratt\nGuardian Gate Security",
+      "receivedAt": "2026-07-20T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4043",
+      "billKey": "bill_4043",
+      "fromAddress": "owen@guardiangatesecurity.com",
+      "fromDomain": "guardiangatesecurity.com",
+      "subject": "Invoice #4043 — event security staffing",
+      "body": "Hi,\n\nPlease find attached invoice #4043 for event security staffing in the amount of $2556.72, payable by 2026-09-04. Kindly remit to the account on file.\n\nThank you,\nOwen Pratt\nGuardian Gate Security",
+      "receivedAt": "2026-08-14T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4044",
+      "billKey": "bill_4044",
+      "fromAddress": "owen@guardiangatesecurity.com",
+      "fromDomain": "guardiangatesecurity.com",
+      "subject": "Invoice #4044 — event security staffing",
+      "body": "Hi,\n\nPlease find attached invoice #4044 for event security staffing in the amount of $4208.71, payable by 2026-09-26. Kindly remit to the account on file.\n\nThank you,\nOwen Pratt\nGuardian Gate Security",
+      "receivedAt": "2026-09-05T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4045",
+      "billKey": "bill_4045",
+      "fromAddress": "owen@guardiangatesecurity.com",
+      "fromDomain": "guardiangatesecurity.com",
+      "subject": "Invoice #4045 — perimeter security staffing",
+      "body": "Hi,\n\nPlease find attached invoice #4045 for perimeter security staffing in the amount of $3828.16, payable by 2026-10-29. Kindly remit to the account on file.\n\nThank you,\nOwen Pratt\nGuardian Gate Security",
+      "receivedAt": "2026-10-08T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4046",
+      "billKey": "bill_4046",
+      "fromAddress": "yusuf@perimeterprostaffing.com",
+      "fromDomain": "perimeterprostaffing.com",
+      "subject": "Invoice #4046 — perimeter security staffing",
+      "body": "Hey Fogline,\n\nHope prep is going well! Attached is invoice #4046 for perimeter security staffing, total $4447.19, due 2026-05-28. Thanks for working with us.\n\nThanks!\nYusuf Dembele\nPerimeter Pro Staffing",
+      "receivedAt": "2026-05-07T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4047",
+      "billKey": "bill_4047",
+      "fromAddress": "yusuf@perimeterprostaffing.com",
+      "fromDomain": "perimeterprostaffing.com",
+      "subject": "Invoice #4047 — monthly guard staffing retainer",
+      "body": "Hey Fogline,\n\nHope prep is going well! Attached is invoice #4047 for monthly guard staffing retainer, total $923.04, due 2026-06-28. Thanks for working with us.\n\nThanks!\nYusuf Dembele\nPerimeter Pro Staffing",
+      "receivedAt": "2026-06-07T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4048",
+      "billKey": "bill_4048",
+      "fromAddress": "yusuf@perimeterprostaffing.com",
+      "fromDomain": "perimeterprostaffing.com",
+      "subject": "Invoice #4048 — monthly guard staffing retainer",
+      "body": "Hey Fogline,\n\nHope prep is going well! Attached is invoice #4048 for monthly guard staffing retainer, total $3103.59, due 2026-07-31. Thanks for working with us.\n\nThanks!\nYusuf Dembele\nPerimeter Pro Staffing",
+      "receivedAt": "2026-07-10T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4049",
+      "billKey": "bill_4049",
+      "fromAddress": "yusuf@perimeterprostaffing.com",
+      "fromDomain": "perimeterprostaffing.com",
+      "subject": "Invoice #4049 — perimeter security staffing",
+      "body": "Hey Fogline,\n\nHope prep is going well! Attached is invoice #4049 for perimeter security staffing, total $2235.84, due 2026-08-27. Thanks for working with us.\n\nThanks!\nYusuf Dembele\nPerimeter Pro Staffing",
+      "receivedAt": "2026-08-06T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4050",
+      "billKey": "bill_4050",
+      "fromAddress": "yusuf@perimeterprostaffing.com",
+      "fromDomain": "perimeterprostaffing.com",
+      "subject": "Invoice #4050 — event security staffing",
+      "body": "Hey Fogline,\n\nHope prep is going well! Attached is invoice #4050 for event security staffing, total $6156.54, due 2026-09-29. Thanks for working with us.\n\nThanks!\nYusuf Dembele\nPerimeter Pro Staffing",
+      "receivedAt": "2026-09-08T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4051",
+      "billKey": "bill_4051",
+      "fromAddress": "yusuf@perimeterprostaffing.com",
+      "fromDomain": "perimeterprostaffing.com",
+      "subject": "Invoice #4051 — monthly guard staffing retainer",
+      "body": "Hey Fogline,\n\nHope prep is going well! Attached is invoice #4051 for monthly guard staffing retainer, total $5233.49, due 2026-10-24. Thanks for working with us.\n\nThanks!\nYusuf Dembele\nPerimeter Pro Staffing",
+      "receivedAt": "2026-10-03T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4052",
+      "billKey": "bill_4052",
+      "fromAddress": "grace@horizonartists.com",
+      "fromDomain": "horizonartists.com",
+      "subject": "Invoice #4052 — artist deposit",
+      "body": "Hello,\n\nHope prep is going well! Attached is invoice #4052 for artist deposit, total $9097.26, due 2026-05-17. Thanks for working with us.\n\nWarmly,\nGrace Lindqvist\nHorizon Artist Management",
+      "receivedAt": "2026-04-26T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4053",
+      "billKey": "bill_4053",
+      "fromAddress": "grace@horizonartists.com",
+      "fromDomain": "horizonartists.com",
+      "subject": "Invoice #4053 — artist booking fee",
+      "body": "Hello,\n\nHope prep is going well! Attached is invoice #4053 for artist booking fee, total $5834.57, due 2026-07-26. Thanks for working with us.\n\nWarmly,\nGrace Lindqvist\nHorizon Artist Management",
+      "receivedAt": "2026-07-05T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4054",
+      "billKey": "bill_4054",
+      "fromAddress": "grace@horizonartists.com",
+      "fromDomain": "horizonartists.com",
+      "subject": "Invoice #4054 — talent agency commission",
+      "body": "Hello,\n\nHope prep is going well! Attached is invoice #4054 for talent agency commission, total $5129.89, due 2026-08-23. Thanks for working with us.\n\nWarmly,\nGrace Lindqvist\nHorizon Artist Management",
+      "receivedAt": "2026-08-02T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4055",
+      "billKey": "bill_4055",
+      "fromAddress": "grace@horizonartists.com",
+      "fromDomain": "horizonartists.com",
+      "subject": "Invoice #4055 — artist deposit",
+      "body": "Hello,\n\nHope prep is going well! Attached is invoice #4055 for artist deposit, total $7034.16, due 2026-09-30. Thanks for working with us.\n\nWarmly,\nGrace Lindqvist\nHorizon Artist Management",
+      "receivedAt": "2026-09-09T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4056",
+      "billKey": "bill_4056",
+      "fromAddress": "diego@cascadetalentgroup.com",
+      "fromDomain": "cascadetalentgroup.com",
+      "subject": "Invoice #4056 — artist deposit",
+      "body": "Hi,\n\nInvoice #4056 attached — artist deposit, $11258.30, due 2026-06-02. Let us know if you need anything else.\n\nBest,\nDiego Fuentes\nCascade Talent Group",
+      "receivedAt": "2026-05-12T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4057",
+      "billKey": "bill_4057",
+      "fromAddress": "diego@cascadetalentgroup.com",
+      "fromDomain": "cascadetalentgroup.com",
+      "subject": "Invoice #4057 — talent agency commission",
+      "body": "Hi,\n\nInvoice #4057 attached — talent agency commission, $2954.70, due 2026-07-11. Let us know if you need anything else.\n\nBest,\nDiego Fuentes\nCascade Talent Group",
+      "receivedAt": "2026-06-20T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4058",
+      "billKey": "bill_4058",
+      "fromAddress": "diego@cascadetalentgroup.com",
+      "fromDomain": "cascadetalentgroup.com",
+      "subject": "Invoice #4058 — talent agency commission",
+      "body": "Hi,\n\nInvoice #4058 attached — talent agency commission, $7721.80, due 2026-09-17. Let us know if you need anything else.\n\nBest,\nDiego Fuentes\nCascade Talent Group",
+      "receivedAt": "2026-08-27T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4059",
+      "billKey": "bill_4059",
+      "fromAddress": "diego@cascadetalentgroup.com",
+      "fromDomain": "cascadetalentgroup.com",
+      "subject": "Invoice #4059 — artist travel advance",
+      "body": "Hi,\n\nInvoice #4059 attached — artist travel advance, $6755.44, due 2026-10-23. Let us know if you need anything else.\n\nBest,\nDiego Fuentes\nCascade Talent Group",
+      "receivedAt": "2026-10-02T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4060",
+      "billKey": "bill_4060",
+      "fromAddress": "harriet@westlinebooking.com",
+      "fromDomain": "westlinebooking.com",
+      "subject": "Invoice #4060 — talent agency commission",
+      "body": "Hello Fogline,\n\nPlease find attached invoice #4060 for talent agency commission in the amount of $9100.05, payable by 2026-05-31. Kindly remit to the account on file.\n\nKind regards,\nHarriet Ngo\nWestline Booking Agency",
+      "receivedAt": "2026-05-10T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4061",
+      "billKey": "bill_4061",
+      "fromAddress": "harriet@westlinebooking.com",
+      "fromDomain": "westlinebooking.com",
+      "subject": "Invoice #4061 — artist booking fee",
+      "body": "Hello Fogline,\n\nPlease find attached invoice #4061 for artist booking fee in the amount of $10645.36, payable by 2026-08-04. Kindly remit to the account on file.\n\nKind regards,\nHarriet Ngo\nWestline Booking Agency",
+      "receivedAt": "2026-07-14T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4062",
+      "billKey": "bill_4062",
+      "fromAddress": "harriet@westlinebooking.com",
+      "fromDomain": "westlinebooking.com",
+      "subject": "Invoice #4062 — artist booking fee",
+      "body": "Hello Fogline,\n\nPlease find attached invoice #4062 for artist booking fee in the amount of $8809.75, payable by 2026-08-23. Kindly remit to the account on file.\n\nKind regards,\nHarriet Ngo\nWestline Booking Agency",
+      "receivedAt": "2026-08-02T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4063",
+      "billKey": "bill_4063",
+      "fromAddress": "harriet@westlinebooking.com",
+      "fromDomain": "westlinebooking.com",
+      "subject": "Invoice #4063 — artist travel advance",
+      "body": "Hello Fogline,\n\nPlease find attached invoice #4063 for artist travel advance in the amount of $3239.37, payable by 2026-10-07. Kindly remit to the account on file.\n\nKind regards,\nHarriet Ngo\nWestline Booking Agency",
+      "receivedAt": "2026-09-16T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4064",
+      "billKey": "bill_4064",
+      "fromAddress": "samir@nightowlagency.com",
+      "fromDomain": "nightowlagency.com",
+      "subject": "Invoice #4064 — artist deposit",
+      "body": "Hey team,\n\nInvoice #4064 attached — artist deposit, $4264.46, due 2026-06-02. Let us know if you need anything else.\n\n— Samir\nSamir Kapoor\nNight Owl Artist Agency",
+      "receivedAt": "2026-05-12T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4065",
+      "billKey": "bill_4065",
+      "fromAddress": "samir@nightowlagency.com",
+      "fromDomain": "nightowlagency.com",
+      "subject": "Invoice #4065 — talent agency commission",
+      "body": "Hey team,\n\nInvoice #4065 attached — talent agency commission, $8236.16, due 2026-07-05. Let us know if you need anything else.\n\n— Samir\nSamir Kapoor\nNight Owl Artist Agency",
+      "receivedAt": "2026-06-14T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4066",
+      "billKey": "bill_4066",
+      "fromAddress": "samir@nightowlagency.com",
+      "fromDomain": "nightowlagency.com",
+      "subject": "Invoice #4066 — artist travel advance",
+      "body": "Hey team,\n\nInvoice #4066 attached — artist travel advance, $3692.58, due 2026-08-31. Let us know if you need anything else.\n\n— Samir\nSamir Kapoor\nNight Owl Artist Agency",
+      "receivedAt": "2026-08-10T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4067",
+      "billKey": "bill_4067",
+      "fromAddress": "samir@nightowlagency.com",
+      "fromDomain": "nightowlagency.com",
+      "subject": "Invoice #4067 — artist travel advance",
+      "body": "Hey team,\n\nInvoice #4067 attached — artist travel advance, $7008.62, due 2026-10-02. Let us know if you need anything else.\n\n— Samir\nSamir Kapoor\nNight Owl Artist Agency",
+      "receivedAt": "2026-09-11T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4068",
+      "billKey": "bill_4068",
+      "fromAddress": "bella@redwoodartists.com",
+      "fromDomain": "redwoodartists.com",
+      "subject": "Invoice #4068 — artist travel advance",
+      "body": "Hi folks,\n\nHope prep is going well! Attached is invoice #4068 for artist travel advance, total $9097.55, due 2026-06-06. Thanks for working with us.\n\nTake care,\nBella Tran\nRedwood Artist Collective",
+      "receivedAt": "2026-05-16T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4069",
+      "billKey": "bill_4069",
+      "fromAddress": "bella@redwoodartists.com",
+      "fromDomain": "redwoodartists.com",
+      "subject": "Invoice #4069 — artist travel advance",
+      "body": "Hi folks,\n\nHope prep is going well! Attached is invoice #4069 for artist travel advance, total $4002.25, due 2026-08-11. Thanks for working with us.\n\nTake care,\nBella Tran\nRedwood Artist Collective",
+      "receivedAt": "2026-07-21T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4070",
+      "billKey": "bill_4070",
+      "fromAddress": "bella@redwoodartists.com",
+      "fromDomain": "redwoodartists.com",
+      "subject": "Invoice #4070 — artist booking fee",
+      "body": "Hi folks,\n\nHope prep is going well! Attached is invoice #4070 for artist booking fee, total $6846.05, due 2026-08-23. Thanks for working with us.\n\nTake care,\nBella Tran\nRedwood Artist Collective",
+      "receivedAt": "2026-08-02T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4071",
+      "billKey": "bill_4071",
+      "fromAddress": "bella@redwoodartists.com",
+      "fromDomain": "redwoodartists.com",
+      "subject": "Invoice #4071 — artist booking fee",
+      "body": "Hi folks,\n\nHope prep is going well! Attached is invoice #4071 for artist booking fee, total $4843.39, due 2026-10-21. Thanks for working with us.\n\nTake care,\nBella Tran\nRedwood Artist Collective",
+      "receivedAt": "2026-09-30T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4072",
+      "billKey": "bill_4072",
+      "fromAddress": "alma@missionsttacos.com",
+      "fromDomain": "missionsttacos.com",
+      "subject": "Invoice #4072 — staff meal service",
+      "body": "Hola Fogline team,\n\nHope prep is going well! Attached is invoice #4072 for staff meal service, total $2122.58, due 2026-06-07. Thanks for working with us.\n\nGracias,\nAlma Reyes\nMission Street Tacos",
+      "receivedAt": "2026-05-17T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4073",
+      "billKey": "bill_4073",
+      "fromAddress": "alma@missionsttacos.com",
+      "fromDomain": "missionsttacos.com",
+      "subject": "Invoice #4073 — staff meal service",
+      "body": "Hola Fogline team,\n\nHope prep is going well! Attached is invoice #4073 for staff meal service, total $2372.28, due 2026-07-07. Thanks for working with us.\n\nGracias,\nAlma Reyes\nMission Street Tacos",
+      "receivedAt": "2026-06-16T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4074",
+      "billKey": "bill_4074",
+      "fromAddress": "alma@missionsttacos.com",
+      "fromDomain": "missionsttacos.com",
+      "subject": "Invoice #4074 — staff meal service",
+      "body": "Hola Fogline team,\n\nHope prep is going well! Attached is invoice #4074 for staff meal service, total $2377.67, due 2026-08-13. Thanks for working with us.\n\nGracias,\nAlma Reyes\nMission Street Tacos",
+      "receivedAt": "2026-07-23T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4075",
+      "billKey": "bill_4075",
+      "fromAddress": "alma@missionsttacos.com",
+      "fromDomain": "missionsttacos.com",
+      "subject": "Invoice #4075 — vendor permit co-pay",
+      "body": "Hola Fogline team,\n\nHope prep is going well! Attached is invoice #4075 for vendor permit co-pay, total $3046.99, due 2026-10-02. Thanks for working with us.\n\nGracias,\nAlma Reyes\nMission Street Tacos",
+      "receivedAt": "2026-09-11T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4076",
+      "billKey": "bill_4076",
+      "fromAddress": "alma@missionsttacos.com",
+      "fromDomain": "missionsttacos.com",
+      "subject": "Invoice #4076 — vendor permit co-pay",
+      "body": "Hola Fogline team,\n\nHope prep is going well! Attached is invoice #4076 for vendor permit co-pay, total $2424.93, due 2026-10-10. Thanks for working with us.\n\nGracias,\nAlma Reyes\nMission Street Tacos",
+      "receivedAt": "2026-09-19T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4077",
+      "billKey": "bill_4077",
+      "fromAddress": "will@dolorescatering.com",
+      "fromDomain": "dolorescatering.com",
+      "subject": "Invoice #4077 — staff meal service",
+      "body": "Hi,\n\nInvoice #4077 attached — staff meal service, $2068.15, due 2026-06-13. Let us know if you need anything else.\n\nBest,\nWill Huang\nDolores Park Catering",
+      "receivedAt": "2026-05-23T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4078",
+      "billKey": "bill_4078",
+      "fromAddress": "will@dolorescatering.com",
+      "fromDomain": "dolorescatering.com",
+      "subject": "Invoice #4078 — vendor permit co-pay",
+      "body": "Hi,\n\nInvoice #4078 attached — vendor permit co-pay, $2863.25, due 2026-07-14. Let us know if you need anything else.\n\nBest,\nWill Huang\nDolores Park Catering",
+      "receivedAt": "2026-06-23T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4079",
+      "billKey": "bill_4079",
+      "fromAddress": "will@dolorescatering.com",
+      "fromDomain": "dolorescatering.com",
+      "subject": "Invoice #4079 — catering services",
+      "body": "Hi,\n\nInvoice #4079 attached — catering services, $705.27, due 2026-08-31. Let us know if you need anything else.\n\nBest,\nWill Huang\nDolores Park Catering",
+      "receivedAt": "2026-08-10T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4080",
+      "billKey": "bill_4080",
+      "fromAddress": "will@dolorescatering.com",
+      "fromDomain": "dolorescatering.com",
+      "subject": "Invoice #4080 — vendor permit co-pay",
+      "body": "Hi,\n\nInvoice #4080 attached — vendor permit co-pay, $348.54, due 2026-09-07. Let us know if you need anything else.\n\nBest,\nWill Huang\nDolores Park Catering",
+      "receivedAt": "2026-08-17T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4081",
+      "billKey": "bill_4081",
+      "fromAddress": "will@dolorescatering.com",
+      "fromDomain": "dolorescatering.com",
+      "subject": "Invoice #4081 — vendor permit co-pay",
+      "body": "Hi,\n\nInvoice #4081 attached — vendor permit co-pay, $946.52, due 2026-10-11. Let us know if you need anything else.\n\nBest,\nWill Huang\nDolores Park Catering",
+      "receivedAt": "2026-09-20T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4082",
+      "billKey": "bill_4082",
+      "fromAddress": "kiona@baybitesfood.com",
+      "fromDomain": "baybitesfood.com",
+      "subject": "Invoice #4082 — vendor permit co-pay",
+      "body": "Hey!\n\nHope prep is going well! Attached is invoice #4082 for vendor permit co-pay, total $1085.49, due 2026-06-06. Thanks for working with us.\n\nThanks,\nKiona Mack\nBay Bites Food Co.",
+      "receivedAt": "2026-05-16T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4083",
+      "billKey": "bill_4083",
+      "fromAddress": "kiona@baybitesfood.com",
+      "fromDomain": "baybitesfood.com",
+      "subject": "Invoice #4083 — vendor booth deposit",
+      "body": "Hey!\n\nHope prep is going well! Attached is invoice #4083 for vendor booth deposit, total $1046.48, due 2026-07-05. Thanks for working with us.\n\nThanks,\nKiona Mack\nBay Bites Food Co.",
+      "receivedAt": "2026-06-14T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4084",
+      "billKey": "bill_4084",
+      "fromAddress": "kiona@baybitesfood.com",
+      "fromDomain": "baybitesfood.com",
+      "subject": "Invoice #4084 — vendor permit co-pay",
+      "body": "Hey!\n\nHope prep is going well! Attached is invoice #4084 for vendor permit co-pay, total $1607.96, due 2026-08-17. Thanks for working with us.\n\nThanks,\nKiona Mack\nBay Bites Food Co.",
+      "receivedAt": "2026-07-27T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4085",
+      "billKey": "bill_4085",
+      "fromAddress": "kiona@baybitesfood.com",
+      "fromDomain": "baybitesfood.com",
+      "subject": "Invoice #4085 — staff meal service",
+      "body": "Hey!\n\nHope prep is going well! Attached is invoice #4085 for staff meal service, total $2341.51, due 2026-09-07. Thanks for working with us.\n\nThanks,\nKiona Mack\nBay Bites Food Co.",
+      "receivedAt": "2026-08-17T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4086",
+      "billKey": "bill_4086",
+      "fromAddress": "kiona@baybitesfood.com",
+      "fromDomain": "baybitesfood.com",
+      "subject": "Invoice #4086 — vendor booth deposit",
+      "body": "Hey!\n\nHope prep is going well! Attached is invoice #4086 for vendor booth deposit, total $2796.13, due 2026-11-03. Thanks for working with us.\n\nThanks,\nKiona Mack\nBay Bites Food Co.",
+      "receivedAt": "2026-10-13T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4087",
+      "billKey": "bill_4087",
+      "fromAddress": "tony@sfslicepizza.com",
+      "fromDomain": "sfslicepizza.com",
+      "subject": "Invoice #4087 — staff meal service",
+      "body": "Hi,\n\nInvoice #4087 attached — staff meal service, $1722.04, due 2026-06-13. Let us know if you need anything else.\n\n— Tony\nTony Russo\nSF Slice Pizza Co.",
+      "receivedAt": "2026-05-23T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4088",
+      "billKey": "bill_4088",
+      "fromAddress": "tony@sfslicepizza.com",
+      "fromDomain": "sfslicepizza.com",
+      "subject": "Invoice #4088 — vendor permit co-pay",
+      "body": "Hi,\n\nInvoice #4088 attached — vendor permit co-pay, $1698.82, due 2026-07-18. Let us know if you need anything else.\n\n— Tony\nTony Russo\nSF Slice Pizza Co.",
+      "receivedAt": "2026-06-27T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4089",
+      "billKey": "bill_4089",
+      "fromAddress": "tony@sfslicepizza.com",
+      "fromDomain": "sfslicepizza.com",
+      "subject": "Invoice #4089 — catering services",
+      "body": "Hi,\n\nInvoice #4089 attached — catering services, $1799.21, due 2026-08-10. Let us know if you need anything else.\n\n— Tony\nTony Russo\nSF Slice Pizza Co.",
+      "receivedAt": "2026-07-20T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4090",
+      "billKey": "bill_4090",
+      "fromAddress": "tony@sfslicepizza.com",
+      "fromDomain": "sfslicepizza.com",
+      "subject": "Invoice #4090 — vendor permit co-pay",
+      "body": "Hi,\n\nInvoice #4090 attached — vendor permit co-pay, $549.99, due 2026-09-18. Let us know if you need anything else.\n\n— Tony\nTony Russo\nSF Slice Pizza Co.",
+      "receivedAt": "2026-08-28T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4091",
+      "billKey": "bill_4091",
+      "fromAddress": "tony@sfslicepizza.com",
+      "fromDomain": "sfslicepizza.com",
+      "subject": "Invoice #4091 — vendor permit co-pay",
+      "body": "Hi,\n\nInvoice #4091 attached — vendor permit co-pay, $540.87, due 2026-10-15. Let us know if you need anything else.\n\n— Tony\nTony Russo\nSF Slice Pizza Co.",
+      "receivedAt": "2026-09-24T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4092",
+      "billKey": "bill_4092",
+      "fromAddress": "meilin@goldenhourcoffee.com",
+      "fromDomain": "goldenhourcoffee.com",
+      "subject": "Invoice #4092 — catering services",
+      "body": "Hi there,\n\nHope prep is going well! Attached is invoice #4092 for catering services, total $2949.94, due 2026-05-29. Thanks for working with us.\n\nCheers,\nMei Lin Zhao\nGolden Hour Coffee Cart",
+      "receivedAt": "2026-05-08T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4093",
+      "billKey": "bill_4093",
+      "fromAddress": "meilin@goldenhourcoffee.com",
+      "fromDomain": "goldenhourcoffee.com",
+      "subject": "Invoice #4093 — vendor booth deposit",
+      "body": "Hi there,\n\nHope prep is going well! Attached is invoice #4093 for vendor booth deposit, total $2733.30, due 2026-07-16. Thanks for working with us.\n\nCheers,\nMei Lin Zhao\nGolden Hour Coffee Cart",
+      "receivedAt": "2026-06-25T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4094",
+      "billKey": "bill_4094",
+      "fromAddress": "meilin@goldenhourcoffee.com",
+      "fromDomain": "goldenhourcoffee.com",
+      "subject": "Invoice #4094 — catering services",
+      "body": "Hi there,\n\nHope prep is going well! Attached is invoice #4094 for catering services, total $729.58, due 2026-08-21. Thanks for working with us.\n\nCheers,\nMei Lin Zhao\nGolden Hour Coffee Cart",
+      "receivedAt": "2026-07-31T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4095",
+      "billKey": "bill_4095",
+      "fromAddress": "meilin@goldenhourcoffee.com",
+      "fromDomain": "goldenhourcoffee.com",
+      "subject": "Invoice #4095 — catering services",
+      "body": "Hi there,\n\nHope prep is going well! Attached is invoice #4095 for catering services, total $1726.04, due 2026-09-16. Thanks for working with us.\n\nCheers,\nMei Lin Zhao\nGolden Hour Coffee Cart",
+      "receivedAt": "2026-08-26T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4096",
+      "billKey": "bill_4096",
+      "fromAddress": "meilin@goldenhourcoffee.com",
+      "fromDomain": "goldenhourcoffee.com",
+      "subject": "Invoice #4096 — vendor permit co-pay",
+      "body": "Hi there,\n\nHope prep is going well! Attached is invoice #4096 for vendor permit co-pay, total $2118.32, due 2026-11-09. Thanks for working with us.\n\nCheers,\nMei Lin Zhao\nGolden Hour Coffee Cart",
+      "receivedAt": "2026-10-19T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4097",
+      "billKey": "bill_4097",
+      "fromAddress": "jonah@embarcaderoeats.com",
+      "fromDomain": "embarcaderoeats.com",
+      "subject": "Invoice #4097 — staff meal service",
+      "body": "Hello,\n\nPlease find attached invoice #4097 for staff meal service in the amount of $279.52, payable by 2026-05-30. Kindly remit to the account on file.\n\nThank you,\nJonah Petit\nEmbarcadero Eats",
+      "receivedAt": "2026-05-09T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4098",
+      "billKey": "bill_4098",
+      "fromAddress": "jonah@embarcaderoeats.com",
+      "fromDomain": "embarcaderoeats.com",
+      "subject": "Invoice #4098 — vendor permit co-pay",
+      "body": "Hello,\n\nPlease find attached invoice #4098 for vendor permit co-pay in the amount of $2512.90, payable by 2026-07-15. Kindly remit to the account on file.\n\nThank you,\nJonah Petit\nEmbarcadero Eats",
+      "receivedAt": "2026-06-24T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4099",
+      "billKey": "bill_4099",
+      "fromAddress": "jonah@embarcaderoeats.com",
+      "fromDomain": "embarcaderoeats.com",
+      "subject": "Invoice #4099 — staff meal service",
+      "body": "Hello,\n\nPlease find attached invoice #4099 for staff meal service in the amount of $2077.56, payable by 2026-08-03. Kindly remit to the account on file.\n\nThank you,\nJonah Petit\nEmbarcadero Eats",
+      "receivedAt": "2026-07-13T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4100",
+      "billKey": "bill_4100",
+      "fromAddress": "jonah@embarcaderoeats.com",
+      "fromDomain": "embarcaderoeats.com",
+      "subject": "Invoice #4100 — catering services",
+      "body": "Hello,\n\nPlease find attached invoice #4100 for catering services in the amount of $1907.16, payable by 2026-10-02. Kindly remit to the account on file.\n\nThank you,\nJonah Petit\nEmbarcadero Eats",
+      "receivedAt": "2026-09-11T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4101",
+      "billKey": "bill_4101",
+      "fromAddress": "jonah@embarcaderoeats.com",
+      "fromDomain": "embarcaderoeats.com",
+      "subject": "Invoice #4101 — staff meal service",
+      "body": "Hello,\n\nPlease find attached invoice #4101 for staff meal service in the amount of $1993.91, payable by 2026-10-21. Kindly remit to the account on file.\n\nThank you,\nJonah Petit\nEmbarcadero Eats",
+      "receivedAt": "2026-09-30T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4102",
+      "billKey": "bill_4102",
+      "fromAddress": "haruto@fogcityramen.com",
+      "fromDomain": "fogcityramen.com",
+      "subject": "Invoice #4102 — catering services",
+      "body": "Hi Fogline,\n\nHope prep is going well! Attached is invoice #4102 for catering services, total $3130.86, due 2026-06-14. Thanks for working with us.\n\nThanks,\nHaruto Sano\nFog City Ramen",
+      "receivedAt": "2026-05-24T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4103",
+      "billKey": "bill_4103",
+      "fromAddress": "haruto@fogcityramen.com",
+      "fromDomain": "fogcityramen.com",
+      "subject": "Invoice #4103 — vendor booth deposit",
+      "body": "Hi Fogline,\n\nHope prep is going well! Attached is invoice #4103 for vendor booth deposit, total $1190.47, due 2026-06-29. Thanks for working with us.\n\nThanks,\nHaruto Sano\nFog City Ramen",
+      "receivedAt": "2026-06-08T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4104",
+      "billKey": "bill_4104",
+      "fromAddress": "haruto@fogcityramen.com",
+      "fromDomain": "fogcityramen.com",
+      "subject": "Invoice #4104 — staff meal service",
+      "body": "Hi Fogline,\n\nHope prep is going well! Attached is invoice #4104 for staff meal service, total $2129.50, due 2026-08-26. Thanks for working with us.\n\nThanks,\nHaruto Sano\nFog City Ramen",
+      "receivedAt": "2026-08-05T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4105",
+      "billKey": "bill_4105",
+      "fromAddress": "haruto@fogcityramen.com",
+      "fromDomain": "fogcityramen.com",
+      "subject": "Invoice #4105 — staff meal service",
+      "body": "Hi Fogline,\n\nHope prep is going well! Attached is invoice #4105 for staff meal service, total $301.22, due 2026-09-09. Thanks for working with us.\n\nThanks,\nHaruto Sano\nFog City Ramen",
+      "receivedAt": "2026-08-19T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4106",
+      "billKey": "bill_4106",
+      "fromAddress": "haruto@fogcityramen.com",
+      "fromDomain": "fogcityramen.com",
+      "subject": "Invoice #4106 — staff meal service",
+      "body": "Hi Fogline,\n\nHope prep is going well! Attached is invoice #4106 for staff meal service, total $1445.22, due 2026-11-05. Thanks for working with us.\n\nThanks,\nHaruto Sano\nFog City Ramen",
+      "receivedAt": "2026-10-15T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4107",
+      "billKey": "bill_4107",
+      "fromAddress": "dana@sunsetbbqco.com",
+      "fromDomain": "sunsetbbqco.com",
+      "subject": "Invoice #4107 — staff meal service",
+      "body": "Hey team,\n\nInvoice #4107 attached — staff meal service, $370.00, due 2026-05-23. Let us know if you need anything else.\n\nBest,\nDana Okafor\nSunset BBQ Co.",
+      "receivedAt": "2026-05-02T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4108",
+      "billKey": "bill_4108",
+      "fromAddress": "dana@sunsetbbqco.com",
+      "fromDomain": "sunsetbbqco.com",
+      "subject": "Invoice #4108 — staff meal service",
+      "body": "Hey team,\n\nInvoice #4108 attached — staff meal service, $3104.83, due 2026-06-29. Let us know if you need anything else.\n\nBest,\nDana Okafor\nSunset BBQ Co.",
+      "receivedAt": "2026-06-08T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4109",
+      "billKey": "bill_4109",
+      "fromAddress": "dana@sunsetbbqco.com",
+      "fromDomain": "sunsetbbqco.com",
+      "subject": "Invoice #4109 — vendor booth deposit",
+      "body": "Hey team,\n\nInvoice #4109 attached — vendor booth deposit, $2235.17, due 2026-08-13. Let us know if you need anything else.\n\nBest,\nDana Okafor\nSunset BBQ Co.",
+      "receivedAt": "2026-07-23T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4110",
+      "billKey": "bill_4110",
+      "fromAddress": "dana@sunsetbbqco.com",
+      "fromDomain": "sunsetbbqco.com",
+      "subject": "Invoice #4110 — vendor permit co-pay",
+      "body": "Hey team,\n\nInvoice #4110 attached — vendor permit co-pay, $250.70, due 2026-09-05. Let us know if you need anything else.\n\nBest,\nDana Okafor\nSunset BBQ Co.",
+      "receivedAt": "2026-08-15T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4111",
+      "billKey": "bill_4111",
+      "fromAddress": "dana@sunsetbbqco.com",
+      "fromDomain": "sunsetbbqco.com",
+      "subject": "Invoice #4111 — vendor booth deposit",
+      "body": "Hey team,\n\nInvoice #4111 attached — vendor booth deposit, $1406.06, due 2026-11-02. Let us know if you need anything else.\n\nBest,\nDana Okafor\nSunset BBQ Co.",
+      "receivedAt": "2026-10-12T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4112",
+      "billKey": "bill_4112",
+      "fromAddress": "ellis@bayfrontwaste.com",
+      "fromDomain": "bayfrontwaste.com",
+      "subject": "Invoice #4112 — monthly equipment service",
+      "body": "Good day,\n\nPlease find attached invoice #4112 for monthly equipment service in the amount of $3333.02, payable by 2026-06-05. Kindly remit to the account on file.\n\nRegards,\nEllis Moreno\nBayfront Waste & Recycling, Billing",
+      "receivedAt": "2026-05-15T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4113",
+      "billKey": "bill_4113",
+      "fromAddress": "ellis@bayfrontwaste.com",
+      "fromDomain": "bayfrontwaste.com",
+      "subject": "Invoice #4113 — waste & recycling service",
+      "body": "Good day,\n\nPlease find attached invoice #4113 for waste & recycling service in the amount of $484.05, payable by 2026-06-16. Kindly remit to the account on file.\n\nRegards,\nEllis Moreno\nBayfront Waste & Recycling, Billing",
+      "receivedAt": "2026-05-26T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4114",
+      "billKey": "bill_4114",
+      "fromAddress": "ellis@bayfrontwaste.com",
+      "fromDomain": "bayfrontwaste.com",
+      "subject": "Invoice #4114 — waste & recycling service",
+      "body": "Good day,\n\nPlease find attached invoice #4114 for waste & recycling service in the amount of $1887.62, payable by 2026-07-22. Kindly remit to the account on file.\n\nRegards,\nEllis Moreno\nBayfront Waste & Recycling, Billing",
+      "receivedAt": "2026-07-01T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4115",
+      "billKey": "bill_4115",
+      "fromAddress": "ellis@bayfrontwaste.com",
+      "fromDomain": "bayfrontwaste.com",
+      "subject": "Invoice #4115 — generator rental",
+      "body": "Good day,\n\nPlease find attached invoice #4115 for generator rental in the amount of $2962.85, payable by 2026-09-01. Kindly remit to the account on file.\n\nRegards,\nEllis Moreno\nBayfront Waste & Recycling, Billing",
+      "receivedAt": "2026-08-11T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4116",
+      "billKey": "bill_4116",
+      "fromAddress": "ellis@bayfrontwaste.com",
+      "fromDomain": "bayfrontwaste.com",
+      "subject": "Invoice #4116 — fencing & barricade rental",
+      "body": "Good day,\n\nPlease find attached invoice #4116 for fencing & barricade rental in the amount of $3486.30, payable by 2026-09-26. Kindly remit to the account on file.\n\nRegards,\nEllis Moreno\nBayfront Waste & Recycling, Billing",
+      "receivedAt": "2026-09-05T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4117",
+      "billKey": "bill_4117",
+      "fromAddress": "ellis@bayfrontwaste.com",
+      "fromDomain": "bayfrontwaste.com",
+      "subject": "Invoice #4117 — waste & recycling service",
+      "body": "Good day,\n\nPlease find attached invoice #4117 for waste & recycling service in the amount of $1593.89, payable by 2026-10-14. Kindly remit to the account on file.\n\nRegards,\nEllis Moreno\nBayfront Waste & Recycling, Billing",
+      "receivedAt": "2026-09-23T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4118",
+      "billKey": "bill_4118",
+      "fromAddress": "fatima@gggenerators.com",
+      "fromDomain": "gggenerators.com",
+      "subject": "Invoice #4118 — generator rental",
+      "body": "Hi,\n\nPlease find attached invoice #4118 for generator rental in the amount of $1351.35, payable by 2026-05-24. Kindly remit to the account on file.\n\nThanks,\nFatima Noor\nGolden Gate Generators",
+      "receivedAt": "2026-05-03T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4119",
+      "billKey": "bill_4119",
+      "fromAddress": "fatima@gggenerators.com",
+      "fromDomain": "gggenerators.com",
+      "subject": "Invoice #4119 — waste & recycling service",
+      "body": "Hi,\n\nPlease find attached invoice #4119 for waste & recycling service in the amount of $2009.24, payable by 2026-07-01. Kindly remit to the account on file.\n\nThanks,\nFatima Noor\nGolden Gate Generators",
+      "receivedAt": "2026-06-10T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4120",
+      "billKey": "bill_4120",
+      "fromAddress": "fatima@gggenerators.com",
+      "fromDomain": "gggenerators.com",
+      "subject": "Invoice #4120 — generator rental",
+      "body": "Hi,\n\nPlease find attached invoice #4120 for generator rental in the amount of $4078.20, payable by 2026-07-20. Kindly remit to the account on file.\n\nThanks,\nFatima Noor\nGolden Gate Generators",
+      "receivedAt": "2026-06-29T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4121",
+      "billKey": "bill_4121",
+      "fromAddress": "fatima@gggenerators.com",
+      "fromDomain": "gggenerators.com",
+      "subject": "Invoice #4121 — waste & recycling service",
+      "body": "Hi,\n\nPlease find attached invoice #4121 for waste & recycling service in the amount of $812.13, payable by 2026-09-03. Kindly remit to the account on file.\n\nThanks,\nFatima Noor\nGolden Gate Generators",
+      "receivedAt": "2026-08-13T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4122",
+      "billKey": "bill_4122",
+      "fromAddress": "fatima@gggenerators.com",
+      "fromDomain": "gggenerators.com",
+      "subject": "Invoice #4122 — waste & recycling service",
+      "body": "Hi,\n\nPlease find attached invoice #4122 for waste & recycling service in the amount of $1678.92, payable by 2026-09-27. Kindly remit to the account on file.\n\nThanks,\nFatima Noor\nGolden Gate Generators",
+      "receivedAt": "2026-09-06T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4123",
+      "billKey": "bill_4123",
+      "fromAddress": "fatima@gggenerators.com",
+      "fromDomain": "gggenerators.com",
+      "subject": "Invoice #4123 — monthly equipment service",
+      "body": "Hi,\n\nPlease find attached invoice #4123 for monthly equipment service in the amount of $4042.87, payable by 2026-11-03. Kindly remit to the account on file.\n\nThanks,\nFatima Noor\nGolden Gate Generators",
+      "receivedAt": "2026-10-13T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4124",
+      "billKey": "bill_4124",
+      "fromAddress": "rick@sffencebarricade.com",
+      "fromDomain": "sffencebarricade.com",
+      "subject": "Invoice #4124 — fencing & barricade rental",
+      "body": "Hey,\n\nInvoice #4124 attached — fencing & barricade rental, $2099.91, due 2026-05-31. Let us know if you need anything else.\n\nThanks,\nRick Alvarado\nSF Fence & Barricade Co.",
+      "receivedAt": "2026-05-10T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4125",
+      "billKey": "bill_4125",
+      "fromAddress": "rick@sffencebarricade.com",
+      "fromDomain": "sffencebarricade.com",
+      "subject": "Invoice #4125 — monthly equipment service",
+      "body": "Hey,\n\nInvoice #4125 attached — monthly equipment service, $1148.81, due 2026-07-03. Let us know if you need anything else.\n\nThanks,\nRick Alvarado\nSF Fence & Barricade Co.",
+      "receivedAt": "2026-06-12T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4126",
+      "billKey": "bill_4126",
+      "fromAddress": "rick@sffencebarricade.com",
+      "fromDomain": "sffencebarricade.com",
+      "subject": "Invoice #4126 — monthly equipment service",
+      "body": "Hey,\n\nInvoice #4126 attached — monthly equipment service, $1673.22, due 2026-07-24. Let us know if you need anything else.\n\nThanks,\nRick Alvarado\nSF Fence & Barricade Co.",
+      "receivedAt": "2026-07-03T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4127",
+      "billKey": "bill_4127",
+      "fromAddress": "rick@sffencebarricade.com",
+      "fromDomain": "sffencebarricade.com",
+      "subject": "Invoice #4127 — monthly equipment service",
+      "body": "Hey,\n\nInvoice #4127 attached — monthly equipment service, $3210.56, due 2026-08-24. Let us know if you need anything else.\n\nThanks,\nRick Alvarado\nSF Fence & Barricade Co.",
+      "receivedAt": "2026-08-03T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4128",
+      "billKey": "bill_4128",
+      "fromAddress": "rick@sffencebarricade.com",
+      "fromDomain": "sffencebarricade.com",
+      "subject": "Invoice #4128 — waste & recycling service",
+      "body": "Hey,\n\nInvoice #4128 attached — waste & recycling service, $2825.74, due 2026-10-02. Let us know if you need anything else.\n\nThanks,\nRick Alvarado\nSF Fence & Barricade Co.",
+      "receivedAt": "2026-09-11T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4129",
+      "billKey": "bill_4129",
+      "fromAddress": "rick@sffencebarricade.com",
+      "fromDomain": "sffencebarricade.com",
+      "subject": "Invoice #4129 — fencing & barricade rental",
+      "body": "Hey,\n\nInvoice #4129 attached — fencing & barricade rental, $2241.21, due 2026-10-20. Let us know if you need anything else.\n\nThanks,\nRick Alvarado\nSF Fence & Barricade Co.",
+      "receivedAt": "2026-09-29T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4130",
+      "billKey": "bill_4130",
+      "fromAddress": "rosa@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "subject": "Invoice #4130 — rigging crew labor",
+      "body": "Hi team,\n\nPlease find attached invoice #4130 for rigging crew labor in the amount of $3122.07, payable by 2026-05-11. Kindly remit to the account on file.\n\nThanks,\nRosa Quintero\nAccounts, Stagecraft Rigging Co.",
+      "receivedAt": "2026-04-20T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4131",
+      "billKey": "bill_4131",
+      "fromAddress": "rosa@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "subject": "Invoice #4131 — stage deck rental",
+      "body": "Hi team,\n\nPlease find attached invoice #4131 for stage deck rental in the amount of $3869.88, payable by 2026-05-25. Kindly remit to the account on file.\n\nThanks,\nRosa Quintero\nAccounts, Stagecraft Rigging Co.",
+      "receivedAt": "2026-05-04T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4132",
+      "billKey": "bill_4132",
+      "fromAddress": "rosa@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "subject": "Invoice #4132 — stage deck rental",
+      "body": "Hi team,\n\nPlease find attached invoice #4132 for stage deck rental in the amount of $3348.23, payable by 2026-06-11. Kindly remit to the account on file.\n\nThanks,\nRosa Quintero\nAccounts, Stagecraft Rigging Co.",
+      "receivedAt": "2026-05-21T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4133",
+      "billKey": "bill_4133",
+      "fromAddress": "rosa@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "subject": "Invoice #4133 — rigging crew labor",
+      "body": "Hi team,\n\nPlease find attached invoice #4133 for rigging crew labor in the amount of $2513.07, payable by 2026-06-28. Kindly remit to the account on file.\n\nThanks,\nRosa Quintero\nAccounts, Stagecraft Rigging Co.",
+      "receivedAt": "2026-06-07T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4134",
+      "billKey": "bill_4134",
+      "fromAddress": "rosa@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "subject": "Invoice #4134 — main-stage truss rental",
+      "body": "Hi team,\n\nPlease find attached invoice #4134 for main-stage truss rental in the amount of $6511.69, payable by 2026-07-17. Kindly remit to the account on file.\n\nThanks,\nRosa Quintero\nAccounts, Stagecraft Rigging Co.",
+      "receivedAt": "2026-06-26T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4135",
+      "billKey": "bill_4135",
+      "fromAddress": "rosa@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "subject": "Invoice #4135 — stage deck rental",
+      "body": "Hi team,\n\nPlease find attached invoice #4135 for stage deck rental in the amount of $7887.46, payable by 2026-08-03. Kindly remit to the account on file.\n\nThanks,\nRosa Quintero\nAccounts, Stagecraft Rigging Co.",
+      "receivedAt": "2026-07-13T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4136",
+      "billKey": "bill_4136",
+      "fromAddress": "rosa@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "subject": "Invoice #4136 — monthly stage equipment lease",
+      "body": "Hi team,\n\nPlease find attached invoice #4136 for monthly stage equipment lease in the amount of $2569.07, payable by 2026-08-18. Kindly remit to the account on file.\n\nThanks,\nRosa Quintero\nAccounts, Stagecraft Rigging Co.",
+      "receivedAt": "2026-07-28T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4137",
+      "billKey": "bill_4137",
+      "fromAddress": "rosa@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "subject": "Invoice #4137 — stage deck rental",
+      "body": "Hi team,\n\nPlease find attached invoice #4137 for stage deck rental in the amount of $2286.68, payable by 2026-09-04. Kindly remit to the account on file.\n\nThanks,\nRosa Quintero\nAccounts, Stagecraft Rigging Co.",
+      "receivedAt": "2026-08-14T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4471",
+      "billKey": "bill_4471",
+      "fromAddress": "rosa@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "subject": "Invoice #4471 — main-stage truss rental",
+      "body": "Hi team,\n\nPlease find attached invoice #4471 for main-stage truss rental in the amount of $18400.00, payable by 2026-09-22. Kindly remit to the account on file.\n\nThanks,\nRosa Quintero\nAccounts, Stagecraft Rigging Co.",
+      "receivedAt": "2026-09-01T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4138",
+      "billKey": "bill_4138",
+      "fromAddress": "rosa@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "subject": "Invoice #4138 — stage deck rental",
+      "body": "Hi team,\n\nPlease find attached invoice #4138 for stage deck rental in the amount of $6558.58, payable by 2026-10-08. Kindly remit to the account on file.\n\nThanks,\nRosa Quintero\nAccounts, Stagecraft Rigging Co.",
+      "receivedAt": "2026-09-17T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4139",
+      "billKey": "bill_4139",
+      "fromAddress": "rosa@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "subject": "Invoice #4139 — rigging crew labor",
+      "body": "Hi team,\n\nPlease find attached invoice #4139 for rigging crew labor in the amount of $6979.39, payable by 2026-10-28. Kindly remit to the account on file.\n\nThanks,\nRosa Quintero\nAccounts, Stagecraft Rigging Co.",
+      "receivedAt": "2026-10-07T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_stage_extra_1",
+      "billKey": null,
+      "fromAddress": "rosa@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "subject": "Re: load-in schedule",
+      "body": "Hi team,\n\nConfirming our crew arrives 6am Thursday for load-in. Let us know if the gate code changes.\n\nThanks,\nRosa Quintero\nAccounts, Stagecraft Rigging Co.",
+      "receivedAt": "2026-05-26T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_stage_extra_2",
+      "billKey": null,
+      "fromAddress": "rosa@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "subject": "Truss inspection certificate",
+      "body": "Hi team,\n\nAttached is this season's truss inspection certificate for your records, as requested.\n\nThanks,\nRosa Quintero\nAccounts, Stagecraft Rigging Co.",
+      "receivedAt": "2026-07-20T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_stage_extra_3",
+      "billKey": null,
+      "fromAddress": "rosa@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "subject": "Re: main-stage layout sign-off",
+      "body": "Hi team,\n\nLayout looks good on our end, we'll build to the drawing you sent over.\n\nThanks,\nRosa Quintero\nAccounts, Stagecraft Rigging Co.",
+      "receivedAt": "2026-09-13T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4140",
+      "billKey": "bill_4140",
+      "fromAddress": "priya@gg-trussdeck.com",
+      "fromDomain": "gg-trussdeck.com",
+      "subject": "URGENT: Updated remittance details — Invoice #4140",
+      "body": "Hi,\n\nWe've switched banks this week ahead of a merger and need this invoice paid to our new account ASAP, before the close of business today if possible.\n\nInvoice #4140 — stage deck rental, $4,100.00, due 2026-10-22.\nNew account: Mercury, routing on request.\n\nPlease confirm once sent.\n\nBest regards,\nPriya Shah\nBilling, Golden Gate Truss & Deck",
+      "receivedAt": "2026-10-20T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4141",
+      "billKey": "bill_4141",
+      "fromAddress": "haruto@fogcityramen.com",
+      "fromDomain": "fogcityramen.com",
+      "subject": "Invoice #4141 — updated bank details",
+      "body": "Hi Fogline,\n\nQuick note: we switched to a new bank this month, please use the new account below for invoice #4141 (staff meal service, $680.00, due 2026-10-28).\n\nNew bank: Mercury, acct ending 8832.\n\nThanks,\nHaruto Sano\nFog City Ramen",
+      "receivedAt": "2026-10-18T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4142",
+      "billKey": "bill_4142",
+      "fromAddress": "owen@guardiangatesecurity.com",
+      "fromDomain": "guardiangatesecurity.com",
+      "subject": "URGENT — Invoice #4142, pay today",
+      "body": "Hi,\n\nWe need this settled today — invoice #4142 for additional overnight staffing, $47,000.00, due 2026-10-22. Please expedite.\n\nThank you,\nOwen Pratt\nGuardian Gate Security",
+      "receivedAt": "2026-10-21T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4143",
+      "billKey": "bill_4143",
+      "fromAddress": "diego@cascadetalentgroup.com",
+      "fromDomain": "cascadetalentgroup.com",
+      "subject": "Invoice #4143 — pay before the show, new account",
+      "body": "Hi,\n\nOur artist's manager needs this paid before tomorrow's set or they're pulling out — invoice #4143, artist deposit, $5,400.00. Please use our new account, we moved banks last week: First Republic, acct ending 7743.\n\nBest,\nDiego Fuentes\nCascade Talent Group",
+      "receivedAt": "2026-10-22T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4144",
+      "billKey": "bill_4144",
+      "fromAddress": "ellis@bayfront-waste.co",
+      "fromDomain": "bayfront-waste.co",
+      "subject": "Invoice #4144 — new remittance account",
+      "body": "Good day,\n\nPlease note our updated account for invoice #4144, waste & recycling service, $2,150.00, due 2026-10-31: Mercury, acct ending 9014.\n\nRegards,\nEllis Moreno\nBayfront Waste & Recycling, Billing",
+      "receivedAt": "2026-10-17T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4145",
+      "billKey": "bill_4145",
+      "fromAddress": "yusuf@perimeterprostaffing.com",
+      "fromDomain": "perimeterprostaffing.com",
+      "subject": "Invoice #4145 — new bank on file after ownership change",
+      "body": "Hey Fogline,\n\nAs mentioned last month, we were acquired by a regional security group and moved to US Bank — new account ends 5509. Invoice #4145 for monthly guard staffing retainer, $4,100.00, due 2026-09-29, should go to the new account.\n\nThanks!\nYusuf Dembele\nPerimeter Pro Staffing",
+      "receivedAt": "2026-09-08T16:00:00.000Z",
+      "direction": "in"
+    },
+    {
+      "key": "email_4146",
+      "billKey": "bill_4146",
+      "fromAddress": "grace@horizonartists.com",
+      "fromDomain": "horizonartists.com",
+      "subject": "Invoice #4146 — switched banks this quarter",
+      "body": "Hello,\n\nWe moved our operating account to Bank of America this quarter, ending 6621. Invoice #4146 for artist booking fee, $6,800.00, due 2026-09-04, should route there going forward.\n\nWarmly,\nGrace Lindqvist\nHorizon Artist Management",
+      "receivedAt": "2026-08-14T16:00:00.000Z",
+      "direction": "in"
+    }
+  ],
+  "payments": [
+    {
+      "key": "pay_4001",
+      "billKey": "bill_4001",
+      "amountCents": 768092,
+      "bankAccountKey": "bank_bayview_staging",
+      "status": "Paid",
+      "transferId": "transfer_10001",
+      "paidAt": "2026-05-12T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4002",
+      "billKey": "bill_4002",
+      "amountCents": 267253,
+      "bankAccountKey": "bank_bayview_staging",
+      "status": "Paid",
+      "transferId": "transfer_10002",
+      "paidAt": "2026-06-27T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4003",
+      "billKey": "bill_4003",
+      "amountCents": 645887,
+      "bankAccountKey": "bank_bayview_staging",
+      "status": "Paid",
+      "transferId": "transfer_10003",
+      "paidAt": "2026-07-11T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4004",
+      "billKey": "bill_4004",
+      "amountCents": 624194,
+      "bankAccountKey": "bank_bayview_staging",
+      "status": "Paid",
+      "transferId": "transfer_10004",
+      "paidAt": "2026-09-02T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4005",
+      "billKey": "bill_4005",
+      "amountCents": 373518,
+      "bankAccountKey": "bank_bayview_staging",
+      "status": "Paid",
+      "transferId": "transfer_10005",
+      "paidAt": "2026-09-16T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4006",
+      "billKey": "bill_4006",
+      "amountCents": 298166,
+      "bankAccountKey": "bank_bayview_staging",
+      "status": "Paid",
+      "transferId": "transfer_10006",
+      "paidAt": "2026-10-30T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4007",
+      "billKey": "bill_4007",
+      "amountCents": 397483,
+      "bankAccountKey": "bank_gg_truss",
+      "status": "Paid",
+      "transferId": "transfer_10007",
+      "paidAt": "2026-06-06T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4008",
+      "billKey": "bill_4008",
+      "amountCents": 933146,
+      "bankAccountKey": "bank_gg_truss",
+      "status": "Paid",
+      "transferId": "transfer_10008",
+      "paidAt": "2026-06-30T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4009",
+      "billKey": "bill_4009",
+      "amountCents": 822962,
+      "bankAccountKey": "bank_gg_truss",
+      "status": "Paid",
+      "transferId": "transfer_10009",
+      "paidAt": "2026-08-11T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4010",
+      "billKey": "bill_4010",
+      "amountCents": 368852,
+      "bankAccountKey": "bank_gg_truss",
+      "status": "Paid",
+      "transferId": "transfer_10010",
+      "paidAt": "2026-09-09T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4011",
+      "billKey": "bill_4011",
+      "amountCents": 323472,
+      "bankAccountKey": "bank_gg_truss",
+      "status": "Paid",
+      "transferId": "transfer_10011",
+      "paidAt": "2026-10-04T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4012",
+      "billKey": "bill_4012",
+      "amountCents": 341559,
+      "bankAccountKey": "bank_gg_truss",
+      "status": "Paid",
+      "transferId": "transfer_10012",
+      "paidAt": "2026-10-23T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4013",
+      "billKey": "bill_4013",
+      "amountCents": 731965,
+      "bankAccountKey": "bank_soundwave",
+      "status": "Paid",
+      "transferId": "transfer_10013",
+      "paidAt": "2026-05-28T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4014",
+      "billKey": "bill_4014",
+      "amountCents": 516565,
+      "bankAccountKey": "bank_soundwave",
+      "status": "Paid",
+      "transferId": "transfer_10014",
+      "paidAt": "2026-06-06T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4015",
+      "billKey": "bill_4015",
+      "amountCents": 147630,
+      "bankAccountKey": "bank_soundwave",
+      "status": "Paid",
+      "transferId": "transfer_10015",
+      "paidAt": "2026-07-23T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4016",
+      "billKey": "bill_4016",
+      "amountCents": 611439,
+      "bankAccountKey": "bank_soundwave",
+      "status": "Paid",
+      "transferId": "transfer_10016",
+      "paidAt": "2026-08-15T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4017",
+      "billKey": "bill_4017",
+      "amountCents": 760665,
+      "bankAccountKey": "bank_soundwave",
+      "status": "Paid",
+      "transferId": "transfer_10017",
+      "paidAt": "2026-09-10T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4018",
+      "billKey": "bill_4018",
+      "amountCents": 628070,
+      "bankAccountKey": "bank_soundwave",
+      "status": "Paid",
+      "transferId": "transfer_10018",
+      "paidAt": "2026-09-17T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4019",
+      "billKey": "bill_4019",
+      "amountCents": 542050,
+      "bankAccountKey": "bank_soundwave",
+      "status": "Paid",
+      "transferId": "transfer_10019",
+      "paidAt": "2026-10-31T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4020",
+      "billKey": "bill_4020",
+      "amountCents": 401681,
+      "bankAccountKey": "bank_pacific_pa",
+      "status": "Paid",
+      "transferId": "transfer_10020",
+      "paidAt": "2026-06-04T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4021",
+      "billKey": "bill_4021",
+      "amountCents": 327838,
+      "bankAccountKey": "bank_pacific_pa",
+      "status": "Paid",
+      "transferId": "transfer_10021",
+      "paidAt": "2026-06-10T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4022",
+      "billKey": "bill_4022",
+      "amountCents": 168582,
+      "bankAccountKey": "bank_pacific_pa",
+      "status": "Paid",
+      "transferId": "transfer_10022",
+      "paidAt": "2026-07-05T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4023",
+      "billKey": "bill_4023",
+      "amountCents": 427213,
+      "bankAccountKey": "bank_pacific_pa",
+      "status": "Paid",
+      "transferId": "transfer_10023",
+      "paidAt": "2026-08-04T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4024",
+      "billKey": "bill_4024",
+      "amountCents": 500513,
+      "bankAccountKey": "bank_pacific_pa",
+      "status": "Paid",
+      "transferId": "transfer_10024",
+      "paidAt": "2026-09-10T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4025",
+      "billKey": "bill_4025",
+      "amountCents": 184039,
+      "bankAccountKey": "bank_pacific_pa",
+      "status": "Paid",
+      "transferId": "transfer_10025",
+      "paidAt": "2026-09-16T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4026",
+      "billKey": "bill_4026",
+      "amountCents": 201266,
+      "bankAccountKey": "bank_pacific_pa",
+      "status": "Paid",
+      "transferId": "transfer_10026",
+      "paidAt": "2026-11-04T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4027",
+      "billKey": "bill_4027",
+      "amountCents": 560448,
+      "bankAccountKey": "bank_bassline",
+      "status": "Paid",
+      "transferId": "transfer_10027",
+      "paidAt": "2026-05-31T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4028",
+      "billKey": "bill_4028",
+      "amountCents": 237288,
+      "bankAccountKey": "bank_bassline",
+      "status": "Paid",
+      "transferId": "transfer_10028",
+      "paidAt": "2026-06-23T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4029",
+      "billKey": "bill_4029",
+      "amountCents": 598039,
+      "bankAccountKey": "bank_bassline",
+      "status": "Paid",
+      "transferId": "transfer_10029",
+      "paidAt": "2026-07-03T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4030",
+      "billKey": "bill_4030",
+      "amountCents": 622497,
+      "bankAccountKey": "bank_bassline",
+      "status": "Paid",
+      "transferId": "transfer_10030",
+      "paidAt": "2026-08-06T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4031",
+      "billKey": "bill_4031",
+      "amountCents": 712786,
+      "bankAccountKey": "bank_bassline",
+      "status": "Paid",
+      "transferId": "transfer_10031",
+      "paidAt": "2026-08-25T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4032",
+      "billKey": "bill_4032",
+      "amountCents": 488078,
+      "bankAccountKey": "bank_bassline",
+      "status": "Paid",
+      "transferId": "transfer_10032",
+      "paidAt": "2026-09-24T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4033",
+      "billKey": "bill_4033",
+      "amountCents": 715098,
+      "bankAccountKey": "bank_bassline",
+      "status": "Paid",
+      "transferId": "transfer_10033",
+      "paidAt": "2026-10-17T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4034",
+      "billKey": "bill_4034",
+      "amountCents": 374662,
+      "bankAccountKey": "bank_sfbay_security",
+      "status": "Paid",
+      "transferId": "transfer_10034",
+      "paidAt": "2026-05-20T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4035",
+      "billKey": "bill_4035",
+      "amountCents": 249908,
+      "bankAccountKey": "bank_sfbay_security",
+      "status": "Paid",
+      "transferId": "transfer_10035",
+      "paidAt": "2026-06-26T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4036",
+      "billKey": "bill_4036",
+      "amountCents": 278905,
+      "bankAccountKey": "bank_sfbay_security",
+      "status": "Paid",
+      "transferId": "transfer_10036",
+      "paidAt": "2026-07-20T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4037",
+      "billKey": "bill_4037",
+      "amountCents": 518368,
+      "bankAccountKey": "bank_sfbay_security",
+      "status": "Paid",
+      "transferId": "transfer_10037",
+      "paidAt": "2026-08-26T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4038",
+      "billKey": "bill_4038",
+      "amountCents": 276799,
+      "bankAccountKey": "bank_sfbay_security",
+      "status": "Paid",
+      "transferId": "transfer_10038",
+      "paidAt": "2026-10-01T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4039",
+      "billKey": "bill_4039",
+      "amountCents": 343315,
+      "bankAccountKey": "bank_sfbay_security",
+      "status": "Paid",
+      "transferId": "transfer_10039",
+      "paidAt": "2026-10-15T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4040",
+      "billKey": "bill_4040",
+      "amountCents": 161833,
+      "bankAccountKey": "bank_guardian_gate",
+      "status": "Paid",
+      "transferId": "transfer_10040",
+      "paidAt": "2026-05-31T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4041",
+      "billKey": "bill_4041",
+      "amountCents": 119490,
+      "bankAccountKey": "bank_guardian_gate",
+      "status": "Paid",
+      "transferId": "transfer_10041",
+      "paidAt": "2026-07-04T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4042",
+      "billKey": "bill_4042",
+      "amountCents": 257220,
+      "bankAccountKey": "bank_guardian_gate",
+      "status": "Paid",
+      "transferId": "transfer_10042",
+      "paidAt": "2026-08-07T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4043",
+      "billKey": "bill_4043",
+      "amountCents": 255672,
+      "bankAccountKey": "bank_guardian_gate",
+      "status": "Paid",
+      "transferId": "transfer_10043",
+      "paidAt": "2026-09-04T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4044",
+      "billKey": "bill_4044",
+      "amountCents": 420871,
+      "bankAccountKey": "bank_guardian_gate",
+      "status": "Paid",
+      "transferId": "transfer_10044",
+      "paidAt": "2026-09-21T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4045",
+      "billKey": "bill_4045",
+      "amountCents": 382816,
+      "bankAccountKey": "bank_guardian_gate",
+      "status": "Paid",
+      "transferId": "transfer_10045",
+      "paidAt": "2026-10-24T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4046",
+      "billKey": "bill_4046",
+      "amountCents": 444719,
+      "bankAccountKey": "bank_perimeter_pro",
+      "status": "Paid",
+      "transferId": "transfer_10046",
+      "paidAt": "2026-05-24T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4047",
+      "billKey": "bill_4047",
+      "amountCents": 92304,
+      "bankAccountKey": "bank_perimeter_pro",
+      "status": "Paid",
+      "transferId": "transfer_10047",
+      "paidAt": "2026-06-27T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4048",
+      "billKey": "bill_4048",
+      "amountCents": 310359,
+      "bankAccountKey": "bank_perimeter_pro",
+      "status": "Paid",
+      "transferId": "transfer_10048",
+      "paidAt": "2026-07-31T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4049",
+      "billKey": "bill_4049",
+      "amountCents": 223584,
+      "bankAccountKey": "bank_perimeter_pro",
+      "status": "Paid",
+      "transferId": "transfer_10049",
+      "paidAt": "2026-08-25T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4050",
+      "billKey": "bill_4050",
+      "amountCents": 615654,
+      "bankAccountKey": "bank_perimeter_pro",
+      "status": "Paid",
+      "transferId": "transfer_10050",
+      "paidAt": "2026-09-24T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4051",
+      "billKey": "bill_4051",
+      "amountCents": 523349,
+      "bankAccountKey": "bank_perimeter_pro",
+      "status": "Paid",
+      "transferId": "transfer_10051",
+      "paidAt": "2026-10-24T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4052",
+      "billKey": "bill_4052",
+      "amountCents": 909726,
+      "bankAccountKey": "bank_horizon_artists",
+      "status": "Paid",
+      "transferId": "transfer_10052",
+      "paidAt": "2026-05-17T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4053",
+      "billKey": "bill_4053",
+      "amountCents": 583457,
+      "bankAccountKey": "bank_horizon_artists",
+      "status": "Paid",
+      "transferId": "transfer_10053",
+      "paidAt": "2026-07-23T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4054",
+      "billKey": "bill_4054",
+      "amountCents": 512989,
+      "bankAccountKey": "bank_horizon_artists",
+      "status": "Paid",
+      "transferId": "transfer_10054",
+      "paidAt": "2026-08-20T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4055",
+      "billKey": "bill_4055",
+      "amountCents": 703416,
+      "bankAccountKey": "bank_horizon_artists",
+      "status": "Paid",
+      "transferId": "transfer_10055",
+      "paidAt": "2026-09-30T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4057",
+      "billKey": "bill_4057",
+      "amountCents": 295470,
+      "bankAccountKey": "bank_cascade_talent",
+      "status": "Paid",
+      "transferId": "transfer_10056",
+      "paidAt": "2026-07-09T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4058",
+      "billKey": "bill_4058",
+      "amountCents": 772180,
+      "bankAccountKey": "bank_cascade_talent",
+      "status": "Paid",
+      "transferId": "transfer_10057",
+      "paidAt": "2026-09-12T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4059",
+      "billKey": "bill_4059",
+      "amountCents": 675544,
+      "bankAccountKey": "bank_cascade_talent",
+      "status": "Paid",
+      "transferId": "transfer_10058",
+      "paidAt": "2026-10-19T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4060",
+      "billKey": "bill_4060",
+      "amountCents": 910005,
+      "bankAccountKey": "bank_westline_booking",
+      "status": "Paid",
+      "transferId": "transfer_10059",
+      "paidAt": "2026-05-26T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4062",
+      "billKey": "bill_4062",
+      "amountCents": 880975,
+      "bankAccountKey": "bank_westline_booking",
+      "status": "Paid",
+      "transferId": "transfer_10060",
+      "paidAt": "2026-08-20T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4063",
+      "billKey": "bill_4063",
+      "amountCents": 323937,
+      "bankAccountKey": "bank_westline_booking",
+      "status": "Paid",
+      "transferId": "transfer_10061",
+      "paidAt": "2026-10-02T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4064",
+      "billKey": "bill_4064",
+      "amountCents": 426446,
+      "bankAccountKey": "bank_nightowl_agency",
+      "status": "Paid",
+      "transferId": "transfer_10062",
+      "paidAt": "2026-06-01T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4065",
+      "billKey": "bill_4065",
+      "amountCents": 823616,
+      "bankAccountKey": "bank_nightowl_agency",
+      "status": "Paid",
+      "transferId": "transfer_10063",
+      "paidAt": "2026-06-30T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4066",
+      "billKey": "bill_4066",
+      "amountCents": 369258,
+      "bankAccountKey": "bank_nightowl_agency",
+      "status": "Paid",
+      "transferId": "transfer_10064",
+      "paidAt": "2026-08-31T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4067",
+      "billKey": "bill_4067",
+      "amountCents": 700862,
+      "bankAccountKey": "bank_nightowl_agency",
+      "status": "Paid",
+      "transferId": "transfer_10065",
+      "paidAt": "2026-09-30T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4068",
+      "billKey": "bill_4068",
+      "amountCents": 909755,
+      "bankAccountKey": "bank_redwood_artists",
+      "status": "Paid",
+      "transferId": "transfer_10066",
+      "paidAt": "2026-06-06T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4069",
+      "billKey": "bill_4069",
+      "amountCents": 400225,
+      "bankAccountKey": "bank_redwood_artists",
+      "status": "Paid",
+      "transferId": "transfer_10067",
+      "paidAt": "2026-08-08T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4070",
+      "billKey": "bill_4070",
+      "amountCents": 684605,
+      "bankAccountKey": "bank_redwood_artists",
+      "status": "Paid",
+      "transferId": "transfer_10068",
+      "paidAt": "2026-08-22T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4071",
+      "billKey": "bill_4071",
+      "amountCents": 484339,
+      "bankAccountKey": "bank_redwood_artists",
+      "status": "Paid",
+      "transferId": "transfer_10069",
+      "paidAt": "2026-10-18T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4072",
+      "billKey": "bill_4072",
+      "amountCents": 212258,
+      "bankAccountKey": "bank_mission_tacos",
+      "status": "Paid",
+      "transferId": "transfer_10070",
+      "paidAt": "2026-06-05T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4073",
+      "billKey": "bill_4073",
+      "amountCents": 237228,
+      "bankAccountKey": "bank_mission_tacos",
+      "status": "Paid",
+      "transferId": "transfer_10071",
+      "paidAt": "2026-07-02T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4074",
+      "billKey": "bill_4074",
+      "amountCents": 237767,
+      "bankAccountKey": "bank_mission_tacos",
+      "status": "Paid",
+      "transferId": "transfer_10072",
+      "paidAt": "2026-08-11T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4075",
+      "billKey": "bill_4075",
+      "amountCents": 304699,
+      "bankAccountKey": "bank_mission_tacos",
+      "status": "Paid",
+      "transferId": "transfer_10073",
+      "paidAt": "2026-10-01T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4076",
+      "billKey": "bill_4076",
+      "amountCents": 242493,
+      "bankAccountKey": "bank_mission_tacos",
+      "status": "Paid",
+      "transferId": "transfer_10074",
+      "paidAt": "2026-10-08T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4077",
+      "billKey": "bill_4077",
+      "amountCents": 206815,
+      "bankAccountKey": "bank_dolores_catering",
+      "status": "Paid",
+      "transferId": "transfer_10075",
+      "paidAt": "2026-06-10T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4078",
+      "billKey": "bill_4078",
+      "amountCents": 286325,
+      "bankAccountKey": "bank_dolores_catering",
+      "status": "Paid",
+      "transferId": "transfer_10076",
+      "paidAt": "2026-07-09T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4079",
+      "billKey": "bill_4079",
+      "amountCents": 70527,
+      "bankAccountKey": "bank_dolores_catering",
+      "status": "Paid",
+      "transferId": "transfer_10077",
+      "paidAt": "2026-08-28T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4080",
+      "billKey": "bill_4080",
+      "amountCents": 34854,
+      "bankAccountKey": "bank_dolores_catering",
+      "status": "Paid",
+      "transferId": "transfer_10078",
+      "paidAt": "2026-09-02T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4081",
+      "billKey": "bill_4081",
+      "amountCents": 94652,
+      "bankAccountKey": "bank_dolores_catering",
+      "status": "Paid",
+      "transferId": "transfer_10079",
+      "paidAt": "2026-10-08T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4082",
+      "billKey": "bill_4082",
+      "amountCents": 108549,
+      "bankAccountKey": "bank_baybites",
+      "status": "Paid",
+      "transferId": "transfer_10080",
+      "paidAt": "2026-06-04T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4083",
+      "billKey": "bill_4083",
+      "amountCents": 104648,
+      "bankAccountKey": "bank_baybites",
+      "status": "Paid",
+      "transferId": "transfer_10081",
+      "paidAt": "2026-07-02T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4084",
+      "billKey": "bill_4084",
+      "amountCents": 160796,
+      "bankAccountKey": "bank_baybites",
+      "status": "Paid",
+      "transferId": "transfer_10082",
+      "paidAt": "2026-08-16T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4085",
+      "billKey": "bill_4085",
+      "amountCents": 234151,
+      "bankAccountKey": "bank_baybites",
+      "status": "Paid",
+      "transferId": "transfer_10083",
+      "paidAt": "2026-09-04T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4086",
+      "billKey": "bill_4086",
+      "amountCents": 279613,
+      "bankAccountKey": "bank_baybites",
+      "status": "Paid",
+      "transferId": "transfer_10084",
+      "paidAt": "2026-11-01T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4087",
+      "billKey": "bill_4087",
+      "amountCents": 172204,
+      "bankAccountKey": "bank_sfslice",
+      "status": "Paid",
+      "transferId": "transfer_10085",
+      "paidAt": "2026-06-10T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4088",
+      "billKey": "bill_4088",
+      "amountCents": 169882,
+      "bankAccountKey": "bank_sfslice",
+      "status": "Paid",
+      "transferId": "transfer_10086",
+      "paidAt": "2026-07-15T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4089",
+      "billKey": "bill_4089",
+      "amountCents": 179921,
+      "bankAccountKey": "bank_sfslice",
+      "status": "Paid",
+      "transferId": "transfer_10087",
+      "paidAt": "2026-08-07T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4090",
+      "billKey": "bill_4090",
+      "amountCents": 54999,
+      "bankAccountKey": "bank_sfslice",
+      "status": "Paid",
+      "transferId": "transfer_10088",
+      "paidAt": "2026-09-17T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4091",
+      "billKey": "bill_4091",
+      "amountCents": 54087,
+      "bankAccountKey": "bank_sfslice",
+      "status": "Paid",
+      "transferId": "transfer_10089",
+      "paidAt": "2026-10-14T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4092",
+      "billKey": "bill_4092",
+      "amountCents": 294994,
+      "bankAccountKey": "bank_goldenhour_coffee",
+      "status": "Paid",
+      "transferId": "transfer_10090",
+      "paidAt": "2026-05-27T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4093",
+      "billKey": "bill_4093",
+      "amountCents": 273330,
+      "bankAccountKey": "bank_goldenhour_coffee",
+      "status": "Paid",
+      "transferId": "transfer_10091",
+      "paidAt": "2026-07-13T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4094",
+      "billKey": "bill_4094",
+      "amountCents": 72958,
+      "bankAccountKey": "bank_goldenhour_coffee",
+      "status": "Paid",
+      "transferId": "transfer_10092",
+      "paidAt": "2026-08-21T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4095",
+      "billKey": "bill_4095",
+      "amountCents": 172604,
+      "bankAccountKey": "bank_goldenhour_coffee",
+      "status": "Paid",
+      "transferId": "transfer_10093",
+      "paidAt": "2026-09-13T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4096",
+      "billKey": "bill_4096",
+      "amountCents": 211832,
+      "bankAccountKey": "bank_goldenhour_coffee",
+      "status": "Scheduled",
+      "paidAt": "2026-10-25T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4097",
+      "billKey": "bill_4097",
+      "amountCents": 27952,
+      "bankAccountKey": "bank_embarcadero_eats",
+      "status": "Paid",
+      "transferId": "transfer_10094",
+      "paidAt": "2026-05-30T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4098",
+      "billKey": "bill_4098",
+      "amountCents": 251290,
+      "bankAccountKey": "bank_embarcadero_eats",
+      "status": "Paid",
+      "transferId": "transfer_10095",
+      "paidAt": "2026-07-10T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4099",
+      "billKey": "bill_4099",
+      "amountCents": 207756,
+      "bankAccountKey": "bank_embarcadero_eats",
+      "status": "Paid",
+      "transferId": "transfer_10096",
+      "paidAt": "2026-07-31T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4100",
+      "billKey": "bill_4100",
+      "amountCents": 190716,
+      "bankAccountKey": "bank_embarcadero_eats",
+      "status": "Paid",
+      "transferId": "transfer_10097",
+      "paidAt": "2026-09-29T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4101",
+      "billKey": "bill_4101",
+      "amountCents": 199391,
+      "bankAccountKey": "bank_embarcadero_eats",
+      "status": "Paid",
+      "transferId": "transfer_10098",
+      "paidAt": "2026-10-20T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4102",
+      "billKey": "bill_4102",
+      "amountCents": 313086,
+      "bankAccountKey": "bank_fogcity_ramen",
+      "status": "Paid",
+      "transferId": "transfer_10099",
+      "paidAt": "2026-06-09T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4103",
+      "billKey": "bill_4103",
+      "amountCents": 119047,
+      "bankAccountKey": "bank_fogcity_ramen",
+      "status": "Paid",
+      "transferId": "transfer_10100",
+      "paidAt": "2026-06-29T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4104",
+      "billKey": "bill_4104",
+      "amountCents": 212950,
+      "bankAccountKey": "bank_fogcity_ramen",
+      "status": "Paid",
+      "transferId": "transfer_10101",
+      "paidAt": "2026-08-21T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4105",
+      "billKey": "bill_4105",
+      "amountCents": 30122,
+      "bankAccountKey": "bank_fogcity_ramen",
+      "status": "Paid",
+      "transferId": "transfer_10102",
+      "paidAt": "2026-09-07T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4106",
+      "billKey": "bill_4106",
+      "amountCents": 144522,
+      "bankAccountKey": "bank_fogcity_ramen",
+      "status": "Paid",
+      "transferId": "transfer_10103",
+      "paidAt": "2026-11-03T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4107",
+      "billKey": "bill_4107",
+      "amountCents": 37000,
+      "bankAccountKey": "bank_sunset_bbq",
+      "status": "Paid",
+      "transferId": "transfer_10104",
+      "paidAt": "2026-05-19T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4108",
+      "billKey": "bill_4108",
+      "amountCents": 310483,
+      "bankAccountKey": "bank_sunset_bbq",
+      "status": "Paid",
+      "transferId": "transfer_10105",
+      "paidAt": "2026-06-24T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4109",
+      "billKey": "bill_4109",
+      "amountCents": 223517,
+      "bankAccountKey": "bank_sunset_bbq",
+      "status": "Paid",
+      "transferId": "transfer_10106",
+      "paidAt": "2026-08-09T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4110",
+      "billKey": "bill_4110",
+      "amountCents": 25070,
+      "bankAccountKey": "bank_sunset_bbq",
+      "status": "Paid",
+      "transferId": "transfer_10107",
+      "paidAt": "2026-08-31T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4111",
+      "billKey": "bill_4111",
+      "amountCents": 140606,
+      "bankAccountKey": "bank_sunset_bbq",
+      "status": "Paid",
+      "transferId": "transfer_10108",
+      "paidAt": "2026-10-29T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4112",
+      "billKey": "bill_4112",
+      "amountCents": 333302,
+      "bankAccountKey": "bank_bayfront_waste",
+      "status": "Paid",
+      "transferId": "transfer_10109",
+      "paidAt": "2026-06-04T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4113",
+      "billKey": "bill_4113",
+      "amountCents": 48405,
+      "bankAccountKey": "bank_bayfront_waste",
+      "status": "Paid",
+      "transferId": "transfer_10110",
+      "paidAt": "2026-06-11T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4114",
+      "billKey": "bill_4114",
+      "amountCents": 188762,
+      "bankAccountKey": "bank_bayfront_waste",
+      "status": "Paid",
+      "transferId": "transfer_10111",
+      "paidAt": "2026-07-20T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4115",
+      "billKey": "bill_4115",
+      "amountCents": 296285,
+      "bankAccountKey": "bank_bayfront_waste",
+      "status": "Paid",
+      "transferId": "transfer_10112",
+      "paidAt": "2026-09-01T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4116",
+      "billKey": "bill_4116",
+      "amountCents": 348630,
+      "bankAccountKey": "bank_bayfront_waste",
+      "status": "Paid",
+      "transferId": "transfer_10113",
+      "paidAt": "2026-09-22T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4117",
+      "billKey": "bill_4117",
+      "amountCents": 159389,
+      "bankAccountKey": "bank_bayfront_waste",
+      "status": "Paid",
+      "transferId": "transfer_10114",
+      "paidAt": "2026-10-12T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4118",
+      "billKey": "bill_4118",
+      "amountCents": 135135,
+      "bankAccountKey": "bank_gg_generators",
+      "status": "Paid",
+      "transferId": "transfer_10115",
+      "paidAt": "2026-05-19T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4119",
+      "billKey": "bill_4119",
+      "amountCents": 200924,
+      "bankAccountKey": "bank_gg_generators",
+      "status": "Paid",
+      "transferId": "transfer_10116",
+      "paidAt": "2026-06-28T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4120",
+      "billKey": "bill_4120",
+      "amountCents": 407820,
+      "bankAccountKey": "bank_gg_generators",
+      "status": "Paid",
+      "transferId": "transfer_10117",
+      "paidAt": "2026-07-20T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4121",
+      "billKey": "bill_4121",
+      "amountCents": 81213,
+      "bankAccountKey": "bank_gg_generators",
+      "status": "Paid",
+      "transferId": "transfer_10118",
+      "paidAt": "2026-09-02T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4122",
+      "billKey": "bill_4122",
+      "amountCents": 167892,
+      "bankAccountKey": "bank_gg_generators",
+      "status": "Paid",
+      "transferId": "transfer_10119",
+      "paidAt": "2026-09-22T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4123",
+      "billKey": "bill_4123",
+      "amountCents": 404287,
+      "bankAccountKey": "bank_gg_generators",
+      "status": "Paid",
+      "transferId": "transfer_10120",
+      "paidAt": "2026-11-01T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4124",
+      "billKey": "bill_4124",
+      "amountCents": 209991,
+      "bankAccountKey": "bank_sf_fence",
+      "status": "Paid",
+      "transferId": "transfer_10121",
+      "paidAt": "2026-05-26T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4125",
+      "billKey": "bill_4125",
+      "amountCents": 114881,
+      "bankAccountKey": "bank_sf_fence",
+      "status": "Paid",
+      "transferId": "transfer_10122",
+      "paidAt": "2026-07-03T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4126",
+      "billKey": "bill_4126",
+      "amountCents": 167322,
+      "bankAccountKey": "bank_sf_fence",
+      "status": "Paid",
+      "transferId": "transfer_10123",
+      "paidAt": "2026-07-24T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4127",
+      "billKey": "bill_4127",
+      "amountCents": 321056,
+      "bankAccountKey": "bank_sf_fence",
+      "status": "Paid",
+      "transferId": "transfer_10124",
+      "paidAt": "2026-08-19T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4128",
+      "billKey": "bill_4128",
+      "amountCents": 282574,
+      "bankAccountKey": "bank_sf_fence",
+      "status": "Paid",
+      "transferId": "transfer_10125",
+      "paidAt": "2026-09-27T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4129",
+      "billKey": "bill_4129",
+      "amountCents": 224121,
+      "bankAccountKey": "bank_sf_fence",
+      "status": "Paid",
+      "transferId": "transfer_10126",
+      "paidAt": "2026-10-16T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4130",
+      "billKey": "bill_4130",
+      "amountCents": 312207,
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "transferId": "transfer_10127",
+      "paidAt": "2026-05-05T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4131",
+      "billKey": "bill_4131",
+      "amountCents": 386988,
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "transferId": "transfer_10128",
+      "paidAt": "2026-05-22T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4132",
+      "billKey": "bill_4132",
+      "amountCents": 334823,
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "transferId": "transfer_10129",
+      "paidAt": "2026-06-10T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4133",
+      "billKey": "bill_4133",
+      "amountCents": 251307,
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "transferId": "transfer_10130",
+      "paidAt": "2026-06-22T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4134",
+      "billKey": "bill_4134",
+      "amountCents": 651169,
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "transferId": "transfer_10131",
+      "paidAt": "2026-07-12T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4135",
+      "billKey": "bill_4135",
+      "amountCents": 788746,
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "transferId": "transfer_10132",
+      "paidAt": "2026-07-29T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4136",
+      "billKey": "bill_4136",
+      "amountCents": 256907,
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "transferId": "transfer_10133",
+      "paidAt": "2026-08-12T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4137",
+      "billKey": "bill_4137",
+      "amountCents": 228668,
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "transferId": "transfer_10134",
+      "paidAt": "2026-08-30T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4471",
+      "billKey": "bill_4471",
+      "amountCents": 1840000,
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "transferId": "transfer_10135",
+      "paidAt": "2026-09-18T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4138",
+      "billKey": "bill_4138",
+      "amountCents": 655858,
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "transferId": "transfer_10136",
+      "paidAt": "2026-10-06T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4139",
+      "billKey": "bill_4139",
+      "amountCents": 697939,
+      "bankAccountKey": "bank_stage",
+      "status": "Paid",
+      "transferId": "transfer_10137",
+      "paidAt": "2026-10-22T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4145",
+      "billKey": "bill_4145",
+      "amountCents": 410000,
+      "bankAccountKey": "bank_perimeter_pro_2",
+      "status": "Paid",
+      "transferId": "transfer_10138",
+      "paidAt": "2026-09-26T16:00:00.000Z"
+    },
+    {
+      "key": "pay_4146",
+      "billKey": "bill_4146",
+      "amountCents": 680000,
+      "bankAccountKey": "bank_horizon_artists_2",
+      "status": "Paid",
+      "transferId": "transfer_10139",
+      "paidAt": "2026-09-02T16:00:00.000Z"
+    }
+  ],
+  "calls": [
+    {
+      "key": "call_4471_verify",
+      "supplierKey": "sup_stage",
+      "billKey": "bill_4471",
+      "direction": "out",
+      "startedAt": "2026-09-03T16:00:00.000Z",
+      "summary": "Confirmed total and scope on September invoice #4471 (main-stage truss) before payment; supplier verified, Dev approved.",
+      "transcript": [
+        {
+          "speaker": "callback",
+          "text": "Hi, this is an automated assistant calling for Fogline's accounts team. This call is recorded. Can you confirm the total on your September invoice, number 4471?",
+          "ts": 0
+        },
+        {
+          "speaker": "supplier",
+          "text": "Yes, that's invoice 4471 for the main-stage truss build, total is $18,400.",
+          "ts": 6
+        },
+        {
+          "speaker": "callback",
+          "text": "Thanks. And that's still going to the Chase account ending 2210, same as always?",
+          "ts": 13
+        },
+        {
+          "speaker": "supplier",
+          "text": "Correct, same account we've always used.",
+          "ts": 18
+        }
+      ],
+      "outcome": "confirmed"
+    },
+    {
+      "key": "call_ggtruss_scam",
+      "supplierKey": "sup_gg_truss",
+      "billKey": "bill_4140",
+      "direction": "out",
+      "startedAt": "2026-10-20T20:48:00.000Z",
+      "summary": "Called the real number on file to confirm the bank-change request on invoice 4140; supplier said they never sent it and never changed banks.",
+      "transcript": [
+        {
+          "speaker": "callback",
+          "text": "Hi, this is an automated assistant calling for Fogline's accounts team, about an email we received asking to change your payment account. This call is recorded.",
+          "ts": 0
+        },
+        {
+          "speaker": "supplier",
+          "text": "We didn't send that. We've never changed our bank, and that's not even our email domain.",
+          "ts": 9
+        }
+      ],
+      "outcome": "not_confirmed"
+    },
+    {
+      "key": "call_fogcity_scam",
+      "supplierKey": "sup_fogcity_ramen",
+      "billKey": "bill_4141",
+      "direction": "out",
+      "startedAt": "2026-10-18T23:12:00.000Z",
+      "summary": "Tried the number on file to confirm the bank-change request; no answer, retried once, handed off to Maya.",
+      "transcript": [
+        {
+          "speaker": "callback",
+          "text": "Hi, this is an automated assistant calling for Fogline's accounts team, about a bank-change request on invoice 4141. This call is recorded.",
+          "ts": 0
+        }
+      ],
+      "outcome": "handed_off"
+    },
+    {
+      "key": "call_guardiangate_scam",
+      "supplierKey": "sup_guardian_gate",
+      "billKey": "bill_4142",
+      "direction": "out",
+      "startedAt": "2026-10-21T20:48:00.000Z",
+      "summary": "Called to confirm an invoice 8x this supplier's usual size; supplier had no record of it.",
+      "transcript": [
+        {
+          "speaker": "callback",
+          "text": "Hi, this is an automated assistant calling for Fogline's accounts team about invoice 4142 for $47,000. This call is recorded. Can you confirm this invoice?",
+          "ts": 0
+        },
+        {
+          "speaker": "supplier",
+          "text": "$47,000? No, we didn't send anything close to that this week. Let me check with billing and call you back.",
+          "ts": 8
+        }
+      ],
+      "outcome": "not_confirmed"
+    },
+    {
+      "key": "call_bayfront_scam",
+      "supplierKey": "sup_bayfront_waste",
+      "billKey": "bill_4144",
+      "direction": "out",
+      "startedAt": "2026-10-18T01:36:00.000Z",
+      "summary": "Called the number on file about the bank-change request; supplier confirmed it wasn't theirs, flagged a look-alike domain, handed to Maya to block the sender.",
+      "transcript": [
+        {
+          "speaker": "callback",
+          "text": "Hi, this is an automated assistant calling for Fogline's accounts team about a bank-change request on invoice 4144. This call is recorded.",
+          "ts": 0
+        },
+        {
+          "speaker": "supplier",
+          "text": "That's not from us — our domain is bayfrontwaste.com, no hyphen, no .co. Please don't pay that.",
+          "ts": 7
+        }
+      ],
+      "outcome": "handed_off"
+    },
+    {
+      "key": "call_perimeterpro_verify",
+      "supplierKey": "sup_perimeter_pro",
+      "billKey": "bill_4145",
+      "direction": "out",
+      "startedAt": "2026-09-09T16:00:00.000Z",
+      "summary": "Verified the new US Bank account after Perimeter Pro's ownership change; supplier confirmed details, Dev approved the change.",
+      "transcript": [
+        {
+          "speaker": "callback",
+          "text": "Hi, this is an automated assistant calling for Fogline's accounts team to confirm a bank-change request. This call is recorded. Can you confirm the new account details?",
+          "ts": 0
+        },
+        {
+          "speaker": "supplier",
+          "text": "Yes, we were acquired last month and moved everything to US Bank, account ending 5509.",
+          "ts": 7
+        }
+      ],
+      "outcome": "confirmed"
+    },
+    {
+      "key": "call_horizon_verify",
+      "supplierKey": "sup_horizon_artists",
+      "billKey": "bill_4146",
+      "direction": "out",
+      "startedAt": "2026-08-15T16:00:00.000Z",
+      "summary": "Verified Horizon's new Bank of America account by phone before Dev approved the change.",
+      "transcript": [
+        {
+          "speaker": "callback",
+          "text": "Hi, this is an automated assistant calling for Fogline's accounts team to confirm a bank-change request. This call is recorded.",
+          "ts": 0
+        },
+        {
+          "speaker": "supplier",
+          "text": "Yes, that's right, we moved to Bank of America this quarter, ending 6621.",
+          "ts": 6
+        }
+      ],
+      "outcome": "confirmed"
+    },
+    {
+      "key": "call_soundwave_routine",
+      "supplierKey": "sup_soundwave",
+      "billKey": "bill_4013",
+      "direction": "out",
+      "startedAt": "2026-05-08T16:00:00.000Z",
+      "summary": "Routine confirmation call ahead of a slightly late payment; supplier confirmed invoice details.",
+      "transcript": [
+        {
+          "speaker": "callback",
+          "text": "Hi, this is an automated assistant calling for Fogline's accounts team to confirm invoice #4013 before payment. This call is recorded.",
+          "ts": 0
+        },
+        {
+          "speaker": "supplier",
+          "text": "Yep, that's correct, total and account look right on our end.",
+          "ts": 5
+        }
+      ],
+      "outcome": "confirmed"
+    },
+    {
+      "key": "call_sfbay_routine",
+      "supplierKey": "sup_sfbay_security",
+      "billKey": "bill_4034",
+      "direction": "out",
+      "startedAt": "2026-05-01T16:00:00.000Z",
+      "summary": "Routine confirmation call on a staffing invoice ahead of payment.",
+      "transcript": [
+        {
+          "speaker": "callback",
+          "text": "Hi, this is an automated assistant calling for Fogline's accounts team to confirm invoice #4034. This call is recorded.",
+          "ts": 0
+        },
+        {
+          "speaker": "supplier",
+          "text": "Confirmed, that's our invoice, totals match.",
+          "ts": 4
+        }
+      ],
+      "outcome": "confirmed"
+    }
+  ],
+  "plantedScams": [
+    {
+      "key": "scam_ggtruss_lookalike",
+      "billKey": "bill_4140",
+      "kind": "look-alike domain + new bank account + rush language",
+      "description": "Email claims to be from Golden Gate Truss & Deck but arrives from gg-trussdeck.com (real domain is ggtrussdeck.com), asks for payment to a brand-new Mercury account, and pushes a same-day deadline.",
+      "checksThatShouldFire": [
+        "look-alike domain",
+        "new bank account",
+        "rush language"
+      ]
+    },
+    {
+      "key": "scam_fogcity_newbank",
+      "billKey": "bill_4141",
+      "kind": "new bank account from a compromised real address",
+      "description": "Fog City Ramen's real address asks to redirect payment to a brand-new Mercury account never seen before; verification call went unanswered twice.",
+      "checksThatShouldFire": [
+        "new bank account",
+        "no prior history with this account"
+      ]
+    },
+    {
+      "key": "scam_guardiangate_amount",
+      "billKey": "bill_4142",
+      "kind": "unusual amount + rush language",
+      "description": "Invoice for $47,000 is roughly 8x Guardian Gate Security's typical bill, arrives with same-day urgency; the supplier could not confirm it when called.",
+      "checksThatShouldFire": [
+        "unusual amount",
+        "rush language"
+      ]
+    },
+    {
+      "key": "scam_cascade_rush",
+      "billKey": "bill_4143",
+      "kind": "rush language + new bank account",
+      "description": "Threatens the artist will \"pull out\" unless paid within a day, and asks for a brand-new First Republic account never used before.",
+      "checksThatShouldFire": [
+        "rush language",
+        "new bank account"
+      ]
+    },
+    {
+      "key": "scam_bayfront_lookalike",
+      "billKey": "bill_4144",
+      "kind": "look-alike domain + new bank account",
+      "description": "Arrives from bayfront-waste.co (real domain is bayfrontwaste.com, no hyphen, .com not .co) requesting a new Mercury account.",
+      "checksThatShouldFire": [
+        "look-alike domain",
+        "new bank account"
+      ]
+    }
+  ]
+}
