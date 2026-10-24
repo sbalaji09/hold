@@ -9,6 +9,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   /** Why this can't be pressed, and who can. */
   locked?: string;
   children?: React.ReactNode;
+  ref?: React.Ref<HTMLButtonElement>;
 }
 
 export function Button(p: ButtonProps): React.ReactElement {
