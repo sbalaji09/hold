@@ -34,7 +34,7 @@ export default async function SuppliersPage({
   const rows = [...suppliers].sort((a, b) => Number(needsConfirming(b)) - Number(needsConfirming(a)));
 
   return (
-    <div className="flex flex-col gap-4 p-6 max-[760px]:p-0">
+    <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="cb-display text-ink">{Payee.many}</h1>

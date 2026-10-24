@@ -2,9 +2,6 @@
    design/callback/components/bundle.css; every colour, font, radius and shadow is a token. */
 
 .hv-page {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: var(--space-5) var(--space-6) var(--space-8);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);

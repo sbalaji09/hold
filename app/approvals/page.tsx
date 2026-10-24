@@ -21,7 +21,7 @@ export default async function ApprovalsPage() {
   const waiting = approvals.length + changes;
 
   return (
-    <div className="flex flex-col gap-6 p-8">
+    <div className="flex flex-col gap-6">
       <div>
         <h1 className="cb-display text-ink">Approvals</h1>
         <p className="mt-1 text-[13px] text-ink-muted">

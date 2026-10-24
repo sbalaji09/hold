@@ -1,6 +1,7 @@
-// Today: the first screen. What is waiting on the signed-in person, then one section per part of
-// the job (calls, bills in progress, payments, suppliers, what hold did). Every row opens the record
-// it is about; there are no totals or charts.
+// Today: the first screen, in one view with no scrolling on a laptop. What is waiting on the
+// signed-in person, then one section per part of the job (calls, bills in progress, payments,
+// suppliers, what hold did). Each shows its first few rows and "View all" opens the full screen.
+// Every row opens the record it is about; there are no totals or charts.
 import * as React from "react";
 import Link from "next/link";
 import { Amount, LogEntry, StatusMark } from "@/components/callback";
@@ -21,20 +22,21 @@ const KIND_LABEL: Record<ApprovalKind, string> = {
   bank_change: "Bank change",
 };
 
-const SHOWN = 5;
+/** Rows per section: what fits a 2-row grid on a laptop screen. */
+const SHOWN = 4;
 
-function Section({ title, href, more, children }: { title: string; href: string; more: string; children: React.ReactNode }) {
+function Section({ title, href, you, children }: { title: string; href: string; you?: boolean; children: React.ReactNode }) {
   return (
-    <section className="cb-doc" aria-label={title}>
+    <section className={"cb-doc pt-dash-cell" + (you ? " pt-dash-you" : "")} aria-label={title}>
       <div className="cb-doc-head">
         <span>{title}</span>
         <small>
           <Link href={href} className="underline underline-offset-4">
-            {more}
+            View all
           </Link>
         </small>
       </div>
-      {children}
+      <div className="pt-dash-body">{children}</div>
     </section>
   );
 }
@@ -84,6 +86,44 @@ export default async function TodayPage(): Promise<React.ReactElement> {
   const myMessages = persona === "maya" ? messages.open : [];
   const waiting = mine.length + toConfirm.length + myChanges.length + myMessages.length;
   const waitingKeys = new Set(mine.map((a) => a.billKey));
+  const waitingRows: React.ReactElement[] = [
+    ...mine.map((a) => (
+      <Row
+        key={a.key}
+        href={persona === "dev" ? "/approvals" : `/bills/${a.billKey}`}
+        title={`${KIND_LABEL[a.kind]}: ${billTitle(a.bill)}`}
+        line={a.reason ?? a.recommendation}
+        right={<Amount cents={a.bill.amountCents} />}
+      />
+    )),
+    ...myChanges.map((c) => (
+      <Row
+        key={c.key}
+        href="/approvals"
+        title={`Change to how hold ${c.job === "triage" ? "sorts email" : "checks"}: ${c.name}`}
+        line="It makes hold less strict, so it waits for a person before it goes live."
+      />
+    )),
+    ...toConfirm.map((s) => (
+      <Row
+        key={s.key}
+        href={`/suppliers/${s.key}`}
+        title={`Confirm a new ${co.payee.one}: ${s.name}`}
+        line="hold won't call them until a person confirms their number and what was agreed."
+        right={<StatusMark status="needs-you" />}
+      />
+    )),
+    ...myMessages.map((m) => (
+      <Row
+        key={m.key}
+        href={`/messages/${encodeURIComponent(m.key)}`}
+        title={`Message from ${m.supplierName}: ${m.subject}`}
+        line={m.triage?.why}
+        right={<span className="cb-when">{shortDate(m.receivedAt)}</span>}
+      />
+    )),
+  ];
+  const waitingAll = persona === "dev" ? "/approvals" : `/inbox?status=${encodeURIComponent("Needs you")}`;
 
   // ---- the rest of the job ----
   const working = bills.filter((b) => (b.status === "Checking" || b.status === "Calling" || b.status === "Held" || b.status === "Needs you") && !waitingKeys.has(b.key));
@@ -95,7 +135,7 @@ export default async function TodayPage(): Promise<React.ReactElement> {
   const actorName = { callback: "hold", maya: co.maya.name, dev: co.dev.name } as const;
 
   return (
-    <div>
+    <div className="pt-today">
       <header className="pt-head">
         <div className="pt-head-text">
           <h1 className="cb-display">Today</h1>
@@ -105,60 +145,23 @@ export default async function TodayPage(): Promise<React.ReactElement> {
         </div>
       </header>
 
-      <section className="cb-doc pt-dash-you" aria-labelledby="waiting-head">
-        <div className="cb-doc-head">
-          <span id="waiting-head">Waiting on you</span>
-          <small>{me.full}</small>
-        </div>
-        {waiting === 0 ? (
-          <Empty>Nothing is waiting on you. hold puts anything that needs {me.name} here, and everything else goes to {other.name} or happens on its own.</Empty>
-        ) : (
-          <>
-            {mine.map((a) => (
-              <Row
-                key={a.key}
-                href={persona === "dev" ? "/approvals" : `/bills/${a.billKey}`}
-                title={`${KIND_LABEL[a.kind]}: ${billTitle(a.bill)}`}
-                line={a.reason ?? a.recommendation}
-                right={<Amount cents={a.bill.amountCents} />}
-              />
-            ))}
-            {myChanges.map((c) => (
-              <Row
-                key={c.key}
-                href="/approvals"
-                title={`Change to how hold ${c.job === "triage" ? "sorts email" : "checks"}: ${c.name}`}
-                line="It makes hold less strict, so it waits for a person before it goes live."
-              />
-            ))}
-            {toConfirm.map((s) => (
-              <Row
-                key={s.key}
-                href={`/suppliers/${s.key}`}
-                title={`Confirm a new ${co.payee.one}: ${s.name}`}
-                line="hold won't call them until a person confirms their number and what was agreed."
-                right={<StatusMark status="needs-you" />}
-              />
-            ))}
-            {myMessages.map((m) => (
-              <Row
-                key={m.key}
-                href={`/messages/${encodeURIComponent(m.key)}`}
-                title={`Message from ${m.supplierName}: ${m.subject}`}
-                line={m.triage?.why}
-                right={<span className="cb-when">{shortDate(m.receivedAt)}</span>}
-              />
-            ))}
-          </>
-        )}
-      </section>
-
       <div className="pt-dash-grid">
-        <Section title="On the line" href="/phone" more="Phone line">
+        <Section title={`Waiting on ${me.name}`} href={waitingAll} you>
+          {waitingRows.length === 0 ? (
+            <Empty>Nothing is waiting on you. hold puts anything that needs {me.name} here; the rest goes to {other.name} or happens on its own.</Empty>
+          ) : (
+            <>
+              {waitingRows.slice(0, waitingRows.length > SHOWN ? SHOWN - 1 : SHOWN)}
+              {waitingRows.length > SHOWN ? <Row href={waitingAll} title={`${waitingRows.length - SHOWN + 1} more waiting on you`} /> : null}
+            </>
+          )}
+        </Section>
+
+        <Section title="On the line" href="/phone">
           <LiveNow />
         </Section>
 
-        <Section title={`${capital(co.bill).many} hold is working on`} href="/inbox" more="Inbox">
+        <Section title={`${capital(co.bill).many} hold is working on`} href="/inbox">
           {working.length === 0 ? (
             <Empty>No {co.bill.many} are being checked or held right now.</Empty>
           ) : (
@@ -168,10 +171,10 @@ export default async function TodayPage(): Promise<React.ReactElement> {
           )}
         </Section>
 
-        <Section title="Payments" href="/payments" more="Payments">
+        <Section title="Payments" href="/payments">
           {settings.watchOnly ? <p className="pt-dash-note">{WATCH_ONLY_REASON}</p> : null}
           {toPay.length === 0 && sent.length === 0 ? <Empty>Nothing scheduled and nothing sent yet.</Empty> : null}
-          {toPay.slice(0, SHOWN).map((b) => (
+          {toPay.slice(0, sent[0] ? SHOWN - 1 : SHOWN).map((b) => (
             <Row key={b.key} href={`/bills/${b.key}`} title={billTitle(b)} line={`Scheduled · due ${shortDate(b.dueDate)} · to ${b.bankAccount.bank} ··${b.bankAccount.last4}`} right={<Amount cents={b.amountCents} />} />
           ))}
           {sent[0] ? (
@@ -184,7 +187,7 @@ export default async function TodayPage(): Promise<React.ReactElement> {
           ) : null}
         </Section>
 
-        <Section title={capital(co.payee).many} href="/suppliers" more={`All ${co.payee.many}`}>
+        <Section title={capital(co.payee).many} href="/suppliers">
           {review.length === 0 ? (
             <Empty>Every {co.payee.one} is trusted. New ones show here until their first confirmed call.</Empty>
           ) : (
@@ -200,7 +203,7 @@ export default async function TodayPage(): Promise<React.ReactElement> {
           )}
         </Section>
 
-        <Section title="What happened last" href="/activity" more="Activity log">
+        <Section title="What happened last" href="/activity">
           {recent.length === 0 ? (
             <Empty>Nothing yet.</Empty>
           ) : (

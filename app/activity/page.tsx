@@ -34,7 +34,7 @@ export default async function ActivityPage({
   });
 
   return (
-    <div className="flex flex-col gap-4 p-8">
+    <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <h1 className="font-serif text-2xl text-ink">Activity log</h1>
         <p className="text-[13px] text-ink-muted">

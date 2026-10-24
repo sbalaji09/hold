@@ -22,7 +22,7 @@ export default async function PracticeLayout({ children }: { children: React.Rea
       {children}
       <Playbook actor={persona} />
       {/* A div, so it shares the screen's centred column (shell.css .pt-main > div). */}
-      <div className="px-6">
+      <div>
         <p className="pt-sub">
           Real bank changes wrongly held: {m.wronglyHeld} · Minutes per check call: {m.minutes === null ? "no calls yet" : m.minutes.toFixed(1)} ({m.calls} calls)
         </p>

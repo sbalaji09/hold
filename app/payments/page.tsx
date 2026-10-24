@@ -19,7 +19,7 @@ export default async function PaymentsPage() {
   const total = eligible.reduce((sum, i) => sum + i.bill.amountCents, 0);
 
   return (
-    <div className="flex flex-col gap-6 p-8">
+    <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="cb-display text-ink">Payments</h1>

@@ -24,8 +24,9 @@ h1, h2, h3, p { margin: 0; }
 .pt-seg button.on b { color: var(--signatory); }
 .pt-line { display: flex; align-items: center; gap: 8px; }
 
-.pt-main { position: relative; overflow-y: auto; padding-block: var(--space-5) var(--space-8); padding-left: var(--space-6); padding-right: var(--space-6); min-width: 0; }
-.pt-main > div:not(.grid) { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--space-4); }
+/* Every page starts at the same left edge, close to the sidebar; pages add no padding of their own. */
+.pt-main { position: relative; overflow-y: auto; padding: var(--space-4) var(--space-5); min-width: 0; }
+.pt-main > div:not(.grid) { display: flex; flex-direction: column; gap: var(--space-4); }
 .pt-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: var(--space-3) var(--space-5); padding-bottom: var(--space-2); }
 .pt-head-text { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .pt-head h1 { text-wrap: balance; }
@@ -157,7 +158,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
 .pt-dash-you { border-left: 3px solid var(--signatory); }
 .pt-dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: var(--space-4); align-items: start; }
 .pt-dash-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--line); color: var(--ink); text-decoration: none; }
-.cb-doc-head + .pt-dash-row, .cb-doc-head + .pt-dash-note + .pt-dash-row { border-top: 0; }
+.pt-dash-body > .pt-dash-row:first-child, .pt-dash-note + .pt-dash-row { border-top: 0; }
 .pt-dash-row:hover { background: var(--surface-hover); }
 .pt-dash-row:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
 .pt-dash-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -166,3 +167,12 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
 .pt-dash-right { flex: none; display: flex; align-items: center; }
 .pt-dash-empty { margin: 0; padding: var(--space-4); font: 400 13px/20px var(--font-sans); color: var(--ink-muted); }
 .pt-dash-note { margin: 0; padding: var(--space-3) var(--space-4) 0; font: 400 12.5px/18px var(--font-mono); color: var(--ink); }
+.pt-dash-cell { display: flex; flex-direction: column; min-height: 0; }
+.pt-dash-body { min-height: 0; overflow: hidden; }
+/* Laptop and up: Today fills the window exactly, 3 sections by 2, and nothing scrolls. Smaller
+   screens stack the sections and scroll as usual. */
+@media (min-width: 1100px) and (min-height: 620px) {
+  .pt-main:has(> .pt-today) { overflow: hidden; }
+  .pt-today { height: calc(100dvh - 2 * var(--space-4)); min-height: 0; }
+  .pt-today .pt-dash-grid { flex: 1; min-height: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+}
