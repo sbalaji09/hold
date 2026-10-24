@@ -5,9 +5,17 @@ h1, h2, h3, p { margin: 0; }
 #app { height: 100%; }
 .pt-app { display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); height: 100%; }
 .pt-nav { display: flex; flex-direction: column; gap: var(--space-5); padding: var(--space-5) var(--space-3); background: var(--surface-sunk); border-right: 1px solid var(--line); overflow-y: auto; }
+.pt-top { display: flex; flex-direction: column; gap: var(--space-3); }
 .pt-brand { display: flex; align-items: center; gap: 10px; padding: 0 var(--space-2); }
 .pt-brand-seal { color: var(--ink); flex: none; }
-.pt-word { font: 500 22px/24px var(--font-serif); letter-spacing: -.02em; }
+.pt-word { font: 500 22px/24px var(--font-serif); letter-spacing: -.025em; color: var(--ink); }
+/* Workspace switcher: the company in ink, what hold does for it underneath. */
+.pt-workspace { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: 7px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink-muted); text-decoration: none; }
+.pt-workspace:hover { background: var(--surface-hover); color: var(--ink); }
+.pt-workspace:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.pt-workspace-text { min-width: 0; display: flex; flex-direction: column; }
+.pt-workspace-text b { font: 600 13px/18px var(--font-sans); color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pt-workspace-text span { font: 400 12px/16px var(--font-sans); color: var(--ink-muted); }
 .pt-navlist { display: flex; flex-direction: column; gap: 2px; }
 .pt-navitem { display: flex; justify-content: space-between; align-items: center; height: 34px; padding: 0 var(--space-2) 0 10px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink-muted); font: 500 13.5px/20px var(--font-sans); text-align: left; cursor: pointer; }
 .pt-navitem:hover { background: var(--surface-hover); color: var(--ink); }
@@ -121,6 +129,7 @@ h1, h2, h3, p { margin: 0; }
   .pt-app { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
   .pt-nav { flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding-block: var(--space-3); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); border-right: 0; border-bottom: 1px solid var(--line); overflow: visible; }
   .pt-brand { padding: 0; }
+  .pt-top { flex-direction: row; align-items: center; gap: var(--space-3); }
   .pt-navlist { order: 3; flex: 1 1 100%; flex-direction: row; overflow-x: auto; gap: 4px; }
   .pt-navitem { flex: none; gap: 8px; }
   .pt-persona { margin: 0 0 0 auto; flex-direction: row; align-items: center; padding: 0; }

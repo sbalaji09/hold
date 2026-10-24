@@ -26,7 +26,7 @@ export interface Company {
   about: string;
   /** "accounts team": who answers the phone and places check calls. */
   team: string;
-  /** Sidebar caption: "AP", "Escrow", "Payroll". */
+  /** What hold does for the company, under its name in the sidebar: "Accounts payable", "Escrow", "Payroll". */
   dept: string;
   inbox: string;
   /** Who gets paid: suppliers, closing parties, employees. */
@@ -55,7 +55,7 @@ const fogline: Company = {
   owner: "Fogline's",
   about: "Fogline, a 3-day music festival in San Francisco",
   team: "accounts team",
-  dept: "AP",
+  dept: "Accounts payable",
   inbox: "bills@fogline.fm",
   payee: { one: "supplier", many: "suppliers" },
   bill: { one: "bill", many: "bills" },
