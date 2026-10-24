@@ -1,7 +1,13 @@
-import type { ReactNode } from "react";
-import { glyphs } from "./glyphs";
+import * as React from "react";
+import { cx } from "./cx";
+import { G } from "./glyphs";
 
 export type BillStatus = "paid" | "scheduled" | "checking" | "calling" | "held" | "needs-you";
+
+export interface StatusMarkProps {
+  status: BillStatus;
+  children?: React.ReactNode;
+}
 
 const MARK: Record<BillStatus, string> = {
   paid: "Paid",
@@ -12,22 +18,20 @@ const MARK: Record<BillStatus, string> = {
   "needs-you": "Needs you",
 };
 
-function glyph(status: BillStatus) {
-  if (status === "paid") return glyphs.tick();
-  if (status === "scheduled") return glyphs.clock();
-  if (status === "calling") return <span className="cb-ind" />;
-  if (status === "held") return glyphs.hold();
-  if (status === "needs-you") return glyphs.person();
-  return null;
-}
-
-/** Port of design/callback StatusMark: six states, glyph + word, always. */
-export function StatusMark({ status, children }: { status: BillStatus; children?: ReactNode }) {
-  const label = children ?? MARK[status];
+export function StatusMark(p: StatusMarkProps): React.ReactElement {
+  const s = MARK[p.status] ? p.status : "paid";
+  const glyph =
+    s === "paid" ? G.tick() :
+    s === "scheduled" ? G.clock() :
+    s === "calling" ? <span className="cb-ind" /> :
+    s === "held" ? G.hold() :
+    s === "needs-you" ? G.person() :
+    null;
+  const label = p.children || MARK[s];
   return (
-    <span className={`cb-mark cb-mark-${status}`} role="status">
-      {glyph(status)}
-      {status === "checking" ? <span className="cb-dots">{label}</span> : label}
+    <span className={cx("cb-mark", "cb-mark-" + s)} role="status">
+      {glyph}
+      {s === "checking" ? <span className="cb-dots">{label}</span> : label}
     </span>
   );
 }

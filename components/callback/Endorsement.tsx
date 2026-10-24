@@ -1,24 +1,33 @@
-import type { ReactNode } from "react";
+import * as React from "react";
+import { cx } from "./cx";
 import { Guilloche } from "./Guilloche";
 
-const END = { held: "Payment held", void: "Void", paid: "Paid", confirmed: "Confirmed by call" } as const;
-
 export interface EndorsementProps {
-  kind: keyof typeof END;
+  kind: "held" | "void" | "paid" | "confirmed";
   meta?: string;
   animate?: boolean;
-  children?: ReactNode;
+  children?: React.ReactNode;
 }
 
-/** Port of design/callback Endorsement: the formal mark placed on a document when a decision lands. */
-export function Endorsement({ kind, meta, animate, children }: EndorsementProps) {
-  const cls = ["cb-endorse", `cb-endorse-${kind === "void" ? "held" : kind}`, animate !== false && "cb-endorse-in"].filter(Boolean).join(" ");
+const END: Record<EndorsementProps["kind"], string> = {
+  held: "Payment held",
+  void: "Void",
+  paid: "Paid",
+  confirmed: "Confirmed by call",
+};
+
+export function Endorsement(p: EndorsementProps): React.ReactElement {
+  const k = END[p.kind] ? p.kind : "held";
   return (
-    <div className={cls} role="img" aria-label={END[kind] + (meta ? `, ${meta}` : "")}>
+    <div
+      className={cx("cb-endorse", "cb-endorse-" + (k === "void" ? "held" : k), p.animate !== false && "cb-endorse-in")}
+      role="img"
+      aria-label={END[k] + (p.meta ? ", " + p.meta : "")}
+    >
       <Guilloche size={44} className="cb-endorse-seal" lobes={7} strands={5} />
       <div>
-        <div className="cb-endorse-word">{children ?? END[kind]}</div>
-        {meta ? <div className="cb-endorse-meta">{meta}</div> : null}
+        <div className="cb-endorse-word">{p.children || END[k]}</div>
+        {p.meta ? <div className="cb-endorse-meta">{p.meta}</div> : null}
       </div>
     </div>
   );

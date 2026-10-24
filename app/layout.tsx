@@ -1,20 +1,23 @@
-// Minimal root layout so the voice screens run. The app shell (sidebar, Inbox) replaces the body.
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import type * as React from "react";
+import { Sidebar } from "@/components/Sidebar";
 import { AutoOpenLiveCall } from "@/components/voice";
 import { ConvexClientProvider } from "./ConvexClientProvider";
-import "@/design/callback/tokens.css";
-import "@/design/callback/components/bundle.css";
+import "./globals.css";
 
-export const metadata: Metadata = { title: "hold" };
+export const metadata: Metadata = {
+  title: "hold",
+  description: "hold pays Fogline's bills and phones the supplier when a bank change looks wrong.",
+};
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
+      <body className="flex bg-paper text-ink">
         <ConvexClientProvider>
+          <Sidebar />
           <AutoOpenLiveCall />
-          {children}
+          <main className="flex-1">{children}</main>
         </ConvexClientProvider>
       </body>
     </html>

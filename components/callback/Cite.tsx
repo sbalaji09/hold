@@ -1,18 +1,15 @@
-import type { MouseEventHandler, ReactNode } from "react";
+import * as React from "react";
 
 export interface CiteProps {
   href?: string;
-  onClick?: MouseEventHandler;
-  children: ReactNode;
+  onClick?: React.MouseEventHandler;
+  children: React.ReactNode;
 }
 
-/** Port of design/callback Cite: a reference to the record a claim came from. */
-export function Cite({ href, onClick, children }: CiteProps) {
-  // No record page yet: render the reference without a dead link.
-  if (!href && !onClick) return <span className="cb-cite">{children}</span>;
+export function Cite(p: CiteProps): React.ReactElement {
   return (
-    <a className="cb-cite" href={href ?? "#"} onClick={onClick}>
-      {children}
+    <a className="cb-cite" href={p.href || "#"} onClick={p.onClick}>
+      {p.children}
     </a>
   );
 }
