@@ -53,7 +53,7 @@ The server validates these at startup and lists anything missing or malformed.
 | `VOICE_SERVER_SECRET` | A long random string shared with Convex. Also run `npx convex env set VOICE_SERVER_SECRET <same value>`. It also signs the per-call media tokens. |
 | `NGROK_DOMAIN`, `NGROK_AUTHTOKEN` | Local dev. Your free permanent ngrok domain (ngrok dashboard, Domains) and authtoken. The voice server opens the tunnel itself, so you never run `ngrok`. |
 | `TWILIO_POINT_WEBHOOK` | `true` to point Fogline's number at this server on startup. Whichever server starts last owns the number. |
-| `PUBLIC_BASE_URL` | The public `https://` URL Twilio uses to reach this server. Leave it unset in dev: it comes from `NGROK_DOMAIN`. On Fly.io the deploy script sets it. |
+| `PUBLIC_BASE_URL` | The public `https://` URL Twilio uses to reach this server. Leave it unset: it comes from `NGROK_DOMAIN`. |
 | `PORT` | Local port, default `8080`. |
 | `MAYA_PHONE_NUMBER` | Optional. "End call and take over" transfers the live call to this number. Without it, takeover just ends the AI call. |
 
@@ -92,29 +92,6 @@ To point the number by hand instead, run `npx tsx --env-file=.env scripts/twilio
 In the Twilio Console the same setting is Phone Numbers, Active numbers, Fogline's number, Voice Configuration: "A call comes in", Webhook, `https://<server>/twilio/inbound`, HTTP POST.
 Outgoing calls need no console setup: the server passes its own TwiML URL, status callback and recording callback on every call.
 Make sure the account is upgraded and that Voice Geographic Permissions allow the countries you will call.
-
-#### 4. Hosting the voice server (demo day)
-
-For rehearsals and the demo, run the voice server on Fly.io so the phone line doesn't depend on a laptop, its Wi-Fi or a stray save.
-One-time setup:
-
-```sh
-brew install flyctl
-fly auth login
-fly apps create <name>   # then set app = "<name>" in fly.toml
-```
-
-Deploy (and redeploy after voice changes):
-
-```sh
-scripts/deployVoice.sh
-```
-
-It sends `.env` to Fly as secrets (without the local-only ngrok settings), bakes in Moss's model and deploys one machine at `https://<name>.fly.dev`.
-On boot that machine points Fogline's number at itself.
-Keep exactly one voice server answering the number: when the Fly machine is live, run the app with `pnpm dev` and `pnpm convex:dev`, not `pnpm dev:all`.
-To hand the number back to Fly after local work, run `fly machine restart -a <name>`.
-Watch it with `fly logs -a <name>`.
 
 **Hello world call.**
 Before wiring the whole loop, prove the phone and Cartesia work:
