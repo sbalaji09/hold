@@ -27,7 +27,8 @@ export async function Sidebar(): Promise<React.ReactElement> {
           <div className="cb-caps">Fogline · AP</div>
         </div>
       </div>
-      <NavLinks items={items} />
+      {/* renderedAt marks each server render, so the client can tell a background refresh landed. */}
+      <NavLinks items={items} renderedAt={Date.now()} />
       <div className="pt-persona">
         <span className="cb-caps">Signed in as</span>
         <form action={setPersona} className="pt-seg">
