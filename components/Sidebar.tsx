@@ -3,9 +3,10 @@ import { Guilloche } from "@/components/callback";
 import { NavLinks, type NavItem } from "@/components/NavLinks";
 import { listApprovals, listBills } from "@/lib/data";
 import { UNSETTLED_STATUS } from "@/lib/inbox";
+import { getPersona, setPersona } from "@/lib/persona";
 
 export async function Sidebar(): Promise<React.ReactElement> {
-  const [approvals, bills] = await Promise.all([listApprovals(), listBills()]);
+  const [approvals, bills, persona] = await Promise.all([listApprovals(), listBills(), getPersona()]);
   const open = bills.filter((b) => UNSETTLED_STATUS[b.status]).length;
   const items: NavItem[] = [
     { href: "/", label: "Inbox", icon: "inbox", badge: open },
@@ -29,12 +30,19 @@ export async function Sidebar(): Promise<React.ReactElement> {
       <NavLinks items={items} />
       <div className="pt-persona">
         <span className="cb-caps">Signed in as</span>
-        <div className="pt-seg" style={{ gridTemplateColumns: "1fr" }}>
-          <button type="button" className="on" aria-pressed="true" disabled>
-            <b>Maya</b>
-            <span>Bookkeeper</span>
-          </button>
-        </div>
+        <form action={setPersona} className="pt-seg">
+          {(
+            [
+              ["maya", "Maya", "Bookkeeper"],
+              ["dev", "Dev", "Controller"],
+            ] as const
+          ).map(([who, name, role]) => (
+            <button key={who} type="submit" name="who" value={who} className={persona === who ? "on" : undefined} aria-pressed={persona === who}>
+              <b>{name}</b>
+              <span>{role}</span>
+            </button>
+          ))}
+        </form>
       </div>
     </aside>
   );

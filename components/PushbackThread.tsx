@@ -33,7 +33,7 @@ function fmtTime(iso: string): string {
 }
 
 /** Dev's sign-off, reply thread and pushback for one approval. */
-export function PushbackThread({ approval }: { approval: Approval }): React.ReactElement {
+export function PushbackThread({ approval, actor }: { approval: Approval; actor: "maya" | "dev" }): React.ReactElement {
   const router = useRouter();
   const convexConfigured = Boolean(process.env.NEXT_PUBLIC_CONVEX_URL);
   const reply = useAction(api.app.pushback.reply);
@@ -90,7 +90,7 @@ export function PushbackThread({ approval }: { approval: Approval }): React.Reac
       await decideApproval({
         billKey: bill.key,
         decision: kind === "reject" ? "reject" : "approve",
-        actor: "dev",
+        actor,
         payToBankAccountKey,
       });
       const next = kind === "reject" ? "rejected" : kind === "approve-safe" ? "approved-safe" : "approved";
@@ -117,7 +117,7 @@ export function PushbackThread({ approval }: { approval: Approval }): React.Reac
       await saveRule({
         supplierKey: bill.supplier.key,
         text,
-        actor: "dev",
+        actor,
         sourceKind: "approval",
         sourceKey: approval.key,
       });

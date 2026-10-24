@@ -1,3 +1,4 @@
+import { getPersona } from "@/lib/persona";
 import { listApprovals } from "@/lib/data";
 import { CHECK_RESULT, citeLabel } from "@/lib/bill";
 import { TEN_THOUSAND_CENTS } from "@/lib/policy";
@@ -17,14 +18,16 @@ const KIND_LABEL: Record<ApprovalKind, string> = {
 const CHECK_ORDER: Record<CheckState, number> = { flag: 0, info: 1, pass: 2 };
 
 export default async function ApprovalsPage() {
-  const approvals = await listApprovals();
+  const [approvals, persona] = await Promise.all([listApprovals(), getPersona()]);
 
   return (
     <div className="flex flex-col gap-6 p-8">
       <div>
         <h1 className="cb-display text-ink">Approvals</h1>
         <p className="mt-1 text-[13px] text-ink-muted">
-          Signed in as Dev Okafor, controller. {approvals.length} waiting on your sign-off.
+          {persona === "dev"
+            ? `Signed in as Dev Okafor, controller. ${approvals.length} waiting on your sign-off.`
+            : `Signed in as Maya Lin, bookkeeper. ${approvals.length} waiting on Dev's sign-off; you can read and reply, not approve.`}
         </p>
       </div>
 
@@ -84,7 +87,7 @@ export default async function ApprovalsPage() {
                         />
                       </div>
                     </div>
-                    <PushbackThread approval={approval} />
+                    <PushbackThread actor={persona} approval={approval} />
                   </div>
                 </div>
               </article>
