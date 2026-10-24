@@ -15,7 +15,7 @@ export interface Supplier {
   trustedPhone: string;
   phoneLastCheckedAt: string;
   /** Absent = trusted. */
-  status?: "new" | "trusted" | "under_review";
+  status?: "new" | "trusted";
   /** Check calls: language spoken ("en", "es"), keys to reach them through a phone menu, their time zone. */
   language?: string;
   phoneMenu?: string;

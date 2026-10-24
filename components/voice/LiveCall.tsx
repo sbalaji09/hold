@@ -13,6 +13,7 @@ import {
   useActiveCall,
   useLiveCall,
   useRequestTakeover,
+  useVoiceOnline,
   type CallRequestDoc,
   type CallResultDoc,
   type LiveCall,
@@ -144,6 +145,11 @@ function LiveCallView({
   // After the call: an answer nobody judged in time waits for the approver here and on Today.
   const review = call.result?.outcome === "needs_review" ? waitingForReview(call.events)[0] ?? null : null;
 
+  const online = useVoiceOnline();
+  const offlineNotice = !online
+    ? "The phone line is offline. hold can't place or answer calls until the voice server is running."
+    : null;
+
   return (
     <main className="hv-page">
       <header className="hv-head">
@@ -156,11 +162,6 @@ function LiveCallView({
           </div>
           <h1 className="cb-subject">{supplierName}</h1>
         </div>
-        <Takeover
-          callId={request.call_id}
-          view={view}
-          takeoverRequested={!!request.takeover_requested}
-        />
       </header>
 
       <div className="hv-call">
@@ -180,7 +181,16 @@ function LiveCallView({
                 ? undefined
                 : formatElapsed((endMs ?? now) - startMs)
             }
-            note={view.note}
+            note={
+              offlineNotice && request.status === "queued"
+                ? offlineNotice
+                : view.note
+            }
+          />
+          <Takeover
+            callId={request.call_id}
+            view={view}
+            takeoverRequested={!!request.takeover_requested}
           />
           {ask && (
             <AskPerson

@@ -185,6 +185,8 @@ export class MemoryStore implements VoiceStore {
     return this.away;
   }
 
+  async heartbeat(): Promise<void> {}
+
   async setTwilioCallSid(call_id: string, sid: string): Promise<void> {
     this.mustGet(call_id).twilio_call_sid = sid;
   }

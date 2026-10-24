@@ -8,7 +8,7 @@ import { RING, type GraphNode, type SupplierFacts, type SupplierGraph as Graph }
 import { useCompany } from "@/lib/useCompany";
 import type { Company } from "@/lib/company";
 
-const STATUS_LABEL = { new: "New", trusted: "Trusted", under_review: "Under review" } as const;
+const STATUS_LABEL = { new: "New", trusted: "Trusted" } as const;
 const SPAN = RING.supplier + 190; // room for the longest supplier name outside the ring
 const FULL = { x: -SPAN, y: -SPAN, w: SPAN * 2 }; // the viewBox is always square
 const MIN_W = FULL.w / 8; // up to 8x

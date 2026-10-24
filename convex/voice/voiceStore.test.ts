@@ -93,6 +93,7 @@ function convexHarness(): Harness {
     startInboundCall: (call_id, caller_number) =>
       t.mutation(fns.startInboundCall, { secret: s, call_id, caller_number }).then(() => undefined),
     finishInboundCall: (record) => t.mutation(fns.finishInboundCall, { secret: s, record }),
+    heartbeat: () => t.mutation(fns.heartbeat, { secret: s }).then(() => undefined),
   };
   return {
     store,
@@ -369,6 +370,7 @@ describe("convex-only", () => {
     const t = convexTest(schema, modules);
     await t.run((ctx) => ctx.db.insert("callRequests", { ...baseRequest, status: "queued", attempt: 0 }));
     expect((await t.query(api.voice.ui.activeCall, {}))?.call_id).toBe("call_1"); // queued counts: the screen opens as soon as the call is requested
+    await t.mutation(api.voice.server.heartbeat, { secret: SECRET }); // the voice server is up, so a dialing call is live
     await t.mutation(api.voice.server.claimRequest, { secret: SECRET, call_id: "call_1" });
     expect((await t.query(api.voice.ui.activeCall, {}))?.call_id).toBe("call_1");
 

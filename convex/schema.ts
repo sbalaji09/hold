@@ -49,7 +49,7 @@ export default defineSchema({
     trustedPhone: v.string(),
     phoneLastCheckedAt: v.string(),
     // Hyphenate addendum: New until first confirmed call. Absent = Trusted.
-    status: v.optional(v.union(v.literal("new"), v.literal("trusted"), v.literal("under_review"))),
+    status: v.optional(v.union(v.literal("new"), v.literal("trusted"))),
     // Calls (voice): the language to speak, a BCP-47 code Cartesia takes ("en", "es"). Absent = "en".
     language: v.optional(v.string()),
     // Keys pressed after the line picks up to reach the right person, Twilio sendDigits ("ww2").
@@ -464,6 +464,8 @@ export default defineSchema({
     away: v.optional(v.boolean()),
     // Which company this deployment works for (lib/company.ts). Absent = Fogline.
     company: v.optional(v.string()),
+    // Last time the voice server's heartbeat mutation ran (Date.now() ms). Absent = never seen.
+    lastSeenAt: v.optional(v.number()),
   }).index("by_key", ["key"]),
 
   // hold's playbooks, one per job of its loop: fraud techniques (job absent or "fraud") and the

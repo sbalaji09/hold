@@ -16,7 +16,7 @@ function formatPhone(e164: string): string {
   return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
 }
 
-const STATUS_LABEL = { new: "New", trusted: "Trusted", under_review: "Under review" } as const;
+const STATUS_LABEL = { new: "New", trusted: "Trusted" } as const;
 
 function formatDate(iso: string): string {
   if (!iso) return "Never checked";

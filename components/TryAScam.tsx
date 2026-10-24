@@ -22,7 +22,7 @@ const inv = () => String(5000 + Math.floor(Math.random() * 4000));
 // Presets per company template. Each lands through the real intake with a fresh number.
 const PRESETS: Record<CompanyKey, Array<{ label: string; from: string; subject: string; body: () => string }>> = {
   fogline: [
-    { label: "Normal bill", from: "rosa@stagecraftrigging.com", subject: "Invoice", body: () => `Hi team,\n\nInvoice #${inv()} attached, rigging, $1,850.00. Let us know if you need anything else.\n\nThanks,\nRosa Quintero\nAccounts, Stagecraft Rigging Co.` },
+    { label: "Normal bill", from: "rosa@stagecraftrigging.com", subject: "Invoice — rigging, FOH + monitor world", body: () => `Hi team,\n\nInvoice #${inv()} attached, rigging, $1,850.00. Let us know if you need anything else.\n\nThanks,\nRosa Quintero\nAccounts, Stagecraft Rigging Co.` },
     { label: "Bank change", from: "rosa@stagecraftrigging.com", subject: "Updated bank details", body: () => `Hi,\n\nInvoice #${inv()} attached, rigging, $5,400.00. We moved banks last week, please pay our new account: First Republic, acct ending 7743. Need this paid today.\n\nRosa` },
   ],
   bayline: [

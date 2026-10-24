@@ -4,15 +4,19 @@
 import * as React from "react";
 import Link from "next/link";
 import { StatusMark } from "@/components/callback";
-import { liveCallPath, useActiveCall } from "@/components/voice";
+import { liveCallPath, useActiveCall, useVoiceOnline } from "@/components/voice";
 import { useLiveCall } from "@/components/voice/api";
 import { openAsk } from "@/components/voice/AskPerson";
 import { formatPhone } from "@/components/voice/format";
 
 export function LiveNow(): React.ReactElement {
+  const online = useVoiceOnline();
   const active = useActiveCall();
   const call = useLiveCall(active?.call_id);
 
+  if (!online) {
+    return <p className="pt-dash-empty">The phone line is offline. hold can&apos;t place or answer calls until the voice server is running.</p>;
+  }
   if (!active) {
     return <p className="pt-dash-empty">No call right now. hold opens the live call here the moment one starts.</p>;
   }

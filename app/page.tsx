@@ -140,7 +140,7 @@ export default async function TodayPage(): Promise<React.ReactElement> {
   const paidKeys = new Set(payments.filter((p) => p.status === "sent" || p.status === "pending").map((p) => p.billKey));
   const toPay = bills.filter((b) => b.status === "Scheduled" && !paidKeys.has(b.key)).sort((a, b) => a.dueDate.localeCompare(b.dueDate));
   const sent = payments.filter((p) => p.status === "sent").sort((a, b) => b.paidAt.localeCompare(a.paidAt));
-  const review = suppliers.filter((s) => s.status === "new" || s.status === "under_review");
+  const review = suppliers.filter((s) => s.status === "new");
   const recent = [...activity].sort((a, b) => b.at.localeCompare(a.at)).slice(0, SHOWN);
   const actorName = { callback: "hold", dev: "You" } as const;
 

@@ -14,10 +14,9 @@ function shortDate(iso: string): string {
 }
 
 
-const STATUS_LABEL: Record<"new" | "trusted" | "under_review", string> = {
+const STATUS_LABEL: Record<"new" | "trusted", string> = {
   new: "New",
   trusted: "Trusted",
-  under_review: "Under review",
 };
 
 export default async function SuppliersPage({

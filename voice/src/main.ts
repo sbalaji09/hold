@@ -97,8 +97,14 @@ async function start() {
   }
   dialer.start();
   stopMemory = keepMemoryCurrent(store, search);
+  store.heartbeat().catch((err) => log.warn("heartbeat failed", { error: String(err) }));
+  heartbeatTimer = setInterval(() => {
+    store.heartbeat().catch((err) => log.warn("heartbeat failed", { error: String(err) }));
+  }, HEARTBEAT_MS);
 }
 let stopMemory = () => {};
+const HEARTBEAT_MS = 15_000;
+let heartbeatTimer: NodeJS.Timeout | undefined;
 
 start().catch((err) => {
   // Without the tunnel or the webhook, every call would fail; say so and stop.
@@ -111,6 +117,7 @@ async function shutdown(signal: string) {
   if (shuttingDown) process.exit(1); // second Ctrl-C: leave now
   shuttingDown = true;
   log.info("shutting down; letting live calls finish", { signal, calls: dialer.activeCalls });
+  clearInterval(heartbeatTimer);
   await dialer.stop();
   stopMemory();
   server.close(); // stop accepting; open media sockets die with the process

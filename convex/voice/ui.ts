@@ -5,7 +5,7 @@ import { ConvexError, v } from "convex/values";
 import { mentionsBankDetails, waitingForReview } from "../../shared/contract.js";
 import { internal } from "../_generated/api.js";
 import type { Doc } from "../_generated/dataModel.js";
-import { mutation, query, type MutationCtx } from "../_generated/server.js";
+import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server.js";
 import { getCompany } from "../app/company.js";
 import { getSupplierContact } from "./records.js";
 import { findRequest, findResult, toCallResult, trustIfConfirmedLive, writeResult } from "./server.js";
@@ -31,10 +31,48 @@ export const liveCall = query({
   },
 });
 
-/** The most recently created call that is queued, dialing or in progress, for auto-opening the Live call screen. */
+/** A heartbeat older than this means the voice server has stopped (or never started). */
+const ONLINE_WINDOW_MS = 45_000;
+/** No activity on a live call for this long (and the server still offline-unseen) means it died mid-call. */
+const STALE_CALL_MS = 5 * 60_000;
+
+async function voiceLastSeenAt(ctx: QueryCtx): Promise<number | null> {
+  const row = await ctx.db
+    .query("settings")
+    .withIndex("by_key", (q) => q.eq("key", "global"))
+    .unique();
+  return row?.lastSeenAt ?? null;
+}
+
+/** Whether the voice server has sent a heartbeat recently enough to trust it is running. */
+export const voiceOnline = query({
+  args: {},
+  handler: async (ctx) => {
+    const lastSeenAt = await voiceLastSeenAt(ctx);
+    return { online: lastSeenAt !== null && Date.now() - lastSeenAt < ONLINE_WINDOW_MS, lastSeenAt };
+  },
+});
+
+/** A dialing/in-progress call counts as dead once the server is offline or it has gone quiet too long
+ * (no callEvent since it started, falling back to the row's own creation time before any event exists). */
+async function isLiveCallDead(ctx: QueryCtx, call_id: string, fallback: number, online: boolean): Promise<boolean> {
+  if (!online) return true;
+  const last = await ctx.db
+    .query("callEvents")
+    .withIndex("by_call", (q) => q.eq("call_id", call_id))
+    .order("desc")
+    .first();
+  return Date.now() - (last ? last._creationTime : fallback) > STALE_CALL_MS;
+}
+
+/** The most recently created call that is queued, dialing or in progress, for auto-opening the Live call screen.
+ * A dialing/in_progress call the voice server has gone quiet on (offline, or no event for 5 minutes)
+ * is treated as dead rather than live; queued calls are unaffected (nothing to go quiet on yet). */
 export const activeCall = query({
   args: {},
   handler: async (ctx) => {
+    const lastSeenAt = await voiceLastSeenAt(ctx);
+    const online = lastSeenAt !== null && Date.now() - lastSeenAt < ONLINE_WINDOW_MS;
     const latest = (status: "queued" | "dialing" | "in_progress") =>
       ctx.db
         .query("callRequests")
@@ -42,7 +80,13 @@ export const activeCall = query({
         .order("desc")
         .first();
     const rows = await Promise.all([latest("queued"), latest("dialing"), latest("in_progress")]);
-    return rows.reduce((a, r) => (r && (!a || r._creationTime > a._creationTime) ? r : a), null as (typeof rows)[number]);
+    const live = await Promise.all(
+      rows.map(async (r) => {
+        if (!r || r.status === "queued") return r;
+        return (await isLiveCallDead(ctx, r.call_id, r._creationTime, online)) ? null : r;
+      }),
+    );
+    return live.reduce((a, r) => (r && (!a || r._creationTime > a._creationTime) ? r : a), null as (typeof rows)[number]);
   },
 });
 
@@ -56,24 +100,31 @@ export const phoneLine = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, { limit }) => {
     const take = Math.max(1, Math.min(limit ?? 50, 200));
+    const lastSeenAt = await voiceLastSeenAt(ctx);
+    const online = lastSeenAt !== null && Date.now() - lastSeenAt < ONLINE_WINDOW_MS;
     const newestFirst = () => ctx.db.query("inboundCalls").withIndex("by_received").order("desc");
     const activeRows = await newestFirst()
       .filter((q) => q.eq(q.field("status"), "in_progress"))
       .take(take);
-    const active: Doc<"inboundCalls">[] = await Promise.all(
-      activeRows.map(async (row) => {
-        const events = await ctx.db
-          .query("callEvents")
-          .withIndex("by_call", (q) => q.eq("call_id", row.call_id))
-          .collect();
-        const transcript = events.flatMap((e) =>
-          e.type === "segment"
-            ? [{ speaker: e.speaker === "callback" ? ("callback" as const) : ("caller" as const), text: e.text, ts: e.ts }]
-            : [],
-        ).sort((a, b) => a.ts - b.ts);
-        return { ...row, transcript };
-      }),
-    );
+    const active: Doc<"inboundCalls">[] = (
+      await Promise.all(
+        activeRows.map(async (row) => {
+          const events = await ctx.db
+            .query("callEvents")
+            .withIndex("by_call", (q) => q.eq("call_id", row.call_id))
+            .collect();
+          // Dead air: the voice server is offline, or nothing has happened on this call in 5 minutes.
+          const lastEventAt = events.reduce((max, e) => Math.max(max, e._creationTime), row._creationTime);
+          if (!online || Date.now() - lastEventAt > STALE_CALL_MS) return null;
+          const transcript = events.flatMap((e) =>
+            e.type === "segment"
+              ? [{ speaker: e.speaker === "callback" ? ("callback" as const) : ("caller" as const), text: e.text, ts: e.ts }]
+              : [],
+          ).sort((a, b) => a.ts - b.ts);
+          return { ...row, transcript };
+        }),
+      )
+    ).filter((row): row is Doc<"inboundCalls"> => row !== null);
     const past = await newestFirst()
       .filter((q) => q.neq(q.field("status"), "in_progress"))
       .take(take);

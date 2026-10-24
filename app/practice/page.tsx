@@ -113,21 +113,26 @@ export default function PracticePage(): React.ReactElement {
           <p className="max-w-[60ch] text-[13px] text-ink-muted">
             A regression set: every scam hold missed or you reported gets replayed against hold&rsquo;s current checks, so a change can&rsquo;t quietly make hold worse.
           </p>
-          <p className="font-mono text-[12px] text-ink-muted">
-            {scams === undefined
-              ? "Loading…"
-              : `${caught} caught \u00b7 ${missed} missed \u00b7 ${notRun} not run \u00b7 ${plural(scams.length, "scam")}`}
-          </p>
-          <p className="font-mono text-[12px] text-ink-muted">
-            {calls === undefined
-              ? "Loading…"
-              : `${right} right \u00b7 ${wrong} wrong \u00b7 ${callsNotRun} not run \u00b7 ${plural(calls.length, "call")}`}
-          </p>
-          <p className="font-mono text-[12px] text-ink-muted">
-            {emails === undefined
-              ? "Loading…"
-              : `${sortedRight} right \u00b7 ${sortedWrong} wrong \u00b7 ${emailsNotRun} not run \u00b7 ${plural(emails.length, "email")}`}
-          </p>
+          <div className="mt-2 flex flex-wrap gap-6">
+            <div>
+              <div className="cb-caps text-ink-muted">Scams</div>
+              <div className="text-[13px] text-ink">
+                {scams === undefined ? "Loading…" : `${caught} right \u00b7 ${missed} wrong \u00b7 ${notRun} not run`}
+              </div>
+            </div>
+            <div>
+              <div className="cb-caps text-ink-muted">Phone calls</div>
+              <div className="text-[13px] text-ink">
+                {calls === undefined ? "Loading…" : `${right} right \u00b7 ${wrong} wrong \u00b7 ${callsNotRun} not run`}
+              </div>
+            </div>
+            <div>
+              <div className="cb-caps text-ink-muted">Emails</div>
+              <div className="text-[13px] text-ink">
+                {emails === undefined ? "Loading…" : `${sortedRight} right \u00b7 ${sortedWrong} wrong \u00b7 ${emailsNotRun} not run`}
+              </div>
+            </div>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button onClick={onGenerate} disabled={generating}>

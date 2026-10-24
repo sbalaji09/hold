@@ -59,6 +59,11 @@ export const useActiveCall: () => CallRequestDoc | null | undefined = MOCK
   ? () => mock.useMockActiveCall(MOCK!)
   : () => useQuery(api.voice.ui.activeCall, {}) as CallRequestDoc | null | undefined;
 
+/** Whether the voice server has sent a heartbeat in the last 45s. Mock mode is always online. */
+export const useVoiceOnline: () => boolean = MOCK
+  ? () => true
+  : () => (useQuery(api.voice.ui.voiceOnline, {}) as { online: boolean } | undefined)?.online ?? true;
+
 export const usePhoneLine: () => PhoneLine | undefined = MOCK
   ? () => mock.useMockPhoneLine(MOCK!)
   : () => useQuery(api.voice.ui.phoneLine, {}) as PhoneLine | undefined;

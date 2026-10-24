@@ -34,6 +34,8 @@ export interface VoiceStore {
   isCheckerAway(): Promise<boolean>;
   setTwilioCallSid(call_id: string, sid: string): Promise<void>;
   markInProgress(call_id: string): Promise<void>;
+  /** Keep-alive the voice server sends every ~15s it is running, so the UI can tell when it has died. */
+  heartbeat(): Promise<void>;
 
   appendEvent(event: CallEvent): Promise<void>;
   /**

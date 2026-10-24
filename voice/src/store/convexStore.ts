@@ -110,6 +110,10 @@ export class ConvexStore implements VoiceStore {
     await this.client.mutation(fns.markInProgress, { secret: this.secret, call_id });
   }
 
+  async heartbeat(): Promise<void> {
+    await this.client.mutation(fns.heartbeat, { secret: this.secret });
+  }
+
   async appendEvent(event: CallEvent): Promise<void> {
     await this.client.mutation(fns.appendEvent, { secret: this.secret, event });
   }

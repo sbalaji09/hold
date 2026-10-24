@@ -334,6 +334,21 @@ export const checkerAway = query({
   },
 });
 
+/** The voice server calls this every ~15s while running, so the UI can tell when it has died. */
+export const heartbeat = mutation({
+  args: { secret },
+  handler: async (ctx, args) => {
+    assertVoiceSecret(args.secret);
+    const row = await ctx.db
+      .query("settings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .unique();
+    const lastSeenAt = Date.now();
+    if (row) await ctx.db.patch(row._id, { lastSeenAt });
+    else await ctx.db.insert("settings", { key: "global", watchOnly: false, lastSeenAt });
+  },
+});
+
 /** Live events for outbound and inbound calls (inbound transcript segments use the inbound call_id). */
 export const appendEvent = mutation({
   args: { secret, event: callEvent },

@@ -57,7 +57,9 @@ export default async function PaymentsPage() {
                 <span className="text-right">
                   <Amount cents={item.bill.amountCents} />
                 </span>
-                <AccountLine bank={item.bill.bankAccount.bank} last4={item.bill.bankAccount.last4} state="verified" />
+                <span className="[&_.cb-acct]:flex-col! [&_.cb-acct]:items-start! [&_.cb-acct]:gap-1!">
+                  <AccountLine bank={item.bill.bankAccount.bank} last4={item.bill.bankAccount.last4} state="verified" />
+                </span>
                 <span>
                   <StatusMark status={STATUS_TO_MARK[status]} />
                 </span>
