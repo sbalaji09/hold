@@ -34,6 +34,7 @@ function toSupplier(s: Doc<"suppliers">): Supplier {
     trustedPhone: s.trustedPhone,
     phoneLastCheckedAt: s.phoneLastCheckedAt,
     status: s.status,
+    onboarding: s.onboarding,
   };
 }
 
@@ -155,9 +156,11 @@ async function requireSupplier(ctx: QueryCtx, key: string): Promise<Doc<"supplie
 
 export async function hydrateBill(ctx: QueryCtx, bill: Doc<"bills">): Promise<Bill> {
   const isUnknownSender = bill.supplierKey.startsWith(UNKNOWN_SENDER_PREFIX) && bill.bankAccountKey === "";
+  // A new supplier's first bill has no account on file yet: Fogline only pays one it verified.
+  const noAccount = bill.bankAccountKey === "";
   const [supplierRow, bankAccountRow, emailRow, paymentRow, call] = await Promise.all([
     isUnknownSender ? Promise.resolve(null) : requireSupplier(ctx, bill.supplierKey),
-    isUnknownSender
+    noAccount
       ? Promise.resolve(null)
       : ctx.db
           .query("bankAccounts")
@@ -173,7 +176,7 @@ export async function hydrateBill(ctx: QueryCtx, bill: Doc<"bills">): Promise<Bi
       .first(),
     toCall(ctx, bill.key, bill.supplierKey),
   ]);
-  if (!isUnknownSender && !bankAccountRow) throw new Error(`Bill ${bill.key} references an unknown bank account ${bill.bankAccountKey}`);
+  if (!noAccount && !bankAccountRow) throw new Error(`Bill ${bill.key} references an unknown bank account ${bill.bankAccountKey}`);
   if (!emailRow) throw new Error(`Bill ${bill.key} references an unknown email ${bill.emailKey}`);
   return {
     key: bill.key,

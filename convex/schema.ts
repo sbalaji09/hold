@@ -44,6 +44,28 @@ export default defineSchema({
     phoneLastCheckedAt: v.string(),
     // Hyphenate addendum: New until first confirmed call. Absent = Trusted.
     status: v.optional(v.union(v.literal("new"), v.literal("trusted"), v.literal("under_review"))),
+    // New suppliers (convex/app/onboarding.ts): how hold met them and what Fogline knows about them.
+    onboarding: v.optional(
+      v.object({
+        source: v.union(v.literal("email"), v.literal("manual")),
+        firstBillKey: v.optional(v.string()),
+        // Numbers that appeared in the supplier's own email. Kept only so they can never become
+        // the trusted number: a check call must not reach whoever wrote the email.
+        emailPhones: v.array(v.string()),
+        // Fogline's own facts about the engagement: what check-call questions are built from,
+        // since nothing on the web is secret enough to verify a new supplier with.
+        note: v.optional(
+          v.object({
+            hiredFor: v.string(),
+            agreed: v.string(),
+            dates: v.string(),
+            foglineContact: v.string(),
+          }),
+        ),
+        confirmedBy: v.optional(v.union(v.literal("maya"), v.literal("dev"))),
+        confirmedAt: v.optional(v.string()),
+      }),
+    ),
   }).index("by_key", ["key"]),
 
   bankAccounts: defineTable({

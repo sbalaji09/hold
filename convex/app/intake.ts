@@ -12,6 +12,8 @@ import { checkValidator, decide, routeEscalation, runChecks, type CheckBankAccou
 import { forChannel, techniqueCheck } from "../../lib/fraudTechniques.js";
 import { anthropic, assessEmail } from "./techniques.js";
 import { judgeEmail, toKinds } from "./triage.js";
+import { lookalikeOf, readNewcomer } from "./onboarding.js";
+import type { Check } from "../../lib/types.js";
 import { routeEmail } from "../../lib/triage.js";
 
 // ---------- parsing (pure, unit-tested in intake.test.ts) ----------
@@ -89,6 +91,9 @@ export const gatherIntakeContext = internalQuery({
       .withIndex("by_supplier", (q) => q.eq("supplierKey", supplier.key))
       .collect();
     const active = accounts.find((a) => a.status === "active") ?? accounts[0];
+    // A New supplier with no verified account yet: its bills go through onboarding (attached to the
+    // existing draft), never the normal pay path.
+    if (!active && supplier.status === "new") return null;
     if (!active) throw new Error(`Supplier ${supplier.key} has no bank account on file`);
     const accountsByKey = new Map(accounts.map((a) => [a.key, a]));
 
@@ -164,7 +169,16 @@ export const findDuplicateEmail = internalQuery({
 });
 
 export const recordUnknownSender = internalMutation({
-  args: { from: v.string(), fromDomain: v.string(), subject: v.string(), body: v.string(), receivedAt: v.string(), messageId: v.optional(v.string()) },
+  args: {
+    from: v.string(),
+    fromDomain: v.string(),
+    subject: v.string(),
+    body: v.string(),
+    receivedAt: v.string(),
+    messageId: v.optional(v.string()),
+    // Why it wasn't onboarded as a new supplier: a look-alike domain or a fraud playbook match.
+    checks: v.optional(v.array(checkValidator)),
+  },
   handler: async (ctx, args): Promise<{ billKey: string; supplierKey: string; status: "Needs you" }> => {
     const billKey = freshKey("bill_in");
     const emailKey = freshKey("email_in");
@@ -195,12 +209,13 @@ export const recordUnknownSender = internalMutation({
       status: "Needs you",
       emailKey,
       planted: false,
-      checks: [],
+      checks: args.checks ?? [],
     });
+    const flagged = (args.checks ?? []).find((c) => c.state === "flag");
     await ctx.db.insert("activity", activity(
       "callback",
       "Flagged an email from an unrecognized sender",
-      `No supplier record matches ${args.fromDomain || "this sender"}. Maya needs to review it by hand.`,
+      flagged ? flagged.evidence : `No supplier record matches ${args.fromDomain || "this sender"}. Maya needs to review it by hand.`,
       "bill",
       billKey,
     ));
@@ -400,6 +415,80 @@ export const emailForBill = internalQuery({
       .unique(),
 });
 
+/**
+ * An email from a domain no supplier uses. A look-alike of a known supplier, or one the fraud
+ * playbook flags, goes to Maya as before; a bill from a genuine newcomer starts onboarding a New
+ * supplier (convex/app/onboarding.ts); anything else is a message for Maya.
+ */
+async function fromUnknownDomain(ctx: ActionCtx, args: IngestArgs, fromAddress: string, fromDomain: string): Promise<IngestResult> {
+  const unknown = (checks?: Check[]) =>
+    ctx.runMutation(internal.app.intake.recordUnknownSender, {
+      from: args.from,
+      fromDomain,
+      subject: args.subject,
+      body: args.body,
+      receivedAt: args.receivedAt,
+      messageId: args.messageId,
+      checks,
+    });
+  const cite = { kind: "email" as const, ref: fromAddress };
+
+  const imitates = lookalikeOf(fromDomain, await ctx.runQuery(internal.app.onboarding.knownSuppliers, {}));
+  if (imitates) {
+    return unknown([
+      {
+        id: "domain",
+        label: "Look-alike domain",
+        state: "flag",
+        evidence: `${fromDomain} looks like ${imitates.name}'s ${imitates.domain} but isn't it: someone imitating a supplier, not a new one.`,
+        quote: fromAddress,
+        cite,
+      },
+    ]);
+  }
+  if (!fromDomain) return unknown();
+
+  const amountCents = parseAmountCents(args.body) ?? 0;
+  const playbook = forChannel(await ctx.runQuery(internal.app.techniques.activePlaybook, {}), "email");
+  const [read, assessed] = await Promise.allSettled([
+    readNewcomer(anthropic(), { from: args.from, subject: args.subject, body: args.body }),
+    assessEmail(anthropic(), { fromAddress, subject: args.subject, body: args.body, supplierName: "a company Fogline has no record of", supplierDomain: fromDomain, amountCents }, playbook),
+  ]);
+  if (read.status === "rejected") {
+    console.warn(`reading a new sender's email failed for ${fromDomain}:`, read.reason);
+    return unknown();
+  }
+  const fraud = assessed.status === "fulfilled" ? techniqueCheck(assessed.value, playbook, fromAddress) : undefined;
+  if (fraud?.state === "flag") return unknown([fraud]);
+  if (!read.value.isBill) {
+    return ctx.runMutation(internal.app.intake.recordMessage, {
+      from: args.from,
+      fromDomain,
+      subject: args.subject,
+      body: args.body,
+      receivedAt: args.receivedAt,
+      messageId: args.messageId,
+      supplier: { key: `unknown:${fromDomain}`, name: read.value.companyName || fromDomain },
+      triage: { kindName: "From an unknown sender", route: "to_maya", why: `${fromDomain} isn't a supplier Fogline knows. ${read.value.whatFor}`.trim() },
+    });
+  }
+  return ctx.runMutation(internal.app.onboarding.onboardFromEmail, {
+    from: args.from,
+    fromAddress,
+    fromDomain,
+    subject: args.subject,
+    body: args.body,
+    receivedAt: args.receivedAt,
+    messageId: args.messageId,
+    companyName: read.value.companyName,
+    contactName: read.value.contactName,
+    whatFor: read.value.whatFor,
+    invoiceNo: parseInvoiceNo(args.body) ?? "unknown",
+    amountCents,
+    extraChecks: fraud ? [fraud] : [],
+  });
+}
+
 async function ingest(ctx: ActionCtx, args: IngestArgs, opts: { existingEmailKey?: string } = {}): Promise<IngestResult> {
     const fromDomain = parseSenderDomain(args.from);
     const fromAddress = parseSenderAddress(args.from);
@@ -420,16 +509,7 @@ async function ingest(ctx: ActionCtx, args: IngestArgs, opts: { existingEmailKey
       body: args.body,
     });
 
-    if (!context) {
-      return await ctx.runMutation(internal.app.intake.recordUnknownSender, {
-        from: args.from,
-        fromDomain,
-        subject: args.subject,
-        body: args.body,
-        receivedAt: args.receivedAt,
-        messageId: args.messageId,
-      });
-    }
+    if (!context) return await fromUnknownDomain(ctx, args, fromAddress, fromDomain);
 
     const amountCents = parseAmountCents(args.body) ?? 0;
 

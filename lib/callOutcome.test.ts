@@ -70,6 +70,14 @@ describe("decideCallOutcome", () => {
     expect(d.approval).toMatchObject({ kind: "bank_change", routedTo: "dev" });
   });
 
+  test("a new supplier's confirmed first bill still goes to Dev, even when small", () => {
+    const NEW: Check = { ...BANK_FLAG, id: "new-supplier", label: "New supplier", evidence: "Fogline has never paid them." };
+    const d = decideCallOutcome(bill({ checks: [NEW], amountCents: 50_000 }), "confirmed", "Supplier confirmed the job.");
+    expect(d.status).toBe("Needs you");
+    expect(d.approval).toMatchObject({ routedTo: "dev" });
+    expect(d.approval!.reason).toContain("new supplier");
+  });
+
   test("confirmed without a bank change: $10,000 or more goes to Dev, less is scheduled", () => {
     expect(decideCallOutcome(bill({ checks: [RUSH_FLAG] }), "confirmed", "ok").approval).toMatchObject({ kind: "big_payment", routedTo: "dev" });
     const small = decideCallOutcome(bill({ checks: [RUSH_FLAG], amountCents: 999_999 }), "confirmed", "ok");

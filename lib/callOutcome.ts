@@ -57,6 +57,20 @@ export function decideCallOutcome(bill: Bill, outcome: CallOutcome, rawSummary: 
     };
   }
 
+  // Confirmed. A new supplier's first payment still needs Dev: there's no verified account to pay
+  // yet, and Callback can't add one alone.
+  if (bill.checks.some((c) => c.id === "new-supplier" && c.state === "flag")) {
+    return {
+      status: "Needs you",
+      approval: {
+        kind: "bank_change",
+        routedTo: "dev",
+        reason: `${who} confirmed this first bill on a call to the number Maya confirmed. It's a new supplier, so Dev approves the first payment and the account it goes to.`,
+        recommendation: `Approve the first payment once their bank account is verified. ${summary}`,
+      },
+      activity: { what: "asked Dev to approve a new supplier's first payment", why: summary },
+    };
+  }
   // Confirmed. A bank change still needs Dev: Callback can't change bank details alone.
   if (bankChange) {
     return {

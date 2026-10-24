@@ -15,6 +15,15 @@ export interface Supplier {
   phoneLastCheckedAt: string;
   /** Absent = trusted. */
   status?: "new" | "trusted" | "under_review";
+  /** New suppliers only: how hold met them and Fogline's own facts about the engagement. */
+  onboarding?: {
+    source: "email" | "manual";
+    firstBillKey?: string;
+    emailPhones: string[];
+    note?: { hiredFor: string; agreed: string; dates: string; foglineContact: string };
+    confirmedBy?: "maya" | "dev";
+    confirmedAt?: string;
+  };
 }
 
 export interface BankAccount {
