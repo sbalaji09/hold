@@ -35,10 +35,10 @@ const PRESETS: Record<CompanyKey, Array<{ label: string; from: string; subject: 
   ],
 };
 
+/** The /send page's form. */
 export function TryAScam(): React.ReactElement {
   const ingest = useAction(ingestEmailRef);
   const co = useCompany();
-  const [open, setOpen] = React.useState(false);
   const [from, setFrom] = React.useState("");
   const [subject, setSubject] = React.useState("");
   const [body, setBody] = React.useState("");
@@ -63,16 +63,8 @@ export function TryAScam(): React.ReactElement {
     }
   }
 
-  if (!open) {
-    return <Button onClick={() => setOpen(true)}>Send a {co.bill.one}</Button>;
-  }
-
   return (
-    <form onSubmit={onSubmit} className="cb-doc flex flex-col gap-3 p-4">
-      <div className="cb-doc-head">
-        <span>Send a {co.bill.one}</span>
-        <small>Lands in the real inbox</small>
-      </div>
+    <form onSubmit={onSubmit} className="cb-doc flex max-w-2xl flex-col gap-3 p-4">
       <div className="flex gap-2">
         {PRESETS[co.key].map((p) => (
           <Button key={p.label} size="sm" type="button" onClick={() => { setFrom(p.from); setSubject(p.subject); setBody(p.body()); }}>
@@ -103,7 +95,7 @@ export function TryAScam(): React.ReactElement {
         Body
         <textarea
           required
-          rows={5}
+          rows={10}
           value={body}
           onChange={(e) => setBody(e.target.value)}
           className="rounded-sm border border-line bg-surface px-2 py-1.5 font-sans text-[13px] text-ink"
@@ -131,12 +123,9 @@ export function TryAScam(): React.ReactElement {
           )}
         </p>
       ) : null}
-      <div className="flex gap-2">
+      <div>
         <Button variant="primary" size="sm" type="submit" disabled={pending}>
           {pending ? "Sending…" : "Send"}
-        </Button>
-        <Button size="sm" type="button" onClick={() => setOpen(false)}>
-          Close
         </Button>
       </div>
     </form>

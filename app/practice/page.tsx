@@ -7,7 +7,6 @@ import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/callback";
 import { CallScript } from "@/components/Playbook";
-import { TryAScam } from "@/components/TryAScam";
 import { capitalise } from "@/components/RouteCorrection";
 import { ROUTE_WORDS } from "@/lib/triage";
 
@@ -133,7 +132,9 @@ export default function PracticePage(): React.ReactElement {
           <Button variant="primary" onClick={onRun} disabled={running}>
             {running ? "Running\u2026" : "Run set"}
           </Button>
-          <TryAScam />
+          <Link href="/send" className="cb-btn cb-btn-secondary no-underline">
+            Try a scam
+          </Link>
         </div>
       </div>
 
