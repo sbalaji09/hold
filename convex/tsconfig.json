@@ -1,0 +1,21 @@
+{
+  /* Convex's recommended config for the convex/ folder (used by `npx convex dev` typechecking). */
+  "compilerOptions": {
+    "allowJs": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ESNext",
+    "lib": ["ES2022", "dom"],
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "isolatedModules": true,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["./**/*"],
+  "exclude": ["./_generated"]
+}
