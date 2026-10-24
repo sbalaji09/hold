@@ -123,8 +123,22 @@ export class CallSession {
     return messages;
   }
 
+  /**
+   * After the call: record what was heard but never taken as a reply (a "yeah" over the goodbye),
+   * so the transcript has everything that was said. Reads only what the ended line already holds.
+   */
+  async recordUnheard(): Promise<void> {
+    const ended = await Promise.race([this.transport.ended.then(() => true, () => true), new Promise<false>((r) => setTimeout(r, 0, false))]);
+    if (!ended) return;
+    for (let u = await this.transport.listen({ timeoutMs: 0 }); u; u = await this.transport.listen({ timeoutMs: 0 })) {
+      if (u.text.trim()) await this.record(this.other, u.text.trim(), u.start_s, u.end_s);
+    }
+  }
+
   private async record(speaker: Speaker, text: string, start_s: number, end_s: number): Promise<void> {
-    this.turns.push({ speaker, text, start_s, end_s });
+    // In spoken order: words said over hold's line are only read after it, but happened during it.
+    const at = this.turns.findIndex((t) => t.start_s > start_s);
+    this.turns.splice(at === -1 ? this.turns.length : at, 0, { speaker, text, start_s, end_s });
     await this.emit({ call_id: this.call_id, type: "segment", speaker, text, ts: start_s, end_ts: end_s });
   }
 }

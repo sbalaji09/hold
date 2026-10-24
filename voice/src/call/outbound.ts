@@ -317,6 +317,7 @@ export async function runOutboundCall(deps: OutboundCallDeps): Promise<CallResul
     await store.markInProgress(request.call_id);
     await converse(session, prepared, llm, convo, asker, L, answerLookup(deps.search, request.call_id, request.supplier_id));
     if (!session.over) await session.hangup();
+    await session.recordUnheard();
     result = await decide(request.call_id, prepared, convo, session, llm);
   } catch (err) {
     console.error(`[call ${request.call_id}] check call failed:`, err);

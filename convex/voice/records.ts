@@ -184,7 +184,10 @@ export async function getSupplierRecords(ctx: QueryCtx, supplier_id: string): Pr
         .query("callEvents")
         .withIndex("by_call", (q) => q.eq("call_id", c.call_id))
         .collect()
-    ).flatMap((e) => (e.type === "segment" ? [`${e.speaker}: ${e.text}`] : []));
+    )
+      .flatMap((e) => (e.type === "segment" ? [e] : []))
+      .sort((a, b) => a.ts - b.ts) // spoken order, not the order the events were written
+      .map((e) => `${e.speaker}: ${e.text}`);
     const when = c.startedAt ?? new Date(c._creationTime).toISOString();
     out.push({
       id: c.call_id,

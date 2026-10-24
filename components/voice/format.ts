@@ -159,7 +159,7 @@ export interface TranscriptRow {
 }
 
 /**
- * Transcript lines in order. A `question` event becomes the cite of the agent line that speaks it
+ * Transcript lines in the order they were said. A `question` event becomes the cite of the agent line that speaks it
  * (the next segment, if that is the agent's). A question with no such line gets a row of its own.
  */
 export function buildTranscript(events: CallEventDoc[]): TranscriptRow[] {
@@ -186,5 +186,6 @@ export function buildTranscript(events: CallEventDoc[]): TranscriptRow[] {
     }
   }
   flush();
-  return rows;
+  // Spoken order. Events arrive in the order hold read them, so a reply said over its line comes late.
+  return rows.sort((a, b) => a.ts - b.ts);
 }

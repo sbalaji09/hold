@@ -167,6 +167,23 @@ describe("buildTranscript", () => {
     ]);
   });
 
+  it("shows lines in the order they were said, not the order hold read them", () => {
+    // Rosa's call: her pickup "Hi." was only read after hold's first question.
+    const rows = buildTranscript([
+      ev({ type: "segment", speaker: "callback", text: "Hi, this is an automated assistant.", ts: 0 }),
+      ev({ type: "question", ask: "Can you tell me what invoice 4139 was for?", source }),
+      ev({ type: "segment", speaker: "callback", text: "Can you tell", ts: 12.2 }),
+      ev({ type: "segment", speaker: "supplier", text: "Hi.", ts: 0.4 }),
+      ev({ type: "segment", speaker: "supplier", text: "Yeah.", ts: 12 }),
+    ]);
+    expect(rows.map((r) => [r.text, r.source?.ref])).toEqual([
+      ["Hi, this is an automated assistant.", undefined],
+      ["Hi.", undefined],
+      ["Yeah.", undefined],
+      ["Can you tell", "INV-4471"],
+    ]);
+  });
+
   it("keeps a question with no matching line as its own row", () => {
     const rows = buildTranscript([
       ev({ type: "question", ask: "Q1", source }),

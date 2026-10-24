@@ -313,6 +313,14 @@ describe("ending", () => {
     expect((await h.t.say("hi")).interrupted).toBe(true);
   });
 
+  test("words transcribed as the line goes are still heard", async () => {
+    const h = setup();
+    h.sttSink().final("We never changed our bank.");
+    h.t.onStreamEnd(); // before the end-of-turn timer
+    expect((await h.t.listen({ timeoutMs: 10 }))?.text).toBe("We never changed our bank.");
+    expect(await h.t.listen({ timeoutMs: 10 })).toBeNull();
+  });
+
   test("hangup is idempotent and reports hangup", async () => {
     const h = setup();
     await h.t.hangup();

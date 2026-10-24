@@ -67,7 +67,7 @@ export const phoneLine = query({
           e.type === "segment"
             ? [{ speaker: e.speaker === "callback" ? ("callback" as const) : ("caller" as const), text: e.text, ts: e.ts }]
             : [],
-        );
+        ).sort((a, b) => a.ts - b.ts);
         return { ...row, transcript };
       }),
     );

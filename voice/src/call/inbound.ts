@@ -124,6 +124,7 @@ export async function runInboundCall(deps: InboundCallDeps): Promise<InboundCall
     console.error(`[inbound ${call_id}] call failed:`, err);
   }
   if (!session.over) await session.hangup();
+  await session.recordUnheard();
 
   const record = await buildRecord(call_id, caller_number, session.turns, profiles, llm, state.askedBankChange, co);
   const { triggered_call_id } = await store.finishInboundCall(record);

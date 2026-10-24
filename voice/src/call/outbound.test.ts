@@ -252,6 +252,16 @@ describe("runOutboundCall", () => {
     expect(store.results.get("call_123")!.evidence[0]!.answer).toBe("It was eighteen thousand four hundred dollars.");
   });
 
+  it("the transcript keeps what was said over the goodbye, in spoken order", async () => {
+    const { store, run } = setup(["It was eighteen thousand four hundred dollars.", "Yes, we switched banks last week.", "<over>Okay, bye."]);
+    await run();
+    const lines = store.eventsFor("call_123").flatMap((e) => (e.type === "segment" ? [e] : []));
+    const bye = lines.find((e) => e.text === "Okay, bye.");
+    const closing = lines.find((e) => e.text.startsWith("Thanks, that's everything"));
+    expect(bye).toBeDefined();
+    expect(bye!.ts).toBeGreaterThan(closing!.ts);
+  });
+
   it("a bare \"Yes.\" still answers the bank question", async () => {
     const { store, run } = setup(["It was eighteen thousand four hundred dollars.", "Yes."]);
     await run();

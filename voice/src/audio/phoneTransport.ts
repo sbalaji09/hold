@@ -503,6 +503,9 @@ export class PhoneTransport implements CallTransport {
 
   private finish(reason: EndReason) {
     if (this.endReason) return;
+    // Words already transcribed when the line goes ("we never changed our bank" + hangup) are kept.
+    this.turnText += this.partialText ? ` ${this.partialText}` : "";
+    this.commitTurn();
     this.endReason = reason;
     this.clearEot();
     if (this.active) this.cutSay(this.active);
