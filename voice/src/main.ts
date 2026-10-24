@@ -15,6 +15,14 @@ const config = loadConfig();
 const store = new ConvexStore(new ConvexClient(config.CONVEX_URL), config.VOICE_SERVER_SECRET);
 const search = new MossSearch(config.MOSS_PROJECT_ID, config.MOSS_PROJECT_KEY);
 const llm = new AnthropicLLM();
+
+// Load the shared Moss index now, so the first call's question lookup adds no dead air.
+// Not awaited: the server starts regardless, and each call's warm() reuses or retries this load.
+const warmStarted = Date.now();
+search
+  .warm()
+  .then(() => log.info("moss index ready", { ms: Date.now() - warmStarted }))
+  .catch((err) => log.warn("moss warm failed; calls will retry it", { error: String(err) }));
 const twilio = twilioApi(config.TWILIO_ACCOUNT_SID, config.TWILIO_AUTH_TOKEN);
 
 const dialer = new Dialer({
