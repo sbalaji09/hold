@@ -8,17 +8,20 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fetchQuery } from "convex/nextjs";
+import { routeEscalation } from "../convex/app/checks";
 import { api } from "../convex/_generated/api";
 import type {
   ActivityEntry,
   Approval,
   ApprovalKind,
+  BackgroundCheck,
   BankAccount,
   Bill,
   BillListFilter,
   Call,
   Check,
   Email,
+  LearnedRule,
   Payment,
   Supplier,
 } from "./types";
@@ -244,6 +247,22 @@ export async function listSuppliers(): Promise<Supplier[]> {
   return [...d.suppliers].sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/** Supplier rows with an open (not Paid/Scheduled) bill count, for the Suppliers overview. */
+export async function listSupplierSummaries(): Promise<Array<Supplier & { openItems: number }>> {
+  if (CONVEX_URL) {
+    return fetchQuery(api.app.queries.listSupplierSummaries, {}, convexOpts());
+  }
+  const d = await load();
+  const openBySupplier = new Map<string, number>();
+  for (const b of d.bills) {
+    if (b.status === "Paid" || b.status === "Scheduled") continue;
+    openBySupplier.set(b.supplierKey, (openBySupplier.get(b.supplierKey) ?? 0) + 1);
+  }
+  return [...d.suppliers]
+    .map((s) => ({ ...s, openItems: openBySupplier.get(s.key) ?? 0 }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 export async function listBankAccountsForSupplier(key: string): Promise<BankAccount[]> {
   if (CONVEX_URL) {
     // ponytail: no public Convex query exposes raw bank accounts by supplier; derive
@@ -302,15 +321,22 @@ export async function listApprovals(): Promise<Approval[]> {
   const raws = d.bills.filter(isApprovable);
   const bills = await Promise.all(raws.map((raw) => hydrateBill(raw, d)));
   return bills
-    .map((bill) => ({
-      key: "appr_" + bill.key,
-      billKey: bill.key,
-      bill,
-      kind: approvalKind(bill),
-      status: "pending" as const,
-      recommendation: recommendation(bill),
-      thread: [],
-    }))
+    .map((bill) => {
+      const route = routeEscalation(bill.checks, bill.amountCents, {
+        callOutcome: bill.call?.outcome === "handed_off" ? "handed_off" : null,
+      });
+      return {
+        key: "appr_" + bill.key,
+        billKey: bill.key,
+        bill,
+        kind: approvalKind(bill),
+        status: "pending" as const,
+        recommendation: recommendation(bill),
+        routedTo: route.routedTo,
+        reason: route.reason,
+        thread: [],
+      };
+    })
     .sort((a, b) => (a.bill.receivedAt < b.bill.receivedAt ? 1 : -1));
 }
 
@@ -392,4 +418,27 @@ export async function listActivity(): Promise<ActivityEntry[]> {
   }
 
   return entries.sort((a, b) => (a.at < b.at ? 1 : -1));
+}
+
+export async function listChecksForSupplier(key: string): Promise<BackgroundCheck[]> {
+  if (CONVEX_URL) {
+    return fetchQuery(api.app.background.listChecksForSupplier, { supplierKey: key }, convexOpts());
+  }
+  return [];
+}
+
+export async function listChecksForBill(key: string): Promise<BackgroundCheck[]> {
+  if (CONVEX_URL) {
+    return fetchQuery(api.app.background.listChecksForBill, { billKey: key }, convexOpts());
+  }
+  return [];
+}
+
+/** Rules Maya or Dev saved for a supplier (plan-agent.md addendum §1). The JSON fixture has
+ * no learned-rules table, so the fallback is always empty; nothing to learn from without Convex. */
+export async function listRules(supplierKey: string): Promise<LearnedRule[]> {
+  if (CONVEX_URL) {
+    return fetchQuery(api.app.rules.listRules, { supplierKey }, convexOpts());
+  }
+  return [];
 }

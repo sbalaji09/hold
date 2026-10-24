@@ -8,7 +8,7 @@ import { v } from "convex/values";
 import { api, internal } from "../_generated/api.js";
 import type { Doc } from "../_generated/dataModel.js";
 import { action, internalMutation, internalQuery, type QueryCtx } from "../_generated/server.js";
-import { checkValidator, decide, runChecks, type CheckBankAccount, type Decision } from "./checks.js";
+import { checkValidator, decide, routeEscalation, runChecks, type CheckBankAccount, type Decision, type LearnedRuleInput } from "./checks.js";
 
 // ---------- parsing (pure, unit-tested in intake.test.ts) ----------
 
@@ -16,6 +16,8 @@ const EMAIL_RE = /<?([\w.+-]+@([\w-]+(?:\.[\w-]+)+))>?/;
 const AMOUNT_RE = /\$\s?([\d,]+(?:\.\d{2})?)/g;
 const INVOICE_RE = /invoice\s*#?\s*(\d{3,8})|#(\d{3,8})/i;
 const BANK_DETAIL_RE = /([A-Z][A-Za-z& ]{2,30}?),?\s+account\s+(?:ending|number ending|#)\s*(\d{3,6})/;
+// plan-agent.md addendum §3: a bank change or a $5,000+ bill from a `new` supplier always calls.
+const NEW_SUPPLIER_CALL_THRESHOLD_CENTS = 500_000;
 
 /** "Rosa Quintero <rosa@stagecraftrigging.com>" or a bare address -> the sender's domain, lowercased. */
 export function parseSenderDomain(from: string): string {
@@ -69,6 +71,7 @@ interface IntakeContext {
   currentBankAccountKey: string;
   pastPaidBankAccounts: CheckBankAccount[];
   pastPaidAmounts: number[];
+  learnedRules: LearnedRuleInput[];
 }
 
 export const gatherIntakeContext = internalQuery({
@@ -91,6 +94,10 @@ export const gatherIntakeContext = internalQuery({
       .filter((q) => q.eq(q.field("status"), "Paid"))
       .collect();
 
+    const ruleRows = await ctx.db
+      .query("learnedRules")
+      .withIndex("by_supplier", (q) => q.eq("supplierKey", supplier.key))
+      .collect();
     return {
       supplier,
       currentBankAccount: {
@@ -108,6 +115,7 @@ export const gatherIntakeContext = internalQuery({
         return { bank: account?.bank ?? "unknown", last4: account?.last4 ?? "0000" };
       }),
       pastPaidAmounts: paidBills.map((b) => b.amountCents),
+      learnedRules: ruleRows.map((r) => ({ text: r.text, sourceKind: r.sourceKind, sourceKey: r.sourceKey })),
     };
   },
 });
@@ -224,12 +232,15 @@ export const finalizeIntake = internalMutation({
         billKey,
       ));
     } else if (args.decision === "ask_dev") {
+      const route = routeEscalation(args.checks, args.amountCents);
       await ctx.db.insert("approvals", {
         key: freshKey("appr"),
         billKey,
         kind: "big_payment",
         status: "pending",
         recommendation: `Every check passed. This is ${money}, over Callback's $10,000 limit, so it needs Dev's approval.`,
+        routedTo: route.routedTo,
+        reason: route.reason,
         thread: [],
       });
       await ctx.db.insert("activity", activity(
@@ -314,8 +325,16 @@ export const ingestEmail = action({
       pastPaidAmounts: context.pastPaidAmounts,
       amountCents,
       styleMatch,
+      learnedRules: context.learnedRules,
     });
-    const decision: Decision = decide(checks, amountCents);
+    let decision: Decision = decide(checks, amountCents);
+    // New-supplier addendum (plan-agent.md addendum §3): a bank change or a bill of $5,000+ from
+    // a supplier Callback hasn't confirmed by call yet always gets a call, even if every check
+    // passed (there's simply no history to trust yet).
+    if (context.supplier.status === "new" && decision !== "call") {
+      const bankFlagged = checks.find((c) => c.id === "bank-account")?.state === "flag";
+      if (bankFlagged || amountCents >= NEW_SUPPLIER_CALL_THRESHOLD_CENTS) decision = "call";
+    }
 
     return await ctx.runMutation(internal.app.intake.finalizeIntake, {
       from: args.from,

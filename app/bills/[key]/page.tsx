@@ -12,9 +12,12 @@ import {
   SignOff,
 } from "@/components/callback";
 import { BillActions } from "@/components/BillActions";
-import { getBill, listActivity } from "@/lib/data";
+import { AddToPractice } from "@/components/AddToPractice";
+import { CopycatPanel } from "@/components/CopycatPanel";
+import { getBill, listActivity, listChecksForBill } from "@/lib/data";
 import { canCall, canHold, canPay } from "@/lib/policy";
 import { CALL_LINE_STATE, CHECK_RESULT, citeLabel, whyChecks, whyText } from "@/lib/bill";
+import { routeEscalation } from "@/convex/app/checks";
 
 function formatPhone(e164: string): string {
   const d = e164.replace(/\D/g, "").slice(-10);
@@ -37,6 +40,8 @@ export default async function BillPage({
   const bill = await getBill(key);
   if (!bill) notFound();
 
+  const copycatChecks = bill.email.fromDomain !== bill.supplier.domain ? await listChecksForBill(key) : [];
+
   const activity = await listActivity();
   const timeline = activity
     .filter((e) => e.refKind === "bill" && e.refKey === bill.key)
@@ -49,6 +54,9 @@ export default async function BillPage({
   const call = canCall(bill);
 
   const needsSignOff = bill.status === "Held" || bill.status === "Needs you";
+  const route = needsSignOff
+    ? routeEscalation(bill.checks, bill.amountCents, { callOutcome: bill.call?.outcome === "handed_off" ? "handed_off" : null })
+    : null;
   const bodyParagraphs = bill.email.body.split(/\n+/).filter((l) => l.trim().length > 0);
   const amount = "$" + (bill.amountCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -77,6 +85,7 @@ export default async function BillPage({
             </div>
           </details>
           <BillActions billKey={bill.key} amount={amount} pay={pay} hold={hold} call={call} />
+          <AddToPractice billKey={bill.key} />
         </div>
       </div>
 
@@ -144,6 +153,10 @@ export default async function BillPage({
           </div>
         </section>
 
+        {bill.email.fromDomain !== bill.supplier.domain ? (
+          <CopycatPanel billKey={bill.key} domain={bill.email.fromDomain} knownDomain={bill.supplier.domain} lastCheck={copycatChecks[0] ?? null} />
+        ) : null}
+
         {bill.call ? (
           <Line
             state={CALL_LINE_STATE[bill.call.outcome]}
@@ -160,6 +173,11 @@ export default async function BillPage({
         {needsSignOff ? (
           <section className="cb-doc p-4">
             <SignOff state="awaiting" name="Dev Okafor" role="Controller" time={`Flagged ${formatDateTime(bill.receivedAt)}`} />
+            {route ? (
+              <p className="mt-3 border-t border-dashed border-line pt-3 font-mono text-[12px] text-ink-muted">
+                Routed to {route.routedTo === "dev" ? "Dev" : "Maya"}. {route.reason}
+              </p>
+            ) : null}
           </section>
         ) : null}
 

@@ -20,6 +20,27 @@ const rnd = () => rng();
 const randInt = (min: number, max: number) => Math.floor(rnd() * (max - min + 1)) + min;
 const pick = <T,>(arr: readonly T[]): T => arr[randInt(0, arr.length - 1)];
 
+// Separate local PRNG for deterministic "messy but legitimate" data (odd invoice
+// formats, body copy missing the invoice number, casual phrasing). Never drawn
+// from `rng`, so adding these never shifts any other generated field — same
+// approach as keyDigits below.
+const messRng = mulberry32(20261023 + 7);
+const ODD_INVOICE_FORMATS: Array<(n: string) => string> = [
+  (n) => `${n}-A`,
+  (n) => `2026/${n}`,
+  (n) => `No. ${n}`,
+  (n) => `${n}.1`,
+  (n) => `${n}-REV`,
+  (n) => `FGL${n}`,
+];
+// Indices into the stream of ordinary recurring bills (not hero/legit/planted)
+// that get deliberately messy-but-legitimate treatment — real invoicing is never
+// this clean, and none of these should trip runChecks.
+const ODD_INVOICE_INDICES: Record<number, true> = { 4: true, 18: true, 35: true, 58: true, 82: true, 109: true };
+const MISSING_INVOICE_IN_BODY_INDICES: Record<number, true> = { 24: true, 96: true };
+const CASUAL_QUIRK_INDICES: Record<number, true> = { 12: true, 63: true, 115: true };
+let regularBillIndex = -1;
+
 // ---------- dates ----------
 const TODAY = new Date("2026-10-23T09:00:00-07:00");
 const addDays = (d: Date, days: number) => new Date(d.getTime() + days * 86400000);
@@ -118,8 +139,38 @@ const itemLabel: Record<Category, string[]> = {
   other: ["waste & recycling service", "generator rental", "fencing & barricade rental", "monthly equipment service"],
 };
 
-function invoiceBody(s: SupplierDef, invoiceNo: string, amountDollars: string, item: string, dueDate: string): string {
+function invoiceBody(
+  s: SupplierDef,
+  invoiceNo: string,
+  amountDollars: string,
+  item: string,
+  dueDate: string,
+  mess?: "missing_invoice_in_body" | "casual",
+): string {
   const v = VOICES[s.key];
+  if (mess === "missing_invoice_in_body") {
+    const lines = [
+      v.greeting,
+      "",
+      `Attached is our invoice for ${item}, total $${amountDollars}, due ${dueDate}. Let us know if you need anything else on our end.`,
+      "",
+      v.closing,
+      s.contactName,
+      v.title,
+    ];
+    return lines.join("\n");
+  }
+  if (mess === "casual") {
+    const lines = [
+      "hey!",
+      "",
+      `invoice #${invoiceNo} is attached — ${item}, $${amountDollars}, due ${dueDate}. lemme know if anything looks off!`,
+      "",
+      "thx,",
+      s.contactName,
+    ];
+    return lines.join("\n");
+  }
   const lines = [
     v.greeting,
     "",
@@ -312,11 +363,21 @@ function makeRecurringBills(
     const due = addDays(receivedAt, 21);
     const [lo, hi] = opts?.amountOverride ?? AMOUNT_RANGE_CENTS[s.category];
     const amountCents = randInt(lo, hi);
-    const invoiceNo = nextInvoiceNo();
-    const billKey = `bill_${invoiceNo}`;
+    const rawInvoiceNo = nextInvoiceNo();
+    const billKey = `bill_${rawInvoiceNo}`;
     const item = pick(itemLabel[s.category]);
     const amountDollars = (amountCents / 100).toFixed(2);
     const bankKey = primaryBankKeyFor.get(s.key)!;
+
+    regularBillIndex++;
+    const invoiceNo = ODD_INVOICE_INDICES[regularBillIndex]
+      ? ODD_INVOICE_FORMATS[Math.floor(messRng() * ODD_INVOICE_FORMATS.length)](rawInvoiceNo)
+      : rawInvoiceNo;
+    const bodyMess = MISSING_INVOICE_IN_BODY_INDICES[regularBillIndex]
+      ? "missing_invoice_in_body"
+      : CASUAL_QUIRK_INDICES[regularBillIndex]
+        ? "casual"
+        : undefined;
 
     // last week's worth of bills ride as "Scheduled"; everything older is Paid.
     const daysUntilDue = Math.round((due.getTime() - TODAY.getTime()) / 86400000);
@@ -331,7 +392,7 @@ function makeRecurringBills(
       fromAddress: s.contactEmail,
       fromDomain: s.domain,
       subject: `Invoice #${invoiceNo} — ${item}`,
-      body: invoiceBody(s, invoiceNo, amountDollars, item, isoDate(due)),
+      body: invoiceBody(s, invoiceNo, amountDollars, item, isoDate(due), bodyMess),
       receivedAt: iso(receivedAt),
       direction: "in",
     });
@@ -353,7 +414,7 @@ function makeRecurringBills(
     if (status === "Paid") {
       const paidAt = addDays(due, -randInt(0, 5));
       payments.push({
-        key: `pay_${invoiceNo}`,
+        key: `pay_${rawInvoiceNo}`,
         billKey,
         amountCents,
         bankAccountKey: bankKey,
@@ -363,7 +424,7 @@ function makeRecurringBills(
       });
     } else if (status === "Scheduled") {
       payments.push({
-        key: `pay_${invoiceNo}`,
+        key: `pay_${rawInvoiceNo}`,
         billKey,
         amountCents,
         bankAccountKey: bankKey,
@@ -783,7 +844,7 @@ makeRecurringBills(supplierByKey.get("sup_sf_fence")!, 6);
     fromAddress: s.contactEmail,
     fromDomain: s.domain,
     subject: `Invoice #${invoiceNo} — new bank on file after ownership change`,
-    body: `Hey Fogline,\n\nAs mentioned last month, we were acquired by a regional security group and moved to US Bank — new account ends 5509. Invoice #${invoiceNo} for monthly guard staffing retainer, $4,100.00, due ${isoDate(due)}, should go to the new account.\n\nThanks!\nYusuf Dembele\nPerimeter Pro Staffing`,
+    body: `Hey Fogline,\n\nAs mentioned last month, we were acquired by a regional security group and moved to US Bank, ending 5509. Invoice #${invoiceNo} for monthly guard staffing retainer, $4,100.00, due ${isoDate(due)}, should route there going forward.\n\nThanks!\nYusuf Dembele\nPerimeter Pro Staffing`,
     receivedAt: iso(receivedAt),
     direction: "in",
   });
@@ -878,6 +939,63 @@ makeRecurringBills(supplierByKey.get("sup_sf_fence")!, 6);
     status: "Paid",
     transferId: nextTransferId(),
     paidAt: iso(addDays(due, -2)),
+  });
+}
+
+// SF Fence & Barricade Co.: real bank change (switched to a business bank account), verified by call + Dev.
+{
+  const s = supplierByKey.get("sup_sf_fence")!;
+  const receivedAt = addDays(TODAY, -30);
+  const newBankKey = addVerifiedBankChange(s.key, "Silicon Valley Bank", "3384", isoDate(addDays(receivedAt, -1)));
+  const invoiceNo = nextInvoiceNo();
+  const billKey = `bill_${invoiceNo}`;
+  const emailKey = `email_${invoiceNo}`;
+  const amountCents = 215000;
+  const due = addDays(receivedAt, 21);
+  emails.push({
+    key: emailKey,
+    billKey,
+    fromAddress: s.contactEmail,
+    fromDomain: s.domain,
+    subject: `Invoice #${invoiceNo} — new business account on file`,
+    body: `Hey,\n\nJust a heads up, we opened a business account at Silicon Valley Bank, ending 3384, and moved payouts there. Invoice #${invoiceNo} for fencing & barricade rental, $2,150.00, due ${isoDate(due)}, should route there going forward.\n\nThanks,\nRick Alvarado\nSF Fence & Barricade Co.`,
+    receivedAt: iso(receivedAt),
+    direction: "in",
+  });
+  calls.push({
+    key: "call_sffence_verify",
+    supplierKey: s.key,
+    billKey,
+    direction: "out",
+    startedAt: iso(addDays(receivedAt, 1)),
+    summary: "Verified SF Fence's new Silicon Valley Bank account by phone before Dev approved the change.",
+    transcript: [
+      { speaker: "callback", text: "Hi, this is an automated assistant calling for Fogline's accounts team to confirm a bank-change request. This call is recorded.", ts: 0 },
+      { speaker: "supplier", text: "Yep, that's us — we opened a new business account at SVB, ending 3384.", ts: 5 },
+    ],
+    outcome: "confirmed",
+  });
+  bills.push({
+    key: billKey,
+    supplierKey: s.key,
+    invoiceNo,
+    amountCents,
+    currency: "USD",
+    dueDate: isoDate(due),
+    receivedAt: iso(receivedAt),
+    bankAccountKey: newBankKey,
+    status: "Paid",
+    emailKey,
+    planted: false,
+  });
+  payments.push({
+    key: `pay_${invoiceNo}`,
+    billKey,
+    amountCents,
+    bankAccountKey: newBankKey,
+    status: "Paid",
+    transferId: nextTransferId(),
+    paidAt: iso(addDays(due, -1)),
   });
 }
 

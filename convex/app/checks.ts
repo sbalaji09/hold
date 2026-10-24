@@ -5,7 +5,7 @@
 // is just the convex/values shape of their output, for schema.ts and callers that store it.
 import { v } from "convex/values";
 import { TEN_THOUSAND_CENTS } from "../../lib/policy.js";
-import type { Check } from "../../lib/types.js";
+import type { Check, Cite } from "../../lib/types.js";
 
 const NEW_ACCOUNT_RE = /new (?:bank|account)|updated account|moved banks|switched (?:to a new )?bank|changed bank/i;
 const RUSH_RE = /\b(urgent|asap|as soon as possible|today|expedite|right away|immediately|same[- ]day|before (?:tomorrow|close of business))\b/i;
@@ -17,6 +17,26 @@ function matchingLine(body: string, re: RegExp): string | undefined {
 
 function fmtMoney(cents: number): string {
   return "$" + (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+export interface LearnedRuleInput {
+  text: string;
+  /** Where the rule came from (plan-agent.md addendum §1), so the "Learned rule applies" and
+   * suppressed-flag checks can cite the record it was saved from instead of a loose label. */
+  sourceKind: string;
+  sourceKey: string;
+}
+
+/** True when a saved rule names this exact bank + last4, e.g. "verified account Chase ··2210". */
+function ruleVerifiesAccount(ruleText: string, bank: string, last4: string): boolean {
+  const text = ruleText.toLowerCase();
+  return text.includes(bank.toLowerCase()) && text.includes(last4);
+}
+
+/** Cite's kind union is fixed to email/bill/supplier/call/payment, so a rule saved from a bill
+ * cites that bill; anything else falls back to the supplier record. */
+function ruleCite(rule: LearnedRuleInput, supplierKey: string): Cite {
+  return rule.sourceKind === "bill" ? { kind: "bill", ref: rule.sourceKey } : { kind: "supplier", ref: supplierKey };
 }
 
 export interface CheckEmail {
@@ -56,12 +76,16 @@ export interface RunChecksInput {
   /** Cents, one per past paid bill from this supplier. */
   pastPaidAmounts: number[];
   amountCents: number;
-  /** Voice's writing-style check (contract #4). Omit to skip the check entirely. */
   styleMatch?: { matches: boolean; reasons: string[] };
+  /** Rules Maya or Dev saved for this supplier (plan-agent.md addendum §1). Never relaxes a hard
+   * limit: only a rule naming this exact bank account can turn a repeat "new account" flag into a
+   * pass (never the literal-bank-change-request branch above), and any rule for the supplier also
+   * surfaces as its own info check. Omit for suppliers with no saved rules. */
+  learnedRules?: LearnedRuleInput[];
 }
 
 export function runChecks(input: RunChecksInput): Check[] {
-  const { email, supplier, currentBankAccount, pastPaidBankAccounts, pastPaidAmounts, amountCents, styleMatch } = input;
+  const { email, supplier, currentBankAccount, pastPaidBankAccounts, pastPaidAmounts, amountCents, styleMatch, learnedRules } = input;
   const emailCite = { kind: "email" as const, ref: email.fromAddress };
   const priorPaidCount = pastPaidAmounts.length;
   const priorPaidSameAccount = pastPaidBankAccounts.filter(
@@ -92,13 +116,23 @@ export function runChecks(input: RunChecksInput): Check[] {
         cite: { kind: "supplier", ref: supplier.key },
       };
     } else {
-      bankCheck = {
-        id: "bank-account",
-        label: "New bank account",
-        state: "flag",
-        evidence: `This bill uses ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4}, which Fogline has not paid ${supplier.name} before.`,
-        cite: emailCite,
-      };
+      const verifyingRule = (learnedRules ?? []).find((r) => ruleVerifiesAccount(r.text, currentBankAccount.bank, currentBankAccount.last4));
+      bankCheck = verifyingRule
+        ? {
+            id: "bank-account",
+            label: "New bank account",
+            state: "pass",
+            evidence: `A learned rule verifies ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4} for ${supplier.name}.`,
+            quote: verifyingRule.text,
+            cite: ruleCite(verifyingRule, supplier.key),
+          }
+        : {
+            id: "bank-account",
+            label: "New bank account",
+            state: "flag",
+            evidence: `This bill uses ${currentBankAccount.bank} \u00b7\u00b7${currentBankAccount.last4}, which Fogline has not paid ${supplier.name} before.`,
+            cite: emailCite,
+          };
     }
   } else if (priorPaidCount === 0) {
     bankCheck = {
@@ -185,6 +219,20 @@ export function runChecks(input: RunChecksInput): Check[] {
 
   const checks = [bankCheck, domainCheck, rushCheck, amountCheck];
 
+  // Learned rule info check (plan-agent.md addendum §1): the most recently saved rule for this
+  // supplier, cited back to its source. Informational only — it doesn't change the decision by
+  // itself; the bank-account branch above is the only check a rule can flip to a pass.
+  if (learnedRules && learnedRules.length > 0) {
+    const latest = learnedRules[learnedRules.length - 1]!;
+    checks.push({
+      id: "learned-rule",
+      label: "Learned rule applies",
+      state: "info",
+      evidence: latest.text,
+      cite: ruleCite(latest, supplier.key),
+    });
+  }
+
   // 5. Writing style (contract #4, voice's styleMatch). Skipped entirely when not supplied.
   if (styleMatch) {
     checks.push({
@@ -208,6 +256,31 @@ export type Decision = "pay" | "ask_dev" | "call";
 export function decide(checks: Check[], amountCents: number): Decision {
   if (checks.some((c) => c.state === "flag")) return "call";
   return amountCents >= TEN_THOUSAND_CENTS ? "ask_dev" : "pay";
+}
+
+export type EscalationRouting = { routedTo: "maya" | "dev"; reason: string };
+
+/**
+ * Who an escalation goes to and why in plain words (plan-agent.md addendum §2: "Sources
+ * disagree…", never a score). A failed check, a bank change or a big payment always goes to
+ * Dev; a call that got no answer or dropped goes to Maya, since there's nothing to approve yet,
+ * only a retry to arrange.
+ */
+export function routeEscalation(
+  checks: Check[],
+  amountCents: number,
+  options: { callOutcome?: "handed_off" | null } = {},
+): EscalationRouting {
+  if (options.callOutcome === "handed_off") {
+    return { routedTo: "maya", reason: "The check call got no answer and the retry didn't connect either." };
+  }
+  const bankFlag = checks.find((c) => c.id === "bank-account" && c.state === "flag");
+  if (bankFlag) return { routedTo: "dev", reason: `Bank change: ${bankFlag.evidence}` };
+  const otherFlags = checks.filter((c) => c.state === "flag");
+  if (otherFlags.length > 0) {
+    return { routedTo: "dev", reason: otherFlags.map((c) => c.evidence).join(" ") };
+  }
+  return { routedTo: "dev", reason: `${fmtMoney(amountCents)} is over Callback's $10,000 limit, so it needs Dev's approval.` };
 }
 
 /** Matches lib/types.ts's Check shape, for schema.ts and any caller storing runChecks's output. */

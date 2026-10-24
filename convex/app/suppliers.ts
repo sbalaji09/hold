@@ -1,7 +1,7 @@
 // Suppliers screen: the one write this file owns is adding a new supplier
 // (Maya, from the Suppliers list). Background check is Apify's job, a later
 // phase — a brand-new supplier simply starts with no background check run.
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { mutation } from "../_generated/server.js";
 
 function slugify(name: string): string {
@@ -38,6 +38,8 @@ export const add = mutation({
       // No background check has run yet, so there's nothing to date the
       // trusted number to. phoneLastCheckedAt stays "" until one runs.
       phoneLastCheckedAt: "",
+      // New until its first confirmed call (plan-agent.md addendum §3); markTrusted flips this.
+      status: "new",
     });
     await ctx.db.insert("activity", {
       key: "act_sup_" + key,
@@ -49,5 +51,34 @@ export const add = mutation({
       at: now,
     });
     return { key };
+  },
+});
+
+/**
+ * Flips a supplier from New to Trusted after its first confirmed check call. Voice never writes
+ * to the suppliers table directly, so this is exposed for the recording path (convex/voice/
+ * server.ts's writeResult / finishCall) to call once an outcome of "confirmed" lands; that wiring
+ * is outside this file's scope — call this mutation from there with the supplier of the bill the
+ * confirmed call belonged to.
+ */
+export const markTrusted = mutation({
+  args: { supplierKey: v.string() },
+  handler: async (ctx, { supplierKey }) => {
+    const row = await ctx.db
+      .query("suppliers")
+      .withIndex("by_key", (q) => q.eq("key", supplierKey))
+      .unique();
+    if (!row) throw new ConvexError(`Unknown supplier ${supplierKey}`);
+    if (row.status === "trusted" || row.status === undefined) return;
+    await ctx.db.patch(row._id, { status: "trusted" });
+    await ctx.db.insert("activity", {
+      key: "act_trust_" + crypto.randomUUID(),
+      actor: "callback",
+      what: `marked ${row.name} as trusted`,
+      why: "First confirmed check call.",
+      refKind: "supplier",
+      refKey: supplierKey,
+      at: new Date().toISOString(),
+    });
   },
 });

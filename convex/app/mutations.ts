@@ -10,6 +10,7 @@ import { mutation, type MutationCtx } from "../_generated/server.js";
 import type { Actor } from "../../lib/policy.js";
 import { canApprove, canCall, canHold, canPay, canRelease } from "../../lib/policy.js";
 import { hydrateBill } from "./queries.js";
+import { routeEscalation } from "./checks.js";
 
 const actorValidator = v.union(v.literal("callback"), v.literal("maya"), v.literal("dev"));
 
@@ -63,7 +64,9 @@ export const payBill = mutation({
   },
 });
 
-/** Callback holds any bill that isn't already paid or held. */
+/** Callback holds any bill that isn't already paid or held; also opens the pending approval Dev
+ * needs to release it, routed per plan-agent.md addendum §2 (bank change or any other failed
+ * check both go to Dev — nothing else holds a bill). */
 export const holdBill = mutation({
   args: { billKey: v.string(), reason: v.optional(v.string()) },
   handler: async (ctx, { billKey, reason }) => {
@@ -72,7 +75,26 @@ export const holdBill = mutation({
     const result = canHold(bill);
     if (!result.allowed) return refuse(result.reason!);
     const why = reason ?? bill.checks.filter((c) => c.state === "flag").map((c) => c.evidence).join(" ") ?? "A check on this bill didn't pass.";
+    const route = routeEscalation(bill.checks, bill.amountCents, { callOutcome: bill.call?.outcome === "handed_off" ? "handed_off" : null });
+    const kind = bill.checks.find((c) => c.id === "bank-account" && c.state === "flag") ? "bank_change" : "held_payment";
     await ctx.db.patch(row._id, { status: "Held" });
+    const existingApproval = await ctx.db
+      .query("approvals")
+      .withIndex("by_bill", (q) => q.eq("billKey", billKey))
+      .filter((q) => q.eq(q.field("status"), "pending"))
+      .first();
+    if (!existingApproval) {
+      await ctx.db.insert("approvals", {
+        key: `appr_${crypto.randomUUID()}`,
+        billKey,
+        kind,
+        status: "pending",
+        recommendation: `Hold this payment. ${why}`,
+        routedTo: route.routedTo,
+        reason: route.reason,
+        thread: [],
+      });
+    }
     await logActivity(ctx, "callback", "held this bill", why || "A check on this bill didn't pass.", "bill", billKey);
   },
 });

@@ -70,3 +70,53 @@ wrongly held" measures against.
 Both suppliers' `bankAccounts` rows show the old account `retired` and the new
 one `active` with `verifiedBy: "call+dev"`; both bills ended up `Paid` to the
 new account, with a `confirmed` call on record.
+
+## Legitimate mess (must NOT be held)
+
+Ordinary noisy invoicing — odd invoice-number formats, a body copy that drops
+the invoice number, casual supplier phrasing — plus a third dev+call-verified
+bank change. None of these should trip `runChecks`; they're regression
+fixtures for "legitimate mess Callback must not hold."
+
+### Odd invoice-number formats (6)
+
+| bill | supplier | invoice no. as written |
+|---|---|---|
+| `bill_4005` | Bayview Staging Systems | `FGL4005` |
+| `bill_4019` | Soundwave Audio Rentals | `4019-REV` |
+| `bill_4036` | SF Bay Security Services | `No. 4036` |
+| `bill_4059` | Cascade Talent Group | `4059.1` |
+| `bill_4083` | Bay Bites Food Co. | `No. 4083` |
+| `bill_4110` | Sunset BBQ Co. | `4110.1` |
+
+### Invoice number missing from the email body (2)
+
+Subject line has `Invoice #____`, but the body never repeats the number (just
+says "attached is our invoice").
+
+| bill | supplier |
+|---|---|
+| `bill_4025` | Pacific Coast PA Co. |
+| `bill_4097` | Embarcadero Eats |
+
+### Casual supplier phrasing (3)
+
+Lower-case "hey!" openers, "lemme know if anything looks off!" — a normal
+small-business tone, not a scam signal.
+
+| bill | supplier |
+|---|---|
+| `bill_4013` | Soundwave Audio Rentals |
+| `bill_4064` | Night Owl Artist Agency |
+| `bill_4116` | Bayfront Waste & Recycling |
+
+### Third verified bank change
+
+| supplier | reason | new bank | verified by | outcome |
+|---|---|---|---|---|
+| SF Fence & Barricade Co. | switched to a business bank account | Silicon Valley Bank ··3384 | call + Dev | confirmed by phone, Dev approved, bill Paid (`bill_4147`) |
+
+Same shape as the two above: old account `retired`, new one `active` with
+`verifiedBy: "call+dev"`, bill `Paid` to the new account with a `confirmed`
+call on record (`call_sffence_verify`).
+

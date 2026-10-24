@@ -8,7 +8,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { v } from "convex/values";
 import { z } from "zod";
 import { makeFunctionReference } from "convex/server";
-import { action, internalMutation, internalQuery, mutation, query } from "../_generated/server.js";
+import { action, internalMutation, internalQuery, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server.js";
 // convex/app/checks.ts is owned by another agent; its signature per the
 // contract we agreed on is:
 //   runChecks({ email, supplier, currentBankAccount, pastPaidBankAccounts,
@@ -18,6 +18,91 @@ import { decide, runChecks } from "./checks.js";
 
 const MODEL = "claude-sonnet-5-5";
 
+// Exported as a test seam: both `addToPracticeSet` and `insertGenerated`
+// dedupe scams by this truncated description, so the truncation rule lives
+// in one place.
+export function descriptionFromBody(body: string): string {
+  return body.slice(0, 160);
+}
+
+// ---------- shared row assembly (list, gatherForRun, addToPracticeSet) ----------
+
+/** Everything runChecks/decide need for one bill, read straight from the live
+ * tables (never a separate "practice copy" table — a plain read is already a
+ * copy: this never writes bills/payments/callRequests). Shared by the list
+ * screen (to show which check fires right now), the full-set run, and
+ * "Add to practice set" (to snapshot which checks should fire). */
+async function gatherRow(
+  ctx: QueryCtx | MutationCtx,
+  billKey: string,
+): Promise<Omit<PracticeRunRow, "scamKey"> | null> {
+  const bill = await ctx.db
+    .query("bills")
+    .withIndex("by_key", (q) => q.eq("key", billKey))
+    .unique();
+  if (!bill) return null;
+  const email = await ctx.db
+    .query("emails")
+    .withIndex("by_key", (q) => q.eq("key", bill.emailKey))
+    .unique();
+  const supplier = await ctx.db
+    .query("suppliers")
+    .withIndex("by_key", (q) => q.eq("key", bill.supplierKey))
+    .unique();
+  const bankAccount = await ctx.db
+    .query("bankAccounts")
+    .withIndex("by_key", (q) => q.eq("key", bill.bankAccountKey))
+    .unique();
+  if (!email || !supplier || !bankAccount) return null;
+
+  let confirmedByCall = false;
+  if (bankAccount.verifiedBy === "call+dev") {
+    const callReq = await ctx.db
+      .query("callRequests")
+      .withIndex("by_bill", (q) => q.eq("bill_id", bill.key))
+      .first();
+    if (callReq) {
+      const result = await ctx.db
+        .query("callResults")
+        .withIndex("by_call", (q) => q.eq("call_id", callReq.call_id))
+        .unique();
+      confirmedByCall = result?.outcome === "confirmed";
+    }
+  }
+
+  const supplierBills = await ctx.db
+    .query("bills")
+    .withIndex("by_supplier", (q) => q.eq("supplierKey", supplier.key))
+    .collect();
+  const pastPaid = supplierBills.filter((b) => b.status === "Paid" && b.key !== bill.key);
+  const pastPaidBankAccounts: Array<{ bank: string; last4: string }> = [];
+  for (const paid of pastPaid) {
+    const acct = await ctx.db
+      .query("bankAccounts")
+      .withIndex("by_key", (q) => q.eq("key", paid.bankAccountKey))
+      .unique();
+    pastPaidBankAccounts.push({ bank: acct?.bank ?? "", last4: acct?.last4 ?? "" });
+  }
+
+  return {
+    email: { fromAddress: email.fromAddress, fromDomain: email.fromDomain, body: email.body },
+    supplier: { key: supplier.key, name: supplier.name, domain: supplier.domain },
+    currentBankAccount: { bank: bankAccount.bank, last4: bankAccount.last4, verifiedBy: bankAccount.verifiedBy, confirmedByCall },
+    pastPaidBankAccounts,
+    pastPaidAmounts: pastPaid.map((b) => b.amountCents),
+    amountCents: bill.amountCents,
+  };
+}
+
+/** Check ids/labels that currently flag for a row — "which check fired", shown
+ * on the Practice screen without needing a stored field (always reflects the
+ * live data, same as a fresh run would see). */
+function firedChecks(row: Omit<PracticeRunRow, "scamKey">): string[] {
+  return runChecks(row)
+    .filter((c) => c.state === "flag")
+    .map((c) => c.label);
+}
+
 // ---------- list (Practice screen) ----------
 
 export const list = query({
@@ -26,29 +111,45 @@ export const list = query({
     const scams = await ctx.db.query("practiceScams").collect();
     const rows = await Promise.all(
       scams.map(async (scam) => {
-        const bill = await ctx.db
-          .query("bills")
-          .withIndex("by_key", (q) => q.eq("key", scam.billKey))
-          .unique();
-        const email = bill
-          ? await ctx.db
-              .query("emails")
-              .withIndex("by_key", (q) => q.eq("key", bill.emailKey))
-              .unique()
-          : null;
+        const row = await gatherRow(ctx, scam.billKey);
         return {
           key: scam.key,
           billKey: scam.billKey,
           kind: scam.kind,
           description: scam.description,
           checksThatShouldFire: scam.checksThatShouldFire,
-          from: email?.fromAddress ?? "(bill not found)",
+          checksFiredNow: row ? firedChecks(row) : [],
+          from: row?.email.fromAddress ?? "(bill not found)",
           caughtLastRun: scam.caughtLastRun ?? null,
           lastRunAt: scam.lastRunAt ?? null,
         };
       }),
     );
     return rows.sort((a, b) => (a.key < b.key ? -1 : 1));
+  },
+});
+
+// ---------- add to practice set (any bill, e.g. one Callback missed) ----------
+
+export const addToPracticeSet = mutation({
+  args: { billKey: v.string() },
+  handler: async (ctx, { billKey }) => {
+    const bill = await ctx.db
+      .query("bills")
+      .withIndex("by_key", (q) => q.eq("key", billKey))
+      .unique();
+    if (!bill) throw new Error(`addToPracticeSet: no bill ${billKey}`);
+    const row = await gatherRow(ctx, billKey);
+    if (!row) throw new Error(`addToPracticeSet: bill ${billKey} is missing its email, supplier, or bank account`);
+    const scamKey = `scam_frombill_${bill.key}_${Date.now()}`;
+    await ctx.db.insert("practiceScams", {
+      key: scamKey,
+      billKey,
+      kind: "from bill",
+      description: descriptionFromBody(row.email.body),
+      checksThatShouldFire: firedChecks(row),
+    });
+    return { key: scamKey };
   },
 });
 
@@ -73,63 +174,9 @@ export const gatherForRun = internalQuery({
     const scams = await ctx.db.query("practiceScams").collect();
     const out: PracticeRunRow[] = [];
     for (const scam of scams) {
-      const bill = await ctx.db
-        .query("bills")
-        .withIndex("by_key", (q) => q.eq("key", scam.billKey))
-        .unique();
-      if (!bill) continue;
-      const email = await ctx.db
-        .query("emails")
-        .withIndex("by_key", (q) => q.eq("key", bill.emailKey))
-        .unique();
-      const supplier = await ctx.db
-        .query("suppliers")
-        .withIndex("by_key", (q) => q.eq("key", bill.supplierKey))
-        .unique();
-      const bankAccount = await ctx.db
-        .query("bankAccounts")
-        .withIndex("by_key", (q) => q.eq("key", bill.bankAccountKey))
-        .unique();
-      if (!email || !supplier || !bankAccount) continue;
-
-      let confirmedByCall = false;
-      if (bankAccount.verifiedBy === "call+dev") {
-        const callReq = await ctx.db
-          .query("callRequests")
-          .withIndex("by_bill", (q) => q.eq("bill_id", bill.key))
-          .first();
-        if (callReq) {
-          const result = await ctx.db
-            .query("callResults")
-            .withIndex("by_call", (q) => q.eq("call_id", callReq.call_id))
-            .unique();
-          confirmedByCall = result?.outcome === "confirmed";
-        }
-      }
-
-      const supplierBills = await ctx.db
-        .query("bills")
-        .withIndex("by_supplier", (q) => q.eq("supplierKey", supplier.key))
-        .collect();
-      const pastPaid = supplierBills.filter((b) => b.status === "Paid" && b.key !== bill.key);
-      const pastPaidBankAccounts: Array<{ bank: string; last4: string }> = [];
-      for (const paid of pastPaid) {
-        const acct = await ctx.db
-          .query("bankAccounts")
-          .withIndex("by_key", (q) => q.eq("key", paid.bankAccountKey))
-          .unique();
-        pastPaidBankAccounts.push({ bank: acct?.bank ?? "", last4: acct?.last4 ?? "" });
-      }
-
-      out.push({
-        scamKey: scam.key,
-        email: { fromAddress: email.fromAddress, fromDomain: email.fromDomain, body: email.body },
-        supplier: { key: supplier.key, name: supplier.name, domain: supplier.domain },
-        currentBankAccount: { bank: bankAccount.bank, last4: bankAccount.last4, verifiedBy: bankAccount.verifiedBy, confirmedByCall },
-        pastPaidBankAccounts,
-        pastPaidAmounts: pastPaid.map((b) => b.amountCents),
-        amountCents: bill.amountCents,
-      });
+      const row = await gatherRow(ctx, scam.billKey);
+      if (!row) continue;
+      out.push({ scamKey: scam.key, ...row });
     }
     return out;
   },
@@ -205,18 +252,29 @@ const generatedScamValidator = v.object({
   checksThatShouldFire: v.array(v.string()),
 });
 
-const SYSTEM = `You write realistic payment-scam emails for Fogline, a made-up music festival, to test a bill-checking agent called Callback. Each scam impersonates a real Fogline supplier and should trip one or more of these checks: a bank account Fogline hasn't paid before, a look-alike sender domain, rush/urgent language, or an unusual amount vs the supplier's history. Write the way a real scammer or a hacked supplier account would: plausible invoice references, normal business tone with the scam signal woven in, not cartoonish. Vary the kind across the set (bank-change scam, look-alike domain, rush/urgent, inflated invoice, mixed).`;
+const SYSTEM = `You write realistic payment-scam emails for Fogline, a made-up music festival, to test a bill-checking agent called Callback. Each scam impersonates a real Fogline supplier and should trip one or more of these checks: a bank account Fogline hasn't paid before, a look-alike sender domain, rush/urgent language, or an unusual amount vs the supplier's history. Write the way a real scammer or a hacked supplier account would: plausible invoice references, normal business tone with the scam signal woven in, not cartoonish. Vary the kind across the set, favoring pretexts the current set doesn't already have: generic urgency, a CEO-impersonation request ("I need this paid right now, I'm in a meeting"), a partial bank change where only the routing number changes and the account number stays the same, reuse of a real past invoice number to look legitimate, and a forwarded-thread hijack (a reply to an old real thread with the payment details swapped). Never repeat a description already in the set below — write a genuinely new pretext for each.`;
 
-function buildPrompt(suppliers: Array<{ key: string; name: string; domain: string }>): string {
+function buildPrompt(
+  suppliers: Array<{ key: string; name: string; domain: string }>,
+  existingDescriptions: string[],
+): string {
   const list = suppliers.map((s) => `- ${s.key}: ${s.name} (${s.domain})`).join("\n");
-  return `Fogline's suppliers:\n${list}\n\nWrite 8 scam emails, each impersonating one of the suppliers above by key. For each: kind (short label), from (a plausible sender address — the supplier's real domain for a hacked-account scam, or a look-alike domain for a spoofed one), fromDomain, subject, body (a few sentences, an invoice-style email), supplierKey (must be one of the keys above), amountCents (a plausible invoice amount in cents), and checksThatShouldFire (which of: "new bank account", "look-alike domain", "rush language", "unusual amount" this email should trip).`;
+  const avoid =
+    existingDescriptions.length > 0
+      ? `\n\nScams already in the practice set — do not repeat these pretexts or wording:\n${existingDescriptions.map((d) => `- ${d}`).join("\n")}`
+      : "";
+  return `Fogline's suppliers:\n${list}\n\nWrite 8 scam emails, each impersonating one of the suppliers above by key. For each: kind (short label), from (a plausible sender address — the supplier's real domain for a hacked-account scam, or a look-alike domain for a spoofed one), fromDomain, subject, body (a few sentences, an invoice-style email), supplierKey (must be one of the keys above), amountCents (a plausible invoice amount in cents), and checksThatShouldFire (which of: "new bank account", "look-alike domain", "rush language", "unusual amount" this email should trip).${avoid}`;
 }
 
 export const listSuppliersForPrompt = internalQuery({
   args: {},
   handler: async (ctx) => {
     const suppliers = await ctx.db.query("suppliers").collect();
-    return suppliers.map((s) => ({ key: s.key, name: s.name, domain: s.domain }));
+    const scams = await ctx.db.query("practiceScams").collect();
+    return {
+      suppliers: suppliers.map((s) => ({ key: s.key, name: s.name, domain: s.domain })),
+      existingDescriptions: scams.map((s) => s.description),
+    };
   },
 });
 
@@ -225,7 +283,11 @@ export const insertGenerated = internalMutation({
   handler: async (ctx, { scams }) => {
     const now = Date.now();
     let inserted = 0;
+    const existing = await ctx.db.query("practiceScams").collect();
+    const seenDescriptions = new Set(existing.map((e) => e.description));
     for (const [i, s] of scams.entries()) {
+      const description = descriptionFromBody(s.body);
+      if (seenDescriptions.has(description)) continue; // dedup by description — Claude repeated an existing pretext.
       const supplier = await ctx.db
         .query("suppliers")
         .withIndex("by_key", (q) => q.eq("key", s.supplierKey))
@@ -269,16 +331,21 @@ export const insertGenerated = internalMutation({
         key: scamKey,
         billKey,
         kind: s.kind,
-        description: s.body.slice(0, 160),
+        description,
         checksThatShouldFire: s.checksThatShouldFire,
       });
+      seenDescriptions.add(description);
       inserted++;
     }
     return inserted;
   },
 });
 
-const listSuppliersForPromptRef = makeFunctionReference<"query">("app/practice:listSuppliersForPrompt");
+const listSuppliersForPromptRef = makeFunctionReference<
+  "query",
+  Record<string, never>,
+  { suppliers: Array<{ key: string; name: string; domain: string }>; existingDescriptions: string[] }
+>("app/practice:listSuppliersForPrompt");
 const insertGeneratedRef = makeFunctionReference<"mutation">("app/practice:insertGenerated");
 
 export const generateSet = action({
@@ -287,7 +354,7 @@ export const generateSet = action({
     if (!process.env.ANTHROPIC_API_KEY) {
       throw new Error("generateSet needs ANTHROPIC_API_KEY set in the Convex deployment's environment.");
     }
-    const suppliers = await ctx.runQuery(listSuppliersForPromptRef, {});
+    const { suppliers, existingDescriptions } = await ctx.runQuery(listSuppliersForPromptRef, {});
     if (suppliers.length === 0) {
       throw new Error("generateSet: no suppliers to impersonate. Seed the workspace first.");
     }
@@ -297,7 +364,7 @@ export const generateSet = action({
       max_tokens: 4000,
       output_config: { effort: "medium", format: zodOutputFormat(GeneratedSet) },
       system: SYSTEM,
-      messages: [{ role: "user", content: buildPrompt(suppliers) }],
+      messages: [{ role: "user", content: buildPrompt(suppliers, existingDescriptions) }],
     });
     const parsed = response.parsed_output;
     if (response.stop_reason === "refusal" || !parsed) {

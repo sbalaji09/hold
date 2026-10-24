@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { decide, runChecks } from "./checks.js";
+import { decide, routeEscalation, runChecks } from "./checks.js";
 
 // Fixtures drawn from data/fogline.json (Stagecraft Rigging, sup_stage / bank_stage) and the
 // live demo scam described in data/planted-scams.md, which is never in the seed.
@@ -123,4 +123,93 @@ test("safe bill over $10k asks dev instead of paying", () => {
   });
   expect(checks.every((c) => c.state !== "flag")).toBe(true);
   expect(decide(checks, 1100000)).toBe("ask_dev");
+});
+
+test("a learned rule naming the exact bank + last4 turns a repeat new-account flag into a pass", () => {
+  const base = {
+    email: { body: "Please find attached invoice #6 in the amount of $900.00. Pay to the account on file.", fromAddress: "a@perimeterprostaffing.com", fromDomain: "perimeterprostaffing.com" },
+    supplier: { key: "sup_perimeter_pro", name: "Perimeter Pro Staffing", domain: "perimeterprostaffing.com" },
+    currentBankAccount: { bank: "US Bank", last4: "5509", verifiedBy: "onboarding" as const },
+    pastPaidBankAccounts: [{ bank: "US Bank", last4: "9149" }],
+    pastPaidAmounts: [444719],
+    amountCents: 90000,
+  };
+  const withoutRule = runChecks(base);
+  expect(withoutRule.find((c) => c.id === "bank-account")!.state).toBe("flag");
+
+  const withRule = runChecks({
+    ...base,
+    learnedRules: [{ text: "Dev verified account US Bank \u00b7\u00b75509 for Perimeter Pro Staffing.", sourceKind: "bill", sourceKey: "bill_5" }],
+  });
+  expect(withRule.find((c) => c.id === "bank-account")!.state).toBe("pass");
+  expect(decide(withRule, 90000)).toBe("pay");
+});
+
+test("'Learned rule applies' info check cites the rule that was saved", () => {
+  const checks = runChecks({
+    email: { body: "Please find attached invoice #7 in the amount of $900.00. Pay to the account on file.", fromAddress: "rosa@stagecraftrigging.com", fromDomain: "stagecraftrigging.com" },
+    supplier: stagecraftSupplier,
+    currentBankAccount: stagecraftAccount,
+    pastPaidBankAccounts: stagecraftPastAccounts,
+    pastPaidAmounts: stagecraftPastAmounts,
+    amountCents: 90000,
+    learnedRules: [{ text: "Stagecraft always rushes invoices at month end; that's normal for them.", sourceKind: "bill", sourceKey: "bill_4471" }],
+  });
+  const ruleCheck = checks.find((c) => c.id === "learned-rule");
+  expect(ruleCheck).toBeDefined();
+  expect(ruleCheck!.state).toBe("info");
+  expect(ruleCheck!.evidence).toBe("Stagecraft always rushes invoices at month end; that's normal for them.");
+  expect(ruleCheck!.cite).toEqual({ kind: "bill", ref: "bill_4471" });
+});
+
+test("a learned rule can never let a literal bank-change request through", () => {
+  const checks = runChecks({
+    email: {
+      body: "We've switched banks. Please pay invoice #8 ($900.00) to our new account below.\n\nNew account: US Bank, account ending 5509.",
+      fromAddress: "a@perimeterprostaffing.com",
+      fromDomain: "perimeterprostaffing.com",
+    },
+    supplier: { key: "sup_perimeter_pro", name: "Perimeter Pro Staffing", domain: "perimeterprostaffing.com" },
+    currentBankAccount: { bank: "US Bank", last4: "5509", verifiedBy: "onboarding" },
+    pastPaidBankAccounts: [{ bank: "US Bank", last4: "9149" }],
+    pastPaidAmounts: [444719],
+    amountCents: 90000,
+    learnedRules: [{ text: "Dev verified account US Bank \u00b7\u00b75509 for Perimeter Pro Staffing.", sourceKind: "bill", sourceKey: "bill_5" }],
+  });
+  expect(checks.find((c) => c.id === "bank-account")!.state).toBe("flag");
+  expect(decide(checks, 90000)).toBe("call");
+});
+
+test("routeEscalation: handed_off call outcome routes to Maya", () => {
+  const route = routeEscalation([], 90000, { callOutcome: "handed_off" });
+  expect(route.routedTo).toBe("maya");
+  expect(route.reason).toMatch(/no answer/);
+});
+
+test("routeEscalation: a bank-change flag routes to Dev", () => {
+  const checks = runChecks({
+    email: { body: "We've moved banks. Please pay invoice #9 ($900.00) to our new account.", fromAddress: "a@perimeterprostaffing.com", fromDomain: "perimeterprostaffing.com" },
+    supplier: { key: "sup_perimeter_pro", name: "Perimeter Pro Staffing", domain: "perimeterprostaffing.com" },
+    currentBankAccount: { bank: "US Bank", last4: "5509", verifiedBy: "onboarding" },
+    pastPaidBankAccounts: [{ bank: "US Bank", last4: "9149" }],
+    pastPaidAmounts: [444719],
+    amountCents: 90000,
+  });
+  const route = routeEscalation(checks, 90000);
+  expect(route.routedTo).toBe("dev");
+  expect(route.reason).toMatch(/bank/i);
+});
+
+test("routeEscalation: a safe bill over $10k routes to Dev for approval", () => {
+  const checks = runChecks({
+    email: { body: "Please find attached invoice #10 in the amount of $11,000.00. Kindly remit to the account on file.", fromAddress: "rosa@stagecraftrigging.com", fromDomain: "stagecraftrigging.com" },
+    supplier: stagecraftSupplier,
+    currentBankAccount: stagecraftAccount,
+    pastPaidBankAccounts: stagecraftPastAccounts,
+    pastPaidAmounts: stagecraftPastAmounts,
+    amountCents: 1100000,
+  });
+  const route = routeEscalation(checks, 1100000);
+  expect(route.routedTo).toBe("dev");
+  expect(route.reason).toMatch(/\$11,000\.00/);
 });

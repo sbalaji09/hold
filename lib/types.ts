@@ -13,6 +13,8 @@ export interface Supplier {
   contactEmail: string;
   trustedPhone: string;
   phoneLastCheckedAt: string;
+  /** Absent = trusted. */
+  status?: "new" | "trusted" | "under_review";
 }
 
 export interface BankAccount {
@@ -120,6 +122,8 @@ export interface Approval {
   status: "pending";
   /** Callback's recommendation, in its own voice. */
   recommendation: string;
+  routedTo?: "maya" | "dev";
+  reason?: string;
   thread: Array<{ from: string; text: string; at: string }>;
 }
 
@@ -133,4 +137,25 @@ export interface ActivityEntry {
   refKind: string;
   refKey: string;
   at: string;
+}
+
+export interface LearnedRule {
+  key: string;
+  supplierKey: string;
+  text: string;
+  createdBy: "maya" | "dev";
+  sourceKind: string;
+  sourceKey: string;
+  createdAt: string;
+}
+
+export interface BackgroundCheck {
+  key: string;
+  kind: "background" | "copycat";
+  supplierKey?: string;
+  billKey?: string;
+  domain: string;
+  ranAt: string;
+  findings: Array<{ label: string; state: "pass" | "flag" | "info"; evidence: string; sourceUrl?: string }>;
+  suggestedPhone?: string;
 }

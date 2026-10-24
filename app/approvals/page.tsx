@@ -45,6 +45,11 @@ export default async function ApprovalsPage() {
                   </span>
                   <small>{KIND_LABEL[approval.kind]}</small>
                 </div>
+                {approval.routedTo ? (
+                  <div className="border-b border-line px-4 py-2 font-mono text-[12px] text-ink-muted">
+                    Routed to {approval.routedTo === "dev" ? "Dev" : "Maya"}. {approval.reason}
+                  </div>
+                ) : null}
                 <div className="flex flex-col gap-6 p-4 md:flex-row">
                   <div className="flex min-w-0 flex-1 flex-col gap-4">
                     <div>

@@ -1,8 +1,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Amount, AccountLine, Button, Cite } from "@/components/callback";
-import { getSupplier, listBankAccountsForSupplier, listBillsForSupplier, listCallsForSupplier } from "@/lib/data";
+import { Amount, AccountLine, Cite } from "@/components/callback";
+import { BackgroundCheckPanel } from "@/components/BackgroundCheckPanel";
+import { LearnedRules } from "@/components/LearnedRules";
+import { getSupplier, listBankAccountsForSupplier, listBillsForSupplier, listCallsForSupplier, listChecksForSupplier } from "@/lib/data";
 import { STATUS_TO_MARK, shortDate } from "@/lib/inbox";
 
 function formatPhone(e164: string): string {
@@ -25,10 +27,11 @@ export default async function SupplierPage({
   const supplier = await getSupplier(key);
   if (!supplier) notFound();
 
-  const [bankAccounts, bills, calls] = await Promise.all([
+  const [bankAccounts, bills, calls, checks] = await Promise.all([
     listBankAccountsForSupplier(key),
     listBillsForSupplier(key),
     listCallsForSupplier(key),
+    listChecksForSupplier(key),
   ]);
 
   return (
@@ -45,15 +48,7 @@ export default async function SupplierPage({
           <p className="mt-2 text-[13px] text-ink-muted">Last checked {formatDate(supplier.phoneLastCheckedAt)}</p>
         </article>
 
-        <article className="cb-doc p-4">
-          <div className="cb-doc-head -mx-4 -mt-4 mb-3">
-            <span>Background check</span>
-          </div>
-          <p className="text-[13px] text-ink-muted">No background check run.</p>
-          <div className="mt-3">
-            <Button locked="Background check arrives with the Apify verifier">Run background check</Button>
-          </div>
-        </article>
+        <BackgroundCheckPanel supplierKey={key} lastCheck={checks[0] ?? null} />
       </div>
 
       <section className="cb-doc">
@@ -127,6 +122,8 @@ export default async function SupplierPage({
           )}
         </div>
       </section>
+
+      <LearnedRules supplierKey={key} />
     </div>
   );
 }

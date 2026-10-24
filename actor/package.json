@@ -1,0 +1,20 @@
+{
+  "name": "hold-supplier-verifier",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Runs a background check on a supplier's domain, or flags a lookalike domain against a supplier's known one, for hold's Dev to review.",
+  "main": "src/main.ts",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "apify": "^3.2.6"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15",
+    "typescript": "^5.6.3",
+    "@types/node": "^22.10.0"
+  }
+}

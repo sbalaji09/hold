@@ -1,0 +1,9 @@
+{
+  "actorSpecification": 1,
+  "name": "hold-supplier-verifier",
+  "version": "0.1",
+  "title": "hold supplier verifier",
+  "description": "Checks a supplier's background (site, contact page, phone numbers, domain age) or flags a lookalike domain against a supplier's known one.",
+  "input": "../input_schema.json",
+  "dockerfile": "../Dockerfile"
+}

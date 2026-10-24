@@ -123,6 +123,14 @@ export async function writeResult(ctx: MutationCtx, result: CallResult): Promise
     retry_at_ms: undefined,
   });
   await ctx.db.insert("callEvents", { call_id: result.call_id, type: "status", value: "ended" });
+  // Addendum: a New supplier becomes Trusted after its first confirmed live call.
+  if (result.outcome === "confirmed" && req.mode !== "simulated") {
+    const sup = await ctx.db
+      .query("suppliers")
+      .withIndex("by_key", (q) => q.eq("key", req.supplier_id))
+      .unique();
+    if (sup?.status === "new") await ctx.db.patch(sup._id, { status: "trusted" });
+  }
 }
 
 // ---------- validators (from the schema, so they cannot drift) ----------

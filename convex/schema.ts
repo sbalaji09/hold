@@ -42,6 +42,8 @@ export default defineSchema({
     contactEmail: v.string(),
     trustedPhone: v.string(),
     phoneLastCheckedAt: v.string(),
+    // Hyphenate addendum: New until first confirmed call. Absent = Trusted.
+    status: v.optional(v.union(v.literal("new"), v.literal("trusted"), v.literal("under_review"))),
   }).index("by_key", ["key"]),
 
   bankAccounts: defineTable({
@@ -259,6 +261,8 @@ export default defineSchema({
       v.literal("rejected"),
     ),
     recommendation: v.string(),
+    routedTo: v.optional(v.union(v.literal("maya"), v.literal("dev"))),
+    reason: v.optional(v.string()),
     thread: v.array(
       v.object({
         from: v.string(),
@@ -296,5 +300,40 @@ export default defineSchema({
     lastRunAt: v.optional(v.string()),
   })
     .index("by_key", ["key"])
+    .index("by_bill", ["billKey"]),
+
+  // Learned rules: saved when a human resolves an escalation. Never relax hard limits.
+  learnedRules: defineTable({
+    key: v.string(),
+    supplierKey: v.string(),
+    text: v.string(),
+    createdBy: v.union(v.literal("maya"), v.literal("dev")),
+    sourceKind: v.string(),
+    sourceKey: v.string(),
+    createdAt: v.string(),
+  })
+    .index("by_key", ["key"])
+    .index("by_supplier", ["supplierKey"]),
+
+  // Apify background / copycat check results, one row per run.
+  backgroundChecks: defineTable({
+    key: v.string(),
+    kind: v.union(v.literal("background"), v.literal("copycat")),
+    supplierKey: v.optional(v.string()),
+    billKey: v.optional(v.string()),
+    domain: v.string(),
+    ranAt: v.string(),
+    findings: v.array(
+      v.object({
+        label: v.string(),
+        state: v.union(v.literal("pass"), v.literal("flag"), v.literal("info")),
+        evidence: v.string(),
+        sourceUrl: v.optional(v.string()),
+      }),
+    ),
+    suggestedPhone: v.optional(v.string()),
+  })
+    .index("by_key", ["key"])
+    .index("by_supplier", ["supplierKey"])
     .index("by_bill", ["billKey"]),
 });

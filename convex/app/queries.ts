@@ -32,6 +32,7 @@ function toSupplier(s: Doc<"suppliers">): Supplier {
     contactEmail: s.contactEmail,
     trustedPhone: s.trustedPhone,
     phoneLastCheckedAt: s.phoneLastCheckedAt,
+    status: s.status,
   };
 }
 
@@ -205,6 +206,8 @@ export const listApprovals = query({
           kind: row.kind,
           status: "pending",
           recommendation: row.recommendation,
+          routedTo: row.routedTo,
+          reason: row.reason,
           thread: row.thread,
         };
         return approval;
@@ -266,5 +269,22 @@ export const getSupplier = query({
       .withIndex("by_key", (q) => q.eq("key", key))
       .unique();
     return row ? toSupplier(row) : null;
+  },
+});
+
+/** Open (not Paid/Scheduled) bill count per supplier, for the Suppliers overview's "open items"
+ * column (plan-agent.md addendum §3); each count links back to that supplier's own bill list. */
+export const listSupplierSummaries = query({
+  args: {},
+  handler: async (ctx): Promise<Array<Supplier & { openItems: number }>> => {
+    const [suppliers, bills] = await Promise.all([ctx.db.query("suppliers").collect(), ctx.db.query("bills").collect()]);
+    const openBySupplier = new Map<string, number>();
+    for (const b of bills) {
+      if (b.status === "Paid" || b.status === "Scheduled") continue;
+      openBySupplier.set(b.supplierKey, (openBySupplier.get(b.supplierKey) ?? 0) + 1);
+    }
+    return suppliers
+      .map((s) => ({ ...toSupplier(s), openItems: openBySupplier.get(s.key) ?? 0 }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   },
 });

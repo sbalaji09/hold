@@ -17,6 +17,17 @@ interface ThreadMsg {
 
 type Decision = "approved" | "approved-safe" | "rejected" | null;
 
+function defaultRuleText(approval: Approval, decision: Decision): string {
+  const bill = approval.bill;
+  const acct = bill.bankAccount;
+  if (approval.kind === "bank_change") {
+    return `Bank changes need a passed call plus Dev; verified account ${acct.bank} \u00b7\u00b7${acct.last4}.`;
+  }
+  return decision === "rejected"
+    ? `Hold bills like invoice ${bill.invoiceNo} from ${bill.supplier.name} for Dev's review.`
+    : `Pay bills like invoice ${bill.invoiceNo} from ${bill.supplier.name} without asking Dev again.`;
+}
+
 function fmtTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
@@ -37,6 +48,10 @@ export function PushbackThread({ approval }: { approval: Approval }): React.Reac
   const [pending, setPending] = React.useState<"reply" | "approve" | "approve-safe" | "reject" | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [safeAlternative, setSafeAlternative] = React.useState<{ bankAccountKey: string } | null>(null);
+  const saveRule = useMutation(api.app.rules.saveRule);
+  const [ruleText, setRuleText] = React.useState(() => defaultRuleText(approval, null));
+  const [ruleState, setRuleState] = React.useState<"idle" | "saving" | "saved">("idle");
+  const [ruleError, setRuleError] = React.useState<string | null>(null);
 
   const lastFromCallback = thread.length > 0 && thread[thread.length - 1].from === "callback";
 
@@ -78,12 +93,38 @@ export function PushbackThread({ approval }: { approval: Approval }): React.Reac
         actor: "dev",
         payToBankAccountKey,
       });
-      setDecision(kind === "reject" ? "rejected" : kind === "approve-safe" ? "approved-safe" : "approved");
+      const next = kind === "reject" ? "rejected" : kind === "approve-safe" ? "approved-safe" : "approved";
+      setDecision(next);
+      setRuleText(defaultRuleText(approval, next));
       router.refresh();
     } catch (err) {
       setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : err instanceof Error ? err.message : "Callback couldn't record that decision.");
     } finally {
       setPending(null);
+    }
+  }
+
+  async function saveAsRule() {
+    const text = ruleText.trim();
+    if (!text) return;
+    if (!convexConfigured) {
+      setRuleError("Convex isn't connected. This action needs the backend.");
+      return;
+    }
+    setRuleError(null);
+    setRuleState("saving");
+    try {
+      await saveRule({
+        supplierKey: bill.supplier.key,
+        text,
+        actor: "dev",
+        sourceKind: "approval",
+        sourceKey: approval.key,
+      });
+      setRuleState("saved");
+    } catch (err) {
+      setRuleState("idle");
+      setRuleError(err instanceof ConvexError && typeof err.data === "string" ? err.data : err instanceof Error ? err.message : "Couldn't save that rule.");
     }
   }
 
@@ -152,6 +193,33 @@ export function PushbackThread({ approval }: { approval: Approval }): React.Reac
       ) : null}
 
       {error ? <p className="font-mono text-[12px] text-hold-solid">{error}</p> : null}
+
+      {decision !== null ? (
+        <div className="flex flex-col gap-2 border-t border-line pt-4">
+          <label htmlFor={`rule-${approval.key}`} className="cb-caps">
+            Save as a rule for this supplier
+          </label>
+          {ruleState === "saved" ? (
+            <p className="font-mono text-[13px] text-ink">Saved. Callback will cite this rule on {bill.supplier.name}'s later bills.</p>
+          ) : (
+            <>
+              <textarea
+                id={`rule-${approval.key}`}
+                rows={2}
+                value={ruleText}
+                onChange={(e) => setRuleText(e.target.value)}
+                className="resize-none rounded-sm border border-line-control bg-surface p-2 text-[13px] text-ink"
+              />
+              <div>
+                <Button variant="secondary" size="sm" disabled={ruleState === "saving"} onClick={saveAsRule}>
+                  {ruleState === "saving" ? "Saving…" : "Save rule"}
+                </Button>
+              </div>
+              {ruleError ? <p className="font-mono text-[12px] text-hold-solid">{ruleError}</p> : null}
+            </>
+          )}
+        </div>
+      ) : null}
 
       <div className="border-t border-line pt-4">
         {decision === "rejected" ? (

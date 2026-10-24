@@ -1,0 +1,37 @@
+{
+  "title": "hold supplier verifier input",
+  "description": "Run a background check on one domain, or compare an unfamiliar sender domain against a supplier's known domain.",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "mode": {
+      "title": "Mode",
+      "type": "string",
+      "description": "'background' checks one domain on its own. 'copycat' compares domain against knownDomain.",
+      "editor": "select",
+      "enum": ["background", "copycat"],
+      "enumTitles": ["Background check", "Copycat check"]
+    },
+    "domain": {
+      "title": "Domain",
+      "type": "string",
+      "editor": "textfield",
+      "description": "Domain to check (background mode), or the unfamiliar sender domain (copycat mode). No scheme, e.g. \"example.com\"."
+    },
+    "businessName": {
+      "title": "Business name",
+      "type": "string",
+      "editor": "textfield",
+      "description": "The supplier's name on file, compared against the site's title (background mode only).",
+      "nullable": true
+    },
+    "knownDomain": {
+      "title": "Known domain",
+      "type": "string",
+      "editor": "textfield",
+      "description": "The supplier's domain on file, to compare domain against (copycat mode only).",
+      "nullable": true
+    }
+  },
+  "required": ["mode", "domain"]
+}
