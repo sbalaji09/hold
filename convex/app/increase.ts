@@ -6,7 +6,8 @@
 // Env read lazily; a missing key fails loudly instead of faking a transfer.
 import { ConvexError, v } from "convex/values";
 import { api, internal } from "../_generated/api.js";
-import { action, internalAction, internalQuery } from "../_generated/server.js";
+import { action, internalAction, internalQuery, type ActionCtx } from "../_generated/server.js";
+import { getWatchOnlySetting } from "./queries.js";
 
 const SANDBOX_BASE = "https://sandbox.increase.com";
 
@@ -101,45 +102,86 @@ export const payoutDetails = internalQuery({
  */
 export const runPayments = action({
   args: { billKeys: v.array(v.string()) },
-  handler: async (ctx, { billKeys }): Promise<Array<{ billKey: string; transferId?: string; error?: string }>> => {
-    const results: Array<{ billKey: string; transferId?: string; error?: string }> = [];
-    for (const billKey of billKeys) {
-      let paymentKey: string | undefined;
-      try {
-        const details = await ctx.runQuery(internal.app.increase.payoutDetails, { billKey });
-        if (details.status !== "Scheduled") {
-          const paid = await ctx.runMutation(api.app.mutations.payBill, { billKey });
-          if (paid && typeof paid === "object" && "refused" in paid) throw new Error(paid.refused);
-        }
-        // Claim the bill before sending the transfer, in the same transaction as the Scheduled
-        // check, so a concurrent second run of this bill is refused instead of double-paying.
-        const claimed = await ctx.runMutation(internal.app.mutations.claimPayment, {
-          billKey,
-          bankAccountKey: details.bankAccountKey,
-          amountCents: details.amountCents,
-        });
-        if ("refused" in claimed) throw new Error(claimed.refused);
-        paymentKey = claimed.paymentKey;
-        const { transferId } = await ctx.runAction(internal.app.increase.sendTransfer, {
-          routingNumber: details.routingNumber,
-          accountNumber: details.accountNumber,
-          accountHolder: details.accountHolder,
-          amountCents: details.amountCents,
-          description: details.description,
-        });
-        await ctx.runMutation(internal.app.mutations.recordPayment, {
-          billKey,
-          paymentKey,
-          bankAccountKey: details.bankAccountKey,
-          amountCents: details.amountCents,
-          transferId,
-        });
-        results.push({ billKey, transferId });
-      } catch (err) {
-        if (paymentKey) await ctx.runMutation(internal.app.mutations.failPayment, { paymentKey });
-        const message = err instanceof ConvexError && typeof err.data === "string" ? err.data : err instanceof Error ? err.message : "Payment failed.";
-        results.push({ billKey, error: message });
+  handler: (ctx, { billKeys }) => payBills(ctx, billKeys),
+});
+
+type PayResult = { billKey: string; transferId?: string; error?: string };
+
+async function payBills(ctx: ActionCtx, billKeys: string[]): Promise<PayResult[]> {
+  const results: PayResult[] = [];
+  for (const billKey of billKeys) {
+    let paymentKey: string | undefined;
+    try {
+      const details = await ctx.runQuery(internal.app.increase.payoutDetails, { billKey });
+      if (details.status !== "Scheduled") {
+        const paid = await ctx.runMutation(api.app.mutations.payBill, { billKey });
+        if (paid && typeof paid === "object" && "refused" in paid) throw new Error(paid.refused);
       }
+      // Claim the bill before sending the transfer, in the same transaction as the Scheduled
+      // check, so a concurrent second run of this bill is refused instead of double-paying.
+      const claimed = await ctx.runMutation(internal.app.mutations.claimPayment, {
+        billKey,
+        bankAccountKey: details.bankAccountKey,
+        amountCents: details.amountCents,
+      });
+      if ("refused" in claimed) throw new Error(claimed.refused);
+      paymentKey = claimed.paymentKey;
+      const { transferId } = await ctx.runAction(internal.app.increase.sendTransfer, {
+        routingNumber: details.routingNumber,
+        accountNumber: details.accountNumber,
+        accountHolder: details.accountHolder,
+        amountCents: details.amountCents,
+        description: details.description,
+      });
+      await ctx.runMutation(internal.app.mutations.recordPayment, {
+        billKey,
+        paymentKey,
+        bankAccountKey: details.bankAccountKey,
+        amountCents: details.amountCents,
+        transferId,
+      });
+      results.push({ billKey, transferId });
+    } catch (err) {
+      if (paymentKey) await ctx.runMutation(internal.app.mutations.failPayment, { paymentKey });
+      const message = err instanceof ConvexError && typeof err.data === "string" ? err.data : err instanceof Error ? err.message : "Payment failed.";
+      results.push({ billKey, error: message });
+    }
+  }
+  return results;
+}
+
+/** Real Scheduled bills due by `today` (YYYY-MM-DD) with no payment pending or sent. Empty while
+ * Watch only is on. */
+export const dueBills = internalQuery({
+  args: { today: v.string() },
+  handler: async (ctx, { today }): Promise<string[]> => {
+    if (await getWatchOnlySetting(ctx)) return [];
+    const scheduled = await ctx.db
+      .query("bills")
+      .withIndex("by_status", (q) => q.eq("status", "Scheduled"))
+      .collect();
+    const due: string[] = [];
+    for (const bill of scheduled) {
+      if (bill.practice || bill.dueDate.slice(0, 10) > today) continue;
+      const payments = await ctx.db
+        .query("payments")
+        .withIndex("by_bill", (q) => q.eq("billKey", bill.key))
+        .collect();
+      if (!payments.some((p) => p.status === "pending" || p.status === "sent")) due.push(bill.key);
+    }
+    return due;
+  },
+});
+
+/** hold's daily payment run (convex/crons.ts): pays every due Scheduled bill with no one pressing
+ * Run payments. Failures go in the Activity log and are retried on the next run. */
+export const dailyPaymentRun = internalAction({
+  args: {},
+  handler: async (ctx): Promise<PayResult[]> => {
+    const billKeys = await ctx.runQuery(internal.app.increase.dueBills, { today: new Date().toISOString().slice(0, 10) });
+    const results = await payBills(ctx, billKeys);
+    for (const r of results) {
+      if (r.error) await ctx.runMutation(internal.app.mutations.logPaymentFailure, { billKey: r.billKey, error: r.error });
     }
     return results;
   },

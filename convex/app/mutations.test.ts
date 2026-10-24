@@ -3,7 +3,7 @@
 // not) is logged to the activity table.
 import { convexTest } from "convex-test";
 import { describe, expect, test } from "vitest";
-import { api } from "../_generated/api.js";
+import { api, internal } from "../_generated/api.js";
 import schema from "../schema.js";
 import { modules } from "../test.setup.js";
 
@@ -334,6 +334,15 @@ describe("requestCall", () => {
 });
 
 describe("claimPayment", () => {
+  test("refuses while Watch only is on, so no transfer can go out", async () => {
+    const { t, fns, seed } = harness();
+    await seed({ status: "Scheduled" });
+    await t.mutation(fns.mutations.setWatchOnly, { watchOnly: true, actor: "maya" });
+    const claim = await t.mutation(fns.mutations.claimPayment, { billKey: "bill_4471", bankAccountKey: "bank_stage", amountCents: 500_000 });
+    expect(claim).toEqual({ refused: "Watch only is on. Callback flags and calls but doesn't move money." });
+    expect(await t.run((ctx) => ctx.db.query("payments").collect())).toHaveLength(0);
+  });
+
   test("two sequential claims on the same bill: the second is refused", async () => {
     const { t, fns, seed } = harness();
     await seed({ status: "Scheduled" });
@@ -356,5 +365,22 @@ describe("claimPayment", () => {
     expect(retry).toHaveProperty("paymentKey");
     const bill = await t.run((ctx) => ctx.db.query("bills").collect()).then((rows) => rows[0]!);
     expect(bill.status).toBe("Scheduled");
+  });
+});
+
+describe("dueBills (the daily payment run's list)", () => {
+  test("only real Scheduled bills that are due and not already paid", async () => {
+    const { t, fns, seed } = harness();
+    await seed({ status: "Scheduled", dueDate: "2026-09-22" });
+    await t.run(async (ctx) => {
+      await ctx.db.insert("bills", bill({ key: "bill_future", status: "Scheduled", dueDate: "2026-12-01" }));
+      await ctx.db.insert("bills", bill({ key: "bill_practice", status: "Scheduled", practice: true }));
+      await ctx.db.insert("bills", bill({ key: "bill_held", status: "Held" }));
+      await ctx.db.insert("bills", bill({ key: "bill_sent", status: "Scheduled" }));
+      await ctx.db.insert("payments", { key: "pay_sent", billKey: "bill_sent", amountCents: 500_000, bankAccountKey: "bank_stage", status: "sent", paidAt: "2026-09-20" });
+    });
+    expect(await t.query(internal.app.increase.dueBills, { today: "2026-10-24" })).toEqual(["bill_4471"]);
+    await t.mutation(fns.mutations.setWatchOnly, { watchOnly: true, actor: "dev" });
+    expect(await t.query(internal.app.increase.dueBills, { today: "2026-10-24" })).toEqual([]);
   });
 });

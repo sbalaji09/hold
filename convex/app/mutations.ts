@@ -286,6 +286,9 @@ export const claimPayment = internalMutation({
     if (row.status !== "Scheduled") {
       return refuse(ctx, "callback", "claim payment", `Bill ${billKey} isn't scheduled to pay (status: ${row.status}).`, billKey);
     }
+    // Every transfer passes through here, so this is where Watch only is enforced.
+    const moneyCheck = canMoveMoney(await getWatchOnlySetting(ctx));
+    if (!moneyCheck.allowed) return refuse(ctx, "callback", "claim payment", moneyCheck.reason!, billKey);
     const existing = await ctx.db
       .query("payments")
       .withIndex("by_bill", (q) => q.eq("billKey", billKey))
@@ -303,6 +306,15 @@ export const claimPayment = internalMutation({
       paidAt: "",
     });
     return { paymentKey };
+  },
+});
+
+/** The daily payment run (convex/app/increase.ts) couldn't pay a bill; nobody was watching, so it
+ * goes in the Activity log. The bill stays Scheduled and the next run tries again. */
+export const logPaymentFailure = internalMutation({
+  args: { billKey: v.string(), error: v.string() },
+  handler: async (ctx, { billKey, error }) => {
+    await logActivity(ctx, "callback", "couldn't send a scheduled payment", error, "bill", billKey);
   },
 });
 
