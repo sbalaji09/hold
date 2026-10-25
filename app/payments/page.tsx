@@ -25,7 +25,7 @@ export default async function PaymentsPage() {
           <h1 className="cb-display text-ink">Payments</h1>
           <p className="mt-1 text-[13px] text-ink-muted">{settings.watchOnly ? "Watch only is on: hold flags bills but doesn&rsquo;t call suppliers or move money." : `${capital(co.bill).many} ready to pay, sent through the Increase test bank.`}</p>
         </div>
-        <div className="flex flex-col items-end gap-3">
+        <div className="flex flex-col items-end gap-3 max-w-[340px]">
           <WatchOnlyToggle watchOnly={settings.watchOnly} />
           <RunPayments billKeys={eligible.map((i) => i.bill.key)} total={total} lockedReason={lockedReason} />
         </div>

@@ -60,21 +60,14 @@ export function RunPayments({ billKeys, total, lockedReason }: RunPaymentsProps)
       )}
       {error ? <p className="max-w-[320px] text-right font-mono text-[12px] text-hold-solid">{error}</p> : null}
       {results ? (
-        <ul className="flex max-w-[320px] flex-col items-end gap-1">
-          {results.map((r) => (
-            <li key={r.billKey} className="text-right font-mono text-[11.5px]">
-              {r.error ? (
-                <span className="text-hold-solid">
-                  {r.billKey}: {r.error}
-                </span>
-              ) : (
-                <span className="text-ink-muted">
-                  {r.billKey}: {r.transferId}
-                </span>
-              )}
-            </li>
+        <p className="text-right text-[13px] text-ink-muted">
+          Sent {results.filter((r) => !r.error).length} of {results.length}. Transfer IDs are in the table.
+          {results.filter((r) => r.error).map((r) => (
+            <span key={r.billKey} className="mt-1 block max-w-[320px] font-mono text-[12px] text-hold-solid">
+              {r.error}
+            </span>
           ))}
-        </ul>
+        </p>
       ) : null}
     </div>
   );
