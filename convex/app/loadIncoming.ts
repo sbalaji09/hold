@@ -6,7 +6,7 @@ import { mutation, query } from "../_generated/server.js";
 import { api } from "../_generated/api.js";
 import incoming from "../../data/incoming.json";
 
-const STAGGER_MS = 1400;
+const STAGGER_MS = 150;
 
 export const incomingStatus = query({
   args: {},
