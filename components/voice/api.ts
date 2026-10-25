@@ -38,6 +38,8 @@ export interface OutgoingCall {
   outcome: CallResultDoc["outcome"] | null;
   /** An answer from this call still waits for your review. */
   review_open: boolean;
+  /** Not a check call: hold asked the approver to approve or deny a caller's request. */
+  approval: boolean;
 }
 
 /**

@@ -143,7 +143,8 @@ export const phoneLine = query({
         return {
           review_open: reviewOpen,
           call_id: r.call_id,
-          supplier: supplier?.name ?? r.supplier_id,
+          supplier: r.approval ? "the approver" : supplier?.name ?? r.supplier_id,
+          approval: Boolean(r.approval),
           to_number: r.to_number,
           status: r.status,
           at: r.startedAt ? Date.parse(r.startedAt) : r._creationTime,

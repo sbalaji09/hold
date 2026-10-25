@@ -12,6 +12,7 @@ import {
 } from "../../../shared/contract.js";
 import {
   DEFAULT_RETRY_DELAY_MS,
+  approvalRequest,
   followUpRequest,
   formatRetryAt,
   isClosed,
@@ -304,6 +305,10 @@ export class MemoryStore implements VoiceStore {
       const req = followUpRequest(record, supplier);
       if (!this.requests.has(req.call_id)) this.addRequest(req);
       triggered_call_id = req.call_id;
+    } else if (record.payment_claim && !record.claimed_supplier_id) {
+      const req = approvalRequest(record);
+      if (!this.requests.has(req.call_id)) this.addRequest(req);
+      triggered_call_id = req.call_id;
     }
     this.inbound.set(record.call_id, {
       ...structuredClone(record),
@@ -346,5 +351,6 @@ function toRequest(row: RequestRow): CallRequest {
   const { call_id, bill_id, supplier_id, to_number, number_source, reason, status, mode, attempt } = row;
   const out: CallRequest = { call_id, bill_id, supplier_id, to_number, number_source, reason: [...reason], status, attempt };
   if (mode) out.mode = mode;
+  if (row.approval) out.approval = { ...row.approval };
   return out;
 }

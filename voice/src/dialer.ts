@@ -14,7 +14,7 @@ import type { LLM } from "./call/llm.js";
 import type { CallTransport } from "./call/transport.js";
 import type { VoiceStore } from "./store/types.js";
 
-const DIALABLE_SOURCES: ReadonlySet<NumberSource> = new Set(["on_file", "background_check"]);
+const DIALABLE_SOURCES: ReadonlySet<NumberSource> = new Set(["on_file", "background_check", "approver"]);
 
 export interface DialerDeps {
   store: VoiceStore;
@@ -143,9 +143,16 @@ export class Dialer {
       return this.runSimulated(c);
     }
 
+    // An approval call rings the approver's own phone from config, whatever number the request carries.
+    const to = claimed.number_source === "approver" ? this.d.takeoverPhoneNumber ?? "" : claimed.to_number;
+    if (claimed.number_source === "approver" && !to) {
+      c.settled = true;
+      await this.handOff(c, "hold couldn't ask the approver to decide: no approver phone number is set (TAKEOVER_PHONE_NUMBER).");
+      return this.cleanup(c);
+    }
     // Only ever dial the number we were given, and only if it came from a trusted source.
-    if (!DIALABLE_SOURCES.has(claimed.number_source) || !isE164(claimed.to_number)) {
-      log.error("dialer: refusing to dial", { callId: id, source: claimed.number_source, to: claimed.to_number });
+    if (!DIALABLE_SOURCES.has(claimed.number_source) || !isE164(to)) {
+      log.error("dialer: refusing to dial", { callId: id, source: claimed.number_source, to });
       c.settled = true;
       await this.d.store.finishCall({
         call_id: id,
@@ -163,7 +170,7 @@ export class Dialer {
     const menu = (await c.profile)?.phone_menu;
     try {
       const { sid } = await this.d.twilio.dial({
-        to: claimed.to_number,
+        to,
         from: this.d.fromNumber,
         url: `${base}/twilio/outbound/${encodeURIComponent(id)}`,
         statusCallback: `${base}/twilio/status?${q}`,

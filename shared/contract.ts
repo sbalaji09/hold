@@ -2,7 +2,8 @@
 // Plain TS types shared by Convex functions, the voice server and the web screens.
 // Change these only together with the app person.
 
-export type NumberSource = "on_file" | "background_check";
+/** "approver": the approver's own phone (TAKEOVER_PHONE_NUMBER on the voice server), for an approval call. */
+export type NumberSource = "on_file" | "background_check" | "approver";
 
 /** "live" dials a real phone. "simulated" runs Practice against a Claude-played supplier. */
 export type CallMode = "live" | "simulated";
@@ -39,6 +40,20 @@ export interface CallRequest {
    * processing fee"). The call asks the supplier whether they made that request.
    */
   claim?: string;
+  /**
+   * Not a check call: someone from a company hold has no record of called the line and asked for
+   * money. This call rings the approver, tells them what was asked and asks approve or deny.
+   */
+  approval?: ApprovalAsk;
+}
+
+/** What an approval call tells the approver. All of it is what the caller said, not anything on file. */
+export interface ApprovalAsk {
+  inbound_call_id: string;
+  caller: string; // "Jordan from Microsoft"; "Unknown caller" if never said
+  company?: string;
+  request: string; // what they asked for, e.g. "send fifty dollars in Amazon gift cards"
+  caller_number: string;
 }
 
 /**
@@ -198,6 +213,8 @@ export interface InboundCallRecord {
   asked_bank_change: boolean;
   /** They asked the company to send money; see CallRequest.claim. */
   payment_claim?: string;
+  /** The company they said they call from, matched or not. */
+  claimed_company?: string;
   transcript: { speaker: Speaker; text: string; ts: number }[];
   triggered_call_id?: string; // callRequests row created to the number on file
 }

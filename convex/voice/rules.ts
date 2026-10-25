@@ -83,6 +83,36 @@ export function followUpRequest(record: InboundCallRecord, supplier: SupplierPro
   };
 }
 
+/** The approver's own phone; the voice server dials TAKEOVER_PHONE_NUMBER, never a number on the request. */
+export const APPROVER_ID = "approver";
+
+/**
+ * Someone from a company hold has no record of called the line and asked for money. There is no
+ * number on file to call back, so this rings the approver to approve or deny what they asked.
+ */
+export function approvalRequest(record: InboundCallRecord): CallRequest {
+  const caller = record.claimed_identity || UNKNOWN_CALLER;
+  const request = record.payment_claim || record.requested;
+  return {
+    call_id: `approval_${record.call_id}`,
+    bill_id: `inbound:${record.call_id}`,
+    supplier_id: APPROVER_ID,
+    to_number: "",
+    number_source: "approver",
+    reason: [`${caller} asked us to ${request}`, `Called from ${record.caller_number}`],
+    status: "queued",
+    mode: "live",
+    attempt: 0,
+    approval: {
+      inbound_call_id: record.call_id,
+      caller,
+      ...(record.claimed_company ? { company: record.claimed_company } : {}),
+      request,
+      caller_number: record.caller_number,
+    },
+  };
+}
+
 /** CALLING_HOURS "8-18" -> weekdays 8:00 to 18:00 in the payee's time zone. Unset or malformed = any time. */
 export function parseCallingHours(raw: string | undefined): { start: number; end: number } | null {
   const m = /^\s*(\d{1,2})\s*-\s*(\d{1,2})\s*$/.exec(raw ?? "");

@@ -146,9 +146,9 @@ function PastCalls({ calls, outgoing, number, callId }: { calls: InboundCallDoc[
               onClick={() => setOpenId(item.call.call_id)}
             >
               <div className="hv-row-text">
-                <div className="hv-strong">{item.dir === "in" ? who(item.call) : `Check call to ${item.call.supplier}`}</div>
+                <div className="hv-strong">{item.dir === "in" ? who(item.call) : item.call.approval ? "Approval call to the approver" : `Check call to ${item.call.supplier}`}</div>
                 <div className="cb-when">
-                  {item.dir === "in" ? "Incoming" : "Outgoing"} · {formatPhone(item.dir === "in" ? item.call.caller_number : item.call.to_number)} · {formatWhen(item.at, now)}
+                  {item.dir === "in" ? "Incoming" : "Outgoing"} · {item.dir === "out" && item.call.approval ? "" : `${formatPhone(item.dir === "in" ? item.call.caller_number : item.call.to_number)} · `}{formatWhen(item.at, now)}
                 </div>
               </div>
               {item.dir === "in" ? <RowMark call={item.call} screen={screenState(item.call, now)} /> : <OutgoingMark call={item.call} />}
@@ -196,6 +196,12 @@ function IncomingDetail({ open, now, ref }: { open: InboundCallDoc; now: number;
 
 /** Where an outgoing check call stands, in the system's six status words. */
 function OutgoingMark({ call }: { call: OutgoingCall }) {
+  if (call.approval) {
+    if (call.outcome === "confirmed") return <StatusMark status="paid">Approved</StatusMark>;
+    if (call.outcome === "not_confirmed") return <StatusMark status="held">Denied</StatusMark>;
+    if (call.outcome) return <StatusMark status="needs-you">No decision</StatusMark>;
+    return <StatusMark status="calling">Asking approver</StatusMark>;
+  }
   if (call.outcome === "confirmed") return <StatusMark status="paid">Confirmed</StatusMark>;
   if (call.outcome === "not_confirmed") return <StatusMark status="held">Not confirmed</StatusMark>;
   if (call.outcome === "needs_review" && !call.review_open) return <StatusMark status="paid">Called back</StatusMark>;
@@ -211,7 +217,7 @@ function OutgoingDetail({ call, ref }: { call: OutgoingCall; ref: React.Ref<HTML
   return (
     <section ref={ref} className="cb-doc hv-detail" aria-label="Call transcript">
       <div className="cb-doc-head">
-        <span>Check call to {call.supplier}</span>
+        <span>{call.approval ? "Approval call to the approver" : `Check call to ${call.supplier}`}</span>
         <small>{formatPhone(call.to_number)}</small>
       </div>
       <div className="hv-pad hv-detail-meta">
@@ -245,13 +251,35 @@ function OutgoingDetail({ call, ref }: { call: OutgoingCall; ref: React.Ref<HTML
 function RowMark({ call, screen }: { call: InboundCallDoc; screen: Screen }) {
   if (screen === "flag") return <StatusMark status="held">Flagged</StatusMark>;
   if (screen === "screening") return <StatusMark status="checking">Screening</StatusMark>;
+  if (isApproval(call)) {
+    if (call.approval_decision === "approved") return <StatusMark status="paid">Approved</StatusMark>;
+    if (call.approval_decision === "denied") return <StatusMark status="held">Denied</StatusMark>;
+    if (call.approval_decision === "no_decision") return <StatusMark status="needs-you">No decision</StatusMark>;
+    return <StatusMark status="calling">Asking approver</StatusMark>;
+  }
   if (call.triggered_call_id) return <StatusMark status="held">Called back on file</StatusMark>;
   return <StatusMark status="paid">Answered</StatusMark>;
 }
 
-/** The outgoing check call hold booked to the supplier's number on file. */
+const isApproval = (call: InboundCallDoc) => call.triggered_call_id?.startsWith("approval_") ?? false;
+
+const DECIDED = { approved: "The approver approved it.", denied: "The approver denied it.", no_decision: "The approver gave no clear answer, so it stays unapproved." } as const;
+
+/** The outgoing check call hold booked to the supplier's number on file, or the call asking the approver. */
 function CheckCall({ call }: { call: InboundCallDoc }) {
   const supplier = useSupplierName(call.claimed_supplier_id);
+  if (isApproval(call)) {
+    return (
+      <>
+        <p className="hv-followup">
+          {call.approval_decision ? DECIDED[call.approval_decision] : `${AGENT} has no record of this caller's company, so it's asking the approver to approve or deny.`}
+        </p>
+        <p>
+          <Link href={liveCallPath(call.triggered_call_id!)}>Open the approval call</Link>
+        </p>
+      </>
+    );
+  }
   return (
     <>
       <p className="hv-followup">

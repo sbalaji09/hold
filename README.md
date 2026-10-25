@@ -92,7 +92,7 @@ The server validates these at startup and lists anything missing or malformed.
 | `TWILIO_POINT_WEBHOOK` | `true` to point Fogline's number at this server on startup. Whichever server starts last owns the number. |
 | `PUBLIC_BASE_URL` | The public `https://` URL Twilio uses to reach this server. Leave it unset: it comes from `NGROK_DOMAIN`. |
 | `PORT` | Local port, default `8080`. |
-| `TAKEOVER_PHONE_NUMBER` | Optional. "End call and take over" transfers the live call to this number. Without it, takeover just ends the AI call. |
+| `TAKEOVER_PHONE_NUMBER` | The approver's phone. "End call and take over" transfers the live call here, and when a caller from a company hold has no record of asks for money ("Jordan from Microsoft, fifty dollars in gift cards"), hold rings this number, says what was asked and asks approve or deny. Without it, takeover just ends the AI call and approval calls are handed off unasked. |
 | `CARTESIA_VOICE_ID_ES` | Optional. A native Spanish Sonic voice for calls to Spanish-speaking payees. Without it, `CARTESIA_VOICE_ID` speaks Spanish. |
 
 Convex-side settings for the company templates and calls (`npx convex env set NAME value`):

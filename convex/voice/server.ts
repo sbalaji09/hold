@@ -19,6 +19,7 @@ import { forChannel } from "../../lib/fraudTechniques.js";
 import { loadPlaybook } from "../app/techniques.js";
 import * as records from "./records.js";
 import {
+  approvalRequest,
   followUpRequest,
   formatCallingTime,
   formatRetryAt,
@@ -67,6 +68,7 @@ export function toCallRequest(d: RequestRow): CallRequest {
   };
   if (d.mode) r.mode = d.mode;
   if (d.claim) r.claim = d.claim;
+  if (d.approval) r.approval = d.approval;
   if (d.follow_up) r.follow_up = { ...d.follow_up, source: toSource(d.follow_up.source), carried: d.follow_up.carried.map(toEvidence) };
   return r;
 }
@@ -153,7 +155,29 @@ export async function writeResult(ctx: MutationCtx, result: CallResult): Promise
   // The app moves the bill (Held / Needs you / Scheduled). Scheduled, not called inline, so an app
   // error can never roll back the call result.
   await ctx.scheduler.runAfter(0, internal.app.callOutcome.applyCallResult, { call_id: result.call_id });
+  if (req.approval) await recordApprovalDecision(ctx, req.approval, result);
   if (result.outcome === "confirmed") await trustIfConfirmedLive(ctx, req);
+}
+
+/** The approver's answer on an approval call: kept on the incoming call that asked, and logged. */
+async function recordApprovalDecision(ctx: MutationCtx, a: NonNullable<RequestRow["approval"]>, result: CallResult): Promise<void> {
+  const decision = result.outcome === "confirmed" ? "approved" : result.outcome === "not_confirmed" ? "denied" : "no_decision";
+  const inbound = await findInbound(ctx, a.inbound_call_id);
+  if (inbound) await ctx.db.patch(inbound._id, { approval_decision: decision });
+  await ctx.db.insert("activity", {
+    key: `act_${crypto.randomUUID()}`,
+    actor: decision === "no_decision" ? "callback" : "dev",
+    what:
+      decision === "approved"
+        ? `approved ${a.caller}'s request to ${a.request}.`
+        : decision === "denied"
+          ? `denied ${a.caller}'s request to ${a.request}.`
+          : `got no decision on ${a.caller}'s request to ${a.request}.`,
+    why: result.summary,
+    refKind: "inboundCall",
+    refKey: a.inbound_call_id,
+    at: new Date().toISOString(),
+  });
 }
 
 /** Addendum: a New supplier becomes Trusted after its first confirmed live call. */
@@ -189,6 +213,7 @@ const inboundRecord = v.object({
   requested: v.string(),
   asked_bank_change: v.boolean(),
   payment_claim: v.optional(v.string()),
+  claimed_company: v.optional(v.string()),
   transcript: v.array(v.object({ speaker: anySpeaker, text: v.string(), ts: v.number() })),
   triggered_call_id: v.optional(v.string()),
 });
@@ -222,7 +247,7 @@ export const claimRequest = mutation({
     if (!row || row.status !== "queued") return null;
     if (await getWatchOnlySetting(ctx)) return null;
     const hours = parseCallingHours(process.env.CALLING_HOURS);
-    if (hours && row.mode !== "simulated") {
+    if (hours && row.mode !== "simulated" && !row.approval) {
       const payee = await ctx.db
         .query("suppliers")
         .withIndex("by_key", (q) => q.eq("key", row.supplier_id))
@@ -521,6 +546,11 @@ export const finishInboundCall = mutation({
       : null;
     if ((rec.asked_bank_change || rec.payment_claim) && supplier) {
       const req = followUpRequest(rec, supplier);
+      if (!(await findRequest(ctx, req.call_id))) await ctx.db.insert("callRequests", req);
+      triggered_call_id = req.call_id;
+    } else if (rec.payment_claim && !rec.claimed_supplier_id) {
+      // A company hold has no record of asked for money: nobody to call back, so the approver decides.
+      const req = approvalRequest(rec);
       if (!(await findRequest(ctx, req.call_id))) await ctx.db.insert("callRequests", req);
       triggered_call_id = req.call_id;
     }

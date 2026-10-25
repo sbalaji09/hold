@@ -133,7 +133,7 @@ function LiveCallView({
   const view = callView(call);
   const { startMs, endMs } = callTimes(call);
   const now = useNow(startMs !== null && endMs === null);
-  const supplierName = call.supplier?.name || request.supplier_id;
+  const supplierName = request.approval ? "Approver" : call.supplier?.name || request.supplier_id;
   const contact = call.supplier?.contactName?.split(" ")[0];
   const otherName = contact ? `${contact} (${supplierName})` : supplierName;
   const rows = buildTranscript(call.events);

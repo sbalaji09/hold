@@ -28,6 +28,7 @@ import {
   numbersIn,
 } from "./policy.js";
 import { CallSession } from "./session.js";
+import { runApprovalCall } from "./approval.js";
 import type { Utterance } from "./transport.js";
 import { linesFor, monthName, type Lines } from "./lines.js";
 import { capital, companyFor, languageName, type Company } from "../../../lib/company.js";
@@ -74,6 +75,8 @@ Rules:
 
 export async function prepareOutboundCall(deps: PrepareOutboundDeps): Promise<PreparedCall> {
   const { request, store, search, llm } = deps;
+  // An approval call asks the approver, not a supplier: no history, no questions.
+  if (request.approval) return { supplierName: "the approver", questions: [], company: await store.getCompany().catch(() => FOGLINE) };
   const sid = request.supplier_id;
   const [profile, company] = await Promise.all([
     store.getSupplierProfile(sid).catch((err) => {
@@ -335,6 +338,7 @@ interface Conversation {
 }
 
 export async function runOutboundCall(deps: OutboundCallDeps): Promise<CallResult> {
+  if (deps.request.approval) return runApprovalCall(deps);
   const { store, transport, request, prepared, llm } = deps;
   const co = prepared.company ?? FOGLINE;
   const L = linesFor(co, prepared.language);

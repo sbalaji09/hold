@@ -158,6 +158,25 @@ describe("Dialer", () => {
     expect(h.twilio.dials).toHaveLength(1);
   });
 
+  test("an approval call rings the approver's configured phone, never a number on the request", async () => {
+    const h = setup({ takeoverPhoneNumber: "+14155550777" });
+    cleanup = () => h.store.dispose();
+    h.store.addRequest(request({ number_source: "approver", to_number: "+19995550000" }));
+    h.dialer.start();
+    await flush();
+    expect(h.twilio.dials.map((d) => d.to)).toEqual(["+14155550777"]);
+  });
+
+  test("with no approver phone set, an approval call is handed off with the reason", async () => {
+    const h = setup();
+    cleanup = () => h.store.dispose();
+    h.store.addRequest(request({ number_source: "approver", to_number: "" }));
+    h.dialer.start();
+    await flush();
+    expect(h.twilio.dials).toHaveLength(0);
+    expect(h.store.results.get("call_1")).toMatchObject({ outcome: "handed_off", summary: expect.stringContaining("TAKEOVER_PHONE_NUMBER") });
+  });
+
   test("refuses numbers that are not from a trusted source or not E.164", async () => {
     for (const bad of [{ number_source: "email" as never }, { to_number: "415-555-0123" }]) {
       const h = setup();

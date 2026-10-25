@@ -151,3 +151,45 @@ describe("hold learns phone tactics", () => {
     await expect(t.mutation(api.app.techniques.reportCall, { callId: "in_CA1", verdict: "scam", actor: "callback" })).rejects.toThrow("hold can't");
   });
 });
+
+describe("a caller from a company hold doesn't know asks for money", () => {
+  const microsoft = {
+    claimed_identity: "Jordan from Microsoft",
+    claimed_supplier_id: undefined,
+    claimed_company: "Microsoft",
+    requested: "Amazon gift cards",
+    payment_claim: "buy fifty dollars in Amazon gift cards",
+  };
+  const says = "Hi, this is Jordan from Microsoft. We need fifty dollars in Amazon gift cards.";
+
+  test("books an approval call to the approver instead of a call back", async () => {
+    const { call, requests } = await setup(says, microsoft);
+    expect(requests.find((r) => r.approval)).toMatchObject({
+      call_id: "approval_in_CA1",
+      number_source: "approver",
+      approval: { inbound_call_id: "in_CA1", caller: "Jordan from Microsoft", company: "Microsoft", request: "buy fifty dollars in Amazon gift cards", caller_number: "+16285550143" },
+    });
+    expect(call.triggered_call_id).toBe("approval_in_CA1");
+  });
+
+  test("the approver's answer is kept on the call and logged", async () => {
+    const { t } = await setup(says, microsoft);
+    await t.mutation(api.voice.server.finishCall, {
+      secret: SECRET,
+      result: { call_id: "approval_in_CA1", outcome: "not_confirmed", evidence: [], summary: "The approver denied it." },
+    });
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    const call = await t.run((ctx) => ctx.db.query("inboundCalls").first());
+    expect(call?.approval_decision).toBe("denied");
+    const logged = await t.run((ctx) => ctx.db.query("activity").collect());
+    expect(logged).toContainEqual(
+      expect.objectContaining({ actor: "dev", what: "denied Jordan from Microsoft's request to buy fifty dollars in Amazon gift cards.", refKind: "inboundCall", refKey: "in_CA1" }),
+    );
+  });
+
+  test("a known supplier asking for money still gets the call back on the number on file", async () => {
+    const { requests } = await setup("We were short paid, please send the difference.", { payment_claim: "send the difference" });
+    expect(requests.some((r) => r.approval)).toBe(false);
+    expect(requests.some((r) => r.to_number === STAGE.trustedPhone)).toBe(true);
+  });
+});

@@ -189,7 +189,7 @@ export default defineSchema({
     bill_id: v.string(),
     supplier_id: v.string(),
     to_number: v.string(),
-    number_source: v.union(v.literal("on_file"), v.literal("background_check")),
+    number_source: v.union(v.literal("on_file"), v.literal("background_check"), v.literal("approver")),
     reason: v.array(v.string()),
     // queued -> dialing -> in_progress -> done. No answer: retry_scheduled ->
     // queued (one retry) -> handed_off. Seed data for historical calls writes "done".
@@ -215,6 +215,16 @@ export default defineSchema({
     follow_up: v.optional(v.object({ ask: v.string(), source: callEventSource, carried: v.array(callEvidence) })),
     // A call back about a caller's money request: what they asked; the call asks the supplier about it.
     claim: v.optional(v.string()),
+    // An approval call: rings the approver about a money request from a company hold doesn't know.
+    approval: v.optional(
+      v.object({
+        inbound_call_id: v.string(),
+        caller: v.string(),
+        company: v.optional(v.string()),
+        request: v.string(),
+        caller_number: v.string(),
+      }),
+    ),
   })
     .index("by_key", ["call_id"])
     .index("by_bill", ["bill_id"])
@@ -324,6 +334,8 @@ export default defineSchema({
     asked_bank_change: v.optional(v.boolean()),
     // They asked the company to send money: what they asked (contract InboundCallRecord.payment_claim).
     payment_claim: v.optional(v.string()),
+    // The approver's answer on the approval call this call triggered.
+    approval_decision: v.optional(v.union(v.literal("approved"), v.literal("denied"), v.literal("no_decision"))),
     endedAt: v.optional(v.string()),
     // Twilio's recording of the call, copied into Convex storage once it finishes.
     recording_storage_id: v.optional(v.id("_storage")),
