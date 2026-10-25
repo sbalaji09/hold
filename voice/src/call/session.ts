@@ -6,6 +6,51 @@ import type { ChatMessage } from "./llm.js";
 import { classifyTurn } from "./policy.js";
 import type { CallTransport, EndReason, SayOptions, SayResult, Utterance } from "./transport.js";
 
+/** How long after being cut off hold waits for words before deciding nobody really spoke. */
+export const FALSE_BARGE_IN_MS = 1500;
+
+/**
+ * Lets say() read a streamed reply and, if it's cut off, collect the rest the transport never took.
+ * Stopping early doesn't close the source (no return() on it), so the rest is still there.
+ */
+function keepRest(source: AsyncIterable<string>) {
+  const it = source[Symbol.asyncIterator]();
+  let taken = "";
+  return {
+    view: {
+      async *[Symbol.asyncIterator]() {
+        for (let n = await it.next(); !n.done; n = await it.next()) {
+          taken += n.value;
+          yield n.value;
+        }
+      },
+    },
+    taken: () => taken,
+    async rest(): Promise<string> {
+      let out = "";
+      try {
+        for (let n = await it.next(); !n.done; n = await it.next()) out += n.value;
+      } catch (err) {
+        console.error("[call] reading the rest of a cut-off reply failed:", err);
+      }
+      return out;
+    },
+  };
+}
+
+/**
+ * What to say after being cut off: from the start of the sentence that was cut, to the end. Null
+ * if nothing is left, or the played text isn't the start of the full text (can't tell where we were).
+ */
+export function resumeFrom(full: string, spoken: string): string | null {
+  const said = spoken.trimEnd();
+  if (!full.startsWith(said) || said.length >= full.trimEnd().length) return null;
+  let from = 0;
+  for (const m of said.matchAll(/[.!?]+["')\]]*(?:\s+|$)/g)) from = m.index + m[0].length;
+  const rest = full.slice(from).trim();
+  return rest || null;
+}
+
 export interface Turn {
   speaker: Speaker;
   text: string;
@@ -20,6 +65,8 @@ export class CallSession {
   private openingEndS: number | null = null;
   /** Words that started before this were said while hold was busy (waiting on a person): transcript only. */
   private ignoreBeforeS: number | null = null;
+  /** Words that cut hold off, heard while deciding whether to carry on; hear() returns them first. */
+  private readonly heardEarly: Utterance[] = [];
   private stop!: () => void;
   private readonly stopped = new Promise<null>((resolve) => (this.stop = () => resolve(null)));
 
@@ -50,9 +97,31 @@ export class CallSession {
     this.stop();
   }
 
-  /** Speak; resolves null if the call ends first. Writes a segment with what was actually played. */
+  /**
+   * Speak; resolves null if the call ends first. Writes a segment with what was actually played.
+   * Cut off with no words after it (echo, a cough, a noisy room), hold picks up again from the start
+   * of the sentence it was in, so a reply is never left half-said. Cut off by words, those are
+   * answered next, as before. The opening line has its own retry (greetFully, discloseFully).
+   */
   async say(text: string | AsyncIterable<string>, opts?: SayOptions): Promise<SayResult | null> {
     if (this.over) return null;
+    const stream = typeof text === "string" ? null : keepRest(text);
+    const r = await this.sayOnce(stream ? stream.view : text, opts);
+    if (!r?.interrupted || opts?.opening) return r;
+    const u = await this.hearOnce(FALSE_BARGE_IN_MS);
+    if (u) {
+      this.heardEarly.push(u);
+      return r;
+    }
+    if (this.over) return r;
+    const full = stream ? stream.taken() + (await stream.rest()) : text;
+    const rest = resumeFrom(full as string, r.spokenText);
+    if (!rest) return r;
+    console.warn(`[call ${this.call_id}] cut off with nothing said after; resuming: "${rest.slice(0, 60)}"`);
+    return (await this.sayOnce(rest, opts)) ?? r;
+  }
+
+  private async sayOnce(text: string | AsyncIterable<string>, opts?: SayOptions): Promise<SayResult | null> {
     const r = await Promise.race([this.transport.say(text, opts), this.stopped]);
     if (!r) return null;
     if (r.spokenText.trim()) await this.record("callback", r.spokenText.trim(), r.start_s, r.end_s);
@@ -63,7 +132,7 @@ export class CallSession {
   /** Next utterance; null on silence or when the call ends (check `over`). */
   async hear(timeoutMs: number): Promise<Utterance | null> {
     for (;;) {
-      const u = await this.hearOnce(timeoutMs);
+      const u = this.heardEarly.shift() ?? (await this.hearOnce(timeoutMs));
       // "Hello?" said on pickup, over the opening line, already got its answer: the opening itself.
       if (u && this.openingEndS !== null && u.start_s < this.openingEndS && classifyTurn(u.text) === "greeting") continue;
       if (u && this.ignoreBeforeS !== null && u.start_s < this.ignoreBeforeS) continue;
