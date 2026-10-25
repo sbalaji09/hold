@@ -14,7 +14,7 @@ async function measures() {
   return { wronglyHeld, minutes, calls: spans.length };
 }
 
-export default async function PracticeLayout({ children }: { children: React.ReactNode }) {
+export default async function ImpactLayout({ children }: { children: React.ReactNode }) {
   const m = await measures();
   return (
     <>

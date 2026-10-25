@@ -466,6 +466,8 @@ export default defineSchema({
     company: v.optional(v.string()),
     // Last time the voice server's heartbeat mutation ran (Date.now() ms). Absent = never seen.
     lastSeenAt: v.optional(v.number()),
+    // Set once "Load invoices" has ingested the incoming batch, so the button is a one-shot.
+    incomingLoadedAt: v.optional(v.string()),
   }).index("by_key", ["key"]),
 
   // hold's playbooks, one per job of its loop: fraud techniques (job absent or "fraud") and the

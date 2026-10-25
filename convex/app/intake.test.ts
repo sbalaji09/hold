@@ -106,6 +106,30 @@ describe("watch only", () => {
   });
 });
 
+describe("call gate", () => {
+  test("hold never auto-dials: a bank-change bill lands in Needs you with no call queued", async () => {
+    const { t } = harness();
+    await t.run(async (ctx) => {
+      await ctx.db.insert("suppliers", SUPPLIER);
+      await ctx.db.insert("bankAccounts", BANK);
+    });
+
+    const { billKey } = await t.action(api.app.intake.ingestEmail, {
+      from: "Rosa Quintero <rosa@stagecraftrigging.com>",
+      subject: "Invoice #4471",
+      body: "Please pay invoice #4471 for $900.00. New details: Chase, account ending 7788.",
+      receivedAt: "2026-09-01T16:00:00.000Z",
+    });
+
+    const bill = await t.run((ctx) => ctx.db.query("bills").withIndex("by_key", (q) => q.eq("key", billKey)).unique());
+    expect(bill?.status).toBe("Needs you");
+    const requests = await t.run((ctx) => ctx.db.query("callRequests").collect());
+    expect(requests).toHaveLength(0);
+    const act = await t.run((ctx) => ctx.db.query("activity").collect());
+    expect(act.some((a) => a.why.includes("hold wants to call"))).toBe(true);
+  });
+});
+
 describe("unknown sender bills", () => {
   test("listBills and listApprovals hydrate a bill from an unknown sender without throwing", async () => {
     const { t } = harness();

@@ -171,10 +171,9 @@ export async function runSeed(ctx: MutationCtx, args: SeedArgs): Promise<void> {
     await ctx.db.insert("suppliers", demoPhone ? { ...s, trustedPhone: demoPhone } : s);
   }
   for (const b of args.bankAccounts) await ctx.db.insert("bankAccounts", b);
-  // Settled history (Paid) and this week's Scheduled run are loaded. Other unpaid bills from the
-  // fixture would show checks and approvals nothing ran, so they're dropped; the planted scams
-  // stay as Practice fixtures, hidden from the inbox.
-  const bills = args.bills.filter((b) => b.status === "Paid" || b.status === "Scheduled" || b.planted);
+  // Settled history (Paid) is loaded. Everything pending, planted scams included, comes from the
+  // "Load invoices" fixture (data/incoming.json) through the real intake path from an empty inbox.
+  const bills = args.bills.filter((b) => b.status === "Paid" && !b.planted);
   const kept = new Set(bills.map((b) => b.key));
   const billIdByKey = new Map<string, Id<"bills">>();
   for (const b of bills) billIdByKey.set(b.key, await ctx.db.insert("bills", b.planted ? { ...b, practice: true } : b));
@@ -187,7 +186,7 @@ export async function runSeed(ctx: MutationCtx, args: SeedArgs): Promise<void> {
   for (const c of args.plantedScams) await ctx.db.insert("practiceScams", c);
   await insertSeedPlaybook(ctx);
   const settings = await ctx.db.query("settings").withIndex("by_key", (q) => q.eq("key", "global")).unique();
-  if (settings) await ctx.db.patch(settings._id, { company: co.key });
+  if (settings) await ctx.db.patch(settings._id, { company: co.key, incomingLoadedAt: undefined });
   else await ctx.db.insert("settings", { key: "global", watchOnly: false, company: co.key });
 
   // ponytail: fogline.json stores one flat historical "calls" record per

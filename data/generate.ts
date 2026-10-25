@@ -1095,6 +1095,46 @@ const out = {
   hero: "sup_stage", // the supplier whose number on file DEMO_PAYEE_PHONE replaces at seed
 };
 
+// ---------- incoming batch (data/incoming.json; "Load invoices" button, never loaded by seed) ----------
+// The 4 Scheduled bills + the 5 seeded planted scams + the live-demo Stagecraft bank-change scam
+// (data/planted-scams.md), plus a few more ordinary unpaid bills, as raw emails: the Load
+// invoices flow replays these through the real ingestEmail path, same as a live inbox.
+const scheduledEmails = bills
+  .filter((b) => b.status === "Scheduled")
+  .map((b) => emails.find((e) => e.key === b.emailKey)!)
+  .map((e) => ({ from: e.fromAddress, subject: e.subject, body: e.body }));
+
+const scamEmails = plantedScams
+  .map((ps) => emails.find((e) => e.billKey === ps.billKey)!)
+  .map((e) => ({ from: e.fromAddress, subject: e.subject, body: e.body }));
+
+function extraNormalEmail(supplierKey: string, amountCents: number, dueInDays: number) {
+  const s = supplierByKey.get(supplierKey)!;
+  const due = addDays(TODAY, dueInDays);
+  const invoiceNo = nextInvoiceNo();
+  const item = pick(itemLabel[s.category]);
+  return { from: s.contactEmail, subject: `Invoice #${invoiceNo} — ${item}`, body: invoiceBody(s, invoiceNo, (amountCents / 100).toFixed(2), item, isoDate(due)) };
+}
+const extraNormalEmails = [
+  extraNormalEmail("sup_dolores_catering", 68000, 4),
+  extraNormalEmail("sup_sf_fence", 345000, 6),
+  extraNormalEmail("sup_pacific_pa", 219000, 5),
+];
+
+// The live-demo scam (data/planted-scams.md): Rosa's real address, a brand-new Mercury account,
+// reusing the already-Paid September invoice #4471 to look legitimate.
+const stagecraftBankChangeEmail = {
+  from: "rosa@stagecraftrigging.com",
+  subject: "Updated bank details — please action today",
+  body: "Hi team,\n\nWe've had to switch banks urgently this week due to an issue with our old account. Can you please redirect payment for invoice #4471 ($18,400.00) to our new account below? We need this today — our vendor payments are blocked until this clears.\n\nNew account: Mercury, account ending 8817.\n\nThanks for the quick turnaround,\nRosa Quintero\nStagecraft Rigging Co.",
+};
+
+const incoming = [...scheduledEmails, ...extraNormalEmails, ...scamEmails, stagecraftBankChangeEmail];
+const incomingPath = join(import.meta.dirname, "incoming.json");
+writeFileSync(incomingPath, JSON.stringify(incoming, null, 2) + "\n");
+// eslint-disable-next-line no-console
+console.log(`wrote ${incomingPath}: ${incoming.length} incoming emails`);
+
 const outPath = join(import.meta.dirname, "fogline.json");
 writeFileSync(outPath, JSON.stringify(out, null, 2) + "\n");
 

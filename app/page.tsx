@@ -8,6 +8,7 @@ import { Amount, LogEntry, StatusMark } from "@/components/callback";
 import { AwayToggle } from "@/components/AwayToggle";
 import { LiveNow } from "@/components/LiveNow";
 import { listActivityWithLinks } from "@/lib/activity";
+import { getImpactStats } from "@/lib/impact";
 import { capital } from "@/lib/company";
 import { getCompany, getHoldStats, getSettings, listAnswerReviews, listApprovals, listBills, listMessages, listPayments, listPlaybookApprovals, listSuppliers } from "@/lib/data";
 import { STATUS_TO_MARK, shortDate } from "@/lib/inbox";
@@ -77,6 +78,7 @@ export default async function TodayPage(): Promise<React.ReactElement> {
     listAnswerReviews(),
     getHoldStats(),
   ]);
+  const impact = getImpactStats();
 
   // ---- waiting on you ----
   const mine = approvals;
@@ -172,7 +174,15 @@ export default async function TodayPage(): Promise<React.ReactElement> {
 
         <Section title={`${capital(co.bill).many} hold is working on`} href="/inbox">
           {working.length === 0 ? (
-            <Empty>No {co.bill.many} are being checked or held right now.</Empty>
+            <Empty>
+              {bills.length === 0 ? (
+                <>
+                  No invoices yet. <Link href="/inbox">Load invoices</Link> to start.
+                </>
+              ) : (
+                `No ${co.bill.many} are being checked or held right now.`
+              )}
+            </Empty>
           ) : (
             working
               .slice(0, SHOWN)
@@ -226,7 +236,7 @@ export default async function TodayPage(): Promise<React.ReactElement> {
           )}
         </Section>
 
-        <Section title="How hold is doing" href="/practice">
+        <Section title="How hold is doing" href="/impact">
           <p className="pt-dash-note">
             {stats.billsChecked} {co.bill.many} checked · {stats.scamsHeld} held · {stats.bankChangesConfirmed} bank change{stats.bankChangesConfirmed === 1 ? "" : "s"} confirmed by
             call
@@ -237,12 +247,7 @@ export default async function TodayPage(): Promise<React.ReactElement> {
             {stats.avgCallSeconds !== null ? ` · avg call ${Math.floor(Math.round(stats.avgCallSeconds) / 60)}m ${Math.round(stats.avgCallSeconds) % 60}s` : ""}
           </p>
           <p className="pt-dash-note">
-            Practice:{" "}
-            {stats.practice.total === 0
-              ? "no known scams yet"
-              : stats.practice.lastRunAt
-                ? `${stats.practice.caught}/${stats.practice.total} known scams still caught · last run ${shortDate(stats.practice.lastRunAt)}`
-                : `${stats.practice.total} known scams, not run yet`}
+            Impact: <Amount cents={impact.moneyHeldBackCents} /> held back across {impact.scamsCaught}/{impact.scamsInSet} planted scams in a fixed test month
           </p>
         </Section>
       </div>

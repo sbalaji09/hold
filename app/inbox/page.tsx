@@ -1,6 +1,6 @@
 import * as React from "react";
 import Link from "next/link";
-import { SendBill } from "@/components/SendBill";
+import { LoadInvoices } from "@/components/LoadInvoices";
 import { InboxRow, StatusMark } from "@/components/callback";
 import { getCompany, listApprovals, listBills, listMessages, type Message } from "@/lib/data";
 import { capital } from "@/lib/company";
@@ -55,7 +55,7 @@ export default async function InboxPage({
             {view === "filed" ? `${capital(co.payee).one} emails hold filed, and messages marked done · newest first` : `${co.inbox} · newest first`}
           </p>
         </div>
-        <SendBill label={`Send a ${co.bill.one}`} />
+        <LoadInvoices billLabel={co.bill.one} />
       </header>
 
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
@@ -87,7 +87,7 @@ export default async function InboxPage({
           <span className="cb-r">In</span>
         </div>
         {rows.length === 0 ? (
-          <div className="pt-empty">{(view && EMPTY[view]) ?? `Nothing here. hold has no ${co.bill.many} in this state.`}</div>
+          <div className="pt-empty">{(view && EMPTY[view]) ?? (bills.length === 0 ? "No invoices yet. Load invoices to start." : `Nothing here. hold has no ${co.bill.many} in this state.`)}</div>
         ) : (
           rows.map((row) =>
             row.kind === "message" ? (

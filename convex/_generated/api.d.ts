@@ -19,6 +19,7 @@ import type * as app_jobs_fraud from "../app/jobs/fraud.js";
 import type * as app_jobs_job from "../app/jobs/job.js";
 import type * as app_jobs_triage from "../app/jobs/triage.js";
 import type * as app_live from "../app/live.js";
+import type * as app_loadIncoming from "../app/loadIncoming.js";
 import type * as app_mutations from "../app/mutations.js";
 import type * as app_onboarding from "../app/onboarding.js";
 import type * as app_practice from "../app/practice.js";
@@ -60,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   "app/jobs/job": typeof app_jobs_job;
   "app/jobs/triage": typeof app_jobs_triage;
   "app/live": typeof app_live;
+  "app/loadIncoming": typeof app_loadIncoming;
   "app/mutations": typeof app_mutations;
   "app/onboarding": typeof app_onboarding;
   "app/practice": typeof app_practice;

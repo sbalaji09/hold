@@ -499,7 +499,7 @@ export type { HoldStats };
  * is all zero/empty rather than a guess. */
 export async function getHoldStats(): Promise<HoldStats> {
   if (CONVEX_URL) return fetchQuery(api.app.practice.todayStats, {}, convexOpts());
-  return { billsChecked: 0, scamsHeld: 0, falseHoldsOverridden: 0, bankChangesConfirmed: 0, moneyHeldCents: 0, avgCallSeconds: null, practice: { caught: 0, total: 0, lastRunAt: null } };
+  return { billsChecked: 0, scamsHeld: 0, falseHoldsOverridden: 0, bankChangesConfirmed: 0, moneyHeldCents: 0, avgCallSeconds: null };
 }
 
 /** The global Watch only setting (Payments page toggle). The JSON fixture has no settings

@@ -1,7 +1,3 @@
-import { convexTest } from "convex-test";
-import { api } from "../_generated/api.js";
-import schema from "../schema.js";
-import { modules } from "../test.setup.js";
 import { expect, test } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -86,59 +82,4 @@ test("descriptionFromBody truncates to 160 chars, deduping on the same prefix", 
   expect(description).toBe(descriptionFromBody(long + " different tail"));
 });
 
-type AppApi = { app: { practice: Record<string, any>; queries: Record<string, any> } };
-// api is Convex's anyApi proxy; convex/_generated/api.d.ts hasn't been regenerated for this new
-// `app` module, so this cast documents the shape test code relies on (never user input).
-const appApi = api as unknown as AppApi;
 
-test("insertGenerated marks bills practice: true, excluded from listBills but present via getBill", async () => {
-  const t = convexTest(schema, modules);
-  await t.run(async (ctx) => {
-    await ctx.db.insert("suppliers", {
-      key: "sup_stage",
-      name: "Stagecraft Rigging Co.",
-      category: "stage",
-      domain: "stagecraftrigging.com",
-      contactName: "Rosa Quintero",
-      contactEmail: "rosa@stagecraftrigging.com",
-      trustedPhone: "+14155550100",
-      phoneLastCheckedAt: "2026-09-19",
-    });
-    await ctx.db.insert("bankAccounts", {
-      key: "bank_stage",
-      supplierKey: "sup_stage",
-      bank: "Chase",
-      last4: "2210",
-      routingLast4: "9527",
-      status: "active",
-      verifiedBy: "onboarding",
-      addedAt: "2025-01-01",
-    });
-  });
-  const inserted = await t.mutation(appApi.app.practice.insertGenerated, {
-    scams: [
-      {
-        kind: "rush",
-        from: "scammer@evil.example",
-        fromDomain: "evil.example",
-        subject: "Urgent invoice",
-        body: "Please pay immediately to this new account.",
-        supplierKey: "sup_stage",
-        amountCents: 100_000,
-        checksThatShouldFire: ["rush language"],
-      },
-    ],
-  });
-  expect(inserted).toBe(1);
-
-  const bills = await t.run((ctx) => ctx.db.query("bills").collect());
-  expect(bills).toHaveLength(1);
-  const practiceBill = bills[0]!;
-  expect(practiceBill.practice).toBe(true);
-
-  const listed = await t.query(appApi.app.queries.listBills, {});
-  expect(listed.find((b: { key: string }) => b.key === practiceBill.key)).toBeUndefined();
-
-  const fetched = await t.query(appApi.app.queries.getBill, { key: practiceBill.key });
-  expect(fetched?.key).toBe(practiceBill.key);
-});

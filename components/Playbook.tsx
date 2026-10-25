@@ -1,5 +1,5 @@
 "use client";
-// Practice screen: "What hold has learned", per job on hold's loop (Fraud, and Inbox triage).
+// Impact screen: "What hold has learned", per job on hold's loop (Fraud, and Inbox triage).
 // Teach it, the log of playbook changes hold proposed and replayed, and the playbook itself with
 // Revert on what hold learned.
 import * as React from "react";
@@ -31,7 +31,7 @@ type Job = "fraud" | "triage";
 
 const jobOf = (r: { job?: Job }): Job => r.job ?? "fraud";
 
-// Same name-addressed reference app/practice/page.tsx uses for the Practice set.
+// Same name-addressed reference the self-improvement loop (convex/app/practice.ts) exposes for naming scams.
 const practiceListRef = makeFunctionReference<"query", Record<string, never>, Array<{ billKey: string; kind: string }>>("app/practice:list");
 
 export function errorText(err: unknown, fallback: string): string {
@@ -569,8 +569,8 @@ function Learned(): React.ReactElement {
         {improvements.length === 0 ? (
           <p className="px-4 py-5 text-[13px] text-ink-muted">
             {triage
-              ? "Nothing yet. Run the Practice set above, tell hold a message was sorted wrong from the Inbox, or teach it a kind of email."
-              : "Nothing yet. Run the Practice set above, report a scam hold missed from its bill page or the Phone line, or teach it a technique."}
+              ? "Nothing yet. Tell hold a message was sorted wrong from the Inbox, or teach it a kind of email."
+              : "Nothing yet. Report a scam hold missed from its bill page or the Phone line, or teach it a technique."}
           </p>
         ) : (
           <div>

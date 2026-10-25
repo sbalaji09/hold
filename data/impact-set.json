@@ -1,0 +1,2865 @@
+[
+  {
+    "key": "bill_4201",
+    "invoiceNo": "4201",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "body": "Hi team,\n\nInvoice #4201 attached, $17,990.50, due in 30 days. Let us know if anything looks off.\n\nThanks,\nStagecraft Rigging Co."
+    },
+    "supplier": {
+      "key": "sup_stage",
+      "name": "Stagecraft Rigging Co.",
+      "domain": "stagecraftrigging.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "2210",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "2210"
+      },
+      {
+        "bank": "Chase",
+        "last4": "2210"
+      },
+      {
+        "bank": "Chase",
+        "last4": "2210"
+      },
+      {
+        "bank": "Chase",
+        "last4": "2210"
+      }
+    ],
+    "pastPaidAmounts": [
+      1801645,
+      1794890,
+      1803895,
+      1793216
+    ],
+    "amountCents": 1799050
+  },
+  {
+    "key": "bill_4202",
+    "invoiceNo": "4202",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "body": "Hi team,\n\nInvoice #4202 attached, $17,950.08, due in 30 days. Let us know if anything looks off.\n\nThanks,\nStagecraft Rigging Co."
+    },
+    "supplier": {
+      "key": "sup_stage",
+      "name": "Stagecraft Rigging Co.",
+      "domain": "stagecraftrigging.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "2210",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "2210"
+      },
+      {
+        "bank": "Chase",
+        "last4": "2210"
+      },
+      {
+        "bank": "Chase",
+        "last4": "2210"
+      },
+      {
+        "bank": "Chase",
+        "last4": "2210"
+      }
+    ],
+    "pastPaidAmounts": [
+      1802634,
+      1792307,
+      1795136,
+      1800619
+    ],
+    "amountCents": 1795008
+  },
+  {
+    "key": "bill_4203",
+    "invoiceNo": "4203",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "body": "Hi team,\n\nInvoice #4203 attached, $17,995.46, due in 30 days. Let us know if anything looks off.\n\nThanks,\nStagecraft Rigging Co."
+    },
+    "supplier": {
+      "key": "sup_stage",
+      "name": "Stagecraft Rigging Co.",
+      "domain": "stagecraftrigging.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "2210",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "2210"
+      },
+      {
+        "bank": "Chase",
+        "last4": "2210"
+      },
+      {
+        "bank": "Chase",
+        "last4": "2210"
+      },
+      {
+        "bank": "Chase",
+        "last4": "2210"
+      }
+    ],
+    "pastPaidAmounts": [
+      1804161,
+      1802721,
+      1801152,
+      1793423
+    ],
+    "amountCents": 1799546
+  },
+  {
+    "key": "bill_4204",
+    "invoiceNo": "4204",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@bayviewstaging.com",
+      "fromDomain": "bayviewstaging.com",
+      "body": "Hi team,\n\nInvoice #4204 attached, $7,646.70, due in 30 days. Let us know if anything looks off.\n\nThanks,\nBayview Staging Systems"
+    },
+    "supplier": {
+      "key": "sup_bayview_staging",
+      "name": "Bayview Staging Systems",
+      "domain": "bayviewstaging.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "5629",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "5629"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5629"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5629"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5629"
+      }
+    ],
+    "pastPaidAmounts": [
+      766376,
+      760392,
+      765960,
+      767235
+    ],
+    "amountCents": 764670
+  },
+  {
+    "key": "bill_4205",
+    "invoiceNo": "4205",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@bayviewstaging.com",
+      "fromDomain": "bayviewstaging.com",
+      "body": "Hi team,\n\nInvoice #4205 attached, $7,605.28, due in 30 days. Let us know if anything looks off.\n\nThanks,\nBayview Staging Systems"
+    },
+    "supplier": {
+      "key": "sup_bayview_staging",
+      "name": "Bayview Staging Systems",
+      "domain": "bayviewstaging.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "5629",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "5629"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5629"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5629"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5629"
+      }
+    ],
+    "pastPaidAmounts": [
+      760243,
+      762047,
+      766947,
+      757684
+    ],
+    "amountCents": 760528
+  },
+  {
+    "key": "bill_4206",
+    "invoiceNo": "4206",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@bayviewstaging.com",
+      "fromDomain": "bayviewstaging.com",
+      "body": "Hi team,\n\nInvoice #4206 attached, $7,617.46, due in 30 days. Let us know if anything looks off.\n\nThanks,\nBayview Staging Systems"
+    },
+    "supplier": {
+      "key": "sup_bayview_staging",
+      "name": "Bayview Staging Systems",
+      "domain": "bayviewstaging.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "5629",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "5629"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5629"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5629"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5629"
+      }
+    ],
+    "pastPaidAmounts": [
+      760236,
+      754618,
+      764411,
+      754854
+    ],
+    "amountCents": 761746
+  },
+  {
+    "key": "bill_4207",
+    "invoiceNo": "4207",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@ggtrussdeck.com",
+      "fromDomain": "ggtrussdeck.com",
+      "body": "Hi team,\n\nInvoice #4207 attached, $5,383.77, due in 30 days. Let us know if anything looks off.\n\nThanks,\nGolden Gate Truss & Deck"
+    },
+    "supplier": {
+      "key": "sup_gg_truss",
+      "name": "Golden Gate Truss & Deck",
+      "domain": "ggtrussdeck.com"
+    },
+    "currentBankAccount": {
+      "bank": "Wells Fargo",
+      "last4": "1187",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Wells Fargo",
+        "last4": "1187"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1187"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1187"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1187"
+      }
+    ],
+    "pastPaidAmounts": [
+      539123,
+      546699,
+      539974,
+      541553
+    ],
+    "amountCents": 538377
+  },
+  {
+    "key": "bill_4208",
+    "invoiceNo": "4208",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@ggtrussdeck.com",
+      "fromDomain": "ggtrussdeck.com",
+      "body": "Hi team,\n\nInvoice #4208 attached, $5,352.55, due in 30 days. Let us know if anything looks off.\n\nThanks,\nGolden Gate Truss & Deck"
+    },
+    "supplier": {
+      "key": "sup_gg_truss",
+      "name": "Golden Gate Truss & Deck",
+      "domain": "ggtrussdeck.com"
+    },
+    "currentBankAccount": {
+      "bank": "Wells Fargo",
+      "last4": "1187",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Wells Fargo",
+        "last4": "1187"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1187"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1187"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1187"
+      }
+    ],
+    "pastPaidAmounts": [
+      536162,
+      538047,
+      537493,
+      536677
+    ],
+    "amountCents": 535255
+  },
+  {
+    "key": "bill_4209",
+    "invoiceNo": "4209",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@ggtrussdeck.com",
+      "fromDomain": "ggtrussdeck.com",
+      "body": "Hi team,\n\nInvoice #4209 attached, $5,349.91, due in 30 days. Let us know if anything looks off.\n\nThanks,\nGolden Gate Truss & Deck"
+    },
+    "supplier": {
+      "key": "sup_gg_truss",
+      "name": "Golden Gate Truss & Deck",
+      "domain": "ggtrussdeck.com"
+    },
+    "currentBankAccount": {
+      "bank": "Wells Fargo",
+      "last4": "1187",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Wells Fargo",
+        "last4": "1187"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1187"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1187"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1187"
+      }
+    ],
+    "pastPaidAmounts": [
+      545641,
+      532708,
+      545801,
+      538871
+    ],
+    "amountCents": 534991
+  },
+  {
+    "key": "bill_4210",
+    "invoiceNo": "4210",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@soundwaveaudio.com",
+      "fromDomain": "soundwaveaudio.com",
+      "body": "Hi team,\n\nInvoice #4210 attached, $3,222.32, due in 30 days. Let us know if anything looks off.\n\nThanks,\nSoundwave Audio Rentals"
+    },
+    "supplier": {
+      "key": "sup_soundwave",
+      "name": "Soundwave Audio Rentals",
+      "domain": "soundwaveaudio.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "3345",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "3345"
+      },
+      {
+        "bank": "Chase",
+        "last4": "3345"
+      },
+      {
+        "bank": "Chase",
+        "last4": "3345"
+      },
+      {
+        "bank": "Chase",
+        "last4": "3345"
+      }
+    ],
+    "pastPaidAmounts": [
+      314305,
+      326116,
+      317087,
+      323899
+    ],
+    "amountCents": 322232
+  },
+  {
+    "key": "bill_4211",
+    "invoiceNo": "4211",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@soundwaveaudio.com",
+      "fromDomain": "soundwaveaudio.com",
+      "body": "Hi team,\n\nInvoice #4211 attached, $3,154.30, due in 30 days. Let us know if anything looks off.\n\nThanks,\nSoundwave Audio Rentals"
+    },
+    "supplier": {
+      "key": "sup_soundwave",
+      "name": "Soundwave Audio Rentals",
+      "domain": "soundwaveaudio.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "3345",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "3345"
+      },
+      {
+        "bank": "Chase",
+        "last4": "3345"
+      },
+      {
+        "bank": "Chase",
+        "last4": "3345"
+      },
+      {
+        "bank": "Chase",
+        "last4": "3345"
+      }
+    ],
+    "pastPaidAmounts": [
+      314657,
+      314178,
+      316423,
+      327170
+    ],
+    "amountCents": 315430
+  },
+  {
+    "key": "bill_4212",
+    "invoiceNo": "4212",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@soundwaveaudio.com",
+      "fromDomain": "soundwaveaudio.com",
+      "body": "Hi team,\n\nInvoice #4212 attached, $3,145.46, due in 30 days. Let us know if anything looks off.\n\nThanks,\nSoundwave Audio Rentals"
+    },
+    "supplier": {
+      "key": "sup_soundwave",
+      "name": "Soundwave Audio Rentals",
+      "domain": "soundwaveaudio.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "3345",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "3345"
+      },
+      {
+        "bank": "Chase",
+        "last4": "3345"
+      },
+      {
+        "bank": "Chase",
+        "last4": "3345"
+      },
+      {
+        "bank": "Chase",
+        "last4": "3345"
+      }
+    ],
+    "pastPaidAmounts": [
+      318029,
+      315933,
+      323085,
+      321483
+    ],
+    "amountCents": 314546
+  },
+  {
+    "key": "bill_4213",
+    "invoiceNo": "4213",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@pacificcoastpa.com",
+      "fromDomain": "pacificcoastpa.com",
+      "body": "Hi team,\n\nInvoice #4213 attached, $4,114.98, due in 30 days. Let us know if anything looks off.\n\nThanks,\nPacific Coast PA Co."
+    },
+    "supplier": {
+      "key": "sup_pacific_pa",
+      "name": "Pacific Coast PA Co.",
+      "domain": "pacificcoastpa.com"
+    },
+    "currentBankAccount": {
+      "bank": "Wells Fargo",
+      "last4": "7762",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Wells Fargo",
+        "last4": "7762"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "7762"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "7762"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "7762"
+      }
+    ],
+    "pastPaidAmounts": [
+      415596,
+      411094,
+      407100,
+      407195
+    ],
+    "amountCents": 411498
+  },
+  {
+    "key": "bill_4214",
+    "invoiceNo": "4214",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@pacificcoastpa.com",
+      "fromDomain": "pacificcoastpa.com",
+      "body": "Hi team,\n\nInvoice #4214 attached, $4,106.04, due in 30 days. Let us know if anything looks off.\n\nThanks,\nPacific Coast PA Co."
+    },
+    "supplier": {
+      "key": "sup_pacific_pa",
+      "name": "Pacific Coast PA Co.",
+      "domain": "pacificcoastpa.com"
+    },
+    "currentBankAccount": {
+      "bank": "Wells Fargo",
+      "last4": "7762",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Wells Fargo",
+        "last4": "7762"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "7762"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "7762"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "7762"
+      }
+    ],
+    "pastPaidAmounts": [
+      402923,
+      416327,
+      416563,
+      402599
+    ],
+    "amountCents": 410604
+  },
+  {
+    "key": "bill_4215",
+    "invoiceNo": "4215",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@pacificcoastpa.com",
+      "fromDomain": "pacificcoastpa.com",
+      "body": "Hi team,\n\nInvoice #4215 attached, $4,143.24, due in 30 days. Let us know if anything looks off.\n\nThanks,\nPacific Coast PA Co."
+    },
+    "supplier": {
+      "key": "sup_pacific_pa",
+      "name": "Pacific Coast PA Co.",
+      "domain": "pacificcoastpa.com"
+    },
+    "currentBankAccount": {
+      "bank": "Wells Fargo",
+      "last4": "7762",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Wells Fargo",
+        "last4": "7762"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "7762"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "7762"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "7762"
+      }
+    ],
+    "pastPaidAmounts": [
+      405187,
+      403325,
+      410164,
+      410053
+    ],
+    "amountCents": 414324
+  },
+  {
+    "key": "bill_4216",
+    "invoiceNo": "4216",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@basslineaudio.com",
+      "fromDomain": "basslineaudio.com",
+      "body": "Hi team,\n\nInvoice #4216 attached, $1,747.88, due in 30 days. Let us know if anything looks off.\n\nThanks,\nBass Line Audio"
+    },
+    "supplier": {
+      "key": "sup_bassline",
+      "name": "Bass Line Audio",
+      "domain": "basslineaudio.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "4420",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "4420"
+      },
+      {
+        "bank": "Chase",
+        "last4": "4420"
+      },
+      {
+        "bank": "Chase",
+        "last4": "4420"
+      },
+      {
+        "bank": "Chase",
+        "last4": "4420"
+      }
+    ],
+    "pastPaidAmounts": [
+      184673,
+      181186,
+      173913,
+      180767
+    ],
+    "amountCents": 174788
+  },
+  {
+    "key": "bill_4217",
+    "invoiceNo": "4217",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@basslineaudio.com",
+      "fromDomain": "basslineaudio.com",
+      "body": "Hi team,\n\nInvoice #4217 attached, $1,854.67, due in 30 days. Let us know if anything looks off.\n\nThanks,\nBass Line Audio"
+    },
+    "supplier": {
+      "key": "sup_bassline",
+      "name": "Bass Line Audio",
+      "domain": "basslineaudio.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "4420",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "4420"
+      },
+      {
+        "bank": "Chase",
+        "last4": "4420"
+      },
+      {
+        "bank": "Chase",
+        "last4": "4420"
+      },
+      {
+        "bank": "Chase",
+        "last4": "4420"
+      }
+    ],
+    "pastPaidAmounts": [
+      182841,
+      180106,
+      175044,
+      177781
+    ],
+    "amountCents": 185467
+  },
+  {
+    "key": "bill_4218",
+    "invoiceNo": "4218",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@basslineaudio.com",
+      "fromDomain": "basslineaudio.com",
+      "body": "Hi team,\n\nInvoice #4218 attached, $1,742.11, due in 30 days. Let us know if anything looks off.\n\nThanks,\nBass Line Audio"
+    },
+    "supplier": {
+      "key": "sup_bassline",
+      "name": "Bass Line Audio",
+      "domain": "basslineaudio.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "4420",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "4420"
+      },
+      {
+        "bank": "Chase",
+        "last4": "4420"
+      },
+      {
+        "bank": "Chase",
+        "last4": "4420"
+      },
+      {
+        "bank": "Chase",
+        "last4": "4420"
+      }
+    ],
+    "pastPaidAmounts": [
+      183423,
+      183837,
+      176007,
+      187983
+    ],
+    "amountCents": 174211
+  },
+  {
+    "key": "bill_4219",
+    "invoiceNo": "4219",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@sfbaysecurity.com",
+      "fromDomain": "sfbaysecurity.com",
+      "body": "Hi team,\n\nInvoice #4219 attached, $6,152.60, due in 30 days. Let us know if anything looks off.\n\nThanks,\nSF Bay Security Services"
+    },
+    "supplier": {
+      "key": "sup_sfbay_security",
+      "name": "SF Bay Security Services",
+      "domain": "sfbaysecurity.com"
+    },
+    "currentBankAccount": {
+      "bank": "US Bank",
+      "last4": "9981",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      }
+    ],
+    "pastPaidAmounts": [
+      612933,
+      620599,
+      612046,
+      618714
+    ],
+    "amountCents": 615260
+  },
+  {
+    "key": "bill_4220",
+    "invoiceNo": "4220",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@sfbaysecurity.com",
+      "fromDomain": "sfbaysecurity.com",
+      "body": "Hi team,\n\nInvoice #4220 attached, $6,225.64, due in 30 days. Let us know if anything looks off.\n\nThanks,\nSF Bay Security Services"
+    },
+    "supplier": {
+      "key": "sup_sfbay_security",
+      "name": "SF Bay Security Services",
+      "domain": "sfbaysecurity.com"
+    },
+    "currentBankAccount": {
+      "bank": "US Bank",
+      "last4": "9981",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      }
+    ],
+    "pastPaidAmounts": [
+      616720,
+      626058,
+      626303,
+      624837
+    ],
+    "amountCents": 622564
+  },
+  {
+    "key": "bill_4221",
+    "invoiceNo": "4221",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@sfbaysecurity.com",
+      "fromDomain": "sfbaysecurity.com",
+      "body": "Hi team,\n\nInvoice #4221 attached, $6,258.56, due in 30 days. Let us know if anything looks off.\n\nThanks,\nSF Bay Security Services"
+    },
+    "supplier": {
+      "key": "sup_sfbay_security",
+      "name": "SF Bay Security Services",
+      "domain": "sfbaysecurity.com"
+    },
+    "currentBankAccount": {
+      "bank": "US Bank",
+      "last4": "9981",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      }
+    ],
+    "pastPaidAmounts": [
+      614860,
+      614787,
+      612904,
+      619658
+    ],
+    "amountCents": 625856
+  },
+  {
+    "key": "bill_4222",
+    "invoiceNo": "4222",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@guardiangatesecurity.com",
+      "fromDomain": "guardiangatesecurity.com",
+      "body": "Hi team,\n\nInvoice #4222 attached, $5,952.98, due in 30 days. Let us know if anything looks off.\n\nThanks,\nGuardian Gate Security"
+    },
+    "supplier": {
+      "key": "sup_guardian_gate",
+      "name": "Guardian Gate Security",
+      "domain": "guardiangatesecurity.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "6630",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "6630"
+      },
+      {
+        "bank": "Chase",
+        "last4": "6630"
+      },
+      {
+        "bank": "Chase",
+        "last4": "6630"
+      },
+      {
+        "bank": "Chase",
+        "last4": "6630"
+      }
+    ],
+    "pastPaidAmounts": [
+      590567,
+      584835,
+      592150,
+      586327
+    ],
+    "amountCents": 595298
+  },
+  {
+    "key": "bill_4223",
+    "invoiceNo": "4223",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@guardiangatesecurity.com",
+      "fromDomain": "guardiangatesecurity.com",
+      "body": "Hi team,\n\nInvoice #4223 attached, $5,878.39, due in 30 days. Let us know if anything looks off.\n\nThanks,\nGuardian Gate Security"
+    },
+    "supplier": {
+      "key": "sup_guardian_gate",
+      "name": "Guardian Gate Security",
+      "domain": "guardiangatesecurity.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "6630",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "6630"
+      },
+      {
+        "bank": "Chase",
+        "last4": "6630"
+      },
+      {
+        "bank": "Chase",
+        "last4": "6630"
+      },
+      {
+        "bank": "Chase",
+        "last4": "6630"
+      }
+    ],
+    "pastPaidAmounts": [
+      588684,
+      591212,
+      583771,
+      592434
+    ],
+    "amountCents": 587839
+  },
+  {
+    "key": "bill_4224",
+    "invoiceNo": "4224",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@guardiangatesecurity.com",
+      "fromDomain": "guardiangatesecurity.com",
+      "body": "Hi team,\n\nInvoice #4224 attached, $5,879.10, due in 30 days. Let us know if anything looks off.\n\nThanks,\nGuardian Gate Security"
+    },
+    "supplier": {
+      "key": "sup_guardian_gate",
+      "name": "Guardian Gate Security",
+      "domain": "guardiangatesecurity.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "6630",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "6630"
+      },
+      {
+        "bank": "Chase",
+        "last4": "6630"
+      },
+      {
+        "bank": "Chase",
+        "last4": "6630"
+      },
+      {
+        "bank": "Chase",
+        "last4": "6630"
+      }
+    ],
+    "pastPaidAmounts": [
+      586897,
+      597213,
+      585039,
+      592861
+    ],
+    "amountCents": 587910
+  },
+  {
+    "key": "bill_4225",
+    "invoiceNo": "4225",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@horizonartists.com",
+      "fromDomain": "horizonartists.com",
+      "body": "Hi team,\n\nInvoice #4225 attached, $6,852.11, due in 30 days. Let us know if anything looks off.\n\nThanks,\nHorizon Artist Management"
+    },
+    "supplier": {
+      "key": "sup_horizon_artists",
+      "name": "Horizon Artist Management",
+      "domain": "horizonartists.com"
+    },
+    "currentBankAccount": {
+      "bank": "Bank of America",
+      "last4": "2244",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      },
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      },
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      },
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      }
+    ],
+    "pastPaidAmounts": [
+      672881,
+      680972,
+      680939,
+      674386
+    ],
+    "amountCents": 685211
+  },
+  {
+    "key": "bill_4226",
+    "invoiceNo": "4226",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@horizonartists.com",
+      "fromDomain": "horizonartists.com",
+      "body": "Hi team,\n\nInvoice #4226 attached, $6,807.62, due in 30 days. Let us know if anything looks off.\n\nThanks,\nHorizon Artist Management"
+    },
+    "supplier": {
+      "key": "sup_horizon_artists",
+      "name": "Horizon Artist Management",
+      "domain": "horizonartists.com"
+    },
+    "currentBankAccount": {
+      "bank": "Bank of America",
+      "last4": "2244",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      },
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      },
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      },
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      }
+    ],
+    "pastPaidAmounts": [
+      684583,
+      683188,
+      679364,
+      682515
+    ],
+    "amountCents": 680762
+  },
+  {
+    "key": "bill_4227",
+    "invoiceNo": "4227",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@horizonartists.com",
+      "fromDomain": "horizonartists.com",
+      "body": "Hi team,\n\nInvoice #4227 attached, $6,760.50, due in 30 days. Let us know if anything looks off.\n\nThanks,\nHorizon Artist Management"
+    },
+    "supplier": {
+      "key": "sup_horizon_artists",
+      "name": "Horizon Artist Management",
+      "domain": "horizonartists.com"
+    },
+    "currentBankAccount": {
+      "bank": "Bank of America",
+      "last4": "2244",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      },
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      },
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      },
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      }
+    ],
+    "pastPaidAmounts": [
+      681122,
+      682072,
+      676285,
+      676611
+    ],
+    "amountCents": 676050
+  },
+  {
+    "key": "bill_4228",
+    "invoiceNo": "4228",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@cascadetalentgroup.com",
+      "fromDomain": "cascadetalentgroup.com",
+      "body": "Hi team,\n\nInvoice #4228 attached, $5,362.67, due in 30 days. Let us know if anything looks off.\n\nThanks,\nCascade Talent Group"
+    },
+    "supplier": {
+      "key": "sup_cascade_talent",
+      "name": "Cascade Talent Group",
+      "domain": "cascadetalentgroup.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "8810",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "8810"
+      },
+      {
+        "bank": "Chase",
+        "last4": "8810"
+      },
+      {
+        "bank": "Chase",
+        "last4": "8810"
+      },
+      {
+        "bank": "Chase",
+        "last4": "8810"
+      }
+    ],
+    "pastPaidAmounts": [
+      546350,
+      535529,
+      545788,
+      544236
+    ],
+    "amountCents": 536267
+  },
+  {
+    "key": "bill_4229",
+    "invoiceNo": "4229",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@cascadetalentgroup.com",
+      "fromDomain": "cascadetalentgroup.com",
+      "body": "Hi team,\n\nInvoice #4229 attached, $5,449.15, due in 30 days. Let us know if anything looks off.\n\nThanks,\nCascade Talent Group"
+    },
+    "supplier": {
+      "key": "sup_cascade_talent",
+      "name": "Cascade Talent Group",
+      "domain": "cascadetalentgroup.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "8810",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "8810"
+      },
+      {
+        "bank": "Chase",
+        "last4": "8810"
+      },
+      {
+        "bank": "Chase",
+        "last4": "8810"
+      },
+      {
+        "bank": "Chase",
+        "last4": "8810"
+      }
+    ],
+    "pastPaidAmounts": [
+      547445,
+      543107,
+      540516,
+      540818
+    ],
+    "amountCents": 544915
+  },
+  {
+    "key": "bill_4230",
+    "invoiceNo": "4230",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@cascadetalentgroup.com",
+      "fromDomain": "cascadetalentgroup.com",
+      "body": "Hi team,\n\nInvoice #4230 attached, $5,369.00, due in 30 days. Let us know if anything looks off.\n\nThanks,\nCascade Talent Group"
+    },
+    "supplier": {
+      "key": "sup_cascade_talent",
+      "name": "Cascade Talent Group",
+      "domain": "cascadetalentgroup.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "8810",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "8810"
+      },
+      {
+        "bank": "Chase",
+        "last4": "8810"
+      },
+      {
+        "bank": "Chase",
+        "last4": "8810"
+      },
+      {
+        "bank": "Chase",
+        "last4": "8810"
+      }
+    ],
+    "pastPaidAmounts": [
+      541203,
+      538244,
+      543798,
+      533136
+    ],
+    "amountCents": 536900
+  },
+  {
+    "key": "bill_4231",
+    "invoiceNo": "4231",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@missionsttacos.com",
+      "fromDomain": "missionsttacos.com",
+      "body": "Hi team,\n\nInvoice #4231 attached, $942.89, due in 30 days. Let us know if anything looks off.\n\nThanks,\nMission Street Tacos"
+    },
+    "supplier": {
+      "key": "sup_mission_tacos",
+      "name": "Mission Street Tacos",
+      "domain": "missionsttacos.com"
+    },
+    "currentBankAccount": {
+      "bank": "Wells Fargo",
+      "last4": "1102",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Wells Fargo",
+        "last4": "1102"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1102"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1102"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1102"
+      }
+    ],
+    "pastPaidAmounts": [
+      95398,
+      94722,
+      90863,
+      93562
+    ],
+    "amountCents": 94289
+  },
+  {
+    "key": "bill_4232",
+    "invoiceNo": "4232",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@missionsttacos.com",
+      "fromDomain": "missionsttacos.com",
+      "body": "Hi team,\n\nInvoice #4232 attached, $952.47, due in 30 days. Let us know if anything looks off.\n\nThanks,\nMission Street Tacos"
+    },
+    "supplier": {
+      "key": "sup_mission_tacos",
+      "name": "Mission Street Tacos",
+      "domain": "missionsttacos.com"
+    },
+    "currentBankAccount": {
+      "bank": "Wells Fargo",
+      "last4": "1102",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Wells Fargo",
+        "last4": "1102"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1102"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1102"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1102"
+      }
+    ],
+    "pastPaidAmounts": [
+      95657,
+      101187,
+      98810,
+      94370
+    ],
+    "amountCents": 95247
+  },
+  {
+    "key": "bill_4233",
+    "invoiceNo": "4233",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@missionsttacos.com",
+      "fromDomain": "missionsttacos.com",
+      "body": "Hi team,\n\nInvoice #4233 attached, $952.75, due in 30 days. Let us know if anything looks off.\n\nThanks,\nMission Street Tacos"
+    },
+    "supplier": {
+      "key": "sup_mission_tacos",
+      "name": "Mission Street Tacos",
+      "domain": "missionsttacos.com"
+    },
+    "currentBankAccount": {
+      "bank": "Wells Fargo",
+      "last4": "1102",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Wells Fargo",
+        "last4": "1102"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1102"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1102"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1102"
+      }
+    ],
+    "pastPaidAmounts": [
+      89186,
+      98287,
+      93125,
+      91218
+    ],
+    "amountCents": 95275
+  },
+  {
+    "key": "bill_4234",
+    "invoiceNo": "4234",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@dolorescatering.com",
+      "fromDomain": "dolorescatering.com",
+      "body": "Hi team,\n\nInvoice #4234 attached, $2,243.01, due in 30 days. Let us know if anything looks off.\n\nThanks,\nDolores Park Catering"
+    },
+    "supplier": {
+      "key": "sup_dolores_catering",
+      "name": "Dolores Park Catering",
+      "domain": "dolorescatering.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "5567",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "5567"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5567"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5567"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5567"
+      }
+    ],
+    "pastPaidAmounts": [
+      217917,
+      218080,
+      225842,
+      226706
+    ],
+    "amountCents": 224301
+  },
+  {
+    "key": "bill_4235",
+    "invoiceNo": "4235",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@dolorescatering.com",
+      "fromDomain": "dolorescatering.com",
+      "body": "Hi team,\n\nInvoice #4235 attached, $2,186.28, due in 30 days. Let us know if anything looks off.\n\nThanks,\nDolores Park Catering"
+    },
+    "supplier": {
+      "key": "sup_dolores_catering",
+      "name": "Dolores Park Catering",
+      "domain": "dolorescatering.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "5567",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "5567"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5567"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5567"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5567"
+      }
+    ],
+    "pastPaidAmounts": [
+      216586,
+      220860,
+      217540,
+      222642
+    ],
+    "amountCents": 218628
+  },
+  {
+    "key": "bill_4236",
+    "invoiceNo": "4236",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@dolorescatering.com",
+      "fromDomain": "dolorescatering.com",
+      "body": "Hi team,\n\nInvoice #4236 attached, $2,179.91, due in 30 days. Let us know if anything looks off.\n\nThanks,\nDolores Park Catering"
+    },
+    "supplier": {
+      "key": "sup_dolores_catering",
+      "name": "Dolores Park Catering",
+      "domain": "dolorescatering.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "5567",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "5567"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5567"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5567"
+      },
+      {
+        "bank": "Chase",
+        "last4": "5567"
+      }
+    ],
+    "pastPaidAmounts": [
+      213628,
+      215290,
+      223941,
+      224878
+    ],
+    "amountCents": 217991
+  },
+  {
+    "key": "bill_4237",
+    "invoiceNo": "4237",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@baybitesfood.com",
+      "fromDomain": "baybitesfood.com",
+      "body": "Hi team,\n\nInvoice #4237 attached, $1,131.32, due in 30 days. Let us know if anything looks off.\n\nThanks,\nBay Bites Food Co."
+    },
+    "supplier": {
+      "key": "sup_baybites",
+      "name": "Bay Bites Food Co.",
+      "domain": "baybitesfood.com"
+    },
+    "currentBankAccount": {
+      "bank": "US Bank",
+      "last4": "3301",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "US Bank",
+        "last4": "3301"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "3301"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "3301"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "3301"
+      }
+    ],
+    "pastPaidAmounts": [
+      114292,
+      116060,
+      110436,
+      113901
+    ],
+    "amountCents": 113132
+  },
+  {
+    "key": "bill_4238",
+    "invoiceNo": "4238",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@baybitesfood.com",
+      "fromDomain": "baybitesfood.com",
+      "body": "Hi team,\n\nInvoice #4238 attached, $1,051.93, due in 30 days. Let us know if anything looks off.\n\nThanks,\nBay Bites Food Co."
+    },
+    "supplier": {
+      "key": "sup_baybites",
+      "name": "Bay Bites Food Co.",
+      "domain": "baybitesfood.com"
+    },
+    "currentBankAccount": {
+      "bank": "US Bank",
+      "last4": "3301",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "US Bank",
+        "last4": "3301"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "3301"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "3301"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "3301"
+      }
+    ],
+    "pastPaidAmounts": [
+      113175,
+      113614,
+      102505,
+      116248
+    ],
+    "amountCents": 105193
+  },
+  {
+    "key": "bill_4239",
+    "invoiceNo": "4239",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@baybitesfood.com",
+      "fromDomain": "baybitesfood.com",
+      "body": "Hi team,\n\nInvoice #4239 attached, $1,040.58, due in 30 days. Let us know if anything looks off.\n\nThanks,\nBay Bites Food Co."
+    },
+    "supplier": {
+      "key": "sup_baybites",
+      "name": "Bay Bites Food Co.",
+      "domain": "baybitesfood.com"
+    },
+    "currentBankAccount": {
+      "bank": "US Bank",
+      "last4": "3301",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "US Bank",
+        "last4": "3301"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "3301"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "3301"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "3301"
+      }
+    ],
+    "pastPaidAmounts": [
+      105098,
+      116289,
+      110076,
+      108508
+    ],
+    "amountCents": 104058
+  },
+  {
+    "key": "bill_4240",
+    "invoiceNo": "4240",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@bayfrontwaste.com",
+      "fromDomain": "bayfrontwaste.com",
+      "body": "Hi team,\n\nInvoice #4240 attached, $2,163.24, due in 30 days. Let us know if anything looks off.\n\nThanks,\nBayfront Waste & Recycling"
+    },
+    "supplier": {
+      "key": "sup_bayfront_waste",
+      "name": "Bayfront Waste & Recycling",
+      "domain": "bayfrontwaste.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "7729",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "7729"
+      },
+      {
+        "bank": "Chase",
+        "last4": "7729"
+      },
+      {
+        "bank": "Chase",
+        "last4": "7729"
+      },
+      {
+        "bank": "Chase",
+        "last4": "7729"
+      }
+    ],
+    "pastPaidAmounts": [
+      218411,
+      207042,
+      220119,
+      215363
+    ],
+    "amountCents": 216324
+  },
+  {
+    "key": "bill_4241",
+    "invoiceNo": "4241",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@bayfrontwaste.com",
+      "fromDomain": "bayfrontwaste.com",
+      "body": "Hi team,\n\nInvoice #4241 attached, $2,140.42, due in 30 days. Let us know if anything looks off.\n\nThanks,\nBayfront Waste & Recycling"
+    },
+    "supplier": {
+      "key": "sup_bayfront_waste",
+      "name": "Bayfront Waste & Recycling",
+      "domain": "bayfrontwaste.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "7729",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "7729"
+      },
+      {
+        "bank": "Chase",
+        "last4": "7729"
+      },
+      {
+        "bank": "Chase",
+        "last4": "7729"
+      },
+      {
+        "bank": "Chase",
+        "last4": "7729"
+      }
+    ],
+    "pastPaidAmounts": [
+      208505,
+      210894,
+      214270,
+      207012
+    ],
+    "amountCents": 214042
+  },
+  {
+    "key": "bill_4242",
+    "invoiceNo": "4242",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@bayfrontwaste.com",
+      "fromDomain": "bayfrontwaste.com",
+      "body": "Hi team,\n\nInvoice #4242 attached, $2,132.67, due in 30 days. Let us know if anything looks off.\n\nThanks,\nBayfront Waste & Recycling"
+    },
+    "supplier": {
+      "key": "sup_bayfront_waste",
+      "name": "Bayfront Waste & Recycling",
+      "domain": "bayfrontwaste.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "7729",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "7729"
+      },
+      {
+        "bank": "Chase",
+        "last4": "7729"
+      },
+      {
+        "bank": "Chase",
+        "last4": "7729"
+      },
+      {
+        "bank": "Chase",
+        "last4": "7729"
+      }
+    ],
+    "pastPaidAmounts": [
+      222280,
+      213730,
+      208745,
+      212780
+    ],
+    "amountCents": 213267
+  },
+  {
+    "key": "bill_4243",
+    "invoiceNo": "4243",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@gggenerators.com",
+      "fromDomain": "gggenerators.com",
+      "body": "Hi team,\n\nInvoice #4243 attached, $3,376.81, due in 30 days. Let us know if anything looks off.\n\nThanks,\nGolden Gate Generators"
+    },
+    "supplier": {
+      "key": "sup_gg_generators",
+      "name": "Golden Gate Generators",
+      "domain": "gggenerators.com"
+    },
+    "currentBankAccount": {
+      "bank": "Wells Fargo",
+      "last4": "4456",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Wells Fargo",
+        "last4": "4456"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "4456"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "4456"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "4456"
+      }
+    ],
+    "pastPaidAmounts": [
+      332317,
+      343677,
+      333635,
+      343535
+    ],
+    "amountCents": 337681
+  },
+  {
+    "key": "bill_4244",
+    "invoiceNo": "4244",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@gggenerators.com",
+      "fromDomain": "gggenerators.com",
+      "body": "Hi team,\n\nInvoice #4244 attached, $3,363.60, due in 30 days. Let us know if anything looks off.\n\nThanks,\nGolden Gate Generators"
+    },
+    "supplier": {
+      "key": "sup_gg_generators",
+      "name": "Golden Gate Generators",
+      "domain": "gggenerators.com"
+    },
+    "currentBankAccount": {
+      "bank": "Wells Fargo",
+      "last4": "4456",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Wells Fargo",
+        "last4": "4456"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "4456"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "4456"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "4456"
+      }
+    ],
+    "pastPaidAmounts": [
+      347847,
+      344068,
+      339194,
+      333640
+    ],
+    "amountCents": 336360
+  },
+  {
+    "key": "bill_4245",
+    "invoiceNo": "4245",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@gggenerators.com",
+      "fromDomain": "gggenerators.com",
+      "body": "Hi team,\n\nInvoice #4245 attached, $3,409.05, due in 30 days. Let us know if anything looks off.\n\nThanks,\nGolden Gate Generators"
+    },
+    "supplier": {
+      "key": "sup_gg_generators",
+      "name": "Golden Gate Generators",
+      "domain": "gggenerators.com"
+    },
+    "currentBankAccount": {
+      "bank": "Wells Fargo",
+      "last4": "4456",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Wells Fargo",
+        "last4": "4456"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "4456"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "4456"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "4456"
+      }
+    ],
+    "pastPaidAmounts": [
+      332544,
+      340962,
+      332875,
+      332677
+    ],
+    "amountCents": 340905
+  },
+  {
+    "key": "bill_4246",
+    "invoiceNo": "4246",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@sffencebarricade.com",
+      "fromDomain": "sffencebarricade.com",
+      "body": "Hi team,\n\nInvoice #4246 attached, $2,162.76, due in 30 days. Let us know if anything looks off.\n\nThanks,\nSF Fence & Barricade Co."
+    },
+    "supplier": {
+      "key": "sup_sf_fence",
+      "name": "SF Fence & Barricade Co.",
+      "domain": "sffencebarricade.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "9012",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      },
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      },
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      },
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      }
+    ],
+    "pastPaidAmounts": [
+      215129,
+      213598,
+      218015,
+      218767
+    ],
+    "amountCents": 216276
+  },
+  {
+    "key": "bill_4247",
+    "invoiceNo": "4247",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@sffencebarricade.com",
+      "fromDomain": "sffencebarricade.com",
+      "body": "Hi team,\n\nInvoice #4247 attached, $2,160.73, due in 30 days. Let us know if anything looks off.\n\nThanks,\nSF Fence & Barricade Co."
+    },
+    "supplier": {
+      "key": "sup_sf_fence",
+      "name": "SF Fence & Barricade Co.",
+      "domain": "sffencebarricade.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "9012",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      },
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      },
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      },
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      }
+    ],
+    "pastPaidAmounts": [
+      215986,
+      212958,
+      220465,
+      215564
+    ],
+    "amountCents": 216073
+  },
+  {
+    "key": "bill_4248",
+    "invoiceNo": "4248",
+    "isScam": false,
+    "scamKind": null,
+    "note": null,
+    "email": {
+      "fromAddress": "billing@sffencebarricade.com",
+      "fromDomain": "sffencebarricade.com",
+      "body": "Hi team,\n\nInvoice #4248 attached, $2,129.98, due in 30 days. Let us know if anything looks off.\n\nThanks,\nSF Fence & Barricade Co."
+    },
+    "supplier": {
+      "key": "sup_sf_fence",
+      "name": "SF Fence & Barricade Co.",
+      "domain": "sffencebarricade.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "9012",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      },
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      },
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      },
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      }
+    ],
+    "pastPaidAmounts": [
+      212669,
+      215596,
+      219528,
+      214077
+    ],
+    "amountCents": 212998
+  },
+  {
+    "key": "bill_4249",
+    "invoiceNo": "4249",
+    "isScam": false,
+    "scamKind": null,
+    "note": "legit-bank-change",
+    "email": {
+      "fromAddress": "billing@horizonartists.com",
+      "fromDomain": "horizonartists.com",
+      "body": "Hi team,\n\nWe moved our operating account to Bank of America this quarter, ending 6621. Invoice #4249, $6,800.00, should route there going forward.\n\nThanks,\nHorizon Artist Management"
+    },
+    "supplier": {
+      "key": "sup_horizon_artists",
+      "name": "Horizon Artist Management",
+      "domain": "horizonartists.com"
+    },
+    "currentBankAccount": {
+      "bank": "Bank of America",
+      "last4": "6621",
+      "verifiedBy": "call+dev",
+      "confirmedByCall": true
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      },
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      },
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      }
+    ],
+    "pastPaidAmounts": [
+      677704,
+      687829,
+      677781
+    ],
+    "amountCents": 680000
+  },
+  {
+    "key": "bill_4250",
+    "invoiceNo": "4250",
+    "isScam": false,
+    "scamKind": null,
+    "note": "legit-bank-change",
+    "email": {
+      "fromAddress": "billing@sffencebarricade.com",
+      "fromDomain": "sffencebarricade.com",
+      "body": "Hi team,\n\nJust a heads up, we opened a business account at Silicon Valley Bank, ending 3384. Invoice #4250, $2,150.00, should route there going forward.\n\nThanks,\nSF Fence & Barricade Co."
+    },
+    "supplier": {
+      "key": "sup_sf_fence",
+      "name": "SF Fence & Barricade Co.",
+      "domain": "sffencebarricade.com"
+    },
+    "currentBankAccount": {
+      "bank": "Silicon Valley Bank",
+      "last4": "3384",
+      "verifiedBy": "call+dev",
+      "confirmedByCall": true
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      },
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      },
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      }
+    ],
+    "pastPaidAmounts": [
+      211089,
+      220617,
+      212348
+    ],
+    "amountCents": 215000
+  },
+  {
+    "key": "bill_scam_lookalike_newbank",
+    "invoiceNo": "4251",
+    "isScam": true,
+    "scamKind": "look-alike domain + new bank account",
+    "note": "Email reads gg-trussdeck.com, one letter off the real ggtrussdeck.com \u2014 the kind of difference a tired eye skims past.",
+    "email": {
+      "fromAddress": "billing@gg-trussdeck.com",
+      "fromDomain": "gg-trussdeck.com",
+      "body": "Hi team,\n\nWe've switched to a new bank account this week. Please pay invoice #4401, $4,100.00, to our new account below, Mercury ending 7731. Thanks for the quick turnaround today.\n\nGolden Gate Truss & Deck"
+    },
+    "supplier": {
+      "key": "sup_gg_truss",
+      "name": "Golden Gate Truss & Deck",
+      "domain": "ggtrussdeck.com"
+    },
+    "currentBankAccount": {
+      "bank": "Mercury",
+      "last4": "7731",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Wells Fargo",
+        "last4": "1187"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1187"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "1187"
+      }
+    ],
+    "pastPaidAmounts": [
+      520000,
+      480000,
+      560000
+    ],
+    "amountCents": 410000
+  },
+  {
+    "key": "bill_scam_rush_newbank",
+    "invoiceNo": "4252",
+    "isScam": true,
+    "scamKind": "rush + new account",
+    "note": "\"The artist will pull out\" pressure pushes straight past the usual call-first habit.",
+    "email": {
+      "fromAddress": "diego@cascadetalentgroup.com",
+      "fromDomain": "cascadetalentgroup.com",
+      "body": "Hi,\n\nUrgent \u2014 the artist's team says they'll pull out of the show if this isn't paid today. Please send invoice #4402, $5,400.00, to our new account, First Republic ending 7743, right away.\n\nDiego"
+    },
+    "supplier": {
+      "key": "sup_cascade_talent",
+      "name": "Cascade Talent Group",
+      "domain": "cascadetalentgroup.com"
+    },
+    "currentBankAccount": {
+      "bank": "First Republic",
+      "last4": "7743",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "8810"
+      },
+      {
+        "bank": "Chase",
+        "last4": "8810"
+      },
+      {
+        "bank": "Chase",
+        "last4": "8810"
+      }
+    ],
+    "pastPaidAmounts": [
+      540000,
+      560000,
+      520000
+    ],
+    "amountCents": 540000
+  },
+  {
+    "key": "bill_scam_compromised_mailbox",
+    "invoiceNo": "4253",
+    "isScam": true,
+    "scamKind": "compromised vendor mailbox",
+    "note": "The email comes from Rosa's real address \u2014 the inbox itself was hacked, so there's no look-alike domain to catch by eye.",
+    "email": {
+      "fromAddress": "rosa@stagecraftrigging.com",
+      "fromDomain": "stagecraftrigging.com",
+      "body": "Hi team,\n\nWe've had to switch banks urgently this week due to an issue with our old account. Please redirect payment for invoice #4403 ($18,400.00) to our new account, Mercury ending 8817. We need this today.\n\nThanks,\nRosa Quintero"
+    },
+    "supplier": {
+      "key": "sup_stage",
+      "name": "Stagecraft Rigging Co.",
+      "domain": "stagecraftrigging.com"
+    },
+    "currentBankAccount": {
+      "bank": "Mercury",
+      "last4": "8817",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "2210"
+      },
+      {
+        "bank": "Chase",
+        "last4": "2210"
+      },
+      {
+        "bank": "Chase",
+        "last4": "2210"
+      }
+    ],
+    "pastPaidAmounts": [
+      1800000,
+      1750000,
+      1900000
+    ],
+    "amountCents": 1840000
+  },
+  {
+    "key": "bill_scam_amount_spike",
+    "invoiceNo": "4254",
+    "isScam": true,
+    "scamKind": "amount spike",
+    "note": "8x Guardian Gate's usual invoice size, timed for the same week as a real event rush \u2014 easy to wave through when everything else that week is urgent too.",
+    "email": {
+      "fromAddress": "billing@guardiangatesecurity.com",
+      "fromDomain": "guardiangatesecurity.com",
+      "body": "Hello,\n\nInvoice #4404 for additional weekend security staffing, $47,000.00, due today. Please process as soon as possible.\n\nGuardian Gate Security"
+    },
+    "supplier": {
+      "key": "sup_guardian_gate",
+      "name": "Guardian Gate Security",
+      "domain": "guardiangatesecurity.com"
+    },
+    "currentBankAccount": {
+      "bank": "Chase",
+      "last4": "6630",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "6630"
+      },
+      {
+        "bank": "Chase",
+        "last4": "6630"
+      },
+      {
+        "bank": "Chase",
+        "last4": "6630"
+      }
+    ],
+    "pastPaidAmounts": [
+      620000,
+      580000,
+      910000
+    ],
+    "amountCents": 4700000
+  },
+  {
+    "key": "bill_scam_duplicate_invoice",
+    "invoiceNo": "4255",
+    "isScam": true,
+    "scamKind": "duplicate invoice",
+    "note": "Reuses the real invoice number #4120 already paid last month, with the account swapped \u2014 it reads exactly like the last 14 invoices.",
+    "email": {
+      "fromAddress": "billing@bayfrontwaste.com",
+      "fromDomain": "bayfrontwaste.com",
+      "body": "Hi,\n\nFollowing up on invoice #4120, $2,150.00 \u2014 please confirm payment is going to our new Mercury account ending 9014.\n\nBayfront Waste & Recycling"
+    },
+    "supplier": {
+      "key": "sup_bayfront_waste",
+      "name": "Bayfront Waste & Recycling",
+      "domain": "bayfrontwaste.com"
+    },
+    "currentBankAccount": {
+      "bank": "Mercury",
+      "last4": "9014",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "7729"
+      },
+      {
+        "bank": "Chase",
+        "last4": "7729"
+      },
+      {
+        "bank": "Chase",
+        "last4": "7729"
+      }
+    ],
+    "pastPaidAmounts": [
+      215000,
+      220000,
+      210000
+    ],
+    "amountCents": 215000
+  },
+  {
+    "key": "bill_scam_lookalike_only",
+    "invoiceNo": "4256",
+    "isScam": true,
+    "scamKind": "look-alike domain",
+    "note": "sfbay-security.net vs the real sfbaysecurity.com \u2014 a dash and a different suffix, easy to miss scanning an inbox fast.",
+    "email": {
+      "fromAddress": "accounts@sfbay-security.net",
+      "fromDomain": "sfbay-security.net",
+      "body": "Good afternoon,\n\nInvoice #4405 for October guard staffing, $6,200.00, to our account on file.\n\nSF Bay Security Services, Billing Dept."
+    },
+    "supplier": {
+      "key": "sup_sfbay_security",
+      "name": "SF Bay Security Services",
+      "domain": "sfbaysecurity.com"
+    },
+    "currentBankAccount": {
+      "bank": "US Bank",
+      "last4": "9981",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      }
+    ],
+    "pastPaidAmounts": [
+      600000,
+      640000,
+      610000
+    ],
+    "amountCents": 620000
+  },
+  {
+    "key": "bill_scam_rush_amount",
+    "invoiceNo": "4257",
+    "isScam": true,
+    "scamKind": "rush + amount spike",
+    "note": "Rush wording plus a payment well above Horizon's usual booking fee lands the same week as three other urgent asks.",
+    "email": {
+      "fromAddress": "grace@horizonartists.com",
+      "fromDomain": "horizonartists.com",
+      "body": "Hello,\n\nNeed this paid today \u2014 invoice #4406, $22,000.00, a late booking-fee adjustment for this weekend's headliner change. Please expedite.\n\nGrace Lindqvist"
+    },
+    "supplier": {
+      "key": "sup_horizon_artists",
+      "name": "Horizon Artist Management",
+      "domain": "horizonartists.com"
+    },
+    "currentBankAccount": {
+      "bank": "Bank of America",
+      "last4": "2244",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      },
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      },
+      {
+        "bank": "Bank of America",
+        "last4": "2244"
+      }
+    ],
+    "pastPaidAmounts": [
+      680000,
+      700000,
+      660000
+    ],
+    "amountCents": 2200000
+  },
+  {
+    "key": "bill_scam_newbank_only",
+    "invoiceNo": "4258",
+    "isScam": true,
+    "scamKind": "new bank account",
+    "note": "A quiet mid-month \"please update our account\" with no urgency at all \u2014 nothing dramatic to notice, which is exactly why it's easy to just pay.",
+    "email": {
+      "fromAddress": "lena@pacificcoastpa.com",
+      "fromDomain": "pacificcoastpa.com",
+      "body": "Hello Fogline team,\n\nPlease update our account for invoice #4407, $4,100.00 \u2014 we've moved banks. New account: Wells Fargo ending 5541.\n\nRegards,\nPacific Coast PA Co."
+    },
+    "supplier": {
+      "key": "sup_pacific_pa",
+      "name": "Pacific Coast PA Co.",
+      "domain": "pacificcoastpa.com"
+    },
+    "currentBankAccount": {
+      "bank": "Wells Fargo",
+      "last4": "5541",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Wells Fargo",
+        "last4": "7762"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "7762"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "7762"
+      }
+    ],
+    "pastPaidAmounts": [
+      410000,
+      420000,
+      400000
+    ],
+    "amountCents": 410000
+  },
+  {
+    "key": "bill_fp_rush",
+    "invoiceNo": "4408",
+    "isScam": false,
+    "scamKind": null,
+    "note": "A real same-day request (a generator broke down mid-festival) reads exactly like a scam's rush language.",
+    "email": {
+      "fromAddress": "fatima@gggenerators.com",
+      "fromDomain": "gggenerators.com",
+      "body": "Hi team,\n\nOne of your rented generators failed overnight \u2014 we swapped in a backup this morning. Invoice #4408, $1,100.00, for the emergency swap. Need this paid today since it's an unplanned callout.\n\nFatima"
+    },
+    "supplier": {
+      "key": "sup_gg_generators",
+      "name": "Golden Gate Generators",
+      "domain": "gggenerators.com"
+    },
+    "currentBankAccount": {
+      "bank": "Wells Fargo",
+      "last4": "4456",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Wells Fargo",
+        "last4": "4456"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "4456"
+      },
+      {
+        "bank": "Wells Fargo",
+        "last4": "4456"
+      }
+    ],
+    "pastPaidAmounts": [
+      340000,
+      330000,
+      360000
+    ],
+    "amountCents": 110000
+  },
+  {
+    "key": "bill_fp_amount",
+    "invoiceNo": "4409",
+    "isScam": false,
+    "scamKind": null,
+    "note": "A real one-off: an extra security shift added late for a sold-out night, nearly double the usual invoice.",
+    "email": {
+      "fromAddress": "billing@sfbaysecurity.com",
+      "fromDomain": "sfbaysecurity.com",
+      "body": "Good afternoon,\n\nFriday sold out, so we added a second overnight shift per your request. Invoice #4409, $14,800.00, covers the extra staffing.\n\nSF Bay Security Services, Billing Dept."
+    },
+    "supplier": {
+      "key": "sup_sfbay_security",
+      "name": "SF Bay Security Services",
+      "domain": "sfbaysecurity.com"
+    },
+    "currentBankAccount": {
+      "bank": "US Bank",
+      "last4": "9981",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      },
+      {
+        "bank": "US Bank",
+        "last4": "9981"
+      }
+    ],
+    "pastPaidAmounts": [
+      620000,
+      600000,
+      640000
+    ],
+    "amountCents": 1480000
+  },
+  {
+    "key": "bill_fp_newbank",
+    "invoiceNo": "4410",
+    "isScam": false,
+    "scamKind": null,
+    "note": "SF Fence genuinely switched to a business account, but the call to confirm hasn't happened yet \u2014 correctly held, not yet released.",
+    "email": {
+      "fromAddress": "rick@sffencebarricade.com",
+      "fromDomain": "sffencebarricade.com",
+      "body": "Hey,\n\nWe changed bank accounts this month to a new business account. Invoice #4410, $2,300.00 \u2014 please route to Silicon Valley Bank, ending 3384, going forward.\n\nRick"
+    },
+    "supplier": {
+      "key": "sup_sf_fence",
+      "name": "SF Fence & Barricade Co.",
+      "domain": "sffencebarricade.com"
+    },
+    "currentBankAccount": {
+      "bank": "Silicon Valley Bank",
+      "last4": "3384",
+      "verifiedBy": "onboarding",
+      "confirmedByCall": false
+    },
+    "pastPaidBankAccounts": [
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      },
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      },
+      {
+        "bank": "Chase",
+        "last4": "9012"
+      }
+    ],
+    "pastPaidAmounts": [
+      215000,
+      220000,
+      210000
+    ],
+    "amountCents": 230000
+  }
+]

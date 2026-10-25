@@ -15,9 +15,10 @@ interface BillActionsProps {
   pay: PolicyResult;
   hold: PolicyResult;
   call: PolicyResult;
+  wantsCall?: boolean;
 }
 
-export function BillActions({ billKey, amount, pay, hold, call }: BillActionsProps): React.ReactElement {
+export function BillActions({ billKey, amount, pay, hold, call, wantsCall }: BillActionsProps): React.ReactElement {
   const router = useRouter();
   const co = useCompany();
   const convexConfigured = Boolean(process.env.NEXT_PUBLIC_CONVEX_URL);
@@ -49,12 +50,12 @@ export function BillActions({ billKey, amount, pay, hold, call }: BillActionsPro
     <div className="flex flex-col items-end gap-2">
       <div className="flex flex-wrap items-start gap-2.5">
         {call.allowed ? (
-          <Button variant="secondary" icon="phone" disabled={pending !== null} onClick={() => run("call")}>
-            {pending === "call" ? "Calling…" : `Call ${co.payee.one}`}
+          <Button variant={wantsCall ? "primary" : "secondary"} icon="phone" disabled={pending !== null} onClick={() => run("call")}>
+            {pending === "call" ? "Calling…" : wantsCall ? "Allow call" : `Call ${co.payee.one}`}
           </Button>
         ) : (
           <Button variant="secondary" icon="phone" locked={call.reason}>
-            Call {co.payee.one}
+            {wantsCall ? "Allow call" : `Call ${co.payee.one}`}
           </Button>
         )}
         {hold.allowed ? (

@@ -71,6 +71,7 @@ export default async function BillPage({
   const call = canCall(bill, settings.watchOnly);
 
   const needsSignOff = (bill.status === "Held" || bill.status === "Needs you") && !awaitingConfirm;
+  const wantsCall = bill.status === "Needs you" && bill.checks.some((c) => c.state === "flag") && !awaitingConfirm;
   const route = needsSignOff
     ? routeEscalation(bill.checks, bill.amountCents, { callOutcome: bill.call?.outcome ?? null, company: co })
     : null;
@@ -102,7 +103,9 @@ export default async function BillPage({
               ) : null}
             </div>
           </details>
-          {pay.allowed || hold.allowed || call.allowed ? <BillActions billKey={bill.key} amount={amount} pay={pay} hold={hold} call={call} /> : null}
+          {pay.allowed || hold.allowed || call.allowed ? (
+            <BillActions billKey={bill.key} amount={amount} pay={pay} hold={hold} call={call} wantsCall={wantsCall} />
+          ) : null}
           {bill.status !== "Held" ? <ReportMissedScam billKey={bill.key} /> : null}
           {bill.status !== "Paid" ? <NotABill billKey={bill.key} supplier={bill.supplier.name} /> : null}
         </div>

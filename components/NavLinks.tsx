@@ -8,9 +8,9 @@ import { makeFunctionReference } from "convex/server";
 import { PrefetchKind } from "next/dist/client/components/router-reducer/router-reducer-types";
 import { refreshTabs } from "@/lib/refresh";
 import { api } from "@/convex/_generated/api";
-import { LayoutGrid, Inbox, CircleCheck, Landmark, Building2, Phone, ScrollText } from "lucide-react";
+import { LayoutGrid, Inbox, CircleCheck, Landmark, Building2, Phone, ScrollText, TrendingUp } from "lucide-react";
 
-const ICONS = { today: LayoutGrid, inbox: Inbox, approvals: CircleCheck, payments: Landmark, suppliers: Building2, phone: Phone, activity: ScrollText };
+const ICONS = { today: LayoutGrid, inbox: Inbox, approvals: CircleCheck, payments: Landmark, suppliers: Building2, phone: Phone, activity: ScrollText, impact: TrendingUp };
 
 export interface NavItem {
   href: string;

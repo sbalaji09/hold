@@ -23,6 +23,7 @@ export async function Sidebar(): Promise<React.ReactElement> {
     { href: "/suppliers", label: capital(co.payee).many, icon: "suppliers" },
     { href: "/phone", label: "Phone line", icon: "phone" },
     { href: "/activity", label: "Activity log", icon: "activity" },
+    { href: "/impact", label: "Impact", icon: "impact" },
   ];
 
   return (

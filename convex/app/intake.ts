@@ -329,7 +329,7 @@ export const settleBill = internalMutation({
     const limit = wholeDollars(co.approvalLimitCents);
     const watchOnly = args.decision === "call" && (await getWatchOnlySetting(ctx));
     const status: Doc<"bills">["status"] =
-      args.decision === "pay" ? "Scheduled" : args.decision === "ask_dev" || watchOnly ? "Needs you" : "Calling";
+      args.decision === "pay" ? "Scheduled" : "Needs you";
     await ctx.db.patch(bill._id, { status, checks: args.checks });
     const flaggedLabels = args.checks.filter((c) => c.state === "flag").map((c) => c.label);
     const money = fmtMoney(args.amountCents);
@@ -370,23 +370,12 @@ export const settleBill = internalMutation({
         billKey,
       ));
     } else {
-      // call: contract shape (plan-agent.md "Interface contract" §1) — to_number only ever the
-      // supplier's trusted number on file, never anything from the email.
-      await ctx.db.insert("callRequests", {
-        call_id: freshKey("call"),
-        bill_id: billKey,
-        supplier_id: args.supplier.key,
-        to_number: args.supplier.trustedPhone,
-        number_source: "on_file",
-        reason: flaggedLabels,
-        status: "queued",
-        mode: "live",
-        attempt: 0,
-      });
+      // Call gate (plan-agent.md addendum): hold never auto-dials. It lands the bill on you with
+      // a note and waits for "Allow call" (mutations.requestCall) to actually place the call.
       await ctx.db.insert("activity", activity(
         "callback",
-        `Calling ${args.supplier.name} on the number on file to verify invoice #${args.invoiceNo}`,
-        flaggedLabels.length ? flaggedLabels.join(", ") : "This bill needs a check call.",
+        `Wants to call ${args.supplier.name} on the number on file to verify invoice #${args.invoiceNo}`,
+        `${flaggedLabels.length ? flaggedLabels.join(", ") + ". " : ""}hold wants to call ${args.supplier.name} on the number on file.`,
         "bill",
         billKey,
       ));
