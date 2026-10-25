@@ -40,6 +40,8 @@ interface LiveCall {
   /** The payee's profile: their language and phone menu. Null if it couldn't be read. */
   profile: Promise<SupplierProfile | null>;
   language?: string;
+  /** The payee's name and aliases, for speech-to-text. */
+  names: string[];
   callSid: string | null;
   transport: PhoneTransport | null;
   /** The outcome of this attempt is decided (no answer, voicemail, takeover before answer). */
@@ -72,6 +74,11 @@ export class Dialer {
   }
 
   /** The language to speak on a live call, for its speech-to-text and voice. Absent = English. */
+  /** Names speech-to-text should listen for on a live call: the payee's name and aliases. */
+  keytermsFor(callId: string): string[] {
+    return this.calls.get(callId)?.names ?? [];
+  }
+
   languageFor(callId: string): string | undefined {
     return this.calls.get(callId)?.language;
   }
@@ -98,6 +105,7 @@ export class Dialer {
       request: r,
       prepared: this.d.prepare({ request: r, store: this.d.store, search: this.d.search, llm: this.d.llm }),
       profile: this.d.store.getSupplierProfile(r.supplier_id).catch(() => null),
+      names: [],
       callSid: null,
       transport: null,
       settled: false,
@@ -109,7 +117,10 @@ export class Dialer {
       store: this.d.store,
     };
     c.prepared.catch(() => undefined); // awaited later; avoid an unhandled rejection meanwhile
-    void c.profile.then((p) => (c.language = p?.language));
+    void c.profile.then((p) => {
+      c.language = p?.language;
+      c.names = p ? [p.name, ...p.aliases] : [];
+    });
     c.store = scopedStore(this.d.store, c);
     this.calls.set(r.call_id, c);
     this.begin(c).catch((err) => {

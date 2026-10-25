@@ -1,6 +1,8 @@
-// Cartesia speech-to-text over its streaming websocket (ink-whisper).
+// Cartesia speech-to-text over its streaming websocket (ink-2 by default; ink-whisper still works).
 // Twilio's mu-law 8 kHz frames go straight in (Cartesia accepts pcm_mulaw), so there is no
 // transcoding on the hot path. Reconnects on its own if the socket drops mid-call.
+// On a real call recording cut at our 300 ms early finalizes, ink-whisper heard "Please deny that to
+// anyone" and "Fogline's account status"; ink-2 got both right. ink-2 also takes keyterms (names).
 import WebSocket from "ws";
 import { log } from "./log.js";
 
@@ -18,23 +20,40 @@ export interface SttStream {
   close(): void;
 }
 
-/** language: the call's BCP-47 code ("es"); absent = the factory's default. */
-export type SttFactory = (sink: SttSink, call?: { language?: string }) => SttStream;
+/**
+ * language: the call's BCP-47 code ("es"); absent = the factory's default (ink-whisper only; ink-2 detects it).
+ * keyterms: names and words this call will likely contain ("Stagecraft", "Fogline"), boosted by ink-2.
+ */
+export type SttFactory = (sink: SttSink, call?: { language?: string; keyterms?: string[] }) => SttStream;
 
 export interface CartesiaSttOptions {
   apiKey: string;
   version: string;
-  model: string; // "ink-whisper"
-  minVolume: number;
-  maxSilenceS: number;
-  language?: string;
+  model: string; // "ink-2" or "ink-whisper"
+  minVolume: number; // ink-whisper only
+  maxSilenceS: number; // ink-whisper only
+  language?: string; // ink-whisper only
+  keyterms?: string[]; // ink-2 / ink-preview only
   url?: string; // override for tests
 }
 
 const MAX_BUFFER_BYTES = 8000 * 2; // keep up to 2 s of audio while (re)connecting
 
 export function cartesiaSttFactory(opts: CartesiaSttOptions): SttFactory {
-  return (sink, call) => new CartesiaStt({ ...opts, language: call?.language ?? opts.language }, sink);
+  return (sink, call) =>
+    new CartesiaStt({ ...opts, language: call?.language ?? opts.language, keyterms: [...(opts.keyterms ?? []), ...(call?.keyterms ?? [])] }, sink);
+}
+
+/** Cartesia's keyterm limits: up to 100 terms, 1200 characters in all. Duplicates dropped, first ones kept. */
+export function keytermsWithinLimits(terms: string[]): string[] {
+  const out: string[] = [];
+  let chars = 0;
+  for (const t of new Set(terms.map((x) => x.trim()).filter(Boolean))) {
+    if (out.length === 100 || chars + t.length > 1200) break;
+    out.push(t);
+    chars += t.length;
+  }
+  return out;
 }
 
 export class CartesiaStt implements SttStream {
@@ -77,15 +96,14 @@ export class CartesiaStt implements SttStream {
   }
 
   private connect() {
-    const q = new URLSearchParams({
-      model: this.opts.model,
-      language: this.opts.language ?? "en",
-      encoding: "pcm_mulaw",
-      sample_rate: "8000",
-      cartesia_version: this.opts.version,
-      min_volume: String(this.opts.minVolume),
-      max_silence_duration_secs: String(this.opts.maxSilenceS),
-    });
+    const q = new URLSearchParams({ model: this.opts.model, encoding: "pcm_mulaw", sample_rate: "8000", cartesia_version: this.opts.version });
+    if (this.opts.model === "ink-whisper") {
+      q.set("language", this.opts.language ?? "en");
+      q.set("min_volume", String(this.opts.minVolume));
+      q.set("max_silence_duration_secs", String(this.opts.maxSilenceS));
+    } else {
+      for (const t of keytermsWithinLimits(this.opts.keyterms ?? [])) q.append("keyterm", t);
+    }
     const ws = new WebSocket(`${this.opts.url ?? "wss://api.cartesia.ai/stt/websocket"}?${q}`, {
       headers: { "X-API-Key": this.opts.apiKey, "Cartesia-Version": this.opts.version },
     });

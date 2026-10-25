@@ -50,6 +50,15 @@ const dialer = new Dialer({
     }),
 });
 
+// What speech-to-text should expect on every call: the company, its suppliers, and the words of the
+// job. Loaded once; a supplier added mid-run is still heard, just without the boost.
+// ponytail: refresh on watchSupplierHistory if suppliers change during a run.
+const JOB_WORDS = ["invoice", "deposit", "processing fee", "bank account", "routing number", "remittance", "accounts team"];
+let lineKeyterms: string[] = JOB_WORDS;
+Promise.all([store.getCompany(), store.listSupplierProfiles()])
+  .then(([co, profiles]) => (lineKeyterms = [co.name, ...JOB_WORDS, ...profiles.flatMap((p) => [p.name, ...p.aliases])]))
+  .catch((err) => log.warn("couldn't load names for speech-to-text", { error: String(err) }));
+
 const cartesia = { apiKey: config.CARTESIA_API_KEY, version: config.CARTESIA_VERSION };
 const server = createVoiceServer({
   publicBaseUrl: config.PUBLIC_BASE_URL,
@@ -74,6 +83,7 @@ const server = createVoiceServer({
     maxBufferDelayMs: config.CARTESIA_MAX_BUFFER_DELAY_MS,
   }),
   tuning: tuningFrom(config),
+  lineKeyterms: () => lineKeyterms,
 });
 
 let tunnel: ngrok.Listener | null = null;

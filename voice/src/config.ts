@@ -39,7 +39,7 @@ const schema = z.object({
   // Cartesia
   CARTESIA_VERSION: z.string().default("2026-08-14"),
   CARTESIA_TTS_MODEL: z.string().default("sonic-3.6"),
-  CARTESIA_STT_MODEL: z.string().default("ink-whisper"),
+  CARTESIA_STT_MODEL: z.string().default("ink-2"),
   /** How long Sonic may wait for more streamed text before it starts speaking. Lower = faster first audio. */
   CARTESIA_MAX_BUFFER_DELAY_MS: num(150),
   /** ink-whisper endpointing: silence that closes a segment server-side. */

@@ -108,11 +108,11 @@ Optional tuning knobs, all with defaults that suit a phone on speaker in a loud 
 | Variable | Default | Effect |
 |---|---|---|
 | `CARTESIA_TTS_MODEL` | `sonic-3.6` | Sonic model id. |
-| `CARTESIA_STT_MODEL` | `ink-whisper` | Speech-to-text model. |
+| `CARTESIA_STT_MODEL` | `ink-2` | Speech-to-text model. `ink-2` hears phone audio better and boosts names (the company, the suppliers, the payee on a check call). `ink-whisper` still works, with the two settings below. |
 | `CARTESIA_VERSION` | `2026-08-14` | Cartesia API version. |
 | `CARTESIA_MAX_BUFFER_DELAY_MS` | `150` | How long Sonic waits for more streamed text before speaking. Lower is faster, higher is smoother. |
-| `STT_MAX_SILENCE_S` | `0.4` | Silence that makes ink-whisper close a segment. |
-| `STT_MIN_VOLUME` | `0.1` | ink-whisper treats quieter audio as silence. Raise it if venue noise turns into words. |
+| `STT_MAX_SILENCE_S` | `0.4` | ink-whisper only: silence that makes it close a segment. |
+| `STT_MIN_VOLUME` | `0.1` | ink-whisper only: quieter audio counts as silence. Raise it if venue noise turns into words. |
 | `END_OF_TURN_MS` | `250` | Wait after a final transcript for more words before replying. |
 | `HESITATION_END_OF_TURN_MS` | `1200` | The same wait when the words so far sound unfinished ("Um…", "It was", "Let me check,"), so a thinking pause isn't taken as an answer. |
 | `FINALIZE_SILENCE_MS` | `300` | Local silence after speech that makes us ask STT to finalize early. |
@@ -148,7 +148,7 @@ Before wiring the whole loop, prove the phone and Cartesia work:
 npx tsx --env-file=.env scripts/helloCall.ts +1YOURCELL
 ```
 
-It dials your phone, speaks the disclosure with Sonic, listens with ink-whisper and repeats back what you said.
+It dials your phone, speaks the disclosure with Sonic, listens with ink-2 and repeats back what you said.
 Talk over it to try barge-in.
 It needs only the Twilio and Cartesia variables plus `PUBLIC_BASE_URL` (or `NGROK_DOMAIN`), and the dev voice server must not be running.
 
@@ -184,11 +184,11 @@ Phone audio goes Twilio, then Cartesia speech-to-text, then Claude, then Cartesi
 - **Contexts with streamed input** (`context_id` plus `continue: true`): Claude's tokens are forwarded as they arrive, cut on word boundaries, so hold starts speaking before Claude has finished the sentence. `max_buffer_delay_ms` keeps prosody natural while text trickles in.
 - **Context cancel** for barge-in, plus dropping any audio for a cancelled context that was already in flight.
 - **Word timestamps** (`add_timestamps`), combined with Twilio playback marks, to work out what the caller actually heard before they interrupted. That text is what goes in the transcript, not the full sentence we meant to say.
-- **ink-whisper streaming speech-to-text** (`wss://api.cartesia.ai/stt/websocket`) with `pcm_mulaw` 8000 Hz input, so Twilio's frames go straight in.
+- **Ink 2 streaming speech-to-text** (`wss://api.cartesia.ai/stt/websocket`, `model=ink-2`) with `pcm_mulaw` 8000 Hz input, so Twilio's frames go straight in, and `keyterm` boosting for the company's and suppliers' names. On a recorded call it fixed misheard lines that ink-whisper got wrong ("deny that to anyone", "account status").
 - **Endpointing controls**: `min_volume` and `max_silence_duration_secs`, plus the `finalize` command, which we send as soon as our own voice detector hears the caller stop, instead of waiting for server-side silence.
 - **Partial transcripts** as a second barge-in trigger alongside the energy detector.
 - A configured voice (`CARTESIA_VOICE_ID`) used for every call, or a per-language voice (`CARTESIA_VOICE_ID_ES`).
-- **Languages.** Each payee can have a language (`suppliers.language`, e.g. `es`). A check call to them sets ink-whisper's `language` and Sonic's `language` for that call, speaks the disclosure and every fixed line from a hand-written Spanish table (`voice/src/call/lines.ts`), and has Claude write the questions and clarifications in Spanish. The code safety rules (bank denials, "call me later", leaks, prompt injection) understand Spanish too. Results and summaries stay in English for the team.
+- **Languages.** Each payee can have a language (`suppliers.language`, e.g. `es`). A check call to them sets Sonic's `language` (Ink 2 detects the language itself) for that call, speaks the disclosure and every fixed line from a hand-written Spanish table (`voice/src/call/lines.ts`), and has Claude write the questions and clarifications in Spanish. The code safety rules (bank denials, "call me later", leaks, prompt injection) understand Spanish too. Results and summaries stay in English for the team.
 
 Raw websockets (the `ws` package) were chosen over the SDK because barge-in needs exact control: cancel a context, ignore its late chunks, and recover a dropped socket mid-sentence without losing the rest of the reply.
 

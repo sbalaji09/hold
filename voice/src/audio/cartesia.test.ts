@@ -1,7 +1,7 @@
 import type { AddressInfo } from "node:net";
 import { afterEach, describe, expect, test } from "vitest";
 import { WebSocketServer, type WebSocket } from "ws";
-import { CartesiaStt } from "./cartesiaStt.js";
+import { CartesiaStt, cartesiaSttFactory, keytermsWithinLimits } from "./cartesiaStt.js";
 import { CartesiaTts } from "./cartesiaTts.js";
 
 let wss: WebSocketServer | null = null;
@@ -63,6 +63,30 @@ describe("CartesiaStt", () => {
     stt.send(new Uint8Array(80));
     await until(() => srv.received.some((m) => m.bytes === 80));
     stt.close();
+  });
+});
+
+describe("CartesiaStt on ink-2", () => {
+  test("sends keyterms (not ink-whisper's language or silence settings)", async () => {
+    const srv = await fakeCartesia();
+    const stt = cartesiaSttFactory({ apiKey: "k", version: "2026-08-14", model: "ink-2", minVolume: 0.1, maxSilenceS: 0.4, url: srv.url, keyterms: ["Fogline"] })(
+      { partial: () => {}, final: () => {} },
+      { language: "es", keyterms: ["Stagecraft Rigging Co.", "Stagecraft", "Fogline"] },
+    );
+    stt.send(new Uint8Array(160));
+    await until(() => srv.received.length === 1);
+    const q = new URL(srv.received[0]!.url, "ws://x").searchParams;
+    expect(q.get("model")).toBe("ink-2");
+    expect(q.getAll("keyterm")).toEqual(["Fogline", "Stagecraft Rigging Co.", "Stagecraft"]);
+    expect(q.has("language") || q.has("min_volume") || q.has("max_silence_duration_secs")).toBe(false);
+    stt.close();
+  });
+
+  test("keyterms stay inside Cartesia's limits, first ones kept", () => {
+    expect(keytermsWithinLimits(Array.from({ length: 150 }, (_, i) => `term${i}`))).toHaveLength(100);
+    const long = Array.from({ length: 30 }, (_, i) => `${"x".repeat(55)}${i}`);
+    expect(keytermsWithinLimits(long).join("").length).toBeLessThanOrEqual(1200);
+    expect(keytermsWithinLimits([" Fogline ", "Fogline", ""])).toEqual(["Fogline"]);
   });
 });
 

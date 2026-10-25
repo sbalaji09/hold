@@ -40,6 +40,8 @@ export interface PhoneTransportOptions {
   tuning: AudioTuning;
   /** Language spoken on this call ("es"). Absent = English. */
   language?: string;
+  /** Names and words this call will likely contain, so speech-to-text hears them right. */
+  keyterms?: string[];
   now?: () => number;
 }
 
@@ -119,7 +121,7 @@ export class PhoneTransport implements CallTransport {
       hangoverMs: o.tuning.finalizeSilenceMs,
     });
     const call = { language: o.language };
-    this.stt = o.stt({ partial: (t) => this.onPartial(t), final: (t) => this.onFinal(t) }, call);
+    this.stt = o.stt({ partial: (t) => this.onPartial(t), final: (t) => this.onFinal(t) }, { ...call, keyterms: o.keyterms });
     this.tts = o.tts(
       {
       audio: (id, b) => this.onTtsAudio(id, b),

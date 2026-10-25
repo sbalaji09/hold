@@ -34,12 +34,15 @@ export interface ServerDeps {
     attachStream(callId: string, callSid: string, transport: PhoneTransport): Promise<void>;
     onStatus(callId: string, callSid: string, kind: StatusKind): Promise<void>;
     languageFor?(callId: string): string | undefined;
+    keytermsFor?(callId: string): string[];
     readonly activeCalls: number;
   };
   runInbound: (deps: InboundCallDeps) => Promise<unknown>;
   stt: SttFactory;
   tts: TtsFactory;
   tuning: AudioTuning;
+  /** Words speech-to-text should listen for on the company's own line: its name, every supplier's. */
+  lineKeyterms?: () => string[];
 }
 
 const MAX_BODY_BYTES = 64 * 1024;
@@ -177,6 +180,8 @@ export function createVoiceServer(d: ServerDeps): Server {
       tuning: d.tuning,
       // Incoming callers are unknown, so the line answers in English.
       language: p.kind === "inbound" ? undefined : d.dialer.languageFor?.(callId),
+      // A check call's payee first (never cut by the term limit), then the company and every supplier.
+      keyterms: [...(p.kind === "inbound" ? [] : (d.dialer.keytermsFor?.(callId) ?? [])), ...(d.lineKeyterms?.() ?? [])],
     });
     live.add(transport);
     void transport.ended.then(() => live.delete(transport));
