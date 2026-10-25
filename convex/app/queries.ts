@@ -383,6 +383,6 @@ export const getSettings = query({
       .query("settings")
       .withIndex("by_key", (q) => q.eq("key", "global"))
       .unique();
-    return { watchOnly: await getWatchOnlySetting(ctx), away: row?.away === true };
+    return { watchOnly: await getWatchOnlySetting(ctx), away: row?.away === true, incomingLoadedAt: row?.incomingLoadedAt };
   },
 });

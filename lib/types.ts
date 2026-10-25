@@ -183,4 +183,6 @@ export interface Settings {
   watchOnly: boolean;
   /** The approver is out: hold doesn't ask them mid-call; unsure answers wait for review. */
   away?: boolean;
+  /** When "Load invoices" ran; Payments shows only what was paid after it, not the seeded history. */
+  incomingLoadedAt?: string;
 }

@@ -13,8 +13,8 @@ export const metadata = { title: "Payments · hold" };
 const COLS = "120px minmax(140px,1fr) 110px 230px 120px 130px";
 
 export default async function PaymentsPage() {
-  const items = await listRun();
   const [settings, co] = await Promise.all([getSettings(), getCompany()]);
+  const items = await listRun(settings.incomingLoadedAt);
   const { eligible, lockedReason } = await runEligibility(items, settings.watchOnly, co);
   const total = eligible.reduce((sum, i) => sum + i.bill.amountCents, 0);
 

@@ -18,10 +18,11 @@ export interface RunItem {
 
 /** This week's payment run: payments made or due within 7 days of now, plus
  * any Scheduled, Held or Needs-you bill that hasn't gone out yet. */
-export async function listRun(): Promise<RunItem[]> {
+export async function listRun(since?: string): Promise<RunItem[]> {
   const [payments, bills] = await Promise.all([listPayments(), listBills()]);
   const now = Date.now();
-  const recent = payments.filter((p) => Math.abs(now - new Date(p.paidAt).getTime()) <= RUN_WINDOW_MS);
+  // Seeded history is not this run: only payments after "Load invoices" count.
+  const recent = payments.filter((p) => since && p.paidAt >= since && Math.abs(now - new Date(p.paidAt).getTime()) <= RUN_WINDOW_MS);
   const blocked = bills.filter(
     (b) => (b.status === "Scheduled" || b.status === "Held" || b.status === "Needs you") && !payments.some((p) => p.billKey === b.key),
   );
