@@ -68,9 +68,13 @@ const MONEY_ASK =
   /\b(?:send|pay|wire|transfer|cover|make up|top up|refund|reimburse)\b[^.?!]{0,40}\b(?:difference|shortfall|balance|the rest|remainder|remaining|missing|extra|more money|the fee|fees|amount|top-up|what'?s left)\b/i;
 const SHORT_PAID = /\b(?:short(?:-| )?paid|underpaid|under-paid|paid short|reduced by|deducted|processing fee|transaction fee|bank fee|wire fee|didn'?t (?:get|receive) the (?:full|whole|entire))\b/i;
 
-/** Caller asks the company to send money: a shortfall, a fee, "the difference", a top-up. */
+/**
+ * Caller asks the company to send money: a shortfall, a fee, "the difference", a top-up. A claim that
+ * a payment came up short counts on its own: callers pause after it, and the ask ("please send the
+ * difference") arrives as the next turn.
+ */
 export function isPaymentRequest(text: string): boolean {
-  return MONEY_ASK.test(text) || (SHORT_PAID.test(text) && /\b(?:send|pay|cover|owe|need|transfer)\b/i.test(text));
+  return MONEY_ASK.test(text) || (SHORT_PAID.test(text) && /\b(?:send|sent|pay|paid|payments?|deposit|invoice|amount|cover|owe|need|transfer)\b/i.test(text));
 }
 
 const READBACK =

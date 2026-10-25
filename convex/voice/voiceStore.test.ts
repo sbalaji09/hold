@@ -441,7 +441,7 @@ describe("convex-only", () => {
     const t = convexTest(schema, modules);
     await t.mutation(internal.seed.seed, fogline as never);
     const profile = await t.query(api.voice.server.getSupplierProfile, { secret: SECRET, supplier_id: "sup_stage" });
-    expect(profile).toMatchObject({ name: "Stagecraft Rigging Co.", phone_on_file: "+14155550100" });
+    expect(profile).toMatchObject({ name: "Stagecraft Rigging Co.", phone_on_file: "+14083983436" });
     expect(profile?.aliases).toEqual(["Stagecraft Rigging", "Stagecraft"]);
 
     const recs = await t.query(api.voice.server.getSupplierRecords, { secret: SECRET, supplier_id: "sup_stage" });
