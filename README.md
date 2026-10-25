@@ -1,5 +1,28 @@
 # hold
 
+hold is the accounts-payable clerk for Fogline, a made-up music festival. It pays normal bills on its own. When a bill or bank change looks wrong, it phones the supplier on the number already on file, asks questions only the real supplier can answer, and holds the money if the answer is wrong. If a scammer phones in, it says it will call back and rings the real supplier. A person approves anything it holds.
+
+**Seat it fills:** bills payment and supplier records, answering to the controller.
+
+## What Cartesia does here
+
+Voice is the product. Every call, outgoing check calls and the incoming phone line, runs on Cartesia: Sonic for speech out, ink-whisper for speech in, with barge-in so hold stops when the person talks. Claude decides what to ask and Moss supplies the supplier's history, but the supplier hears Cartesia. Details, setup and limits are in [Voice (Cartesia)](#voice-cartesia) below.
+
+## What's real and what's simulated
+
+| Real | Simulated |
+| --- | --- |
+| Phone calls (Twilio + Cartesia), Claude judging, Moss search, Convex, ACH transfers through Increase's sandbox | Fogline and all its suppliers and bills; the bank (Increase sandbox, test money); the Impact page's month of 61 invoices (8 planted scams), run through hold's real checks |
+
+## Responsible use
+
+- It says it is an automated assistant and that the call is recorded.
+- It only calls numbers already on file, never one from an email.
+- It can't approve its own payments, change bank details alone or release a held payment. A person does that.
+- It can start in watch-only mode: it flags but pays nothing and places no calls.
+- Data is made up; no real people's information. No keys in the repo.
+
+
 ## Setup
 
 ```sh
