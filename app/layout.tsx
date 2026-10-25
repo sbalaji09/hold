@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type * as React from "react";
 import { Suspense } from "react";
+import { BackButton } from "@/components/BackButton";
 import { NavProgress } from "@/components/NavProgress";
 import { Sidebar } from "@/components/Sidebar";
 import { AutoOpenLiveCall } from "@/components/voice";
@@ -23,7 +24,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Suspense fallback={null}>
               <NavProgress />
             </Suspense>
-            <main className="pt-main">{children}</main>
+            <main className="pt-main">
+              <BackButton />
+              {children}
+            </main>
           </div>
         </ConvexClientProvider>
       </body>
