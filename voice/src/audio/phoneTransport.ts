@@ -49,7 +49,7 @@ const CONTEXT_IDLE_MS = 700;
 /** Extra wait for Twilio's final playback mark before assuming the audio played. */
 const MARK_GRACE_MS = 1500;
 /** Never hold a turn open longer than this after its first final words, even in constant noise. */
-const MAX_TURN_HOLD_MS = 2000;
+const MAX_TURN_HOLD_MS = 2000; // since the latest final words
 
 interface ActiveSay {
   id: string;
@@ -98,7 +98,7 @@ export class PhoneTransport implements CallTransport {
   private partialText = "";
   private turnStartS: number | null = null;
   private turnEndS = 0;
-  private firstFinalAt = 0;
+  private lastFinalAt = 0;
   private eotTimer: NodeJS.Timeout | null = null;
   private lastActivityAt = 0;
   private lastTurnCommittedAt: number | null = null;
@@ -238,7 +238,7 @@ export class PhoneTransport implements CallTransport {
     if (!this.turnText.trim()) return;
     this.lastActivityAt = this.now();
     this.turnStartS ??= this.elapsed();
-    if (!this.firstFinalAt) this.firstFinalAt = this.now();
+    this.lastFinalAt = this.now();
     if (!this.vad.speaking) this.turnEndS = this.elapsed();
     if (this.active && wordCount(this.turnText) >= this.bargeInWords(this.active)) this.bargeIn("stt");
     this.armEot();
@@ -250,15 +250,17 @@ export class PhoneTransport implements CallTransport {
 
   private armEot() {
     this.clearEot();
+    // "Um…" or "It was" is someone thinking, not a finished answer: give them time to go on.
+    const wait = soundsUnfinished(this.turnText) ? this.o.tuning.hesitationEndOfTurnMs : this.o.tuning.endOfTurnMs;
     this.eotTimer = setTimeout(() => {
       this.eotTimer = null;
-      const held = this.now() - this.firstFinalAt;
+      const held = this.now() - this.lastFinalAt;
       if ((this.vad.speaking || this.partialText) && held < MAX_TURN_HOLD_MS) {
         this.armEot(); // still talking: keep the turn open
         return;
       }
       this.commitTurn();
-    }, this.o.tuning.endOfTurnMs);
+    }, wait);
   }
 
   private clearEot() {
@@ -274,7 +276,7 @@ export class PhoneTransport implements CallTransport {
     this.turnText = "";
     this.partialText = "";
     this.turnStartS = null;
-    this.firstFinalAt = 0;
+    this.lastFinalAt = 0;
     if (!text || this.endReason) return;
     this.lastTurnCommittedAt = this.now();
     this.lastTurnEndS = end_s;
@@ -523,6 +525,25 @@ export class PhoneTransport implements CallTransport {
 }
 
 const wordCount = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
+
+// English and Spanish. Fillers are thinking aloud; a dangling word can't end an answer.
+const FILLERS = new Set(["um", "umm", "uh", "uhh", "uhm", "er", "erm", "hmm", "mm", "ah", "eh", "em", "este", "pues", "bueno"]);
+const DANGLING = new Set([
+  "was", "is", "are", "were", "the", "a", "an", "and", "or", "but", "to", "of", "for", "it's", "that's", "my", "our", "like",
+  "el", "la", "los", "las", "un", "una", "y", "o", "pero", "que", "de", "es", "fue", "era", "con", "por",
+]);
+
+/** The turn so far sounds like someone mid-thought: only fillers, trailing off, or ending on a word
+ * that can't finish an answer ("It was", "Um…", "Let me check,"). */
+export function soundsUnfinished(text: string): boolean {
+  const t = text.trim().toLowerCase();
+  if (!t) return false;
+  if (/(\.\.\.|…|,|-|—)$/.test(t)) return true;
+  const words = t.replace(/[^\p{L}\p{N}'\s]/gu, " ").split(/\s+/).filter(Boolean);
+  if (words.length === 0) return false;
+  const last = words[words.length - 1]!;
+  return words.every((w) => FILLERS.has(w)) || FILLERS.has(last) || DANGLING.has(last);
+}
 
 /** Text up to the last word whose audio had started playing by `playedBytes`. */
 export function heardText(a: Pick<ActiveSay, "text" | "words">, playedBytes: number): string {

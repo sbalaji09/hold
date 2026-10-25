@@ -50,6 +50,8 @@ const schema = z.object({
   // Turn taking and barge-in (see voice/src/audio/vad.ts)
   /** Wait this long after a final transcript for more words before ending the turn. */
   END_OF_TURN_MS: num(250),
+  /** The same wait when the words so far sound unfinished ("Um…", "It was"): someone thinking, not done. */
+  HESITATION_END_OF_TURN_MS: num(1200),
   /** Local silence after speech that makes us ask STT to finalize early. */
   FINALIZE_SILENCE_MS: num(300),
   /** Sustained speech needed before the energy VAD fires a barge-in. */
@@ -88,6 +90,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
 /** The subset of config the audio layer needs; tests build it by hand. */
 export interface AudioTuning {
   endOfTurnMs: number;
+  hesitationEndOfTurnMs: number;
   finalizeSilenceMs: number;
   vadMinSpeechMs: number;
   vadMarginDb: number;
@@ -99,6 +102,7 @@ export interface AudioTuning {
 
 export const DEFAULT_TUNING: AudioTuning = {
   endOfTurnMs: 250,
+  hesitationEndOfTurnMs: 1200,
   finalizeSilenceMs: 300,
   vadMinSpeechMs: 200,
   vadMarginDb: 12,
@@ -111,6 +115,7 @@ export const DEFAULT_TUNING: AudioTuning = {
 export function tuningFrom(c: Config): AudioTuning {
   return {
     endOfTurnMs: c.END_OF_TURN_MS,
+    hesitationEndOfTurnMs: c.HESITATION_END_OF_TURN_MS,
     finalizeSilenceMs: c.FINALIZE_SILENCE_MS,
     vadMinSpeechMs: c.VAD_MIN_SPEECH_MS,
     vadMarginDb: c.VAD_MARGIN_DB,

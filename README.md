@@ -91,6 +91,7 @@ Optional tuning knobs, all with defaults that suit a phone on speaker in a loud 
 | `STT_MAX_SILENCE_S` | `0.4` | Silence that makes ink-whisper close a segment. |
 | `STT_MIN_VOLUME` | `0.1` | ink-whisper treats quieter audio as silence. Raise it if venue noise turns into words. |
 | `END_OF_TURN_MS` | `250` | Wait after a final transcript for more words before replying. |
+| `HESITATION_END_OF_TURN_MS` | `1200` | The same wait when the words so far sound unfinished ("Um…", "It was", "Let me check,"), so a thinking pause isn't taken as an answer. |
 | `FINALIZE_SILENCE_MS` | `300` | Local silence after speech that makes us ask STT to finalize early. |
 | `VAD_MIN_SPEECH_MS` | `200` | Sustained speech needed to barge in. 150 to 250 works on speakerphones. |
 | `VAD_MARGIN_DB` | `12` | How far above the background noise counts as speech. Raise it if noise cuts hold off. |

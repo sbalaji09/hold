@@ -3,7 +3,7 @@ import { DEFAULT_TUNING } from "../config.js";
 import type { SttSink } from "./cartesiaStt.js";
 import type { TtsSink } from "./cartesiaTts.js";
 import { encodeMulaw } from "./mulaw.js";
-import { PhoneTransport, type TwilioOutbound } from "./phoneTransport.js";
+import { PhoneTransport, soundsUnfinished, type TwilioOutbound } from "./phoneTransport.js";
 
 const frame = (amplitude: number) =>
   encodeMulaw(Array.from({ length: 160 }, (_, i) => amplitude * Math.sin((2 * Math.PI * 300 * i) / 8000)));
@@ -265,6 +265,38 @@ describe("listen()", () => {
     expect(got).toBe("Let me check, it was paid.");
   });
 
+  test("a thinking pause after \"Um…\" doesn't end the turn: the answer after it joins it", async () => {
+    const h = setup();
+    const p = h.t.listen({ timeoutMs: 10_000 });
+    let got: string | undefined;
+    void p.then((u) => (got = u?.text));
+    h.sttSink().final("Um...");
+    await vi.advanceTimersByTimeAsync(900); // a pause that used to end the turn
+    expect(got).toBeUndefined();
+    h.sttSink().final(" It was");
+    await vi.advanceTimersByTimeAsync(900);
+    expect(got).toBeUndefined();
+    h.sttSink().final(" paid in March.");
+    await vi.advanceTimersByTimeAsync(DEFAULT_TUNING.endOfTurnMs + 50);
+    expect(got).toBe("Um... It was paid in March.");
+  });
+
+  test("a finished answer still ends the turn quickly", async () => {
+    const h = setup();
+    const p = h.t.listen({ timeoutMs: 10_000 });
+    h.sttSink().final("Thank you.");
+    await vi.advanceTimersByTimeAsync(DEFAULT_TUNING.endOfTurnMs + 50);
+    expect((await p)?.text).toBe("Thank you.");
+  });
+
+  test("someone who only says \"um\" and stops is still heard", async () => {
+    const h = setup();
+    const p = h.t.listen({ timeoutMs: 10_000 });
+    h.sttSink().final("Um.");
+    await vi.advanceTimersByTimeAsync(DEFAULT_TUNING.hesitationEndOfTurnMs + 50);
+    expect((await p)?.text).toBe("Um.");
+  });
+
   test("a partial that never turns final cannot hold the turn open forever", async () => {
     const h = setup();
     const p = h.t.listen({ timeoutMs: 10_000 });
@@ -341,5 +373,25 @@ describe("ending", () => {
     expect((await p).interrupted).toBe(true);
     await h.t.hangup();
     expect(h.hangupCall).not.toHaveBeenCalled();
+  });
+});
+
+describe("soundsUnfinished", () => {
+  test.each([
+    ["Um...", true],
+    ["Uh", true],
+    ["Um… it was", true],
+    ["Let me check,", true],
+    ["The total was", true],
+    ["Eh, este", true],
+    ["Fue el", true],
+    ["Thank you.", false],
+    ["It was paid in March.", false],
+    ["Yes, that's right.", false],
+    ["No.", false],
+    ["Sí, correcto.", false],
+    ["", false],
+  ])("%j -> %s", (text, unfinished) => {
+    expect(soundsUnfinished(text)).toBe(unfinished);
   });
 });
