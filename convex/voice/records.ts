@@ -132,6 +132,7 @@ export async function getSupplierRecords(ctx: QueryCtx, supplier_id: string): Pr
       .withIndex("by_bill", (q) => q.eq("billKey", b.key))
       .collect();
     for (const p of payments) {
+      if (!p.paidAt) continue; // scheduled, not paid yet: nothing to cite
       out.push({
         id: p.key,
         supplier_id,
