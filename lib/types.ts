@@ -139,6 +139,8 @@ export interface Approval {
   routedTo?: "dev";
   reason?: string;
   thread: Array<{ from: string; text: string; at: string }>;
+  /** The payee's verified, active account other than the one on this bill: the safe way to pay it. */
+  verifiedAccount?: { key: string; bank: string; last4: string };
 }
 
 export type ActivityActor = "callback" | "dev";

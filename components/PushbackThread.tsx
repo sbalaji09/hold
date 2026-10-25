@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import { Button, SignOff, Endorsement, Cite } from "@/components/callback";
 import type { Approval } from "@/lib/types";
 import { cap, type Company } from "@/lib/company";
+import { canPayChangedAccount } from "@/lib/policy";
 import { useCompany } from "@/lib/useCompany";
 
 interface ThreadMsg {
@@ -41,22 +42,26 @@ export function PushbackThread({ approval }: { approval: Approval }): React.Reac
   const convexConfigured = Boolean(process.env.NEXT_PUBLIC_CONVEX_URL);
   const reply = useAction(api.app.pushback.reply);
   const decideApproval = useMutation(api.app.mutations.decideApproval);
+  const requestCall = useMutation(api.app.mutations.requestCall);
   const bill = approval.bill;
-  const acct = bill.bankAccount;
+  // A changed account is only paid after a call where the payee confirmed it (lib/policy.ts): when that
+  // hasn't happened, Approve is locked with what did happen, and the safe ways out are offered instead.
+  const bankChange = bill.checks.some((c) => c.id === "bank-account" && c.state === "flag");
+  const payNew = canPayChangedAccount(bill, co);
+  const verified = approval.verifiedAccount;
+  const [calling, setCalling] = React.useState(false);
   const [decision, setDecision] = React.useState<Decision>(null);
   const [thread, setThread] = React.useState<ThreadMsg[]>(
     approval.thread.map((m) => ({ from: m.from === "dev" ? "dev" : "callback", text: m.text, at: m.at })),
   );
   const [draft, setDraft] = React.useState("");
-  const [pending, setPending] = React.useState<"reply" | "approve" | "approve-safe" | "reject" | null>(null);
+  const [pending, setPending] = React.useState<"reply" | "approve" | "approve-safe" | "reject" | "call" | null>(null);
   const [error, setError] = React.useState<string | null>(null);
-  const [safeAlternative, setSafeAlternative] = React.useState<{ bankAccountKey: string } | null>(null);
   const saveRule = useMutation(api.app.rules.saveRule);
   const [ruleText, setRuleText] = React.useState(() => defaultRuleText(approval, null, co));
   const [ruleState, setRuleState] = React.useState<"idle" | "saving" | "saved">("idle");
   const [ruleError, setRuleError] = React.useState<string | null>(null);
 
-  const lastFromCallback = thread.length > 0 && thread[thread.length - 1].from === "callback";
 
   async function send(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -73,7 +78,6 @@ export function PushbackThread({ approval }: { approval: Approval }): React.Reac
       const now = new Date().toISOString();
       const cite = result.clip ? `Call \u00b7 ${result.clip.start_s}s-${result.clip.end_s}s` : undefined;
       setThread((t) => [...t, { from: "dev", text, at: now }, { from: "callback", text: result.text, at: new Date().toISOString(), cite }]);
-      setSafeAlternative(result.safeAlternative);
       setDraft("");
     } catch (err) {
       setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : err instanceof Error ? err.message : "hold couldn't reply just now.");
@@ -107,6 +111,25 @@ export function PushbackThread({ approval }: { approval: Approval }): React.Reac
       router.refresh();
     } catch (err) {
       setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : err instanceof Error ? err.message : "hold couldn't record that decision.");
+    } finally {
+      setPending(null);
+    }
+  }
+
+  async function callAgain() {
+    if (!convexConfigured) {
+      setError("Convex isn't connected. This action needs the backend.");
+      return;
+    }
+    setError(null);
+    setPending("call");
+    try {
+      const res = await requestCall({ billKey: bill.key });
+      if (res && typeof res === "object" && "refused" in res) setError(String(res.refused));
+      else setCalling(true);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : err instanceof Error ? err.message : "hold couldn't place the call.");
     } finally {
       setPending(null);
     }
@@ -167,12 +190,6 @@ export function PushbackThread({ approval }: { approval: Approval }): React.Reac
         </div>
       ) : null}
 
-      {decision === null && lastFromCallback && safeAlternative ? (
-        <Button variant="primary" size="sm" disabled={pending !== null} onClick={() => decide("approve-safe", safeAlternative.bankAccountKey)}>
-          {`Approve \u00b7 pay ${acct.bank} \u00b7\u00b7${acct.last4} instead`}
-        </Button>
-      ) : null}
-
       {decision === null ? (
         <form className="flex flex-col gap-2 border-t border-line pt-4" onSubmit={send}>
           <label htmlFor={`reply-${approval.key}`} className="cb-caps">
@@ -190,15 +207,36 @@ export function PushbackThread({ approval }: { approval: Approval }): React.Reac
             <Button variant="secondary" size="sm" type="submit" disabled={pending !== null}>
               {pending === "reply" ? "Sending…" : "Send"}
             </Button>
-            <>
+            {payNew.allowed ? (
               <Button variant="primary" size="sm" disabled={pending !== null} onClick={() => decide("approve")}>
                 Approve
               </Button>
-              <Button variant="secondary" size="sm" disabled={pending !== null} onClick={() => decide("reject")}>
-                Reject
+            ) : (
+              <Button variant="primary" size="sm" locked={payNew.reason}>
+                Approve
               </Button>
-            </>
+            )}
+            {bankChange && !payNew.allowed && verified ? (
+              <Button variant="secondary" size="sm" disabled={pending !== null} onClick={() => decide("approve-safe", verified.key)}>
+                {pending === "approve-safe" ? "Approving…" : `Pay ${verified.bank} \u00b7\u00b7${verified.last4} instead`}
+              </Button>
+            ) : null}
+            {bankChange && !payNew.allowed ? (
+              calling ? (
+                <Button variant="secondary" size="sm" icon="phone" locked={`hold is calling ${bill.supplier.name} on the number on file.`}>
+                  Calling
+                </Button>
+              ) : (
+                <Button variant="secondary" size="sm" icon="phone" disabled={pending !== null} onClick={callAgain}>
+                  {pending === "call" ? "Calling…" : "Call again"}
+                </Button>
+              )
+            ) : null}
+            <Button variant="secondary" size="sm" disabled={pending !== null} onClick={() => decide("reject")}>
+              Reject
+            </Button>
           </div>
+          {bankChange && !payNew.allowed ? <p className="font-mono text-[12px] text-ink-muted">{payNew.reason}</p> : null}
         </form>
       ) : null}
 

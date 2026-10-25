@@ -72,16 +72,30 @@ export function canApprove(approver: Actor, requestedBy: Actor, co: Company = FO
   return allowed();
 }
 
+/**
+ * Paying the bank account a bill changed to needs a call where the payee confirmed it, whatever the
+ * bill's status. The reason says what actually happened on the call, and what you can do instead.
+ */
+export function canPayChangedAccount(bill: Bill, co: Company = FOGLINE): PolicyResult {
+  if (bill.checks.find((c) => c.id === "bank-account")?.state !== "flag") return allowed();
+  const who = bill.supplier.name;
+  switch (bill.call?.outcome) {
+    case "confirmed":
+      return allowed();
+    case "not_confirmed":
+      return denied(`${who} didn't confirm this bank change on the check call, so hold won't pay the new account. Pay their verified account instead, call again, or reject it.`);
+    case "needs_review":
+      return denied(`An answer from the check call is waiting for your review. Decide it first: hold only pays a new account ${who} confirmed.`);
+    case "handed_off":
+      return denied(`The check call to ${who} didn't finish, so nobody has confirmed this bank change. Call again on the number on file, or reject it.`);
+    default:
+      return denied(`Nobody has confirmed this bank change yet. Call ${who} on the number on file first.`);
+  }
+}
+
 /** Releasing a held payment needs a person, and a bank change on it needs your approval plus a confirmed call. */
 export function canRelease(bill: Bill, releaser: Actor, co: Company = FOGLINE): PolicyResult {
   if (bill.status !== "Held") return denied(`This ${co.bill.one} isn't held.`);
   if (releaser === "callback") return denied("hold can't release a held payment. It needs your approval.");
-  const bankFlagged = bill.checks.find((c) => c.id === "bank-account")?.state === "flag";
-  if (bankFlagged) {
-    if (releaser !== "dev") return denied(`This release needs your approval: the bank details on this ${co.bill.one} changed.`);
-    if (bill.call?.outcome !== "confirmed") {
-      return denied(`hold can't change bank details without a confirmed call. Call the ${co.payee.one} on the number on file first.`);
-    }
-  }
-  return allowed();
+  return canPayChangedAccount(bill, co);
 }

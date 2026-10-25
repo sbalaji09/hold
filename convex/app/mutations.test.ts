@@ -178,8 +178,42 @@ describe("decideApproval", () => {
 
   test("refuses Dev releasing a held payment whose bank change wasn't confirmed by call", async () => {
     const h = await seedApproval({ status: "Held", checks: [BANK_FLAG] }, "bank_change");
-    expect(await h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "dev" })).toEqual({ refused: "hold can't change bank details without a confirmed call. Call the supplier on the number on file first." });
+    expect(await h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "dev" })).toEqual({
+      refused: "Nobody has confirmed this bank change yet. Call Stagecraft Rigging Co. on the number on file first.",
+    });
     expect((await h.billRow()).status).toBe("Held");
+  });
+
+  /** A check call on bill_4471 that ended with `outcome`. */
+  const addCall = (h: Awaited<ReturnType<typeof seedApproval>>, outcome: "confirmed" | "not_confirmed" | "handed_off") =>
+    h.t.run(async (ctx) => {
+      await ctx.db.insert("callRequests", { call_id: "call_x", bill_id: "bill_4471", supplier_id: "sup_stage", to_number: SUPPLIER.trustedPhone, number_source: "on_file", reason: ["bank-account"], status: "done" });
+      await ctx.db.insert("callResults", { call_id: "call_x", outcome, summary: "-", evidence: [], recording_url: "" });
+    });
+
+  test("after a call where the supplier said no, the refusal says so instead of asking for a call", async () => {
+    const h = await seedApproval({ status: "Held", checks: [BANK_FLAG] }, "bank_change");
+    await addCall(h, "not_confirmed");
+    expect(await h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "dev" })).toEqual({
+      refused: "Stagecraft Rigging Co. didn't confirm this bank change on the check call, so hold won't pay the new account. Pay their verified account instead, call again, or reject it.",
+    });
+  });
+
+  test("a bank change whose call was handed off (bill on Needs you) can't be approved to the new account either", async () => {
+    const h = await seedApproval({ status: "Needs you", checks: [BANK_FLAG] }, "bank_change");
+    await addCall(h, "handed_off");
+    const res = await h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "dev" });
+    expect(res).toMatchObject({ refused: expect.stringContaining("didn't finish") });
+    expect((await h.billRow()).status).toBe("Needs you");
+  });
+
+  test("a confirmed bank change on Needs you is approved and its account marked verified", async () => {
+    const h = await seedApproval({ status: "Needs you", checks: [BANK_FLAG] }, "bank_change");
+    await addCall(h, "confirmed");
+    await h.t.mutation(h.fns.mutations.decideApproval, { billKey: "bill_4471", decision: "approve", actor: "dev" });
+    expect((await h.billRow()).status).toBe("Scheduled");
+    const acct = await h.t.run((ctx) => ctx.db.query("bankAccounts").withIndex("by_key", (q) => q.eq("key", "bank_stage")).unique());
+    expect(acct?.verifiedBy).toBe("call+dev");
   });
 
   test("Dev approving a bank change after a confirmed call marks that account verified by call + Dev", async () => {

@@ -9,7 +9,7 @@ import type { Doc } from "../_generated/dataModel.js";
 import { internalMutation, mutation, type MutationCtx } from "../_generated/server.js";
 import type { Actor } from "../../lib/policy.js";
 import type { Bill } from "../../lib/types.js";
-import { canApprove, canCall, canHold, canMoveMoney, canPay, canRelease } from "../../lib/policy.js";
+import { canApprove, canCall, canHold, canMoveMoney, canPay, canPayChangedAccount, canRelease } from "../../lib/policy.js";
 import { getWatchOnlySetting, hydrateBill } from "./queries.js";
 import { getCompany } from "./company.js";
 import { wholeDollars } from "../../lib/company.js";
@@ -232,15 +232,15 @@ export const decideApproval = mutation({
         );
         return;
       }
-      if (bill.status === "Held") {
-        const release = canRelease(bill, actor, co);
-        if (!release.allowed) return refuse(ctx, actor, "approve", release.reason!, billKey);
-        // Dev approved a bank change after a confirmed call: that account is now verified, so a
-        // saved rule for it can stop the same change being asked about again (checks.ts).
-        if (bill.checks.find((c) => c.id === "bank-account")?.state === "flag") {
-          const acct = await ctx.db.query("bankAccounts").withIndex("by_key", (q) => q.eq("key", bill.bankAccountKey)).unique();
-          if (acct) await ctx.db.patch(acct._id, { verifiedBy: "call+dev" });
-        }
+      // A changed bank account needs a confirmed call whatever the status: a handed-off call leaves
+      // the bill on "Needs you", and approving it must not pay an account nobody confirmed.
+      const release = bill.status === "Held" ? canRelease(bill, actor, co) : canPayChangedAccount(bill, co);
+      if (!release.allowed) return refuse(ctx, actor, "approve", release.reason!, billKey);
+      // Dev approved a bank change after a confirmed call (checked just above): that account is now
+      // verified, so a saved rule for it can stop the same change being asked about again (checks.ts).
+      if (bill.checks.find((c) => c.id === "bank-account")?.state === "flag") {
+        const acct = await ctx.db.query("bankAccounts").withIndex("by_key", (q) => q.eq("key", bill.bankAccountKey)).unique();
+        if (acct) await ctx.db.patch(acct._id, { verifiedBy: "call+dev" });
       }
       await ctx.db.patch(approvalRow._id, { status: "approved" });
       await ctx.db.patch(row._id, { status: "Scheduled" });

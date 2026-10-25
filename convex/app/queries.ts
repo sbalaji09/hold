@@ -246,6 +246,15 @@ export const listApprovals = query({
           if (!billRow) throw new Error(`Approval ${row.key} references an unknown bill ${row.billKey}`);
           if (billRow.practice) return null;
           const bill = await hydrateBill(ctx, billRow);
+          // The safe alternative to a changed account: the payee's oldest active account that isn't this one.
+          const verified = (
+            await ctx.db
+              .query("bankAccounts")
+              .withIndex("by_supplier", (q) => q.eq("supplierKey", bill.supplierKey))
+              .collect()
+          )
+            .filter((a) => a.status === "active" && a.key !== bill.bankAccountKey)
+            .sort((a, b) => a.addedAt.localeCompare(b.addedAt))[0];
           const approval: Approval = {
             key: row.key,
             billKey: row.billKey,
@@ -256,6 +265,7 @@ export const listApprovals = query({
             routedTo: row.routedTo,
             reason: row.reason,
             thread: row.thread,
+            ...(verified ? { verifiedAccount: { key: verified.key, bank: verified.bank, last4: verified.last4 } } : {}),
           };
           return approval;
         }),
