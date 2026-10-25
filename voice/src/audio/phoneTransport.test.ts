@@ -187,6 +187,18 @@ describe("barge-in", () => {
     expect((await p).interrupted).toBe(false);
   });
 
+  test("choppy phone speech (short dips between words) still interrupts", async () => {
+    const h = setup();
+    h.feed(QUIET, 50);
+    const { p } = await speaking(h);
+    for (let i = 0; i < 6; i++) {
+      h.feed(SPEECH, 4); // 80 ms of voice
+      h.feed(QUIET, 3); // a 60 ms dip between words
+    }
+    expect(h.twilio.at(-1)).toEqual({ event: "clear", streamSid: "MZ1" }); // ~800 ms of talking, 480 ms of it loud
+    expect((await p).interrupted).toBe(true);
+  });
+
   test("a short noise does not interrupt", async () => {
     const h = setup();
     h.feed(QUIET, 50);

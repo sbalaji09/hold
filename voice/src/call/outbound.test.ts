@@ -609,29 +609,38 @@ describe("a Spanish payroll call", () => {
 });
 
 describe("a call back about a money request made on the company's line", () => {
-  const CLAIM = "send the difference because the deposit was reduced by a processing fee";
+  const CLAIM = "send the difference because the deposit payment was reduced by a processing fee";
+  const ASK = `We just got a call from someone saying they were from Stagecraft Rigging Co. They asked us to ${CLAIM}. Did that come from you?`;
 
-  it("asks the supplier about that exact claim, and their no decides it", async () => {
+  async function claimCall(script: string[]) {
     const store = new MemoryStore({ suppliers: [STAGE], records: STAGE_RECORDS });
     const request = stageRequest({ bill_id: "inbound:in_CA1", reason: ["Inbound caller asked us to send money"], claim: CLAIM });
     store.addRequest(request);
-    const llm = new FakeLLM({ json: { "You judge": judgeSays(true, true, false) as never } });
+    const llm = new FakeLLM({ json: { "You judge": judgeSays(false) as never } });
     const prepared = await prepareOutboundCall({ request, store, search: new FakeSearch(STAGE_RECORDS), llm });
-
-    const claimQ = prepared.questions.at(-1)!;
-    expect(claimQ).toMatchObject({ kind: "claim", source: { kind: "call", ref: "Incoming call" } });
-    expect(claimQ.ask).toBe(`Someone called us today saying they were from Stagecraft Rigging Co., asking us to ${CLAIM}. Did you make that request?`);
-    expect(prepared.questions.filter((q) => q.kind === "bank_change")).toEqual([]);
-
-    const answers = prepared.questions.slice(0, -1).map(() => "It was for the main-stage truss hire.");
-    const transport = new SimulatedTransport({ request, script: [...answers, "Let me check our records. No, we did pay the full amount. Please reject this additional amount."] });
+    const transport = new SimulatedTransport({ request, script });
     const result = await runOutboundCall({ store, transport, request, prepared, llm });
+    return { prepared, result, said: segments(store.eventsFor("call_123"), "callback"), llm };
+  }
 
-    const said = segments(store.eventsFor("call_123"), "callback");
-    expect(said).toContain(`I'm calling to check a request we got on the phone today. I have a couple of quick questions.`);
-    expect(said).toContain(claimQ.ask);
-    expect(said).not.toContain("Sure, take your time."); // "let me check… No, …" is an answer, not a wait
+  it("goes straight from the disclosure to the claim, no invoice questions, and a no decides it", async () => {
+    const { prepared, result, said, llm } = await claimCall(["Let me check our records. No, we did pay the full amount. Please reject this additional amount."]);
+    expect(prepared.questions).toMatchObject([{ kind: "claim", ask: ASK, source: { kind: "call", ref: "Incoming call" } }]);
+    expect(llm.jsonCalls.some((c) => c.system.includes("verification questions"))).toBe(false);
+    expect(said).toEqual([DISCLOSURE, ASK, "Thanks for letting us know. We won't send anything for that request. Have a good day. Goodbye."]);
     expect(result.outcome).toBe("not_confirmed");
     expect(result.summary).toBe("Supplier says they never asked for that.");
+  });
+
+  it("Snehil's call: 'Um…' and a long think is never taken as the answer, and hold says nothing over it", async () => {
+    const { result, said } = await claimCall(["Um...", "I don't remember the exact total, but no, that wasn't us. We were paid in full."]);
+    expect(said).toEqual([DISCLOSURE, ASK, "Thanks for letting us know. We won't send anything for that request. Have a good day. Goodbye."]);
+    expect(result.evidence[0]!.answer).toBe("Um... I don't remember the exact total, but no, that wasn't us. We were paid in full.");
+    expect(result.outcome).toBe("not_confirmed");
+  });
+
+  it("a plain yes is taken as the answer", async () => {
+    const { result } = await claimCall(["Yes."]);
+    expect(result.evidence[0]!.answer).toBe("Yes.");
   });
 });

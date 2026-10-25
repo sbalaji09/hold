@@ -13,6 +13,7 @@ import {
 } from "../../../shared/contract.js";
 import type { SupplierSearch } from "../../../shared/search.js";
 import { log } from "../audio/log.js";
+import { soundsUnfinished } from "../audio/phoneTransport.js";
 import type { OutboundCallDeps, PrepareOutboundDeps, PreparedCall, PreparedQuestion } from "./index.js";
 import { MODELS, type LLM } from "./llm.js";
 import {
@@ -89,6 +90,12 @@ export async function prepareOutboundCall(deps: PrepareOutboundDeps): Promise<Pr
   const L = linesFor(company, language);
   const supplierName = profile?.name ?? "your company";
 
+  // A call back about a request phoned in to the company's line: ask about that claim and nothing
+  // else. The number on file is who we trust; history questions about invoices would only confuse.
+  if (request.claim) {
+    return { supplierName, questions: [{ ask: L.claimQuestion(supplierName, request.claim), expected: CLAIM_EXPECTED, source: billSource(request.bill_id), kind: "claim" }], company, language };
+  }
+
   // A call back for the approver's own question: ask that and nothing else.
   if (request.follow_up) {
     const { ask, source } = request.follow_up;
@@ -96,20 +103,19 @@ export async function prepareOutboundCall(deps: PrepareOutboundDeps): Promise<Pr
   }
 
   const candidates = await gatherCandidates(deps);
-  // A call back about a caller's money request asks about that claim instead of the bank question.
-  const claim = request.claim;
-  const wantBank = !claim && mentionsBankChange(request.reason);
-  const historyLimit = wantBank || claim ? 2 : 3;
+  const wantBank = mentionsBankChange(request.reason);
+  const historyLimit = wantBank ? 2 : 3;
 
   let history = await claudeQuestions(llm, candidates, historyLimit, request.call_id, company, language);
   if (history.length === 0) history = templateQuestions(candidates, historyLimit, L, language);
 
   const questions = history.slice(0, historyLimit);
   if (wantBank) questions.push(bankQuestion(candidates, request.bill_id, L));
-  if (claim) questions.push({ ask: L.claimQuestion(supplierName, claim), expected: CLAIM_EXPECTED, source: billSource(request.bill_id), kind: "claim" });
   if (questions.length === 0) questions.push(noHistoryQuestion(request.bill_id, L));
   return { supplierName, questions, company, language };
 }
+
+const joinHeard = (a: Utterance, b: Utterance): Utterance => ({ text: `${a.text.trim()} ${b.text.trim()}`, start_s: a.start_s, end_s: b.end_s });
 
 /** The claim question is a yes/no about their own request, like the bank question. */
 export const CLAIM_EXPECTED = "Yes: they clearly confirm that they themselves made this request.";
@@ -388,8 +394,8 @@ async function converse(
     return;
   }
 
-  const n = prepared.questions.length;
-  const introSaid = await session.say(prepared.questions.some((q) => q.kind === "claim") ? L.introRequest(n) : L.intro(prepared.supplierName, n));
+  // The claim question explains itself ("We just got a call from someone…"), so it needs no intro.
+  const introSaid = prepared.questions.some((q) => q.kind === "claim") ? null : await session.say(L.intro(prepared.supplierName, prepared.questions.length));
   if (introSaid?.interrupted) {
     const aside = await session.hear(OUTBOUND_LIMITS.asideTimeoutMs);
     const stop = aside ? await endIfAsked(session, aside.text, L) : null;
@@ -426,7 +432,8 @@ async function converse(
   }
   // Every question got its turn; a hangup during the goodbye doesn't undo that.
   convo.completed = true;
-  await session.say(convo.answers.some((a) => a.deferred) ? L.closingReview : L.closing);
+  const claimDenied = convo.answers.some((a) => a.question.kind === "claim" && answerDenies(a.text));
+  await session.say(claimDenied ? L.closingClaimDenied : convo.answers.some((a) => a.deferred) ? L.closingReview : L.closing);
 }
 
 /**
@@ -482,8 +489,9 @@ async function askOne(
 
   let reprompted = false;
   let timeoutMs: number = OUTBOUND_LIMITS.answerTimeoutMs;
+  let thinking: Utterance | null = null; // "Um…" or "It was", waiting for the rest
   for (let turn = 0; turn < OUTBOUND_LIMITS.turnsPerQuestion; turn++) {
-    const u = await session.hear(timeoutMs);
+    let u = await session.hear(timeoutMs);
     timeoutMs = OUTBOUND_LIMITS.answerTimeoutMs;
     if (session.over) return "ended";
     if (!u) {
@@ -495,9 +503,17 @@ async function askOne(
       await session.say(L.sorryRepeat(question.ask));
       continue;
     }
+    // Someone thinking aloud ("Um…", "It was") hasn't answered: say nothing so hold never talks over
+    // them, give them time, and join it to what they say next.
+    if (soundsUnfinished(u.text) && u.text.trim().split(/\s+/).length <= 4) {
+      thinking = thinking ? joinHeard(thinking, u) : u;
+      timeoutMs = OUTBOUND_LIMITS.waitTimeoutMs;
+      continue;
+    }
+    if (thinking) [u, thinking] = [joinHeard(thinking, u), null];
     // "Yeah" said over a cut-off question, or to "Can you tell me...?", is not the answer.
-    // Only a fully heard yes/no (bank) question takes a bare yes.
-    if (isBackchannel(u.text) && (!heardInFull || question.kind !== "bank_change")) {
+    // Only a fully heard yes/no question (bank, or a phoned-in request) takes a bare yes.
+    if (isBackchannel(u.text) && (!heardInFull || !isYesNo(question))) {
       if (heardInFull) timeoutMs = OUTBOUND_LIMITS.waitTimeoutMs; // "Sure." then they look it up
       else heardInFull = !(await session.say(question.ask))?.interrupted;
       continue;

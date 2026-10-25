@@ -8,11 +8,12 @@ export interface Lines {
   /** "I'm calling to double-check a recent invoice from Stagecraft Rigging Co.": what the call is for. */
   calling: (payee: string) => string;
   intro: (payee: string, questions: number) => string;
-  /** Opening for a call back about a request someone made on the company's line. */
-  introRequest: (questions: number) => string;
+  /** What a call back about a request someone made on the company's line is for. */
   callingRequest: string;
-  /** "Someone called us today saying they were from Stagecraft, asking us to <claim>. Did you make that request?" */
+  /** "We just got a call from someone saying they were from Stagecraft. They asked us to <claim>. Did that come from you?" */
   claimQuestion: (payee: string, claim: string) => string;
+  /** Closing after they say the phoned-in request wasn't theirs. */
+  closingClaimDenied: string;
   acks: string[];
   later: string;
   wrongPerson: string;
@@ -57,9 +58,9 @@ function english(co: Company): Lines {
     disclosure: `Hi, this is an automated assistant calling for ${team}. This call is recorded.`,
     calling,
     intro: (payee, n) => `${calling(payee)} I have ${n === 1 ? "one quick question" : "a couple of quick questions"}.`,
-    introRequest: (n) => `I'm calling to check a request we got on the phone today. I have ${n === 1 ? "one quick question" : "a couple of quick questions"}.`,
     callingRequest: "I'm calling to check a request we got on the phone today.",
-    claimQuestion: (payee, claim) => `Someone called us today saying they were from ${payee}, asking us to ${claim}. Did you make that request?`,
+    claimQuestion: (payee, claim) => `We just got a call from someone saying they were from ${endSentence(payee)} They asked us to ${claim}. Did that come from you?`,
+    closingClaimDenied: "Thanks for letting us know. We won't send anything for that request. Have a good day. Goodbye.",
     acks: ["Thanks.", "Got it, thank you.", "Okay, thanks."],
     later: `No problem, sorry to catch you at a bad time. Someone from ${team} will follow up. Goodbye.`,
     wrongPerson: "Sorry about that, I must have the wrong person. Thanks for your time. Goodbye.",
@@ -95,10 +96,10 @@ function spanish(co: Company): Lines {
     disclosure: `Hola, le llama un asistente automático ${team}. Esta llamada se graba.`,
     calling,
     intro: (payee, n) => `${calling(payee)} Tengo ${n === 1 ? "una pregunta rápida" : "un par de preguntas rápidas"}.`,
-    introRequest: (n) => `Le llamo para confirmar una solicitud que recibimos hoy por teléfono. Tengo ${n === 1 ? "una pregunta rápida" : "un par de preguntas rápidas"}.`,
     callingRequest: "Le llamo para confirmar una solicitud que recibimos hoy por teléfono.",
     // The claim is in English (from the call log), so the Spanish call names it in general words.
-    claimQuestion: (payee) => `Hoy nos llamó alguien diciendo que era de ${payee}, pidiéndonos que enviáramos más dinero. ¿Hizo usted esa solicitud?`,
+    claimQuestion: (payee) => `Acabamos de recibir una llamada de alguien que dijo ser de ${endSentence(payee)} Nos pidió que enviáramos más dinero. ¿Fue usted?`,
+    closingClaimDenied: "Gracias por avisarnos. No enviaremos nada por esa solicitud. Que tenga un buen día. Adiós.",
     acks: ["Gracias.", "Entendido, gracias.", "Muy bien, gracias."],
     later: `No hay problema, disculpe la molestia. Alguien ${team} le dará seguimiento. Adiós.`,
     wrongPerson: "Disculpe, debo tener a la persona equivocada. Gracias por su tiempo. Adiós.",
@@ -133,4 +134,9 @@ export function monthName(isoDate: string, language = "en"): string {
   const d = new Date(isoDate);
   if (Number.isNaN(d.getTime())) return language.startsWith("es") ? "este mes" : "recent";
   return d.toLocaleString(language.startsWith("es") ? "es-US" : "en-US", { month: "long", timeZone: "UTC" });
+}
+
+/** "Stagecraft Rigging Co." stays as is; "Stagecraft" gets a full stop. */
+function endSentence(name: string): string {
+  return /[.!?]$/.test(name) ? name : `${name}.`;
 }

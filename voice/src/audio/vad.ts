@@ -30,8 +30,13 @@ export class EnergyVad {
   noiseFloor = -96;
   /** True between onset and offset. */
   speaking = false;
-  /** ms of loud frames in the current speech run (gaps between words not counted). */
+  /**
+   * How long the current speech run has gone on, from its first sound to its latest loud frame.
+   * Quiet frames between words count, so choppy phone audio isn't undercounted; the silence after
+   * the last word doesn't, so a short "yeah" stays short.
+   */
   speechMs = 0;
+  private sinceOnsetMs = 0;
   /** ms of speech in the current run (before onset) or ms of silence (while speaking). */
   private runMs = 0;
   private gapMs = 0;
@@ -57,7 +62,7 @@ export class EnergyVad {
         this.gapMs = 0;
         if (this.runMs >= this.opts.minSpeechMs) {
           this.speaking = true;
-          this.speechMs = this.runMs;
+          this.speechMs = this.sinceOnsetMs = this.runMs;
           this.runMs = 0;
           return "onset";
         }
@@ -71,9 +76,10 @@ export class EnergyVad {
       return null;
     }
 
+    this.sinceOnsetMs += ms;
     if (loud) {
       this.runMs = 0;
-      this.speechMs += ms;
+      this.speechMs = this.sinceOnsetMs;
       return null;
     }
     this.runMs += ms;
