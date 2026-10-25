@@ -8,6 +8,11 @@ export interface Lines {
   /** "I'm calling to double-check a recent invoice from Stagecraft Rigging Co.": what the call is for. */
   calling: (payee: string) => string;
   intro: (payee: string, questions: number) => string;
+  /** Opening for a call back about a request someone made on the company's line. */
+  introRequest: (questions: number) => string;
+  callingRequest: string;
+  /** "Someone called us today saying they were from Stagecraft, asking us to <claim>. Did you make that request?" */
+  claimQuestion: (payee: string, claim: string) => string;
   acks: string[];
   later: string;
   wrongPerson: string;
@@ -52,6 +57,9 @@ function english(co: Company): Lines {
     disclosure: `Hi, this is an automated assistant calling for ${team}. This call is recorded.`,
     calling,
     intro: (payee, n) => `${calling(payee)} I have ${n === 1 ? "one quick question" : "a couple of quick questions"}.`,
+    introRequest: (n) => `I'm calling to check a request we got on the phone today. I have ${n === 1 ? "one quick question" : "a couple of quick questions"}.`,
+    callingRequest: "I'm calling to check a request we got on the phone today.",
+    claimQuestion: (payee, claim) => `Someone called us today saying they were from ${payee}, asking us to ${claim}. Did you make that request?`,
     acks: ["Thanks.", "Got it, thank you.", "Okay, thanks."],
     later: `No problem, sorry to catch you at a bad time. Someone from ${team} will follow up. Goodbye.`,
     wrongPerson: "Sorry about that, I must have the wrong person. Thanks for your time. Goodbye.",
@@ -87,6 +95,10 @@ function spanish(co: Company): Lines {
     disclosure: `Hola, le llama un asistente automático ${team}. Esta llamada se graba.`,
     calling,
     intro: (payee, n) => `${calling(payee)} Tengo ${n === 1 ? "una pregunta rápida" : "un par de preguntas rápidas"}.`,
+    introRequest: (n) => `Le llamo para confirmar una solicitud que recibimos hoy por teléfono. Tengo ${n === 1 ? "una pregunta rápida" : "un par de preguntas rápidas"}.`,
+    callingRequest: "Le llamo para confirmar una solicitud que recibimos hoy por teléfono.",
+    // The claim is in English (from the call log), so the Spanish call names it in general words.
+    claimQuestion: (payee) => `Hoy nos llamó alguien diciendo que era de ${payee}, pidiéndonos que enviáramos más dinero. ¿Hizo usted esa solicitud?`,
     acks: ["Gracias.", "Entendido, gracias.", "Muy bien, gracias."],
     later: `No hay problema, disculpe la molestia. Alguien ${team} le dará seguimiento. Adiós.`,
     wrongPerson: "Disculpe, debo tener a la persona equivocada. Gracias por su tiempo. Adiós.",

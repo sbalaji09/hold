@@ -7,6 +7,7 @@ export const DEFAULT_RETRY_DELAY_MS = 120_000;
 export const HANDOFF_NO_ANSWER_SUMMARY = "No answer after 2 attempts";
 export const TAKEOVER_BEFORE_CONNECT_SUMMARY = "Taken over by the team before the call connected";
 export const BANK_CHANGE_REASON = "Inbound caller asked to change bank details";
+export const PAYMENT_REQUEST_REASON = "Inbound caller asked us to send money";
 export const UNKNOWN_CALLER = "Unknown caller";
 
 /** Delay before the one retry. Configurable through CALL_RETRY_DELAY_MS. */
@@ -57,11 +58,13 @@ export function followUpCallId(inbound_call_id: string): string {
 }
 
 /**
- * Follow-up check call for an inbound bank-change request.
+ * Follow-up check call for an inbound bank-change or money request. A money request carries what
+ * the caller asked, so the call asks the supplier about that claim.
  * Always dials the supplier's phone_on_file, never the caller's number.
  */
-export function followUpRequest(record: InboundCallRecord, supplier: SupplierProfile, why = BANK_CHANGE_REASON): CallRequest {
-  const reason = [why];
+export function followUpRequest(record: InboundCallRecord, supplier: SupplierProfile, why?: string): CallRequest {
+  const claim = !record.asked_bank_change ? record.payment_claim : undefined;
+  const reason = [why ?? (claim ? PAYMENT_REQUEST_REASON : BANK_CHANGE_REASON)];
   if (record.claimed_identity && record.claimed_identity !== UNKNOWN_CALLER) {
     reason.push(`Caller said they were ${record.claimed_identity}`);
   }
@@ -76,6 +79,7 @@ export function followUpRequest(record: InboundCallRecord, supplier: SupplierPro
     status: "queued",
     mode: "live",
     attempt: 0,
+    ...(claim ? { claim } : {}),
   };
 }
 

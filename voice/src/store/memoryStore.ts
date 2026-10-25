@@ -300,7 +300,7 @@ export class MemoryStore implements VoiceStore {
 
     let triggered_call_id: string | undefined;
     const supplier = record.claimed_supplier_id ? this.suppliers.get(record.claimed_supplier_id) : undefined;
-    if (record.asked_bank_change && supplier) {
+    if ((record.asked_bank_change || record.payment_claim) && supplier) {
       const req = followUpRequest(record, supplier);
       if (!this.requests.has(req.call_id)) this.addRequest(req);
       triggered_call_id = req.call_id;

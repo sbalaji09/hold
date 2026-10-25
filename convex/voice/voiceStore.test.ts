@@ -335,6 +335,25 @@ describe.each([
     expect(await h.store.finishInboundCall(record)).toEqual({ triggered_call_id });
   });
 
+  test("an inbound request to send money calls back the number on file with the claim to ask about", async () => {
+    await h.addSupplier();
+    await h.store.startInboundCall("in_CA3", "+19995550000");
+    const claim = "send the difference because the deposit was reduced by a processing fee";
+    const { triggered_call_id } = await h.store.finishInboundCall({
+      call_id: "in_CA3",
+      caller_number: "+19995550000",
+      claimed_identity: "Stagecraft",
+      claimed_supplier_id: "sup_stage",
+      requested: "Send the rest of the deposit",
+      asked_bank_change: false,
+      payment_claim: claim,
+      transcript: [],
+    });
+    expect(triggered_call_id).toBe(followUpCallId("in_CA3"));
+    const req = await h.request(triggered_call_id!);
+    expect(req).toMatchObject({ to_number: STAGE.phone_on_file, claim, reason: ["Inbound caller asked us to send money", "Caller said they were Stagecraft", "Caller asked: Send the rest of the deposit"] });
+  });
+
   test("inbound call without a resolvable supplier creates no follow-up", async () => {
     await h.store.startInboundCall("in_CA2", "+19995550000");
     const res = await h.store.finishInboundCall({

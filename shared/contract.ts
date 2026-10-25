@@ -33,6 +33,12 @@ export interface CallRequest {
   attempt: number; // dial attempts made so far
   /** A call back to ask one question the approver wrote while reviewing an answer. */
   follow_up?: FollowUp;
+  /**
+   * A call back after someone on the company's line asked it to send money: what they asked, as a
+   * phrase finishing "asking us to ..." ("send the difference because the deposit was reduced by a
+   * processing fee"). The call asks the supplier whether they made that request.
+   */
+  claim?: string;
 }
 
 /**
@@ -190,6 +196,8 @@ export interface InboundCallRecord {
   claimed_supplier_id?: string;
   requested: string; // what they asked for, plain words
   asked_bank_change: boolean;
+  /** They asked the company to send money; see CallRequest.claim. */
+  payment_claim?: string;
   transcript: { speaker: Speaker; text: string; ts: number }[];
   triggered_call_id?: string; // callRequests row created to the number on file
 }

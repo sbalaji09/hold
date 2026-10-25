@@ -7,6 +7,8 @@ import {
   isBankChangeRequest,
   isBankDenial,
   isCallbackSwap,
+  isPaymentRequest,
+  answerDenies,
   leaksSomething,
   looksLikeInjection,
   matchSupplier,
@@ -193,4 +195,24 @@ describe("isCallbackSwap", () => {
     "Just checking you got our invoice.",
     "Is this the right number for accounts?",
   ])("leaves ordinary requests alone: %j", (text) => expect(isCallbackSwap(text)).toBe(false));
+});
+
+describe("money requests on the line", () => {
+  const SID = 'Hi, this is Stagecraft calling Fogline. We noticed that you sent the entire deposit, but the payment was reduced by a processing fee. Please send the amount to cover the difference.';
+
+  it("a fee shortfall is a money request, not a bank change", () => {
+    expect(isPaymentRequest(SID)).toBe(true);
+    expect(isBankChangeRequest(SID)).toBe(false); // "the difference" isn't "a different account"
+    expect(isPaymentRequest("You short-paid us, we need the rest.")).toBe(true);
+    expect(isPaymentRequest("Can you send more information about the festival?")).toBe(false);
+    expect(isPaymentRequest("When will you pay the invoice?")).toBe(false);
+  });
+
+  it("an answer after 'let me check' is an answer, not a wait", () => {
+    expect(classifyTurn("Let me check our records. No, we did pay the full amount.")).toBe("answer");
+    expect(classifyTurn("Hold on, let me check.")).toBe("wait");
+    expect(classifyTurn("Give me just a minute. I can do that for you.")).toBe("wait");
+    expect(answerDenies("Let me check our records. No, we did pay the full amount. Please reject this additional amount.")).toBe(true);
+    expect(answerDenies("Yes, that was us. No problem.")).toBe(false);
+  });
 });

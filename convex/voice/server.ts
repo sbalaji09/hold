@@ -66,6 +66,7 @@ export function toCallRequest(d: RequestRow): CallRequest {
     attempt: d.attempt ?? 0,
   };
   if (d.mode) r.mode = d.mode;
+  if (d.claim) r.claim = d.claim;
   if (d.follow_up) r.follow_up = { ...d.follow_up, source: toSource(d.follow_up.source), carried: d.follow_up.carried.map(toEvidence) };
   return r;
 }
@@ -187,6 +188,7 @@ const inboundRecord = v.object({
   claimed_supplier_id: v.optional(v.string()),
   requested: v.string(),
   asked_bank_change: v.boolean(),
+  payment_claim: v.optional(v.string()),
   transcript: v.array(v.object({ speaker: anySpeaker, text: v.string(), ts: v.number() })),
   triggered_call_id: v.optional(v.string()),
 });
@@ -517,7 +519,7 @@ export const finishInboundCall = mutation({
     const supplier = rec.claimed_supplier_id
       ? await records.getSupplierProfile(ctx, rec.claimed_supplier_id)
       : null;
-    if (rec.asked_bank_change && supplier) {
+    if ((rec.asked_bank_change || rec.payment_claim) && supplier) {
       const req = followUpRequest(rec, supplier);
       if (!(await findRequest(ctx, req.call_id))) await ctx.db.insert("callRequests", req);
       triggered_call_id = req.call_id;
@@ -528,6 +530,7 @@ export const finishInboundCall = mutation({
       claimed_supplier_id: rec.claimed_supplier_id,
       requested: rec.requested,
       asked_bank_change: rec.asked_bank_change,
+      payment_claim: rec.payment_claim,
       transcript: rec.transcript.map((l) => ({
         speaker: l.speaker === "callback" ? ("callback" as const) : ("caller" as const),
         text: l.text,

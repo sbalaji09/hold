@@ -37,6 +37,11 @@ export function isBankAnswerDenial(answer: string): boolean {
   return isBankDenial(answer) || /^\W*(?:no|nope|nah|negative)\b(?!\s+(?:problem|worries|hay problema))/i.test(answer);
 }
 
+/** A yes/no answer that says no in any sentence: "Let me check our records. No, we paid in full." */
+export function answerDenies(answer: string): boolean {
+  return answer.split(/(?<=[.?!])\s+/).some(isBankAnswerDenial);
+}
+
 const INJECTION =
   /\b(?:ignore|disregard|forget|override)\b[^.?!]{0,30}\b(?:instructions?|rules?|prompts?|guidelines|previous|above|everything)\b|\byou are now\b|\bnew instructions\b|\bsystem prompt\b|\bdeveloper mode\b|\bjailbreak\b|\bpretend (?:to be|you)\b|\bact as\b|\bmark (?:this|it|me|the call)\b[^.?!]{0,20}\b(?:confirmed|verified|approved|correct)\b|\b(?:as an ai|you'?re an ai|language model)\b|\bignor(?:a|e|ar)\b[^.?!]{0,30}\binstrucciones\b|\bnuevas instrucciones\b|\bahora eres\b|\bmarca(?:lo|la)? como (?:confirmad|verificad|aprobad)\w*/i;
 
@@ -51,11 +56,21 @@ export function mentionsBankChange(reasons: string[]): boolean {
 }
 
 const BANK_WORDS = /\b(?:bank\w*|account\w*|routing|iban|swift|sort code|wire|ach|payment (?:details|info\w*)|remit\w*|deposit)\b/i;
-const CHANGE_WORDS = /\b(?:chang|updat|new|switch|moved?|moving|differ|replac|correct|redirect|send (?:it|payment|the payment) to|pay (?:us|into|to))\w*/i;
+// "different" (account), not "difference": "send the difference" asks for money, not a new account.
+const CHANGE_WORDS = /\b(?:chang|updat|new|switch|moved?|moving|different|replac|correct|redirect|send (?:it|payment|the payment) to|pay (?:us|into|to))\w*/i;
 
 /** Caller is asking to change where Fogline pays them. */
 export function isBankChangeRequest(text: string): boolean {
   return BANK_WORDS.test(text) && CHANGE_WORDS.test(text);
+}
+
+const MONEY_ASK =
+  /\b(?:send|pay|wire|transfer|cover|make up|top up|refund|reimburse)\b[^.?!]{0,40}\b(?:difference|shortfall|balance|the rest|remainder|remaining|missing|extra|more money|the fee|fees|amount|top-up|what'?s left)\b/i;
+const SHORT_PAID = /\b(?:short(?:-| )?paid|underpaid|under-paid|paid short|reduced by|deducted|processing fee|transaction fee|bank fee|wire fee|didn'?t (?:get|receive) the (?:full|whole|entire))\b/i;
+
+/** Caller asks the company to send money: a shortfall, a fee, "the difference", a top-up. */
+export function isPaymentRequest(text: string): boolean {
+  return MONEY_ASK.test(text) || (SHORT_PAID.test(text) && /\b(?:send|pay|cover|owe|need|transfer)\b/i.test(text));
 }
 
 const READBACK =
@@ -93,6 +108,17 @@ export function isBackchannel(text: string): boolean {
   return /^\W*(?:(?:yeah|yes|yep|yup|ok(?:ay)?|sure|right|alright|all right|mm-?hm+|uh-?huh|go ahead|of course|s[íi]|claro|vale|aj[áa])\W*)+$/i.test(text);
 }
 
+/**
+ * "Hold on, let me check." is a wait; "Let me check our records. No, we paid in full." already
+ * answers after the wait phrase, so it isn't. "Give me a minute. I can do that for you." still waits.
+ */
+function isWait(t: string, phrase: RegExp): boolean {
+  const m = phrase.exec(t);
+  if (!m) return false;
+  const after = t.slice(m.index + m[0].length).replace(/^[^.?!]*[.?!]+/, "");
+  return !/\d|\b(?:no|nope|yes|yep|yeah|never|not|didn'?t|did|it was|that was|correct|s[íi]|nunca)(?![a-zñáéíóú])/i.test(after);
+}
+
 /** Intent of one supplier turn during an outbound check call. "answer" is the default. */
 export type TurnIntent = "later" | "wrong_person" | "who" | "greeting" | "repeat" | "wait" | "clarify" | "answer";
 
@@ -113,9 +139,8 @@ export function classifyTurn(text: string): TurnIntent {
     return "greeting";
   if (/\b(?:repeat (?:that|the question|it)|say (?:that|it) again|come again|what was (?:that|the question)|didn'?t (?:catch|hear) (?:that|you|the question)|one more time)\b/i.test(t) || /^\W*(?:what|huh|sorry|pardon|excuse me)\W*$/i.test(t))
     return "repeat";
-  if (/\b(?:hold on|hang on|one (?:sec|second|moment|minute)|give me (?:just )?a (?:sec|second|moment|minute|little|bit)|let me (?:check|look|pull|find|see))\b/i.test(t))
-    return "wait";
-  if (/\b(?:un momento|un segundo|esp[ée]re(?:me)?|d[ée]jeme (?:ver|revisar|buscar|checar))/i.test(t)) return "wait";
+  if (isWait(t, /\b(?:hold on|hang on|one (?:sec|second|moment|minute)|give me (?:just )?a (?:sec|second|moment|minute|little|bit)|let me (?:check|look|pull|find|see))\b/i)) return "wait";
+  if (isWait(t, /\b(?:un momento|un segundo|esp[ée]re(?:me)?|d[ée]jeme (?:ver|revisar|buscar|checar))/i)) return "wait";
   // A bare "Sí" stays an answer: it may be the yes to the bank question.
   if (/^\W*(?:(?:s[íi]|bueno)\W*)?(?:bueno|al[óo]|hola|d[íi]game|diga)\W*$/i.test(t)) return "greeting";
   if (/\b(?:(?:puede|podr[íi]a) repetir|rep[íi]tame|c[óo]mo dijo|no (?:le )?escuch[ée]|otra vez)(?![a-zñáéíóú])/i.test(t) ||/^\W*(?:perd[óo]n|mande|c[óo]mo|qu[ée])\W*$/i.test(t))

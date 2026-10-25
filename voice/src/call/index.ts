@@ -42,8 +42,9 @@ export interface PreparedQuestion {
   /**
    * "bank_change" marks the fixed "Did you recently change your bank account?" question.
    * "follow_up" is a question the approver wrote: only a person judges its answer.
+   * "claim" asks whether they made the money request someone made in their name on the company's line.
    */
-  kind?: "history" | "bank_change" | "follow_up";
+  kind?: "history" | "bank_change" | "follow_up" | "claim";
 }
 
 export interface PreparedCall {

@@ -213,6 +213,8 @@ export default defineSchema({
     recording_storage_id: v.optional(v.id("_storage")),
     // A call back to ask the approver's own question after reviewing an answer (contract FollowUp).
     follow_up: v.optional(v.object({ ask: v.string(), source: callEventSource, carried: v.array(callEvidence) })),
+    // A call back about a caller's money request: what they asked; the call asks the supplier about it.
+    claim: v.optional(v.string()),
   })
     .index("by_key", ["call_id"])
     .index("by_bill", ["bill_id"])
@@ -320,6 +322,8 @@ export default defineSchema({
     status: v.optional(v.union(v.literal("in_progress"), v.literal("ended"))),
     claimed_supplier_id: v.optional(v.string()),
     asked_bank_change: v.optional(v.boolean()),
+    // They asked the company to send money: what they asked (contract InboundCallRecord.payment_claim).
+    payment_claim: v.optional(v.string()),
     endedAt: v.optional(v.string()),
     // Twilio's recording of the call, copied into Convex storage once it finishes.
     recording_storage_id: v.optional(v.id("_storage")),
